@@ -12,6 +12,7 @@ test("radii are concentric", () => {
   expect(radius.card).toBe(t.radius.panel - 10);
   expect(radius.dock).toBe(Math.round(t.size.dock.icon * t.iconCorner) + t.size.dock.padding);
   expect(radius.module).toBe(t.size.controlCenter.unit / 2);
+  expect(radius.controlCenter).toBe(t.radius.module + t.size.controlCenter.padding);
 });
 
 test("every size and gap sits on the 2px grid", () => {

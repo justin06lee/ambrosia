@@ -131,6 +131,21 @@ for (const slider of document.querySelectorAll(".slider")) {
   slider.addEventListener("pointerup", () => (slider.onpointermove = null));
 }
 
+// Control center blur: a rounded rect with a soft edge, drawn at the real size
+// so the corners stay round (gradient masks can only make square corners).
+{
+  const blur = document.querySelector(".cc-blur");
+  const draw = () => {
+    const { width: w, height: h } = blur.getBoundingClientRect();
+    const style = getComputedStyle(blur);
+    const f = parseFloat(style.getPropertyValue("--feather"));
+    const r = parseFloat(getComputedStyle(root).getPropertyValue("--amb-radius-control-center"));
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><filter id="s" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${f / 2}"/></filter><rect x="${f}" y="${f}" width="${w - 2 * f}" height="${h - 2 * f}" rx="${r}" filter="url(#s)"/></svg>`;
+    blur.style.setProperty("--cc-mask", `url("data:image/svg+xml,${encodeURIComponent(svg)}")`);
+  };
+  new ResizeObserver(draw).observe(blur);
+}
+
 // Dock: one tooltip that follows the pointer from icon to icon.
 const dock = document.querySelector(".dock");
 const tip = document.getElementById("dock-tip");
