@@ -63,7 +63,6 @@ items, 16 between groups, 24 around page content.
 | Surface | Radius | Note |
 |---|---|---|
 | Window, sheet | 16 | |
-| Control center | 44 | module 30 + padding 14 |
 | Control center modules | 30 | capsules: half the 60px unit |
 | Shell panels (notifications, launcher) | 22 | |
 | Panel tiles, cards | 12 | panel 22 − padding 10 |
@@ -172,7 +171,8 @@ Rules:
 - **Menus snap.** Menus, context menus and submenus appear instantly, with no
   entrance animation, and fade out over 120 ms when dismissed. Anything opened
   with a click or a key to be read and acted on at once should be there
-  immediately. Panels such as the control center still spring in.
+  immediately. Panels fade in place; the control center's sequence is under
+  Shell anatomy.
 - **Gestures are 1:1.** While a finger is down, the UI follows it exactly.
   On release, the `gesture` spring takes over from the current velocity.
 - **Interruptible.** A new target retargets the running spring. Never queue an
@@ -232,9 +232,10 @@ Menus show shortcuts as glyphs in the fixed order ⌃ ⌥ ⇧ ⌘, then the key
   on the bouncy spring, and one tooltip with a small caret follows the pointer
   from icon to icon. Magnification is an opt-in setting.
 - **Control center:** a grid of 4 columns of 60px units with 12px gaps and
-  14px padding. The panel itself has no fill, rim or shadow. It is only a
-  backdrop blur at the `regular` radius, with no tint and no saturation boost,
-  radius 44, so the modules float on the blurred desktop. Everything in it is a module: a capsule of
+  14px padding. There is no panel. The modules float on a backdrop blur at the
+  `regular` radius, with no tint, no saturation boost and no edge: the blur
+  reaches past the grid and feathers away to nothing over 32px, so there's no
+  boundary to see. Everything in it is a module: a capsule of
   `thin` glass with a 1px rim of light all the way round.
   A 1×1 module is a circle, 2×1 a pill, 4×1 a bar, and 2×2 a tile (radius 30).
   Pills hold a 36px toggle circle, a `headline` label and a `caption` status.
@@ -243,6 +244,13 @@ Menus show shortcuts as glyphs in the fixed order ⌃ ⌥ ⇧ ⌘, then the key
   fills the same way. Sliders sit in bars under a `headline` label: a 6px
   track with no knob, filled from the left, with a small glyph at each end.
   An outlined "Edit Controls" capsule sits under the grid.
+
+  Opening and closing are fades, not springs, timed in
+  `choreography.controlCenter` (measured frame by frame from the reference).
+  On open, the blur arrives first (60 ms), then every module fades in place
+  together over 100 ms, with no scale and no slide, and on-state fills light up
+  70 ms later over 160 ms. On close, the on-state fills drop first and
+  everything fades out over 200 ms, decelerating.
 - **Window controls:** three 12px circles (close, minimize, zoom), 8px apart,
   20px from the left edge, centered vertically in the title bar or toolbar.
   Glyphs only appear while hovering the group. Inactive windows show them as

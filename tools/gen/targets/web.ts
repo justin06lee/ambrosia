@@ -45,6 +45,10 @@ function staticVars(r: Resolved): [string, string][] {
   }
   const curve = `cubic-bezier(${t.fadeCurve.join(", ")})`;
   for (const [name, ms] of Object.entries(t.fade)) v.push([`fade-${name}`, `${ms}ms ${curve}`]);
+  v.push(["fade-curve", curve]);
+  for (const [sequence, steps] of Object.entries(t.choreography)) {
+    for (const [step, ms] of Object.entries(steps)) v.push([`choreo-${kebab(sequence)}-${kebab(step)}`, `${ms}ms`]);
+  }
   for (const [name, c] of Object.entries(r.windowControls)) v.push([`control-${name}`, toCss(c)]);
   return v;
 }

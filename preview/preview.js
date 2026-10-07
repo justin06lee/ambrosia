@@ -71,7 +71,13 @@ for (const button of document.querySelectorAll("[data-popup-toggle]")) {
     closeAll(popup);
     const open = popup.classList.toggle("open");
     button.classList.toggle("active", open);
-    if (popup.id === "cc") notification.classList.toggle("away", open);
+    if (popup.id === "cc") {
+      notification.classList.toggle("away", open);
+      // While opening, on-state fills light up a beat after the modules.
+      popup.classList.toggle("opening", open);
+      clearTimeout(popup.openingTimer);
+      if (open) popup.openingTimer = setTimeout(() => popup.classList.remove("opening"), 400);
+    }
   });
 }
 document.addEventListener("click", (e) => {
