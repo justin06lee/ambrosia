@@ -12,7 +12,14 @@ the library changes.
 
 ## design-preview-desktop — the design preview desktop
 HTML mock of the whole ambrosia desktop (menu bar, dock, Files + terminal windows, notification, control center, View menu), styled only from dist/web/tokens.css — the visual reference the Linux shell must match. Run `make build` first; D/A keys or ?theme=&accent=&open= switch state.
-Its files: preview/index.html, preview/preview.css, preview/preview.js
+Its files: preview/index.html
 Reaches into: dist/web/tokens.css, assets/wallpapers/nectar-day.svg, assets/wallpapers/nectar-night.svg
 Tags: desktop, preview, glass, dock, menu bar, control center
 Screenshot (read it if you need to see it): /Users/huiyunlee/.config/ruri/uploads/c96b837f-b878-48d3-b290-23b45a36c12c-mcp-bridge-blob-1791333821291-68paem.png
+
+## design-review-site — the design review site
+Review site for the design: one section per DESIGN.md chapter and DECISIONS.md entry, with live examples built from the real tokens, a verdict control and a notes thread per section that saves to design/review.json (`bun run review`, port 4747). Static copy in dist/site keeps notes in localStorage instead.
+Its files: site/index.html, site/main.ts, site/specimens.ts, site/content.ts, site/review.ts, site/dom.ts, site/site.css, site/server.ts, site/build.ts
+Reaches into: dist/web/tokens.css, preview/glass.css, preview/index.html, design/DESIGN.md, design/DECISIONS.md, design/review.json
+Tags: site, review, docs, glass, specimens
+Screenshot (read it if you need to see it): /Users/huiyunlee/.config/ruri/uploads/9696513f-6d94-44fb-a522-ec1136e186b8-mcp-bridge-blob-1791334760389-1vai1t.png

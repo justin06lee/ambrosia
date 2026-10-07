@@ -1,4 +1,109 @@
 {
-  "description": "Ambrosia is a planned macOS-feel Linux desktop/distro on Arch aiming for smooth glassy minimal UI, currently design discussion only with empty repo.",
-  "features": []
+  "description": "Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one design authority, one token file, and a generator theming every toolkit identically. Currently in foundation phase: design system, theme generator, and browser preview exist; shell, compositor effects, and distro do not.",
+  "features": [
+    "Single OKLCH token file drives every toolkit theme identically",
+    "Generates GTK4, GTK3 light/dark, KDE colors, and QML shell theme",
+    "Generates fontconfig, FreeType env, web CSS, and resolved JSON",
+    "Gamut-maps colors to sRGB with contrast-derived accent variants",
+    "Solves response/damping springs into constants and easing curves",
+    "Validates contrast, concentric radii, and spacing grid via tests",
+    "Browser mock desktop preview styled only from generated tokens",
+    "Preview toggles dark mode and cycles accents via keys/URL",
+    "Installs themes per-user on Linux preserving prior configs",
+    "Roadmap toward KWin/Quickshell shell, effects, and archiso image"
+  ],
+  "layers": [
+    {
+      "name": "Preview Desktop",
+      "what": "Static HTML/JS mock desktop (draggable windows, popups, clock) styled only from dist/web/tokens.css",
+      "slug": "preview",
+      "paths": [
+        "preview/",
+        "assets/"
+      ]
+    },
+    {
+      "name": "Design Tokens",
+      "what": "TypeScript single source of truth: type scale, 4px grid, radii, OKLCH colors, glass, shadows, springs",
+      "slug": "design-tokens",
+      "paths": [
+        "design/"
+      ]
+    },
+    {
+      "name": "Generator Core",
+      "what": "Bun+TypeScript resolver: OKLCH→sRGB, contrast derivation, spring solver, dist orchestration",
+      "slug": "generator-core",
+      "paths": [
+        "tools/gen/index.ts",
+        "tools/gen/resolve.ts",
+        "tools/gen/color.ts",
+        "tools/gen/spring.ts"
+      ]
+    },
+    {
+      "name": "Theme Targets",
+      "what": "Per-toolkit formatters turning resolved model into GTK, KDE, QML, fontconfig, web output",
+      "slug": "theme-targets",
+      "paths": [
+        "tools/gen/targets/"
+      ]
+    },
+    {
+      "name": "Build and Install",
+      "what": "Bun, TypeScript, Make orchestration: test, build dist/, per-user Linux install with backups",
+      "slug": "build-install",
+      "paths": [
+        "Makefile",
+        "package.json",
+        "tsconfig.json",
+        "tools/install.sh"
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "name": "Token to theme",
+      "steps": [
+        "design/tokens.ts",
+        "tools/gen/resolve.ts",
+        "tools/gen/targets/*",
+        "dist/ (gtk, kde, qml, fontconfig, web, tokens.json)",
+        "tools/install.sh"
+      ]
+    },
+    {
+      "name": "Preview a change",
+      "steps": [
+        "design/tokens.ts",
+        "make build (bun test + bun tools/gen/index.ts)",
+        "dist/web/tokens.css",
+        "preview/index.html + preview/preview.js"
+      ]
+    }
+  ],
+  "layout": [
+    "design/ — DESIGN.md rules and tokens.ts values, the single source of truth",
+    "tools/gen/ — index.ts orchestrator, resolve.ts, color.ts, spring.ts plus tests",
+    "tools/gen/targets/ — gtk.ts, kde.ts, qml.ts, fontconfig.ts, web.ts, shared.ts formatters",
+    "tools/install.sh — per-user Linux theme install with .before-ambrosia backups",
+    "preview/ — index.html + preview.js mock desktop, styled only from dist/web/tokens.css",
+    "assets/ — banner SVG and nectar day/night wallpapers",
+    "dist/ — generated output: gtk-*, kde/, qml/, fontconfig/, web/, tokens.json (never hand-edit)",
+    "Makefile / package.json / tsconfig.json — build, bun+typescript toolchain definition"
+  ],
+  "run": [
+    "make — test, build all themes into dist/, install on Linux",
+    "make build — bun test + bun run build (build-only, all systems)",
+    "open preview/index.html — run the mock desktop (D dark, A accent)",
+    "bun test — check contrast, radii, and spacing-grid spec rules",
+    "bun run build — tsc --noEmit + bun tools/gen/index.ts",
+    "make clean — remove dist/"
+  ],
+  "conventions": [
+    "Never hand-edit dist/ output; change design/tokens.ts and regenerate",
+    "Targets must read the resolved model, never tokens.ts colors directly",
+    "make requires bun; on non-Linux it builds into dist/ only"
+  ],
+  "builtAt": "43429bc"
 }
