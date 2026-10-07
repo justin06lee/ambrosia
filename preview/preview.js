@@ -78,6 +78,25 @@ document.addEventListener("click", (e) => {
   if (!e.target.closest("[data-popup]")) closeAll();
 });
 notification.addEventListener("click", () => notification.classList.add("away"));
+// Choosing a menu item closes the menu, as menus do.
+for (const item of document.querySelectorAll(".menu-item:not(.disabled)")) item.addEventListener("click", () => closeAll());
+
+// Right-click a file: select it and snap a context menu open at the pointer.
+const contextMenu = document.getElementById("context-menu");
+const items = document.querySelectorAll(".files .item");
+const select = (item) => items.forEach((i) => i.classList.toggle("selected", i === item));
+for (const item of items) item.addEventListener("click", () => select(item));
+document.addEventListener("contextmenu", (e) => {
+  const item = e.target.closest(".files .item");
+  if (!item) return;
+  e.preventDefault();
+  closeAll();
+  select(item);
+  contextMenu.classList.add("open");
+  const { width, height } = contextMenu.getBoundingClientRect();
+  contextMenu.style.left = `${Math.min(e.clientX, innerWidth - width - 6)}px`;
+  contextMenu.style.top = `${Math.min(e.clientY, innerHeight - height - 6)}px`;
+});
 for (const p of params.getAll("open")) document.querySelector(`[data-popup-toggle="${p}"]`)?.click();
 
 // Control center ------------------------------------------------------------

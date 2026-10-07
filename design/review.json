@@ -174,6 +174,11 @@
           "author": "claude",
           "text": "Rebuilt the control center and the dock in the style of your references, with our own icons and controls.\n\n**Control center:** every control is its own capsule module on a 4-column grid of 60px units (pills, circles, a 2\u00d72 now-playing tile, and full-width bars for Display, Sound and Accent). Each module has a rim of light all the way round. Toggles that are on are solid circles: white with an accent glyph in dark mode, accent with a white glyph in light mode. Sliders are thin and knobless, and there's an Edit Controls pill at the bottom.\n\n**Dock:** more padding and spacing (16px), radius 28, a full rim of light, glassy rims on the icons, badges, full-height separators, a Downloads stack, and one tooltip with a caret that follows the pointer.\n\nThe numbers are in tokens.ts, so the QML shell gets the same values, and the Shape and Shell anatomy chapters describe both.",
           "at": "2026-10-07T02:13:00.000Z"
+        },
+        {
+          "author": "claude",
+          "text": "Two follow-ups:\n\n- **The control center panel is now only blur**: no fill, no rim, no shadow and no saturation boost. The modules float on the blurred desktop and carry the glass themselves (`thin` tint and a rim of light).\n- **Menus snap.** Menus, context menus and submenus appear instantly and fade out over 120 ms when dismissed. Panels like the control center still spring in. This is a new rule in the Motion chapter. The preview also has a right-click menu on files now.",
+          "at": "2026-10-07T02:26:31.000Z"
         }
       ],
       "verdict": "discuss"

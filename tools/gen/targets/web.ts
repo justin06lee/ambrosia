@@ -35,7 +35,7 @@ function staticVars(r: Resolved): [string, string][] {
     else for (const [k, px] of Object.entries(metrics)) v.push([`size-${kebab(group)}-${kebab(k)}`, COUNTS.has(k) ? `${px}` : `${px}px`]);
   }
   for (const [name, m] of Object.entries(t.material)) {
-    v.push([`material-${name}-filter`, `blur(${m.blur}px) saturate(${m.saturate})`]);
+    v.push([`material-${name}-filter`, `blur(${m.blur}px) saturate(${m.saturate})`], [`material-${name}-blur`, `${m.blur}px`]);
   }
   v.push(["glass-noise", `${t.glass.noise}`]);
   for (const [name, s] of Object.entries(r.springs)) {

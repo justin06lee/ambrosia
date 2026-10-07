@@ -36,7 +36,8 @@ open preview/index.html    # the mock desktop on its own (xdg-open on Linux)
 current user. Any config file ambrosia didn't write is kept beside it as
 `<name>.before-ambrosia`. On other systems it only builds.
 
-In the preview, **D** toggles dark mode and **A** cycles the accent. You can
+In the preview, **D** toggles dark mode, **A** cycles the accent, and
+right-clicking a file opens its context menu. You can
 also set the starting state in the URL: `?theme=dark&accent=honey&open=cc`
 (the `open` value can be `cc` for the control center or `view-menu`).
 

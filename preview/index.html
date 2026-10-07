@@ -89,7 +89,7 @@
   </header>
 
   <!-- View menu -->
-  <div class="menu glass thick popup" id="view-menu" data-popup>
+  <div class="menu glass thick popup snap" id="view-menu" data-popup>
     <div class="menu-item checked"><svg class="i check"><use href="#i-check"/></svg>as Icons<kbd>⌘1</kbd></div>
     <div class="menu-item">as List<kbd>⌘2</kbd></div>
     <div class="menu-item">as Columns<kbd>⌘3</kbd></div>
@@ -102,6 +102,21 @@
     <div class="menu-item disabled">Show Tab Bar</div>
     <div class="menu-sep"></div>
     <div class="menu-item">Enter Full Screen<kbd>⌃⌘F</kbd></div>
+  </div>
+
+  <!-- Context menu (right-click a file) -->
+  <div class="menu glass thick popup snap" id="context-menu" data-popup>
+    <div class="menu-item">Open<kbd>⌘O</kbd></div>
+    <div class="menu-item">Open With<span class="sub"><svg class="i"><use href="#i-right"/></svg></span></div>
+    <div class="menu-sep"></div>
+    <div class="menu-item">Get Info<kbd>⌘I</kbd></div>
+    <div class="menu-item">Rename</div>
+    <div class="menu-item">Duplicate<kbd>⌘D</kbd></div>
+    <div class="menu-item">Copy<kbd>⌘C</kbd></div>
+    <div class="menu-sep"></div>
+    <div class="menu-tags"><i style="--tag: var(--amb-red)"></i><i style="--tag: var(--amb-orange)"></i><i style="--tag: var(--amb-yellow)"></i><i style="--tag: var(--amb-green)"></i><i style="--tag: var(--amb-blue)"></i><i style="--tag: var(--amb-purple)"></i><i style="--tag: var(--amb-gray)"></i></div>
+    <div class="menu-sep"></div>
+    <div class="menu-item">Move to Trash<kbd>⌘⌫</kbd></div>
   </div>
 
   <!-- Terminal (inactive) -->
@@ -183,7 +198,7 @@ ambrosia: generated 11 files into dist/
   </div>
 
   <!-- Control center: capsule modules on a 4-column grid -->
-  <div class="cc glass regular popup" id="cc" data-popup>
+  <div class="cc popup" id="cc" data-popup>
     <div class="cc-grid">
       <div class="module pill" style="grid-area: wifi">
         <button class="toggle on" data-toggle aria-label="Wi-Fi"><svg class="i"><use href="#i-wifi"/></svg></button>
