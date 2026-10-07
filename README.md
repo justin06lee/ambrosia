@@ -86,6 +86,7 @@ contrast in both modes, concentric radii, and the spacing grid.
 ## Layout
 
 ```
+CONTEXT.md     where things stand and what's next, for picking the work back up
 design/        DESIGN.md (the rules), DECISIONS.md (the choices), tokens.ts (the values),
                review.json (review verdicts and notes)
 tools/gen/     the generator and its tests
