@@ -116,8 +116,8 @@ Glass is the signature of the system, so it has rules:
 
 | Material | Blur | Saturate | Tint (light / dark) | Used for |
 |---|---|---|---|---|
-| thin | 20 | 1.6 | 38% / 38% | Menu bar, OSDs (volume, brightness) |
-| regular | 28 | 1.8 | 55% / 50% | Dock, sidebars, notifications, control center |
+| thin | 20 | 1.6 | 38% / 38% | Menu bar, OSDs (volume, brightness), control center modules |
+| regular | 28 | 1.8 | 55% / 50% | Dock, sidebars, notifications |
 | thick | 36 | 1.8 | 72% / 68% | Menus, popovers, launcher, anything with dense text |
 | clear | 4 | 1.2 | 12% / 14% | Controls that float over glass or media |
 
@@ -169,6 +169,10 @@ Rules:
 
 - **Exits are quicker than entrances**: use 0.7 × the entrance response.
 - **Opacity-only changes** use fades (120 / 200 / 320 ms, decelerating), not springs.
+- **Menus snap.** Menus, context menus and submenus appear instantly, with no
+  entrance animation, and fade out over 120 ms when dismissed. Anything opened
+  with a click or a key to be read and acted on at once should be there
+  immediately. Panels such as the control center still spring in.
 - **Gestures are 1:1.** While a finger is down, the UI follows it exactly.
   On release, the `gesture` spring takes over from the current velocity.
 - **Interruptible.** A new target retargets the running spring. Never queue an
@@ -228,8 +232,10 @@ Menus show shortcuts as glyphs in the fixed order ⌃ ⌥ ⇧ ⌘, then the key
   on the bouncy spring, and one tooltip with a small caret follows the pointer
   from icon to icon. Magnification is an opt-in setting.
 - **Control center:** a grid of 4 columns of 60px units with 12px gaps and
-  14px padding, in `regular` glass with radius 44. Everything in it is a
-  module: a capsule of `clear` glass with a 1px rim of light all the way round.
+  14px padding. The panel itself has no fill, rim or shadow. It is only a
+  backdrop blur at the `regular` radius, with no tint and no saturation boost,
+  radius 44, so the modules float on the blurred desktop. Everything in it is a module: a capsule of
+  `thin` glass with a 1px rim of light all the way round.
   A 1×1 module is a circle, 2×1 a pill, 4×1 a bar, and 2×2 a tile (radius 30).
   Pills hold a 36px toggle circle, a `headline` label and a `caption` status.
   A toggle that is on is a solid circle: white with an accent glyph in dark
