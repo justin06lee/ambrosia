@@ -9,6 +9,7 @@
     "Validates contrast, concentric radii, and spacing grid via tests",
     "Browser mock desktop preview styled only from generated tokens",
     "Preview toggles dark mode and cycles accents via keys/URL",
+    "Review site renders spec with live specimens and verdict threads",
     "Installs themes per-user on Linux preserving prior configs",
     "Roadmap toward KWin/Quickshell shell, effects, and archiso image"
   ],
@@ -59,6 +60,14 @@
         "tsconfig.json",
         "tools/install.sh"
       ]
+    },
+    {
+      "name": "Review Site",
+      "what": "Design review website with live specimens, verdict threads, review server and static build",
+      "paths": [
+        "site/"
+      ],
+      "slug": "review-site"
     }
   ],
   "flows": [
@@ -80,6 +89,14 @@
         "dist/web/tokens.css",
         "preview/index.html + preview/preview.js"
       ]
+    },
+    {
+      "name": "Review design",
+      "steps": [
+        "design/DESIGN.md + design/DECISIONS.md",
+        "site/ (bun run review on :4747)",
+        "design/review.json verdicts and replies"
+      ]
     }
   ],
   "layout": [
@@ -88,6 +105,7 @@
     "tools/gen/targets/ — gtk.ts, kde.ts, qml.ts, fontconfig.ts, web.ts, shared.ts formatters",
     "tools/install.sh — per-user Linux theme install with .before-ambrosia backups",
     "preview/ — index.html + preview.js mock desktop, styled only from dist/web/tokens.css",
+    "site/ — review site: spec content, live specimens, verdict threads, server + static build",
     "assets/ — banner SVG and nectar day/night wallpapers",
     "dist/ — generated output: gtk-*, kde/, qml/, fontconfig/, web/, tokens.json (never hand-edit)",
     "Makefile / package.json / tsconfig.json — build, bun+typescript toolchain definition"
@@ -105,5 +123,359 @@
     "Targets must read the resolved model, never tokens.ts colors directly",
     "make requires bun; on non-Linux it builds into dist/ only"
   ],
+  "layerSheets": {
+    "preview": {
+      "summary": "Preview Desktop is a static HTML/JS mock macOS-like desktop for visually reviewing generated tokens. It renders draggable/focusable windows, menubar popups, sliders, and a live clock with no build step beyond `make build`. Every color, type, radius, shadow, and motion value comes from dist/web/tokens.css; preview.css holds only mock-desktop layout positions.",
+      "map": [
+        {
+          "name": "Mock desktop shell (wallpaper, menubar, dock, windows)",
+          "files": [
+            "preview/index.html",
+            "preview/preview.css",
+            "preview/preview.js"
+          ]
+        },
+        {
+          "name": "Glass material recipe",
+          "files": [
+            "preview/glass.css",
+            "preview/preview.css"
+          ]
+        },
+        {
+          "name": "Theme and accent switching (D / A keys, URL params)",
+          "files": [
+            "preview/preview.js",
+            "preview/index.html"
+          ]
+        },
+        {
+          "name": "Draggable and focusable windows",
+          "files": [
+            "preview/preview.js",
+            "preview/preview.css"
+          ]
+        },
+        {
+          "name": "Menubar popups / menus",
+          "files": [
+            "preview/preview.js",
+            "preview/index.html"
+          ]
+        },
+        {
+          "name": "Live clock",
+          "files": [
+            "preview/preview.js",
+            "preview/index.html"
+          ]
+        },
+        {
+          "name": "App-icon squircle mask",
+          "files": [
+            "preview/preview.js",
+            "preview/index.html"
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "View updated tokens",
+          "steps": [
+            "Run make build to regenerate dist/web/tokens.css",
+            "Open preview/index.html which links tokens.css + glass.css + preview.css",
+            "preview.js reads ?theme= / ?accent= params and prefers-color-scheme",
+            "Toggle with D (dark mode) and A (accent cycle) to review"
+          ]
+        },
+        {
+          "name": "Window interaction",
+          "steps": [
+            "Click window to focus (preview.js manages z-order / active class)",
+            "Drag via titlebar to reposition (layout literals in preview.css)",
+            "Open menubar popups / sliders to check glass and controls"
+          ]
+        }
+      ],
+      "files": [
+        "preview/index.html — mock desktop markup, SVG icon sprite, stylesheet links (requires dist/web/tokens.css)",
+        "preview/preview.js — theme/accent switching, popups, draggable windows, sliders, clock, squircle mask",
+        "preview/preview.css — mock-desktop layout; all design values via var(--amb-*) / var(--glass-*)",
+        "preview/glass.css — shared glass recipe (tint, blur, rim, edge, specular ring, grain)"
+      ],
+      "rules": [
+        "Never hardcode design values in preview/*.css — use vars from dist/web/tokens.css; only layout positions may be literals.",
+        "Run `make build` first — preview is broken/stale without generated dist/web/tokens.css.",
+        "Do not add build tooling or JS dependencies — static HTML/JS only.",
+        "Keep glass.css shared-safe — it is also used by the review site, so no preview-specific layout in it."
+      ],
+      "edges": [
+        "Design Tokens via dist/web/tokens.css — sole source of colors, type, radii, shadows, springs; preview breaks without a build",
+        "Build and Install — `make build` generates dist/web/tokens.css that preview links"
+      ]
+    },
+    "design-tokens": {
+      "summary": "Single-file source of truth for ambrosia's look and motion, exporting type scale, 4px spacing, radii, OKLCH colors, glass/materials, shadows, and springs. All dist themes are generated from it via tools/gen, so this file is edited instead of generated output. Newcomer must grasp: colors are OKLCH strings for perceptually even lightness and everything is light/dark Mode pairs.",
+      "map": [
+        {
+          "name": "Type scale and fonts",
+          "files": [
+            "design/tokens.ts"
+          ]
+        },
+        {
+          "name": "Spacing grid (4px)",
+          "files": [
+            "design/tokens.ts"
+          ]
+        },
+        {
+          "name": "Radii and icon corners",
+          "files": [
+            "design/tokens.ts"
+          ]
+        },
+        {
+          "name": "Light/dark color pairs",
+          "files": [
+            "design/tokens.ts"
+          ]
+        },
+        {
+          "name": "Palette and accents",
+          "files": [
+            "design/tokens.ts"
+          ]
+        },
+        {
+          "name": "Status and window-control colors",
+          "files": [
+            "design/tokens.ts"
+          ]
+        },
+        {
+          "name": "Glass and materials",
+          "files": [
+            "design/tokens.ts"
+          ]
+        },
+        {
+          "name": "Shadows",
+          "files": [
+            "design/tokens.ts"
+          ]
+        },
+        {
+          "name": "Springs and motion",
+          "files": [
+            "design/tokens.ts"
+          ]
+        }
+      ],
+      "flows": [],
+      "files": [
+        "design/tokens.ts — the single source of truth: font/type/tracking, space, radius, OKLCH color pairs, glass, shadow, springs"
+      ],
+      "rules": [
+        "Never hand-edit generated output in dist/; change design/tokens.ts and regenerate.",
+        "Keep colors as OKLCH strings (oklch(L C H) or with / A) so generator can convert and gamut-map to sRGB.",
+        "Provide both light and dark values via Mode/Pair for mode-dependent tokens.",
+        "See DESIGN.md for reasoning behind the numbers before retuning values."
+      ],
+      "edges": [
+        "Generator Core — resolves design/tokens.ts: OKLCH to sRGB, contrast, springs, dist orchestration",
+        "Theme Targets — format the resolved model into GTK, KDE, QML, fontconfig, web output",
+        "Preview Desktop — styled only from generated dist/web/tokens.css, never this file directly"
+      ]
+    },
+    "review-site": {
+      "summary": "The Review Site is a design-review web app that renders every `## ` section of DESIGN.md/DECISIONS.md as a reviewable item with live specimens, a verdict and a notes thread. Specimens are built with the same tokens and resolver the generator ships, so review matches output. State lives in `design/review.json` via a Bun server when present, otherwise in browser localStorage; `build.ts` emits a static fallback into `dist/site/`.",
+      "map": [
+        {
+          "name": "Live specimens per spec section",
+          "files": [
+            "site/specimens.ts",
+            "site/dom.ts",
+            "site/main.ts"
+          ]
+        },
+        {
+          "name": "Review page layout and sections",
+          "files": [
+            "site/main.ts",
+            "site/index.html",
+            "site/content.ts"
+          ]
+        },
+        {
+          "name": "Verdict buttons and notes thread",
+          "files": [
+            "site/main.ts",
+            "site/review.ts"
+          ]
+        },
+        {
+          "name": "Review state, server/local fallback",
+          "files": [
+            "site/review.ts",
+            "site/server.ts"
+          ]
+        },
+        {
+          "name": "Review server and persistence API",
+          "files": [
+            "site/server.ts",
+            "site/review.ts"
+          ]
+        },
+        {
+          "name": "Review items sourced from design docs",
+          "files": [
+            "site/content.ts",
+            "site/main.ts"
+          ]
+        },
+        {
+          "name": "Theme / accent appearance switcher",
+          "files": [
+            "site/main.ts",
+            "site/site.css"
+          ]
+        },
+        {
+          "name": "Site styling in own design language",
+          "files": [
+            "site/site.css",
+            "site/index.html"
+          ]
+        },
+        {
+          "name": "Static site build",
+          "files": [
+            "site/build.ts",
+            "site/index.html"
+          ]
+        },
+        {
+          "name": "Icon sprite reuse from preview",
+          "files": [
+            "site/specimens.ts",
+            "site/dom.ts"
+          ]
+        },
+        {
+          "name": "Element builder helper",
+          "files": [
+            "site/dom.ts",
+            "site/specimens.ts"
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "Review a design item",
+          "steps": [
+            "content.ts splits DESIGN.md/DECISIONS.md into items",
+            "main.ts renders section with reasoning plus specimens",
+            "review.ts load() tries /api/review, falls back to localStorage",
+            "user sets verdict / posts note via setVerdict/addMessage",
+            "server.ts queues write into design/review.json or local mode saves locally",
+            "onChange listeners re-render verdict and thread"
+          ]
+        },
+        {
+          "name": "Serve live review",
+          "steps": [
+            "server.ts serves index.html with HMR on port 4747",
+            "STATIC preview/, dist/web/, assets/ served as plain files",
+            "client fetches /api/review for shared state",
+            "POST verdict/message serialized through one write queue"
+          ]
+        },
+        {
+          "name": "Build static review site",
+          "steps": [
+            "build.ts Bun.builds index.html into dist/site/",
+            "copies preview, dist/web, assets/wallpapers alongside",
+            "no server: review.ts stays in localStorage mode"
+          ]
+        }
+      ],
+      "files": [
+        "site/main.ts — page assembly, appearance switcher, verdict/thread UI wiring",
+        "site/specimens.ts — live token/resolver-driven examples per spec section",
+        "site/review.ts — verdict/thread state with server-then-localStorage fallback",
+        "site/server.ts — Bun server, hot reload, queued writes to design/review.json",
+        "site/content.ts — parses DESIGN.md/DECISIONS.md headings into review items",
+        "site/site.css — review-site styling; values only from dist/web/tokens.css",
+        "site/build.ts — static build into dist/site/ plus preview asset copies",
+        "site/index.html — shell: sidebar, toolbar, content, wallpaper, sprite mounts",
+        "site/dom.ts — tiny h/s/icon element builder used by specimens"
+      ],
+      "rules": [
+        "Never hardcode review copy: items and intros come from DESIGN.md/DECISIONS.md via content.ts.",
+        "No ad-hoc styling values: every value comes from dist/web/tokens.css, glass from preview/glass.css.",
+        "Verdicts are only approve/change/discuss (or null); server rejects anything else.",
+        "Review writes must go through the single queued writer; concurrent writes interleave otherwise.",
+        "Do not assume the server exists: static builds must keep verdicts/notes in localStorage.",
+        "Static build must copy preview, dist/web, assets/wallpapers or the preview iframe breaks."
+      ],
+      "edges": [
+        "Design Tokens — specimens and accent list read design/tokens; review item source is DESIGN.md/DECISIONS.md",
+        "Generator Core — specimens render through tools/gen resolve, color, spring",
+        "Preview Desktop — embeds preview/index.html in iframe; reuses its icon sprite and preview/glass.css",
+        "Build and Install — static output lands in dist/site/; live site consumes dist/web/tokens.css",
+        "Theme Targets — specimens show what formatters will ship; review approves that output"
+      ]
+    },
+    "build-install": {
+      "summary": "This layer installs the already-generated themes for the current Linux user into XDG config/data directories. It is a POSIX sh script that copies from dist/ with per-file backup of non-ambrosia files. The key idea: install never loses user data — foreign files become <name>.before-ambrosia, ambrosia-owned files are overwritten silently.",
+      "map": [
+        {
+          "name": "Per-user theme install",
+          "files": [
+            "tools/install.sh"
+          ]
+        },
+        {
+          "name": "GTK variant selection (light/dark via gsettings)",
+          "files": [
+            "tools/install.sh"
+          ]
+        },
+        {
+          "name": "Backup of pre-existing user files",
+          "files": [
+            "tools/install.sh"
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "Install themes",
+          "steps": [
+            "Resolve dist/ relative to script location",
+            "Exit early (success) on non-Linux, pointing at dist/",
+            "Detect GTK mode via gsettings color-scheme (default light)",
+            "place() each dist artifact into XDG_CONFIG_HOME / XDG_DATA_HOME, backing up foreign files"
+          ]
+        }
+      ],
+      "files": [
+        "tools/install.sh — installs dist/ themes per-user with .before-ambrosia backups and GTK light/dark pick"
+      ],
+      "rules": [
+        "Run from any cwd: dist path is derived from the script location, not cwd.",
+        "Non-Linux is not an error: exit 0 after pointing at dist/.",
+        "Only files lacking the 'Generated by ambrosia' marker are backed up; never delete a .before-ambrosia backup by overwriting blindly.",
+        "GTK3 gets only the active mode file copied as gtk.css; GTK cannot follow system scheme alone."
+      ],
+      "edges": [
+        "Generator Core — install only copies dist/ output, never generates it",
+        "Theme Targets — dist gtk-3.0/gtk-*.css, gtk-4.0/gtk.css, kde colors are its install inputs",
+        "Linux desktop (XDG dirs, gsettings) — reads color-scheme, writes into XDG_CONFIG_HOME and XDG_DATA_HOME"
+      ]
+    }
+  },
   "builtAt": "43429bc"
 }
