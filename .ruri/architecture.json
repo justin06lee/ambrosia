@@ -9,6 +9,7 @@
     "Validates contrast, concentric radii, and spacing grid via tests",
     "Browser mock desktop preview styled only from generated tokens",
     "Preview toggles dark mode and cycles accents via keys/URL",
+    "Preview mac-style control center, dock, tooltips and badges",
     "Review site renders spec with live specimens and verdict threads",
     "Installs themes per-user on Linux preserving prior configs",
     "Mac-first keyboard spec with Super-as-Command and switcher",
@@ -126,7 +127,7 @@
   ],
   "layerSheets": {
     "preview": {
-      "summary": "Preview Desktop is a static HTML/JS mock macOS-like desktop for visually reviewing generated tokens. It renders draggable/focusable windows, menubar popups, sliders, and a live clock with no build step beyond `make build`. Every color, type, radius, shadow, and motion value comes from dist/web/tokens.css; preview.css holds only mock-desktop layout positions.",
+      "summary": "Preview Desktop is a static HTML/JS mock macOS-like desktop for visually reviewing generated tokens. It renders draggable/focusable windows, menubar popups, sliders, control center, dock, and a live clock with no build step beyond `make build`. Every color, type, radius, shadow, and motion value comes from dist/web/tokens.css; preview.css holds only mock-desktop layout positions.",
       "map": [
         {
           "name": "Mock desktop shell (wallpaper, menubar, dock, windows)",
@@ -134,6 +135,22 @@
             "preview/index.html",
             "preview/preview.css",
             "preview/preview.js"
+          ]
+        },
+        {
+          "name": "Control center (capsule modules, toggles, sliders, Edit Controls)",
+          "files": [
+            "preview/index.html",
+            "preview/preview.js",
+            "preview/preview.css"
+          ]
+        },
+        {
+          "name": "Dock (padding, glassy icons, tooltip, badges, separators)",
+          "files": [
+            "preview/index.html",
+            "preview/preview.js",
+            "preview/preview.css"
           ]
         },
         {
@@ -272,11 +289,24 @@
           "files": [
             "design/tokens.ts"
           ]
+        },
+        {
+          "name": "Control center module metrics",
+          "files": [
+            "design/tokens.ts"
+          ]
+        },
+        {
+          "name": "Dock metrics",
+          "files": [
+            "design/tokens.ts"
+          ]
         }
       ],
       "flows": [],
       "files": [
-        "design/tokens.ts — the single source of truth: font/type/tracking, space, radius, OKLCH color pairs, glass, shadow, springs"
+        "design/tokens.ts — the single source of truth: font/type/tracking, space, radius, OKLCH color pairs, glass, shadow, springs",
+        "design/DESIGN.md — reasoning behind the numbers before retuning values"
       ],
       "rules": [
         "Never hand-edit generated output in dist/; change design/tokens.ts and regenerate.",
@@ -476,6 +506,83 @@
         "Generator Core — install only copies dist/ output, never generates it",
         "Theme Targets — dist gtk-3.0/gtk-*.css, gtk-4.0/gtk.css, kde colors are its install inputs",
         "Linux desktop (XDG dirs, gsettings) — reads color-scheme, writes into XDG_CONFIG_HOME and XDG_DATA_HOME"
+      ]
+    },
+    "theme-targets": {
+      "summary": "This layer turns the resolved theme model (Resolved/ResolvedMode from Generator Core) into per-toolkit output files. Each file in tools/gen/targets/ is a pure formatter: roles/colors plus shared helpers. Newcomers must grasp that nothing is resolved here — token truth and color math live upstream; targets only map and serialize.",
+      "map": [
+        {
+          "name": "GTK theme overrides",
+          "files": [
+            "tools/gen/targets/gtk.ts",
+            "tools/gen/targets/shared.ts"
+          ]
+        },
+        {
+          "name": "KDE color schemes",
+          "files": [
+            "tools/gen/targets/kde.ts",
+            "tools/gen/targets/shared.ts"
+          ]
+        },
+        {
+          "name": "QML singleton for shell",
+          "files": [
+            "tools/gen/targets/qml.ts",
+            "tools/gen/targets/shared.ts"
+          ]
+        },
+        {
+          "name": "Web CSS custom properties",
+          "files": [
+            "tools/gen/targets/web.ts",
+            "tools/gen/targets/shared.ts"
+          ]
+        },
+        {
+          "name": "Fontconfig aliases and rasterization",
+          "files": [
+            "tools/gen/targets/fontconfig.ts",
+            "tools/gen/targets/shared.ts"
+          ]
+        },
+        {
+          "name": "Shared formatting helpers",
+          "files": [
+            "tools/gen/targets/shared.ts"
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "Resolved model to toolkit file",
+          "steps": [
+            "Generator Core produces Resolved / ResolvedMode",
+            "Target maps roles to toolkit vocabulary (libadwaita vars, KDE sets, QML tree, CSS vars)",
+            "Colors serialized via color helpers (toCss, toKde, toQtHex) and shared helpers (HEADER, pt, fontStack, kebab/slug)",
+            "Formatter returns file string for dist orchestration to write"
+          ]
+        }
+      ],
+      "files": [
+        "tools/gen/targets/shared.ts — shared header, kebab/slug, fontStack, cssShadow, pt helpers",
+        "tools/gen/targets/gtk.ts — libadwaita CSS vars (gtk4) and named colors per mode (gtk3)",
+        "tools/gen/targets/kde.ts — opaque .colors sets, translucency flattened onto background",
+        "tools/gen/targets/qml.ts — Ambrosia QML singleton tree with Theme.dark / Theme.accentName switching",
+        "tools/gen/targets/web.ts — --amb-* CSS custom properties for preview/web surfaces",
+        "tools/gen/targets/fontconfig.ts — sans-serif/monospace aliases and rasterization defaults"
+      ],
+      "rules": [
+        "Do not edit generated output; every file carries HEADER pointing back to design/tokens.ts via tools/gen.",
+        "Do not resolve or derive colors here — use the passed Resolved model and color.ts / resolve.ts helpers.",
+        "KDE output must stay opaque r,g,b: flatten translucent values with flat() onto their background set.",
+        "GTK3 has no prefers-color-scheme: emit one file per mode; GTK4 emits light and dark in one file.",
+        "Keep QML identifiers safe: slug token keys and prefix leading digits."
+      ],
+      "edges": [
+        "Design Tokens — reads type, color, font, shadow token definitions as input vocabulary",
+        "Generator Core — consumes Resolved/ResolvedMode and color/spring serializers (toCss, toKde, toQtHex, toCssLinear, flat)",
+        "Build and Install — dist orchestration writes formatter output to dist/ for install"
       ]
     }
   },

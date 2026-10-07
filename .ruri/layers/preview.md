@@ -3,11 +3,13 @@
 One layer of ambrosia's stack, owning `preview/, assets/`. The whole stack, and how the layers connect, is in `.ruri/architecture.md`.
 Don't edit this file: ruri writes it. `ruri layer preview` prints it with every line numbered, what git says changed in this layer lately and what sessions learned working here; once you have read it that way, put right what your work changed — `ruri layer preview add|set|drop <section> …`. Where it and the code disagree, the code is right.
 
-Preview Desktop is a static HTML/JS mock macOS-like desktop for visually reviewing generated tokens. It renders draggable/focusable windows, menubar popups, sliders, and a live clock with no build step beyond `make build`. Every color, type, radius, shadow, and motion value comes from dist/web/tokens.css; preview.css holds only mock-desktop layout positions.
+Preview Desktop is a static HTML/JS mock macOS-like desktop for visually reviewing generated tokens. It renders draggable/focusable windows, menubar popups, sliders, control center, dock, and a live clock with no build step beyond `make build`. Every color, type, radius, shadow, and motion value comes from dist/web/tokens.css; preview.css holds only mock-desktop layout positions.
 
 ## Where to change what
 
 - **Mock desktop shell (wallpaper, menubar, dock, windows):** preview/index.html, preview/preview.css, preview/preview.js
+- **Control center (capsule modules, toggles, sliders, Edit Controls):** preview/index.html, preview/preview.js, preview/preview.css
+- **Dock (padding, glassy icons, tooltip, badges, separators):** preview/index.html, preview/preview.js, preview/preview.css
 - **Glass material recipe:** preview/glass.css, preview/preview.css
 - **Theme and accent switching (D / A keys, URL params):** preview/preview.js, preview/index.html
 - **Draggable and focusable windows:** preview/preview.js, preview/preview.css

@@ -12,7 +12,7 @@ Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one de
 1. **Preview Desktop** — Static HTML/JS mock desktop (draggable windows, popups, clock) styled only from dist/web/tokens.css (`preview/, assets/`) → `.ruri/layers/preview.md`
 2. **Design Tokens** — TypeScript single source of truth: type scale, 4px grid, radii, OKLCH colors, glass, shadows, springs (`design/`) → `.ruri/layers/design-tokens.md`
 3. **Generator Core** — Bun+TypeScript resolver: OKLCH→sRGB, contrast derivation, spring solver, dist orchestration (`tools/gen/ · 4 files`)
-4. **Theme Targets** — Per-toolkit formatters turning resolved model into GTK, KDE, QML, fontconfig, web output (`tools/gen/targets/`)
+4. **Theme Targets** — Per-toolkit formatters turning resolved model into GTK, KDE, QML, fontconfig, web output (`tools/gen/targets/`) → `.ruri/layers/theme-targets.md`
 5. **Build and Install** — Bun, TypeScript, Make orchestration: test, build dist/, per-user Linux install with backups (`./, tools/ · 4 files`) → `.ruri/layers/build-install.md`
 6. **Review Site** — Design review website with live specimens, verdict threads, review server and static build (`site/`) → `.ruri/layers/review-site.md`
 
@@ -59,6 +59,7 @@ Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one de
 - Validates contrast, concentric radii, and spacing grid via tests
 - Browser mock desktop preview styled only from generated tokens
 - Preview toggles dark mode and cycles accents via keys/URL
+- Preview mac-style control center, dock, tooltips and badges
 - Review site renders spec with live specimens and verdict threads
 - Installs themes per-user on Linux preserving prior configs
 - Mac-first keyboard spec with Super-as-Command and switcher

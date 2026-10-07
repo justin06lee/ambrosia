@@ -16,10 +16,13 @@ Single-file source of truth for ambrosia's look and motion, exporting type scale
 - **Glass and materials:** design/tokens.ts
 - **Shadows:** design/tokens.ts
 - **Springs and motion:** design/tokens.ts
+- **Control center module metrics:** design/tokens.ts
+- **Dock metrics:** design/tokens.ts
 
 ## Key files
 
 - design/tokens.ts — the single source of truth: font/type/tracking, space, radius, OKLCH color pairs, glass, shadow, springs
+- design/DESIGN.md — reasoning behind the numbers before retuning values
 
 ## Rules and traps
 
