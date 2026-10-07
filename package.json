@@ -1,0 +1,15 @@
+{
+  "name": "ambrosia",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && bun tools/gen/index.ts",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0",
+    "@types/bun": "^1.4.2",
+    "typescript": "^7.0.2"
+  }
+}
