@@ -39,7 +39,7 @@
         },
         {
           "author": "claude",
-          "text": "Recorded as accepted, and renamed **Mac-first keyboard, chosen at onboarding**. Onboarding asks Mac-first or Linux-first, Mac-first is the default, and you can switch later in Settings. In Mac-first, Super is Command everywhere: \u2318C/\u2318V/\u2318Q in every app, \u2325 and \u2318 with arrow keys for word and line movement, \u2318Space for the launcher, \u2318Tab to switch apps. In terminals \u2318C becomes Ctrl+Shift+C, so Ctrl still reaches the shell.\n\nThe spec has a new **Keyboard** chapter with the full mapping, and the preview's menus now show \u2318 \u2325 \u2303 \u21e7 glyphs. The remapping layer itself (keyd, with per-app rules for terminals) gets built in the shell phase on tenet.",
+          "text": "Recorded as accepted, and renamed **Mac-first keyboard, chosen at onboarding**. Onboarding asks Mac-first or Linux-first, Mac-first is the default, and you can switch later in Settings. In Mac-first, Super is Command everywhere: ⌘C/⌘V/⌘Q in every app, ⌥ and ⌘ with arrow keys for word and line movement, ⌘Space for the launcher, ⌘Tab to switch apps. In terminals ⌘C becomes Ctrl+Shift+C, so Ctrl still reaches the shell.\n\nThe spec has a new **Keyboard** chapter with the full mapping, and the preview's menus now show ⌘ ⌥ ⌃ ⇧ glyphs. The remapping layer itself (keyd, with per-app rules for terminals) gets built in the shell phase on tenet.",
           "at": "2026-10-07T01:42:07.000Z"
         }
       ],
@@ -99,7 +99,7 @@
         },
         {
           "author": "claude",
-          "text": "I looked at tenet over makima, read-only. It's an i7-10700 with 16 GB of RAM and a GTX 1660 Ti on the open NVIDIA driver (615, kernel modesetting on), driving a 4K screen over HDMI. It runs GNOME 50 right now, with a USB mouse. That's a good machine for KWin on Wayland, and 4K at 2\u00d7 scale is the case that matters most.\n\nFor the trackpad I'd get an **Apple Magic Trackpad (USB-C)**. It works on Linux out of the box, libinput handles its gestures, and it's the closest thing to a MacBook trackpad. The Jetson Orin Nano is on the roadmap as a later, separate effort.\n\nOne thing to know: makima logs me into tenet as **root**, so I'll only run read-only commands there unless you tell me otherwise.",
+          "text": "I looked at tenet over makima, read-only. It's an i7-10700 with 16 GB of RAM and a GTX 1660 Ti on the open NVIDIA driver (615, kernel modesetting on), driving a 4K screen over HDMI. It runs GNOME 50 right now, with a USB mouse. That's a good machine for KWin on Wayland, and 4K at 2× scale is the case that matters most.\n\nFor the trackpad I'd get an **Apple Magic Trackpad (USB-C)**. It works on Linux out of the box, libinput handles its gestures, and it's the closest thing to a MacBook trackpad. The Jetson Orin Nano is on the roadmap as a later, separate effort.\n\nOne thing to know: makima logs me into tenet as **root**, so I'll only run read-only commands there unless you tell me otherwise.",
           "at": "2026-10-07T01:42:07.000Z"
         }
       ],
@@ -172,7 +172,7 @@
         },
         {
           "author": "claude",
-          "text": "Rebuilt the control center and the dock in the style of your references, with our own icons and controls.\n\n**Control center:** every control is its own capsule module on a 4-column grid of 60px units (pills, circles, a 2\u00d72 now-playing tile, and full-width bars for Display, Sound and Accent). Each module has a rim of light all the way round. Toggles that are on are solid circles: white with an accent glyph in dark mode, accent with a white glyph in light mode. Sliders are thin and knobless, and there's an Edit Controls pill at the bottom.\n\n**Dock:** more padding and spacing (16px), radius 28, a full rim of light, glassy rims on the icons, badges, full-height separators, a Downloads stack, and one tooltip with a caret that follows the pointer.\n\nThe numbers are in tokens.ts, so the QML shell gets the same values, and the Shape and Shell anatomy chapters describe both.",
+          "text": "Rebuilt the control center and the dock in the style of your references, with our own icons and controls.\n\n**Control center:** every control is its own capsule module on a 4-column grid of 60px units (pills, circles, a 2×2 now-playing tile, and full-width bars for Display, Sound and Accent). Each module has a rim of light all the way round. Toggles that are on are solid circles: white with an accent glyph in dark mode, accent with a white glyph in light mode. Sliders are thin and knobless, and there's an Edit Controls pill at the bottom.\n\n**Dock:** more padding and spacing (16px), radius 28, a full rim of light, glassy rims on the icons, badges, full-height separators, a Downloads stack, and one tooltip with a caret that follows the pointer.\n\nThe numbers are in tokens.ts, so the QML shell gets the same values, and the Shape and Shell anatomy chapters describe both.",
           "at": "2026-10-07T02:13:00.000Z"
         },
         {
@@ -233,6 +233,10 @@
       "verdict": "approve"
     },
     "decision-window-controls-on-the-left-as-colored-circles": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "spec-keyboard": {
       "thread": [],
       "verdict": "approve"
     }
