@@ -55,7 +55,6 @@ export const space = {
 export const radius = {
   window: 16,
   sheet: 16,
-  sidebar: 10, // window 16 − inset 6
   panel: 22,
   card: 12, // panel 22 − padding 10
   popover: 12,
@@ -77,7 +76,7 @@ export const size = {
   dock: { icon: 52, padding: 8, gap: 6, margin: 6, indicator: 4 },
   titlebar: { height: 40, toolbar: 52 },
   windowControls: { diameter: 12, gap: 8, inset: 20 },
-  sidebar: { width: 220, inset: 6, row: 28 },
+  sidebar: { width: 220, row: 28, rowInset: 10 },
   control: { small: 22, regular: 28, large: 36 },
   row: { compact: 24, regular: 28, large: 44 },
   switch: { width: 36, height: 20, knob: 16 },

@@ -63,7 +63,6 @@ items, 16 between groups, 24 around page content.
 | Surface | Radius | Note |
 |---|---|---|
 | Window, sheet | 16 | |
-| Sidebar (floating) | 10 | window 16 − inset 6 |
 | Shell panels (control center, notifications, launcher) | 22 | |
 | Panel tiles, cards | 12 | panel 22 − padding 10 |
 | Menus, popovers | 12 | |
@@ -196,9 +195,18 @@ Rules:
   `fill.primary` gray.
 - **Title bar:** 40 tall (52 with a unified toolbar). The title is `headline`,
   centered in plain windows and leading in toolbar windows.
-- **Sidebar:** 220 wide, floating `regular` glass inset 6 from the window edge,
-  radius 10, 28px rows with radius-6 selection, `caption` section labels in
-  `label.tertiary`.
+- **Sidebar:** 220 wide, flush to the window's leading edge, full height,
+  `regular` glass blurring what is *behind the window*. The window's top-left
+  and bottom-left corners clip it, and a hairline separates it from the content.
+  Rows are 28 tall and inset 10, with radius-6 selection. Section labels are
+  `caption` in `label.tertiary`. Inactive windows flatten the sidebar to opaque
+  `bg.sidebar`, so the focused window is the only vivid one.
+
+  Why behind-window glass rather than a floating sidebar over the app's own
+  content: it works for every toolkit. The app marks a region translucent and
+  the compositor blurs it (KWin's blur protocol takes a region). A floating
+  sidebar refracting in-window content would need in-app blur, which GTK and
+  most toolkits can't do.
 - **Controls:** heights 22 / 28 / 36 (small / regular / large). Switch 36 × 20
   with a 16px knob. Focus ring is 3px of accent at 50%, offset 1px, following
   the control's radius + 1.

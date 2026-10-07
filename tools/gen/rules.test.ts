@@ -8,7 +8,6 @@ const r = resolve();
 
 test("radii are concentric", () => {
   const radius: Record<string, number> = t.radius;
-  expect(radius.sidebar).toBe(t.radius.window - t.size.sidebar.inset);
   expect(radius.row).toBe(t.radius.popover - 6);
   expect(radius.card).toBe(t.radius.panel - 10);
   expect(radius.dock).toBe(Math.round(t.size.dock.icon * t.iconCorner) + t.size.dock.padding);
