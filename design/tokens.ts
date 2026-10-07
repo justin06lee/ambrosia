@@ -58,6 +58,7 @@ export const radius = {
   panel: 22, // notifications, launcher
   card: 12, // panel 22 − padding 10
   module: 30, // control center modules: capsules, half the 60 unit
+  controlCenter: 44, // its blur region: module 30 + padding 14
   popover: 12,
   row: 6, // popover 12 − padding 6
   control: 8,
@@ -222,7 +223,7 @@ export const material = {
   },
   /** Blur only, for surfaces whose content carries the glass (control center). */
   backdrop: {
-    blur: 22, saturate: 1,
+    blur: 10, saturate: 1,
     tint: { light: white(0), dark: white(0) },
   },
 } satisfies Record<string, Material>;

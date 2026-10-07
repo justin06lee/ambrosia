@@ -184,7 +184,7 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: 0; 
   flex: 1; display: grid; grid-template-columns: repeat(auto-fill, 100px); align-content: start;
   gap: var(--amb-space-4) var(--amb-space-2); padding: var(--amb-space-4) var(--amb-space-5);
 }
-.item { display: flex; flex-direction: column; align-items: center; gap: var(--amb-space-1_5); }
+.item { position: relative; isolation: isolate; display: flex; flex-direction: column; align-items: center; gap: var(--amb-space-1_5); }
 .item > :first-child { width: 72px; height: 64px; display: grid; place-items: center; border-radius: var(--amb-radius-control); }
 .item span {
   font: var(--amb-callout); letter-spacing: var(--amb-callout-tracking); text-align: center;
@@ -192,7 +192,11 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: 0; 
   overflow: hidden; overflow-wrap: anywhere;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
 }
-.item.selected > :first-child { background: var(--amb-fill-tertiary); }
+/* The selection sits behind the icon, so documents keep their white page. */
+.item.selected::before {
+  content: ""; position: absolute; z-index: -1; top: 0; left: 50%; width: 72px; height: 64px;
+  transform: translateX(-50%); border-radius: var(--amb-radius-control); background: var(--amb-fill-tertiary);
+}
 .item.selected span { background: var(--amb-accent-bg); color: var(--amb-accent-fg); }
 .folder {
   --folder-back: color-mix(in oklab, var(--amb-accent-bg) 72%, white);
@@ -257,20 +261,15 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: 0; 
   padding: var(--amb-size-control-center-padding); pointer-events: none;
 }
 .cc.open { pointer-events: auto; }
+/* Pure blur, no tint. Its mask is a rounded rect (radius.controlCenter) with a
+   soft edge, drawn at the real size by preview.js. */
 .cc-blur {
-  --feather: var(--amb-space-8);
-  position: absolute; pointer-events: none;
-  inset: calc(var(--amb-space-4) * -1) calc(var(--amb-space-6) * -1) calc(var(--amb-space-6) * -1);
+  --feather: var(--amb-space-4);
+  position: absolute; pointer-events: none; inset: calc(var(--feather) * -1);
   -webkit-backdrop-filter: blur(var(--amb-material-backdrop-blur));
   backdrop-filter: blur(var(--amb-material-backdrop-blur));
-  -webkit-mask:
-    linear-gradient(to right, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent),
-    linear-gradient(to bottom, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent);
-  -webkit-mask-composite: source-in;
-  mask:
-    linear-gradient(to right, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent),
-    linear-gradient(to bottom, transparent, #000 var(--feather), #000 calc(100% - var(--feather)), transparent);
-  mask-composite: intersect;
+  -webkit-mask: var(--cc-mask) 0 0 / 100% 100% no-repeat;
+  mask: var(--cc-mask) 0 0 / 100% 100% no-repeat;
   opacity: 0; transition: opacity var(--amb-choreo-control-center-fade-out) var(--amb-fade-curve);
 }
 .cc.open .cc-blur { opacity: 1; transition: opacity var(--amb-choreo-control-center-blur-in) var(--amb-fade-curve); }

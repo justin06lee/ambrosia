@@ -64,6 +64,7 @@ items, 16 between groups, 24 around page content.
 |---|---|---|
 | Window, sheet | 16 | |
 | Control center modules | 30 | capsules: half the 60px unit |
+| Control center blur region | 44 | module 30 + padding 14 |
 | Shell panels (notifications, launcher) | 22 | |
 | Panel tiles, cards | 12 | panel 22 − padding 10 |
 | Menus, popovers | 12 | |
@@ -119,7 +120,7 @@ Glass is the signature of the system, so it has rules:
 | regular | 28 | 1.8 | 55% / 50% | Dock, sidebars, notifications |
 | thick | 36 | 1.8 | 72% / 68% | Menus, popovers, launcher, anything with dense text |
 | clear | 4 | 1.2 | 12% / 14% | Controls that float over glass or media |
-| backdrop | 22 | 1.0 | none | Control center: blur only, the modules carry the glass |
+| backdrop | 10 | 1.0 | none | Control center: blur only, the modules carry the glass |
 
 Every glass surface also gets:
 
@@ -172,8 +173,7 @@ Rules:
 - **Menus snap.** Menus, context menus and submenus appear instantly, with no
   entrance animation, and fade out over 120 ms when dismissed. Anything opened
   with a click or a key to be read and acted on at once should be there
-  immediately. Panels fade in place; the control center's sequence is under
-  Shell anatomy.
+  immediately. Panels fade in place instead.
 - **Gestures are 1:1.** While a finger is down, the UI follows it exactly.
   On release, the `gesture` spring takes over from the current velocity.
 - **Interruptible.** A new target retargets the running spring. Never queue an
@@ -220,63 +220,25 @@ Menus show shortcuts as glyphs in the fixed order ⌃ ⌥ ⇧ ⌘, then the key
 
 ## Shell anatomy
 
-- **Menu bar:** 28 tall, `thin` glass across the full width. App name in
-  `headline`, menus in `body`, 10px padding per item, 16px status icons. The
-  clock uses tabular figures. Open menus and active status items highlight as
-  capsules.
-- **Dock:** 52px icons with 16px of padding and 16px gaps, so the icons
-  breathe. 6px above the screen edge, `regular` glass, radius 28, and a full
-  1px rim of light all the way round, not just along the top. Running apps get
-  a 4px dot. Icons are superellipses with a thin glassy rim, brighter at the
-  top. Badges are 18px red capsules at the icon's top-right. Full-height
-  hairlines separate apps, folders and the trash. Hovering lifts an icon 6px
-  on the bouncy spring, and one tooltip with a small caret follows the pointer
-  from icon to icon. Magnification is an opt-in setting.
-- **Control center:** a grid of 4 columns of 60px units with 12px gaps and
-  14px padding. There is no panel. The modules float on the `backdrop` material,
-  a 22px blur with no tint, no saturation boost and no edge: the blur
-  reaches past the grid and feathers away to nothing over 32px, so there's no
-  boundary to see. Everything in it is a module: a capsule of
-  `thin` glass with a 1px rim of light all the way round.
-  A 1×1 module is a circle, 2×1 a pill, 4×1 a bar, and 2×2 a tile (radius 30).
-  Pills hold a 36px toggle circle, a `headline` label and a `caption` status.
-  A toggle that is on is a solid circle: white with an accent glyph in dark
-  mode, accent with a white glyph in light mode. A circle module that is on
-  fills the same way. Sliders sit in bars under a `headline` label: a 6px
-  track with no knob, filled from the left, with a small glyph at each end.
-  An outlined "Edit Controls" capsule sits under the grid.
+The exact metrics live in `size`, `radius` and `choreography` in tokens.ts,
+and the preview is the visual reference. In brief:
 
-  Opening and closing are fades, not springs, timed in
-  `choreography.controlCenter` (measured frame by frame from the reference).
-  On open, the blur arrives first (60 ms), then every module fades in place
-  together over 100 ms, with no scale and no slide, and on-state fills light up
-  70 ms later over 160 ms. On close, the on-state fills drop first and
-  everything fades out over 200 ms, decelerating.
-- **Window controls:** three 12px circles (close, minimize, zoom), 8px apart,
-  20px from the left edge, centered vertically in the title bar or toolbar.
-  Glyphs only appear while hovering the group. Inactive windows show them as
-  `fill.primary` gray.
-- **Title bar:** 40 tall (52 with a unified toolbar). The title is `headline`,
-  centered in plain windows and leading in toolbar windows.
-- **Sidebar:** 220 wide, flush to the window's leading edge, full height,
-  `regular` glass blurring what is *behind the window*. The sidebar carries the
-  window's radius on its own two outer corners, and its blur region must be
-  rounded to match. Neither browsers nor compositors reliably clip a blurred
-  backdrop to a parent's rounded corners, and the result is a sharp corner on a
-  round window. A hairline separates the sidebar from the content.
-  Rows are 28 tall and inset 10, with radius-6 selection. Section labels are
-  `caption` in `label.tertiary`. Inactive windows flatten the sidebar to opaque
-  `bg.sidebar`, so the focused window is the only vivid one.
-
-  Why behind-window glass rather than a floating sidebar over the app's own
-  content: it works for every toolkit. The app marks a region translucent and
-  the compositor blurs it (KWin's blur protocol takes a region). A floating
-  sidebar refracting in-window content would need in-app blur, which GTK and
-  most toolkits can't do.
-- **Controls:** heights 22 / 28 / 36 (small / regular / large). Switch 36 × 20
-  with a 16px knob. Focus ring is 3px of accent at 50%, offset 1px, following
-  the control's radius + 1.
-- **Scrollbars:** overlay only. 7px thumb (11 on hover), hidden after 0.8s idle.
+- **Menu bar:** 28 tall, `thin` glass across the full width. Highlights are
+  capsules, and the clock uses tabular figures.
+- **Dock:** roomy (16px around and between 52px icons), `regular` glass ringed
+  in light. Icons are superellipses with a glassy rim. Hovering lifts an icon,
+  and one tooltip follows the pointer. Magnification is opt-in.
+- **Control center:** no panel. Capsule modules of `thin` glass on a 4-column
+  grid float on a light, untinted blur with soft rounded edges. Toggles that
+  are on are solid circles. It fades in place (blur first, then the modules)
+  rather than springing.
+- **Windows:** three 12px controls on the left, with glyphs on hover and gray
+  when inactive. The title bar is 40 tall, or 52 with a toolbar.
+- **Sidebar:** 220 wide, flush to the window edge, behind-window glass that
+  rounds its own outer corners (a parent's rounded corners don't reliably clip
+  a blurred backdrop). It goes opaque when its window is inactive.
+- **Controls:** 22 / 28 / 36 tall. The focus ring is 3px of accent at 50%.
+  Scrollbars overlay the content and hide when idle.
 
 ## Iconography
 
