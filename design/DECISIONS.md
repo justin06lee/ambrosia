@@ -3,7 +3,8 @@
 The choices that shaped ambrosia, with their reasoning, so any of them can be
 revisited on purpose rather than by drift. Each has a status: **accepted**
 (settled, change only with a good reason), **proposed** (my recommendation,
-waiting on review), or **open** (needs a call).
+waiting on review), or **open** (needs a call). A decision renamed after review
+keeps an `Id:` line, so its review thread stays attached.
 
 ## One source of truth for design
 
@@ -60,7 +61,7 @@ in-app blur, which GTK and most toolkits can't do.
 
 ## Inter and JetBrains Mono
 
-Status: proposed
+Status: accepted
 
 Inter (variable, with optical sizes) for the interface and JetBrains Mono for
 code. FreeType stem darkening is on, so text renders fuller.
@@ -74,7 +75,7 @@ most of the difference between Mac and Linux text weight.
 
 ## Warm neutrals
 
-Status: proposed
+Status: accepted
 
 Every gray carries a faint warm tint (OKLCH hue 85, chroma about 0.004).
 
@@ -94,7 +95,7 @@ background.
 
 ## Blue by default, honey as the house color
 
-Status: proposed
+Status: accepted
 
 Blue is the default accent. Honey is one of the eight choices and is the brand
 color for the logo, wallpapers and marketing.
@@ -116,7 +117,7 @@ interrupted.
 
 ## Window controls on the left, as colored circles
 
-Status: proposed
+Status: accepted
 
 Close, minimize and zoom are three 12px circles in red, yellow and green on the
 left. Glyphs appear on hover, and inactive windows show them gray.
@@ -124,34 +125,67 @@ left. Glyphs appear on hover, and inactive windows show them gray.
 **Why:** it's the single strongest signal of the macOS layout people expect,
 and colored circles are a common convention rather than an Apple asset.
 
-## Shortcut modifier: Ctrl or Super
+## Mac-first keyboard, chosen at onboarding
 
-Status: open
+Status: accepted
+Id: shortcut-modifier-ctrl-or-super
 
-The preview shows Ctrl, which is what Linux apps use. Making Super act like
-Command (Super+C copies everywhere) would feel like a Mac, but it needs a
-system-wide key-remapping layer such as keyd, and it changes every app's
-documentation.
+Onboarding asks one question: **Mac-first** or **Linux-first**. Mac-first is
+the default. Moving from a Mac to ambrosia should feel the same in the hands,
+in every app, not only in ambrosia's own.
 
-## How far refraction goes
+- **Mac-first:** Super is Command. A system-wide remapping layer (keyd) turns
+  Super shortcuts into what each app expects. Super+C copies and Super+Q quits
+  in any app, and in terminals Super+C becomes Ctrl+Shift+C, so Ctrl stays free
+  for the shell. Super+Space opens the launcher, Super+Tab switches apps,
+  Option (Alt) and Super with the arrow keys move by word and by line, and
+  menus show ⌘ ⌥ ⌃ ⇧ glyphs.
+- **Linux-first:** no remapping. Ctrl shortcuts as every Linux app documents
+  them, with menus showing Ctrl+ and Alt+.
 
-Status: open
+The choice can be changed later in Settings.
 
-Shell surfaces (dock, panels, menu bar) get the full Liquid Glass refraction
-shader. App windows get blur and tint only. The question is whether toolbars
-inside apps should opt in too.
+**Why:** most of what makes a Mac feel like a Mac is in the hands. Choosing at
+onboarding serves both kinds of user, and the remapping layer means it works in
+apps ambrosia doesn't control.
 
-## Dock magnification
+## Refraction on shell surfaces only, for now
 
-Status: open
+Status: accepted
+Id: how-far-refraction-goes
 
-Off by default, as specified. Possible options: always off, opt-in, or on with
-a subtle 1.3× maximum.
+Shell surfaces (dock, panels, menu bar) get the full refraction shader. App
+windows get blur and tint only.
 
-## Hardware to develop on
+**Why:** an app toolbar can only refract if the app tells the compositor where
+the toolbar is, and only ambrosia's own apps would do that. A mixed desktop
+would look inconsistent. Revisit once the first-party apps exist.
 
-Status: open
+## Dock magnification is opt-in
 
-Smoothness and glass can't be judged in a VM, so the shell work needs real
-hardware: a PC laptop with a good trackpad, or an M1/M2 Mac running Asahi
-Linux.
+Status: accepted
+Id: dock-magnification
+
+Off by default and available in Settings. Hovering lifts an icon instead.
+
+**Why:** magnification looks great in demos, but it moves targets while the
+pointer is moving toward them. The hover lift gives the same sense of life
+without that.
+
+## Develop on tenet, with a Magic Trackpad
+
+Status: accepted
+Id: hardware-to-develop-on
+
+The shell is built and judged on **tenet**, the Arch desktop on the makima
+mesh: an i7-10700 with 16 GB of RAM and a GTX 1660 Ti on the open NVIDIA driver
+(615, kernel modesetting on), driving a 4K display. An Apple Magic Trackpad
+adds real gestures. It works on Linux over USB-C or Bluetooth, and libinput
+handles its multitouch.
+
+**Why:** smoothness and glass can't be judged in a VM, and there's no spare
+laptop. A desktop GPU on the open driver is a good KWin Wayland setup, and the
+4K screen runs at 2× scale, which is the case that matters most.
+
+**Later:** the Jetson Orin Nano (ARM64, NVIDIA Tegra) is a separate effort with
+its own boot and driver story. It's on the roadmap but not scheduled.

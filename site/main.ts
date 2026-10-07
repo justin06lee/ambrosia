@@ -137,7 +137,7 @@ function section(item: Item) {
 }
 
 function nav() {
-  return groups.map((g) => h("div", { class: "nav-group" },
+  return groups.filter((g) => items.some((i) => i.group === g.id)).map((g) => h("div", { class: "nav-group" },
     h("h6", null, g.title),
     items.filter((i) => i.group === g.id).map((i) =>
       h("a", { href: `#${i.id}`, "data-nav": i.id, title: i.title }, h("i", { class: "nav-dot" }), h("span", null, i.title)))));

@@ -48,13 +48,15 @@ export const items: Item[] = [
   })),
   ...decisions.sections.map(({ title, body }): Item => {
     const status = (body.match(/^Status:\s*(\w+)/m)?.[1] ?? "proposed") as Status;
+    // An "Id:" line keeps a decision's review thread when its title changes.
+    const id = body.match(/^Id:\s*([a-z0-9-]+)/m)?.[1] ?? slugify(title);
     return {
-      id: `decision-${slugify(title)}`,
-      slug: slugify(title),
+      id: `decision-${id}`,
+      slug: id,
       group: status === "open" ? "open" : "decisions",
       title,
       status,
-      html: render(body.replace(/^Status:.*\n+/m, "")),
+      html: render(body.replace(/^(Status|Id):.*\n+/gm, "")),
     };
   }),
 ];
