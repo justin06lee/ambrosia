@@ -29,7 +29,9 @@ const write = (fn: (review: Review) => void) =>
 
 const server = Bun.serve({
   port: Number(process.env.PORT ?? 4747),
-  development: { hmr: true, console: true },
+  // No hot module reload: Bun's HMR re-imports the markdown docs incorrectly
+  // after they change. A plain page refresh rebuilds them correctly.
+  development: { hmr: false, console: true },
   routes: {
     "/": homepage,
     "/api/review": { GET: async () => Response.json(await read()) },

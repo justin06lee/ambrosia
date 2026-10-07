@@ -130,7 +130,7 @@ Every glass surface also gets:
 **Refraction** (compositor shader only): within 14px of a glass edge, the
 background is displaced outward with strength 0.55 and very slight dispersion
 (0.015), and a specular highlight is lit from −45°. Shell surfaces get the full
-effect. App windows get blur and tint only unless they opt in.
+effect. App windows get blur and tint only.
 
 **Fallbacks:** with blur unavailable (software rendering, Reduce Transparency
 on), every material becomes its opaque `bg.sidebar` or `bg.elevated` color.
@@ -181,14 +181,44 @@ Rules:
 - Tooltips appear after 600 ms. Once one is showing, the next appears immediately.
 - Minimum hit target: 24 × 24.
 
+## Keyboard
+
+Onboarding offers two layouts, Mac-first (the default) and Linux-first.
+
+**Mac-first** makes the hands work the way they do on a Mac in every app. A
+system-wide remapping layer (keyd) translates shortcuts into what each app
+expects:
+
+| Key | Acts as | Glyph |
+|---|---|---|
+| Super | Command | ⌘ |
+| Alt | Option | ⌥ |
+| Ctrl | Control | ⌃ |
+| Shift | Shift | ⇧ |
+
+- **Editing:** ⌘C ⌘V ⌘X ⌘Z ⇧⌘Z ⌘A ⌘S ⌘F behave as on a Mac. ⌥←/→ moves by
+  word, ⌘←/→ to the start or end of the line, ⌘↑/↓ to the start or end of the
+  document. ⌥⌫ deletes a word and ⌘⌫ deletes to the line start.
+- **Windows and apps:** ⌘W closes, ⌘Q quits, ⌘N opens a new window, ⌘T a new
+  tab, ⌘M minimizes, ⌘H hides, ⌃⌘F toggles full screen, and ⌘, opens settings.
+- **System:** ⌘Space opens the launcher, ⌘Tab switches apps, and ⌘` cycles an
+  app's windows.
+- **Terminals:** ⌘C and ⌘V become Ctrl+Shift+C and Ctrl+Shift+V, so Ctrl
+  passes straight through to the shell.
+
+Menus show shortcuts as glyphs in the fixed order ⌃ ⌥ ⇧ ⌘, then the key
+(`⌃⌘F`), in `label.tertiary`.
+
+**Linux-first** applies no remapping. Menus show shortcuts as `Ctrl+Shift+K`.
+
 ## Shell anatomy
 
 - **Menu bar:** 28 tall, `thin` glass across the full width. App name in
   `headline`, menus in `body`, 10px padding per item, 16px status icons. The
   clock uses tabular figures.
 - **Dock:** 52px icons, 8px padding, 6px gap, 6px above the screen edge,
-  `regular` glass, radius 20. Running apps get a 4px dot. Magnification is off
-  by default.
+  `regular` glass, radius 20. Running apps get a 4px dot. Hovering lifts an
+  icon 6px on the bouncy spring. Magnification is an opt-in setting.
 - **Window controls:** three 12px circles (close, minimize, zoom), 8px apart,
   20px from the left edge, centered vertically in the title bar or toolbar.
   Glyphs only appear while hovering the group. Inactive windows show them as
@@ -196,8 +226,11 @@ Rules:
 - **Title bar:** 40 tall (52 with a unified toolbar). The title is `headline`,
   centered in plain windows and leading in toolbar windows.
 - **Sidebar:** 220 wide, flush to the window's leading edge, full height,
-  `regular` glass blurring what is *behind the window*. The window's top-left
-  and bottom-left corners clip it, and a hairline separates it from the content.
+  `regular` glass blurring what is *behind the window*. The sidebar carries the
+  window's radius on its own two outer corners, and its blur region must be
+  rounded to match. Neither browsers nor compositors reliably clip a blurred
+  backdrop to a parent's rounded corners, and the result is a sharp corner on a
+  round window. A hairline separates the sidebar from the content.
   Rows are 28 tall and inset 10, with radius-6 selection. Section labels are
   `caption` in `label.tertiary`. Inactive windows flatten the sidebar to opaque
   `bg.sidebar`, so the focused window is the only vivid one.

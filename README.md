@@ -98,11 +98,16 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 
 1. **Design system and theme generator.** Done.
 2. **Shell** on Arch with KWin and Quickshell: menu bar, dock, control center,
-   notifications and launcher, all on `Theme.qml`.
+   notifications and launcher, all on `Theme.qml`, plus the Mac-first keyboard
+   layer (keyd). Built and judged on tenet, the Arch desktop, with a Magic
+   Trackpad.
 3. **Compositor**: a KWin effect for glass refraction, window animations on
    the spring tokens, and window decorations.
 4. **Toolkits**: a Qt widget style and a full GTK theme beyond colors, an icon
    set and a cursor theme.
 5. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
    dialogs in other apps match too.
-6. **Distro**: archiso image and Calamares installer.
+6. **Distro**: archiso image and Calamares installer, with onboarding that
+   asks Mac-first or Linux-first.
+
+Later: an ARM64 build for the Jetson Orin Nano.

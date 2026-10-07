@@ -6,8 +6,19 @@
           "author": "claude",
           "text": "Something this page made visible: in light mode, **secondary labels are 3.8:1** on content, under the 4.5:1 WCAG asks for body text (dark mode is fine at 6.3:1). macOS sits in the same range, but we don't have to. Raising light secondary ink from 52% to 60% clears 4.5:1 on both the content and window backgrounds, and it still reads as secondary. Want me to make that change?",
           "at": "2026-10-07T00:10:00.000Z"
+        },
+        {
+          "author": "you",
+          "text": "nah, let's just follow mac's range",
+          "at": "2026-10-07T01:23:24.373Z"
+        },
+        {
+          "author": "claude",
+          "text": "Got it. Secondary labels stay at 52%, in the macOS range. No change.",
+          "at": "2026-10-07T01:42:07.000Z"
         }
-      ]
+      ],
+      "verdict": "approve"
     },
     "decision-shortcut-modifier-ctrl-or-super": {
       "thread": [
@@ -15,8 +26,24 @@
           "author": "claude",
           "text": "My lean: **Super as Command**, done properly with keyd at the system level, so Super+C/V/X/Z/A/S/W/Q/T work in every app the way they do on a Mac, and Ctrl stays free for terminals. It's the thing Mac people trip over most. The cost is that app docs and menus say Ctrl, so our menus would need to show the Super glyph. If you'd rather keep Linux conventions, Ctrl is the zero-effort option.",
           "at": "2026-10-07T00:10:00.000Z"
+        },
+        {
+          "author": "you",
+          "text": "This is what I'm thinking. I literally want to be able to use linux apps as though I would a macos app. Like when I move from macos to ambrosia, i should literally get the same experience except you're not using macos you're using linux yk? So like super should be command and like everything should be remapped to be exactly like macos",
+          "at": "2026-10-07T01:32:01.841Z"
+        },
+        {
+          "author": "you",
+          "text": "Maybe I'm thinking as part of onboarding you can choose that though so liek either mac first or linux first kinda approach you know? idk",
+          "at": "2026-10-07T01:32:38.621Z"
+        },
+        {
+          "author": "claude",
+          "text": "Recorded as accepted, and renamed **Mac-first keyboard, chosen at onboarding**. Onboarding asks Mac-first or Linux-first, Mac-first is the default, and you can switch later in Settings. In Mac-first, Super is Command everywhere: \u2318C/\u2318V/\u2318Q in every app, \u2325 and \u2318 with arrow keys for word and line movement, \u2318Space for the launcher, \u2318Tab to switch apps. In terminals \u2318C becomes Ctrl+Shift+C, so Ctrl still reaches the shell.\n\nThe spec has a new **Keyboard** chapter with the full mapping, and the preview's menus now show \u2318 \u2325 \u2303 \u21e7 glyphs. The remapping layer itself (keyd, with per-app rules for terminals) gets built in the shell phase on tenet.",
+          "at": "2026-10-07T01:42:07.000Z"
         }
-      ]
+      ],
+      "verdict": "discuss"
     },
     "decision-how-far-refraction-goes": {
       "thread": [
@@ -24,8 +51,19 @@
           "author": "claude",
           "text": "My lean: keep refraction to shell surfaces for now. App toolbars would need each app to tell the compositor where its toolbar is, which only our own apps would do, so a mixed desktop would look inconsistent. We can revisit once the first-party apps exist.",
           "at": "2026-10-07T00:10:00.000Z"
+        },
+        {
+          "author": "you",
+          "text": "ur suggestion sounds great!",
+          "at": "2026-10-07T01:33:05.497Z"
+        },
+        {
+          "author": "claude",
+          "text": "Recorded: refraction on shell surfaces only, for now. The spec no longer mentions apps opting in.",
+          "at": "2026-10-07T01:42:07.000Z"
         }
-      ]
+      ],
+      "verdict": "approve"
     },
     "decision-dock-magnification": {
       "thread": [
@@ -33,8 +71,19 @@
           "author": "claude",
           "text": "My lean: opt-in, off by default. Magnification looks great in demos but makes targets move under the pointer. A subtle hover lift (what the preview does) gives the same feeling of life without that.",
           "at": "2026-10-07T00:10:00.000Z"
+        },
+        {
+          "author": "you",
+          "text": "ur lean sounds good!",
+          "at": "2026-10-07T01:33:55.465Z"
+        },
+        {
+          "author": "claude",
+          "text": "Recorded: magnification is opt-in and off by default. Hovering lifts an icon instead. The spec says so too.",
+          "at": "2026-10-07T01:42:07.000Z"
         }
-      ]
+      ],
+      "verdict": "approve"
     },
     "decision-hardware-to-develop-on": {
       "thread": [
@@ -42,8 +91,135 @@
           "author": "claude",
           "text": "This one is yours: what machine could run Linux full-time? A ThinkPad or Framework with a glass trackpad is the safest bet. An M1/M2 Mac on Asahi also works well and has the best trackpad, but Asahi doesn't support the newest chips yet.",
           "at": "2026-10-07T00:10:00.000Z"
+        },
+        {
+          "author": "you",
+          "text": "Ok ngl, I don't really have another laptop that has a trackpad besides this one. But I have two machines: jetson orin nano (I'll think about supporting this one later since it's a whole unique process, but I do need it at some point so put that idea in the backburner) and a desktop. Maybe I'll buy like a touch pad extension or whatever so I can connect it ot my desktop and run it. It's available on tenet through makima asw so you can look at the spec and all. Right now it's just an archbox.",
+          "at": "2026-10-07T01:35:55.056Z"
+        },
+        {
+          "author": "claude",
+          "text": "I looked at tenet over makima, read-only. It's an i7-10700 with 16 GB of RAM and a GTX 1660 Ti on the open NVIDIA driver (615, kernel modesetting on), driving a 4K screen over HDMI. It runs GNOME 50 right now, with a USB mouse. That's a good machine for KWin on Wayland, and 4K at 2\u00d7 scale is the case that matters most.\n\nFor the trackpad I'd get an **Apple Magic Trackpad (USB-C)**. It works on Linux out of the box, libinput handles its gestures, and it's the closest thing to a MacBook trackpad. The Jetson Orin Nano is on the roadmap as a later, separate effort.\n\nOne thing to know: makima logs me into tenet as **root**, so I'll only run read-only commands there unless you tell me otherwise.",
+          "at": "2026-10-07T01:42:07.000Z"
         }
-      ]
+      ],
+      "verdict": "discuss"
+    },
+    "spec-principles": {
+      "thread": [
+        {
+          "author": "you",
+          "text": "Everything is perfect - except the \"elevation is shown by shadow\" line. There should not be border shadows anywhere. that's it though, everything else is great!",
+          "at": "2026-10-07T01:19:16.642Z"
+        },
+        {
+          "author": "you",
+          "text": "Actually nah i take that back it's fine",
+          "at": "2026-10-07T01:25:03.624Z"
+        },
+        {
+          "author": "you",
+          "text": "yeah never mind shadows do exist im dumb ignore everything I said. This looks perfect",
+          "at": "2026-10-07T01:25:53.934Z"
+        },
+        {
+          "author": "claude",
+          "text": "No change then. Shadows stay as specified.",
+          "at": "2026-10-07T01:42:07.000Z"
+        }
+      ],
+      "verdict": "approve"
+    },
+    "spec-typography": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "spec-space": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "spec-shape": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "spec-materials": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "spec-elevation": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "spec-motion": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "spec-input": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "spec-shell-anatomy": {
+      "thread": [
+        {
+          "author": "you",
+          "text": "This is great. Be careful though like in the image you just showed me, the window bottom left and top left has like a sharp corner that's clearly not intended to be there. Fix. Also they changed up how the control center & bottom bar looks. I'll show you so ask me for it when I'm done reviewing.",
+          "at": "2026-10-07T01:29:01.510Z"
+        },
+        {
+          "author": "claude",
+          "text": "Fixed the sharp corners. Once the preview was scaled down, the sidebar's blurred backdrop stopped being clipped by the window's rounded corners, so its two outer corners came out square. The sidebar now rounds its own outer corners. I also wrote that into the spec, because KWin's blur region has the same trap.\n\nSend over the new control center and dock references whenever you're ready.",
+          "at": "2026-10-07T01:42:07.000Z"
+        }
+      ],
+      "verdict": "discuss"
+    },
+    "spec-iconography": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "spec-voice": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "decision-one-source-of-truth-for-design": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "decision-arch-kwin-and-quickshell-with-qt-as-the-native-toolkit": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "decision-inspired-by-macos-not-a-copy-of-it": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "decision-behind-window-glass-for-sidebars": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "decision-inter-and-jetbrains-mono": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "decision-warm-neutrals": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "decision-translucent-labels-and-fills": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "decision-blue-by-default-honey-as-the-house-color": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "decision-springs-for-everything-that-moves": {
+      "thread": [],
+      "verdict": "approve"
+    },
+    "decision-window-controls-on-the-left-as-colored-circles": {
+      "thread": [],
+      "verdict": "approve"
     }
   }
 }
