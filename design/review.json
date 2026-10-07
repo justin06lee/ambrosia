@@ -1,0 +1,49 @@
+{
+  "items": {
+    "spec-color": {
+      "thread": [
+        {
+          "author": "claude",
+          "text": "Something this page made visible: in light mode, **secondary labels are 3.8:1** on content, under the 4.5:1 WCAG asks for body text (dark mode is fine at 6.3:1). macOS sits in the same range, but we don't have to. Raising light secondary ink from 52% to 60% clears 4.5:1 on both the content and window backgrounds, and it still reads as secondary. Want me to make that change?",
+          "at": "2026-10-07T00:10:00.000Z"
+        }
+      ]
+    },
+    "decision-shortcut-modifier-ctrl-or-super": {
+      "thread": [
+        {
+          "author": "claude",
+          "text": "My lean: **Super as Command**, done properly with keyd at the system level, so Super+C/V/X/Z/A/S/W/Q/T work in every app the way they do on a Mac, and Ctrl stays free for terminals. It's the thing Mac people trip over most. The cost is that app docs and menus say Ctrl, so our menus would need to show the Super glyph. If you'd rather keep Linux conventions, Ctrl is the zero-effort option.",
+          "at": "2026-10-07T00:10:00.000Z"
+        }
+      ]
+    },
+    "decision-how-far-refraction-goes": {
+      "thread": [
+        {
+          "author": "claude",
+          "text": "My lean: keep refraction to shell surfaces for now. App toolbars would need each app to tell the compositor where its toolbar is, which only our own apps would do, so a mixed desktop would look inconsistent. We can revisit once the first-party apps exist.",
+          "at": "2026-10-07T00:10:00.000Z"
+        }
+      ]
+    },
+    "decision-dock-magnification": {
+      "thread": [
+        {
+          "author": "claude",
+          "text": "My lean: opt-in, off by default. Magnification looks great in demos but makes targets move under the pointer. A subtle hover lift (what the preview does) gives the same feeling of life without that.",
+          "at": "2026-10-07T00:10:00.000Z"
+        }
+      ]
+    },
+    "decision-hardware-to-develop-on": {
+      "thread": [
+        {
+          "author": "claude",
+          "text": "This one is yours: what machine could run Linux full-time? A ThinkPad or Framework with a glass trackpad is the safest bet. An M1/M2 Mac on Asahi also works well and has the best trackpad, but Asahi doesn't support the newest chips yet.",
+          "at": "2026-10-07T00:10:00.000Z"
+        }
+      ]
+    }
+  }
+}
