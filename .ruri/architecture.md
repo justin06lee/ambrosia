@@ -61,4 +61,5 @@ Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one de
 - Preview toggles dark mode and cycles accents via keys/URL
 - Review site renders spec with live specimens and verdict threads
 - Installs themes per-user on Linux preserving prior configs
+- Mac-first keyboard spec with Super-as-Command and switcher
 - Roadmap toward KWin/Quickshell shell, effects, and archiso image

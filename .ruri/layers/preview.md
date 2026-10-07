@@ -33,6 +33,7 @@ Preview Desktop is a static HTML/JS mock macOS-like desktop for visually reviewi
 - Run `make build` first — preview is broken/stale without generated dist/web/tokens.css.
 - Do not add build tooling or JS dependencies — static HTML/JS only.
 - Keep glass.css shared-safe — it is also used by the review site, so no preview-specific layout in it.
+- Round inner panels (e.g. sidebar) to their own outer corners — scaled-down blur is cut to the window shape only if the panel itself is rounded, otherwise corners render sharp/square.
 
 ## What it talks to
 

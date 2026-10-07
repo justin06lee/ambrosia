@@ -11,6 +11,7 @@
     "Preview toggles dark mode and cycles accents via keys/URL",
     "Review site renders spec with live specimens and verdict threads",
     "Installs themes per-user on Linux preserving prior configs",
+    "Mac-first keyboard spec with Super-as-Command and switcher",
     "Roadmap toward KWin/Quickshell shell, effects, and archiso image"
   ],
   "layers": [
@@ -207,7 +208,8 @@
         "Never hardcode design values in preview/*.css — use vars from dist/web/tokens.css; only layout positions may be literals.",
         "Run `make build` first — preview is broken/stale without generated dist/web/tokens.css.",
         "Do not add build tooling or JS dependencies — static HTML/JS only.",
-        "Keep glass.css shared-safe — it is also used by the review site, so no preview-specific layout in it."
+        "Keep glass.css shared-safe — it is also used by the review site, so no preview-specific layout in it.",
+        "Round inner panels (e.g. sidebar) to their own outer corners — scaled-down blur is cut to the window shape only if the panel itself is rounded, otherwise corners render sharp/square."
       ],
       "edges": [
         "Design Tokens via dist/web/tokens.css — sole source of colors, type, radii, shadows, springs; preview breaks without a build",
