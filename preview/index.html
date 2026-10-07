@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ambrosia — design preview</title>
+  <!-- Built only from generated tokens: run `make build` first. -->
+  <link rel="stylesheet" href="../dist/web/tokens.css">
+  <link rel="stylesheet" href="preview.css">
+</head>
+<body>
+  <svg class="sprite" aria-hidden="true">
+    <defs>
+      <clipPath id="squircle" clipPathUnits="objectBoundingBox"><path id="squircle-path"/></clipPath>
+    </defs>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.5c3.7 4.6 6.3 8.1 6.3 11.6a6.3 6.3 0 0 1-12.6 0c0-3.5 2.6-7 6.3-11.6z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2.5 9a14 14 0 0 1 19 0M5.5 12.5a9.5 9.5 0 0 1 13 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.3" r="1.2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-battery" viewBox="0 0 24 24"><rect x="2.5" y="7.5" width="17" height="9" rx="2.5"/><path d="M21.5 10.5v3"/><rect x="4.5" y="9.5" width="10.5" height="5" rx="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-controls" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="6.5" rx="3.25"/><circle cx="16.5" cy="7.75" r="1.6" fill="currentColor"/><rect x="3" y="13" width="18" height="6.5" rx="3.25"/><circle cx="7.5" cy="16.25" r="1.6" fill="currentColor"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></symbol>
+    <symbol id="i-left" viewBox="0 0 24 24"><path d="M14.5 6l-6 6 6 6"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M9.5 6l6 6-6 6"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></symbol>
+    <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.8" cy="6.5" r="1" fill="currentColor"/><circle cx="4.8" cy="12" r="1" fill="currentColor"/><circle cx="4.8" cy="17.5" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3.5v11M8 7.5l4-4 4 4M7.5 10.5H6v10h12v-10h-1.5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 11l8-6.5 8 6.5M6 9.5V19h12V9.5M10 19v-5h4v5"/></symbol>
+    <symbol id="i-desktop" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M9 20h6M12 16.5V20"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M6.5 3.5h7l4.5 4.5v12.5h-11.5zM13.5 3.5V8H18"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v8M8.5 12.5 12 16l3.5-3.5"/></symbol>
+    <symbol id="i-drive" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2.5"/><circle cx="7.5" cy="12" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.5 3.5 5.5 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.5-3.5-8.5s1.1-6 3.5-8.5z"/></symbol>
+    <symbol id="i-bluetooth" viewBox="0 0 24 24"><path d="M7 7.5l10 9-5 4.5V3l5 4.5-10 9"/></symbol>
+    <symbol id="i-nearby" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M8 16a5.7 5.7 0 0 1 0-8M16 8a5.7 5.7 0 0 1 0 8M5 19a10 10 0 0 1 0-14M19 5a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
+    <symbol id="i-speaker" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4zM15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
+    <symbol id="i-contrast" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5v17a8.5 8.5 0 0 0 0-17z" fill="currentColor"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6.5" y="5.5" width="3.5" height="13" rx="1" fill="currentColor" stroke="none"/><rect x="14" y="5.5" width="3.5" height="13" rx="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-forward" viewBox="0 0 24 24"><path d="M4 6.5v11l7.5-5.5zM12 6.5v11l7.5-5.5z" fill="currentColor"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M5.5 12.5l4 4 9-9"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M4 7l8 6 8-6"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><path d="M6 8.5l3.5 3.5L6 15.5M12 15.5h6"/></symbol>
+    <symbol id="i-notes" viewBox="0 0 24 24"><path d="M7 7h10M7 11h10M7 15h6"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 17.5V6.5l10-2v11"/><circle cx="7" cy="17.5" r="2"/><circle cx="17" cy="15.5" r="2"/></symbol>
+    <symbol id="i-photos" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 17l5-5 4 4 2.5-2.5L20 18"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M9.5 7V5h5v2M6.5 7l1 12.5h9l1-12.5M10 10.5v6M14 10.5v6"/></symbol>
+    <symbol id="folder" viewBox="0 0 64 64">
+      <path d="M6 14a5 5 0 0 1 5-5h13.5a5 5 0 0 1 3.6 1.5L31 13.5h22a5 5 0 0 1 5 5V48a5 5 0 0 1-5 5H11a5 5 0 0 1-5-5z" style="fill: var(--folder-back)"/>
+      <path d="M6 22a5 5 0 0 1 5-5h42a5 5 0 0 1 5 5v26a5 5 0 0 1-5 5H11a5 5 0 0 1-5-5z" style="fill: var(--folder-front)"/>
+      <path d="M11 17.5h42" style="stroke: var(--folder-rim); stroke-width: 1"/>
+    </symbol>
+  </svg>
+
+  <div class="desktop">
+    <div class="wallpaper day"></div>
+    <div class="wallpaper night"></div>
+  </div>
+
+  <!-- Menu bar -->
+  <header class="menubar glass thin">
+    <div class="mb-left">
+      <button class="mb-item mb-logo" aria-label="ambrosia"><svg class="i"><use href="#i-drop"/></svg></button>
+      <button class="mb-item mb-app">Files</button>
+      <button class="mb-item">File</button>
+      <button class="mb-item">Edit</button>
+      <button class="mb-item" data-popup-toggle="view-menu">View</button>
+      <button class="mb-item">Go</button>
+      <button class="mb-item">Window</button>
+      <button class="mb-item">Help</button>
+    </div>
+    <div class="mb-right">
+      <span class="mb-item mb-icon"><svg class="i"><use href="#i-battery"/></svg></span>
+      <span class="mb-item mb-icon"><svg class="i"><use href="#i-wifi"/></svg></span>
+      <span class="mb-item mb-icon"><svg class="i"><use href="#i-search"/></svg></span>
+      <button class="mb-item mb-icon" data-popup-toggle="cc" aria-label="Control center"><svg class="i"><use href="#i-controls"/></svg></button>
+      <span class="mb-item mb-clock" id="clock">Tue Oct 6 4:59 PM</span>
+    </div>
+  </header>
+
+  <!-- View menu -->
+  <div class="menu glass thick popup" id="view-menu" data-popup>
+    <div class="menu-item checked"><svg class="i check"><use href="#i-check"/></svg>as Icons<kbd>Ctrl 1</kbd></div>
+    <div class="menu-item">as List<kbd>Ctrl 2</kbd></div>
+    <div class="menu-item">as Columns<kbd>Ctrl 3</kbd></div>
+    <div class="menu-sep"></div>
+    <div class="menu-item">Use Groups<kbd>Ctrl G</kbd></div>
+    <div class="menu-item">Sort By<span class="sub"><svg class="i"><use href="#i-right"/></svg></span></div>
+    <div class="menu-sep"></div>
+    <div class="menu-item">Hide Sidebar<kbd>Ctrl Alt S</kbd></div>
+    <div class="menu-item">Show Path Bar<kbd>Ctrl Alt P</kbd></div>
+    <div class="menu-item disabled">Show Tab Bar</div>
+    <div class="menu-sep"></div>
+    <div class="menu-item">Enter Full Screen<kbd>F11</kbd></div>
+  </div>
+
+  <!-- Terminal (inactive) -->
+  <section class="window terminal" data-window style="left: 7vw; top: 96px; width: 540px; height: 330px">
+    <div class="titlebar" data-drag>
+      <div class="controls"><i class="close"></i><i class="minimize"></i><i class="zoom"></i></div>
+      <span class="title">jl — zsh — 80×24</span>
+    </div>
+    <pre class="term"><span class="p">~/ambrosia</span> <span class="g">❯</span> make
+bun run build
+$ tsc --noEmit &amp;&amp; bun tools/gen/index.ts
+ambrosia: generated 11 files into dist/
+  web/tokens.css
+  gtk-4.0/gtk.css
+  kde/AmbrosiaLight.colors
+  qml/Ambrosia/Theme.qml
+<span class="p">~/ambrosia</span> <span class="g">❯</span> <span class="cursor"></span></pre>
+  </section>
+
+  <!-- Files (active) -->
+  <section class="window files active" data-window style="left: calc(50% - 360px); top: 150px; width: 820px; height: 520px">
+    <aside class="sidebar glass regular">
+      <div class="controls" data-drag><i class="close"></i><i class="minimize"></i><i class="zoom"></i></div>
+      <nav>
+        <h6>Favorites</h6>
+        <a><svg class="i"><use href="#i-clock"/></svg>Recents</a>
+        <a><svg class="i"><use href="#i-home"/></svg>jl</a>
+        <a><svg class="i"><use href="#i-desktop"/></svg>Desktop</a>
+        <a class="selected"><svg class="i"><use href="#i-doc"/></svg>Documents</a>
+        <a><svg class="i"><use href="#i-download"/></svg>Downloads</a>
+        <h6>Locations</h6>
+        <a><svg class="i"><use href="#i-drive"/></svg>ambrosia</a>
+        <a><svg class="i"><use href="#i-globe"/></svg>Network</a>
+        <h6>Tags</h6>
+        <a><i class="tag" style="--tag: var(--amb-red)"></i>Red</a>
+        <a><i class="tag" style="--tag: var(--amb-orange)"></i>Orange</a>
+        <a><i class="tag" style="--tag: var(--amb-green)"></i>Green</a>
+      </nav>
+    </aside>
+    <div class="main">
+      <div class="toolbar" data-drag>
+        <div class="tool-group">
+          <button class="tool"><svg class="i"><use href="#i-left"/></svg></button>
+          <button class="tool" disabled><svg class="i"><use href="#i-right"/></svg></button>
+        </div>
+        <span class="title">Documents</span>
+        <span class="spacer"></span>
+        <div class="tool-group segmented">
+          <button class="tool on"><svg class="i"><use href="#i-grid"/></svg></button>
+          <button class="tool"><svg class="i"><use href="#i-list"/></svg></button>
+        </div>
+        <div class="tool-group"><button class="tool"><svg class="i"><use href="#i-share"/></svg></button></div>
+        <label class="search"><svg class="i"><use href="#i-search"/></svg><input placeholder="Search"></label>
+      </div>
+      <div class="items">
+        <div class="item"><svg class="folder"><use href="#folder"/></svg><span>Design</span></div>
+        <div class="item"><svg class="folder"><use href="#folder"/></svg><span>Projects</span></div>
+        <div class="item"><svg class="folder"><use href="#folder"/></svg><span>Music</span></div>
+        <div class="item selected"><div class="thumb"></div><span>nectar-day.png</span></div>
+        <div class="item"><div class="doc" style="--band: var(--amb-blue)"><b>TS</b></div><span>tokens.ts</span></div>
+        <div class="item"><div class="doc" style="--band: var(--amb-gray)"><b>MD</b></div><span>DESIGN.md</span></div>
+        <div class="item"><div class="doc" style="--band: var(--amb-green)"><b>ODS</b></div><span>Budget 2026.ods</span></div>
+        <div class="item"><div class="doc" style="--band: var(--amb-orange)"><b>ODP</b></div><span>Launch.odp</span></div>
+        <div class="item"><div class="doc" style="--band: var(--amb-purple)"><b>ZIP</b></div><span>Icons.zip</span></div>
+        <div class="item"><svg class="folder"><use href="#folder"/></svg><span>Archive</span></div>
+      </div>
+      <div class="statusbar">10 items, 214 GB available</div>
+    </div>
+  </section>
+
+  <!-- Notification -->
+  <div class="notification glass regular" id="notification">
+    <div class="app-icon mini" style="--tile: var(--amb-cyan); --tile-2: var(--amb-blue)"><svg class="i"><use href="#i-mail"/></svg></div>
+    <div class="n-body">
+      <div class="n-head"><span>Mail</span><span>now</span></div>
+      <strong>Hebe</strong>
+      <p>The new wallpapers are in: honey for the day, plum for the night.</p>
+    </div>
+  </div>
+
+  <!-- Control center -->
+  <div class="cc glass regular popup" id="cc" data-popup>
+    <div class="tile connectivity">
+      <div class="toggle-row"><button class="round on" data-toggle><svg class="i"><use href="#i-wifi"/></svg></button><div><b>Wi-Fi</b><small>Olympus</small></div></div>
+      <div class="toggle-row"><button class="round on" data-toggle><svg class="i"><use href="#i-bluetooth"/></svg></button><div><b>Bluetooth</b><small>On</small></div></div>
+      <div class="toggle-row"><button class="round" data-toggle><svg class="i"><use href="#i-nearby"/></svg></button><div><b>Nearby</b><small>Contacts only</small></div></div>
+    </div>
+    <button class="tile small" data-toggle-tile><span class="round"><svg class="i"><use href="#i-moon"/></svg></span><b>Focus</b></button>
+    <button class="tile small" id="appearance"><span class="round"><svg class="i"><use href="#i-contrast"/></svg></span><b>Dark Mode</b></button>
+    <div class="tile wide">
+      <b>Display</b>
+      <div class="slider" style="--value: 0.72"><svg class="i"><use href="#i-sun"/></svg></div>
+    </div>
+    <div class="tile wide">
+      <b>Sound</b>
+      <div class="slider" style="--value: 0.45"><svg class="i"><use href="#i-speaker"/></svg></div>
+    </div>
+    <div class="tile wide">
+      <b>Accent</b>
+      <div class="swatches" id="swatches"></div>
+    </div>
+    <div class="tile wide playing">
+      <div class="art"></div>
+      <div class="track"><b>Honey Light</b><small>Ambrosia Sessions</small></div>
+      <button class="tool" id="play"><svg class="i"><use href="#i-pause"/></svg></button>
+      <button class="tool"><svg class="i"><use href="#i-forward"/></svg></button>
+    </div>
+  </div>
+
+  <!-- Dock -->
+  <footer class="dock glass regular">
+    <button class="dock-app running" data-name="Files"><div class="app-icon" style="--tile: var(--amb-cyan); --tile-2: var(--amb-blue)"><svg class="i"><use href="#i-folder"/></svg></div></button>
+    <button class="dock-app running" data-name="Browser"><div class="app-icon" style="--tile: var(--amb-mint); --tile-2: var(--amb-teal)"><svg class="i"><use href="#i-globe"/></svg></div></button>
+    <button class="dock-app" data-name="Mail"><div class="app-icon" style="--tile: var(--amb-cyan); --tile-2: var(--amb-indigo)"><svg class="i"><use href="#i-mail"/></svg></div></button>
+    <button class="dock-app running" data-name="Terminal"><div class="app-icon dark-tile"><svg class="i"><use href="#i-terminal"/></svg></div></button>
+    <button class="dock-app" data-name="Notes"><div class="app-icon" style="--tile: var(--amb-yellow); --tile-2: var(--amb-orange)"><svg class="i"><use href="#i-notes"/></svg></div></button>
+    <button class="dock-app" data-name="Music"><div class="app-icon" style="--tile: var(--amb-pink); --tile-2: var(--amb-red)"><svg class="i"><use href="#i-music"/></svg></div></button>
+    <button class="dock-app" data-name="Photos"><div class="app-icon" style="--tile: var(--amb-purple); --tile-2: var(--amb-indigo)"><svg class="i"><use href="#i-photos"/></svg></div></button>
+    <button class="dock-app" data-name="Calendar"><div class="app-icon calendar"><small id="cal-day">TUE</small><b id="cal-date">6</b></div></button>
+    <button class="dock-app" data-name="Settings"><div class="app-icon" style="--tile: var(--amb-gray); --tile-2: color-mix(in oklab, var(--amb-gray) 70%, black)"><svg class="i"><use href="#i-gear"/></svg></div></button>
+    <span class="dock-sep"></span>
+    <button class="dock-app" data-name="Trash"><div class="app-icon glassy"><svg class="i"><use href="#i-trash"/></svg></div></button>
+  </footer>
+
+  <script src="preview.js"></script>
+</body>
+</html>

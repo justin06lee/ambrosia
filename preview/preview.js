@@ -1,0 +1,144 @@
+// Behaviour for the design preview: theme and accent switching, popups,
+// focusable and draggable windows, sliders, and the live clock.
+// Keys: D toggles dark mode, A cycles the accent.
+
+const root = document.documentElement;
+const ACCENTS = ["blue", "purple", "pink", "red", "orange", "honey", "green", "graphite"];
+const params = new URLSearchParams(location.search);
+
+// Superellipse (n = 5) app-icon mask, in objectBoundingBox units.
+{
+  const n = 5;
+  const points = [];
+  for (let i = 0; i < 360; i += 2) {
+    const t = (i * Math.PI) / 180;
+    const c = Math.cos(t), s = Math.sin(t);
+    const x = 0.5 + 0.5 * Math.sign(c) * Math.abs(c) ** (2 / n);
+    const y = 0.5 + 0.5 * Math.sign(s) * Math.abs(s) ** (2 / n);
+    points.push(`${x.toFixed(4)} ${y.toFixed(4)}`);
+  }
+  document.getElementById("squircle-path").setAttribute("d", `M${points.join("L")}Z`);
+}
+
+// Theme and accent ----------------------------------------------------------
+
+const dark = matchMedia("(prefers-color-scheme: dark)");
+const setTheme = (mode) => {
+  root.dataset.theme = mode;
+  document.getElementById("appearance").querySelector(".round").classList.toggle("on", mode === "dark");
+};
+setTheme(params.get("theme") ?? (dark.matches ? "dark" : "light"));
+dark.addEventListener("change", (e) => setTheme(e.matches ? "dark" : "light"));
+document.getElementById("appearance").addEventListener("click", () =>
+  setTheme(root.dataset.theme === "dark" ? "light" : "dark"));
+
+const swatches = document.getElementById("swatches");
+const setAccent = (name) => {
+  if (name === "blue") delete root.dataset.accent;
+  else root.dataset.accent = name;
+  for (const s of swatches.children) s.classList.toggle("on", s.dataset.accent === name);
+};
+for (const name of ACCENTS) {
+  const s = document.createElement("button");
+  s.className = "swatch";
+  s.title = name[0].toUpperCase() + name.slice(1);
+  s.dataset.accent = name;
+  s.style.setProperty("--swatch", `var(--amb-accent-option-${name})`);
+  s.addEventListener("click", () => setAccent(name));
+  swatches.append(s);
+}
+setAccent(params.get("accent") ?? "blue");
+
+// Popups --------------------------------------------------------------------
+
+const notification = document.getElementById("notification");
+const closeAll = (except) => {
+  for (const p of document.querySelectorAll("[data-popup].open")) {
+    if (p !== except) p.classList.remove("open");
+  }
+  for (const b of document.querySelectorAll("[data-popup-toggle].active")) {
+    if (b.dataset.popupToggle !== except?.id) b.classList.remove("active");
+  }
+};
+for (const button of document.querySelectorAll("[data-popup-toggle]")) {
+  button.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const popup = document.getElementById(button.dataset.popupToggle);
+    closeAll(popup);
+    const open = popup.classList.toggle("open");
+    button.classList.toggle("active", open);
+    if (popup.id === "cc") notification.classList.toggle("away", open);
+  });
+}
+document.addEventListener("click", (e) => {
+  if (!e.target.closest("[data-popup]")) closeAll();
+});
+notification.addEventListener("click", () => notification.classList.add("away"));
+for (const p of params.getAll("open")) document.querySelector(`[data-popup-toggle="${p}"]`)?.click();
+
+// Control center ------------------------------------------------------------
+
+for (const t of document.querySelectorAll("[data-toggle]")) {
+  t.addEventListener("click", () => t.classList.toggle("on"));
+}
+for (const t of document.querySelectorAll("[data-toggle-tile]")) {
+  t.addEventListener("click", () => t.querySelector(".round").classList.toggle("on"));
+}
+const play = document.getElementById("play");
+play.addEventListener("click", () => {
+  const use = play.querySelector("use");
+  use.setAttribute("href", use.getAttribute("href") === "#i-pause" ? "#i-play" : "#i-pause");
+});
+for (const slider of document.querySelectorAll(".slider")) {
+  const set = (e) => {
+    const r = slider.getBoundingClientRect();
+    slider.style.setProperty("--value", Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)).toFixed(3));
+  };
+  slider.addEventListener("pointerdown", (e) => {
+    slider.setPointerCapture(e.pointerId);
+    set(e);
+    slider.onpointermove = set;
+  });
+  slider.addEventListener("pointerup", () => (slider.onpointermove = null));
+}
+
+// Windows -------------------------------------------------------------------
+
+const windows = [...document.querySelectorAll("[data-window]")];
+const focus = (w) => windows.forEach((x) => x.classList.toggle("active", x === w));
+for (const w of windows) {
+  w.addEventListener("pointerdown", () => focus(w));
+  for (const handle of w.querySelectorAll("[data-drag]")) {
+    handle.addEventListener("pointerdown", (e) => {
+      if (e.target.closest("button, input, .controls i")) return;
+      const startX = e.clientX - w.offsetLeft;
+      const startY = e.clientY - w.offsetTop;
+      handle.setPointerCapture(e.pointerId);
+      handle.onpointermove = (m) => {
+        w.style.left = `${m.clientX - startX}px`;
+        w.style.top = `${Math.max(28, m.clientY - startY)}px`;
+      };
+    });
+    handle.addEventListener("pointerup", () => (handle.onpointermove = null));
+  }
+}
+
+// Keys and clock ------------------------------------------------------------
+
+document.addEventListener("keydown", (e) => {
+  if (e.target.matches("input")) return;
+  if (e.key === "d") setTheme(root.dataset.theme === "dark" ? "light" : "dark");
+  if (e.key === "a") setAccent(ACCENTS[(ACCENTS.indexOf(root.dataset.accent ?? "blue") + 1) % ACCENTS.length]);
+  if (e.key === "Escape") closeAll();
+});
+
+const clock = document.getElementById("clock");
+const tick = () => {
+  const now = new Date();
+  const day = now.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" }).replace(",", "");
+  clock.textContent = `${day}  ${now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })}`;
+  document.getElementById("cal-day").textContent = now.toLocaleDateString("en-US", { weekday: "short" }).toUpperCase();
+  document.getElementById("cal-date").textContent = now.getDate();
+};
+tick();
+setInterval(tick, 15_000);

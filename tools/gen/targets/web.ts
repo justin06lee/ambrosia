@@ -60,6 +60,8 @@ function modeVars(m: ResolvedMode): [string, string][] {
   for (const [k, mat] of Object.entries(m.material)) v.push([`material-${k}-tint`, toCss(mat.tint)]);
   v.push(["glass-rim", toCss(m.glass.rim)], ["glass-edge", toCss(m.glass.edge)]);
   for (const [k, s] of Object.entries(m.shadows)) v.push([`shadow-${kebab(k)}`, cssShadow(s.layers, s.color)]);
+  // Every accent's swatch stays available for pickers, whatever is active.
+  for (const [k, a] of Object.entries(m.accents)) v.push([`accent-option-${k}`, toCss(a.bg)]);
   v.push(...accentVars(m.accents[t.accent.default]!));
   return v;
 }
