@@ -58,7 +58,6 @@ export const radius = {
   panel: 22, // notifications, launcher
   card: 12, // panel 22 − padding 10
   module: 30, // control center modules: capsules, half the 60 unit
-  controlCenter: 44, // module 30 + padding 14
   popover: 12,
   row: 6, // popover 12 − padding 6
   control: 8,
@@ -278,6 +277,14 @@ export const exitScale = 0.7;
 /** Opacity-only changes, in ms, on a decelerating curve. */
 export const fade = { fast: 120, base: 200, slow: 320 } as const;
 export const fadeCurve = [0.3, 0, 0, 1] as const;
+
+/**
+ * Sequences that aren't a single spring, in ms, measured frame by frame from
+ * screen recordings of the reference. Opacity follows `fadeCurve`.
+ */
+export const choreography = {
+  controlCenter: { blurIn: 60, fadeIn: 100, fadeInDelay: 16, lightUpDelay: 70, lightUp: 160, fadeOut: 200 },
+};
 
 export const input = {
   scrollDeceleration: 0.998,

@@ -78,6 +78,7 @@ export function qml(r: Resolved): string {
       ]),
     ),
     fade: { ...t.fade, curve: [...t.fadeCurve] },
+    choreography: t.choreography as unknown as Tree,
     input: t.input as unknown as Tree,
     windowControls: r.windowControls,
   };

@@ -179,6 +179,11 @@
           "author": "claude",
           "text": "Two follow-ups:\n\n- **The control center panel is now only blur**: no fill, no rim, no shadow and no saturation boost. The modules float on the blurred desktop and carry the glass themselves (`thin` tint and a rim of light).\n- **Menus snap.** Menus, context menus and submenus appear instantly and fade out over 120 ms when dismissed. Panels like the control center still spring in. This is a new rule in the Motion chapter. The preview also has a right-click menu on files now.",
           "at": "2026-10-07T02:26:31.000Z"
+        },
+        {
+          "author": "claude",
+          "text": "Control center, round 3:\n\n- **No border.** The edge you saw was where the blur stopped. The blur now sits on its own layer that reaches past the modules and feathers away to nothing over 32px, so there's no boundary at all. Still no tint and no saturation.\n- **The animation follows your recording**, measured frame by frame. The blur arrives first (60 ms), then every module fades in place together over 100 ms, with no scale and no slide. On-state fills (the white circle) light up 70 ms later over 160 ms. On close, the fills drop first and everything fades out over 200 ms, decelerating. I measured the preview in the browser and it tracks the recording within a frame. The timings live in `choreography.controlCenter` in tokens.ts, so the QML shell gets the same numbers.",
+          "at": "2026-10-07T02:52:41.000Z"
         }
       ],
       "verdict": "discuss"
