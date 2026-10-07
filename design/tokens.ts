@@ -220,6 +220,11 @@ export const material = {
     blur: 4, saturate: 1.2,
     tint: { light: white(0.12), dark: white(0.14) },
   },
+  /** Blur only, for surfaces whose content carries the glass (control center). */
+  backdrop: {
+    blur: 22, saturate: 1,
+    tint: { light: white(0), dark: white(0) },
+  },
 } satisfies Record<string, Material>;
 
 export const glass = {

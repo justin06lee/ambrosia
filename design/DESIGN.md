@@ -119,6 +119,7 @@ Glass is the signature of the system, so it has rules:
 | regular | 28 | 1.8 | 55% / 50% | Dock, sidebars, notifications |
 | thick | 36 | 1.8 | 72% / 68% | Menus, popovers, launcher, anything with dense text |
 | clear | 4 | 1.2 | 12% / 14% | Controls that float over glass or media |
+| backdrop | 22 | 1.0 | none | Control center: blur only, the modules carry the glass |
 
 Every glass surface also gets:
 
@@ -232,8 +233,8 @@ Menus show shortcuts as glyphs in the fixed order ⌃ ⌥ ⇧ ⌘, then the key
   on the bouncy spring, and one tooltip with a small caret follows the pointer
   from icon to icon. Magnification is an opt-in setting.
 - **Control center:** a grid of 4 columns of 60px units with 12px gaps and
-  14px padding. There is no panel. The modules float on a backdrop blur at the
-  `regular` radius, with no tint, no saturation boost and no edge: the blur
+  14px padding. There is no panel. The modules float on the `backdrop` material,
+  a 22px blur with no tint, no saturation boost and no edge: the blur
   reaches past the grid and feathers away to nothing over 32px, so there's no
   boundary to see. Everything in it is a module: a capsule of
   `thin` glass with a 1px rim of light all the way round.
