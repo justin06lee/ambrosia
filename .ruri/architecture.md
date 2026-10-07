@@ -59,7 +59,8 @@ Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one de
 - Validates contrast, concentric radii, and spacing grid via tests
 - Browser mock desktop preview styled only from generated tokens
 - Preview toggles dark mode and cycles accents via keys/URL
-- Preview mac-style control center, dock, tooltips and badges
+- Preview blur-only control center, dock, tooltips and badges
+- Preview menus snap open instantly with right-click file menu
 - Review site renders spec with live specimens and verdict threads
 - Installs themes per-user on Linux preserving prior configs
 - Mac-first keyboard spec with Super-as-Command and switcher

@@ -15,8 +15,8 @@ Single-file source of truth for ambrosia's look and motion, exporting type scale
 - **Status and window-control colors:** design/tokens.ts
 - **Glass and materials:** design/tokens.ts
 - **Shadows:** design/tokens.ts
-- **Springs and motion:** design/tokens.ts
-- **Control center module metrics:** design/tokens.ts
+- **Springs and motion:** design/tokens.ts, design/DESIGN.md
+- **Control center module metrics:** design/tokens.ts, design/DESIGN.md
 - **Dock metrics:** design/tokens.ts
 
 ## Key files
@@ -30,6 +30,7 @@ Single-file source of truth for ambrosia's look and motion, exporting type scale
 - Keep colors as OKLCH strings (oklch(L C H) or with / A) so generator can convert and gamut-map to sRGB.
 - Provide both light and dark values via Mode/Pair for mode-dependent tokens.
 - See DESIGN.md for reasoning behind the numbers before retuning values.
+- Menus snap open instantly with no open animation (close fades 120ms); control-center panel is blur-only with no fill, border, or shadow, controls carry their own glass.
 
 ## What it talks to
 

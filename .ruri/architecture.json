@@ -9,7 +9,8 @@
     "Validates contrast, concentric radii, and spacing grid via tests",
     "Browser mock desktop preview styled only from generated tokens",
     "Preview toggles dark mode and cycles accents via keys/URL",
-    "Preview mac-style control center, dock, tooltips and badges",
+    "Preview blur-only control center, dock, tooltips and badges",
+    "Preview menus snap open instantly with right-click file menu",
     "Review site renders spec with live specimens and verdict threads",
     "Installs themes per-user on Linux preserving prior configs",
     "Mac-first keyboard spec with Super-as-Command and switcher",
@@ -287,13 +288,15 @@
         {
           "name": "Springs and motion",
           "files": [
-            "design/tokens.ts"
+            "design/tokens.ts",
+            "design/DESIGN.md"
           ]
         },
         {
           "name": "Control center module metrics",
           "files": [
-            "design/tokens.ts"
+            "design/tokens.ts",
+            "design/DESIGN.md"
           ]
         },
         {
@@ -312,7 +315,8 @@
         "Never hand-edit generated output in dist/; change design/tokens.ts and regenerate.",
         "Keep colors as OKLCH strings (oklch(L C H) or with / A) so generator can convert and gamut-map to sRGB.",
         "Provide both light and dark values via Mode/Pair for mode-dependent tokens.",
-        "See DESIGN.md for reasoning behind the numbers before retuning values."
+        "See DESIGN.md for reasoning behind the numbers before retuning values.",
+        "Menus snap open instantly with no open animation (close fades 120ms); control-center panel is blur-only with no fill, border, or shadow, controls carry their own glass."
       ],
       "edges": [
         "Generator Core — resolves design/tokens.ts: OKLCH to sRGB, contrast, springs, dist orchestration",

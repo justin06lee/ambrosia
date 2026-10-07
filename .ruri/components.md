@@ -11,12 +11,12 @@ ruri maintains this file. Don't edit it by hand; it is rewritten whenever
 the library changes.
 
 ## design-preview-desktop — the design preview desktop
-HTML mock of the whole ambrosia desktop: menu bar, the dock (roomy, ringed, glassy icon rims, badges, a following tooltip), Files + terminal windows, notification, the control center (blur-only panel, capsule modules on a 4-col grid), View menu and right-click context menu (both snap open). Styled only from dist/web/tokens.css; run make build first; D/A keys or ?theme=&accent=&open= switch state.
+HTML mock of the whole ambrosia desktop: menu bar, the dock (roomy, ringed, glassy icon rims, badges, a following tooltip), Files + terminal windows, notification, the control center (no panel: capsule modules on a feathered blur, fade choreography measured from macOS), View menu and right-click context menu (both snap open). Styled only from dist/web/tokens.css; run make build first; D/A keys or ?theme=&accent=&open= switch state.
 Also called: control center
 Its files: preview/index.html
 Reaches into: dist/web/tokens.css, assets/wallpapers/nectar-day.svg, assets/wallpapers/nectar-night.svg
 Tags: desktop, preview, glass, dock, menu bar, control center
-Screenshots, newest first (read them if you need to see it): /Users/huiyunlee/.config/ruri/uploads/78733591-788e-4eab-8ef1-97af7b3f009f-mcp-bridge-blob-1791339962005-hkc7oc.png, /Users/huiyunlee/.config/ruri/uploads/6552624f-e736-4293-9154-7c93fafb0bea-mcp-bridge-blob-1791339158628-er4goe.png, /Users/huiyunlee/.config/ruri/uploads/7f4a8699-0a5e-4746-b589-2c794d18ca4e-mcp-bridge-blob-1791337341039-ucycqv.png, /Users/huiyunlee/.config/ruri/uploads/c96b837f-b878-48d3-b290-23b45a36c12c-mcp-bridge-blob-1791333821291-68paem.png
+Screenshots, newest first (read them if you need to see it): /Users/huiyunlee/.config/ruri/uploads/1c4d9e3d-afa9-4cc2-8b84-c41a45a5a00c-mcp-bridge-blob-1791341481579-oy3f5g.png, /Users/huiyunlee/.config/ruri/uploads/78733591-788e-4eab-8ef1-97af7b3f009f-mcp-bridge-blob-1791339962005-hkc7oc.png, /Users/huiyunlee/.config/ruri/uploads/6552624f-e736-4293-9154-7c93fafb0bea-mcp-bridge-blob-1791339158628-er4goe.png, /Users/huiyunlee/.config/ruri/uploads/7f4a8699-0a5e-4746-b589-2c794d18ca4e-mcp-bridge-blob-1791337341039-ucycqv.png, /Users/huiyunlee/.config/ruri/uploads/c96b837f-b878-48d3-b290-23b45a36c12c-mcp-bridge-blob-1791333821291-68paem.png
 
 ## design-review-site — the design review site
 Review site for the design: one section per DESIGN.md chapter and DECISIONS.md entry, with live examples built from the real tokens, a verdict control and a notes thread per section that saves to design/review.json (`bun run review`, port 4747). Static copy in dist/site keeps notes in localStorage instead.
