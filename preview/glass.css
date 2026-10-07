@@ -1,0 +1,29 @@
+/* The glass recipe, shared by the preview and the review site.
+   Materials and colors come from dist/web/tokens.css. */
+
+/* Glass: tint + backdrop blur, a lit rim on top, a hairline edge outside,
+   a specular ring lit from the top-left, and a little grain against banding. */
+
+.glass {
+  position: relative;
+  background: var(--glass-tint);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+  box-shadow: inset 0 1px 0 var(--amb-glass-rim), 0 0 0 0.5px var(--amb-glass-edge), var(--glass-shadow, 0 0 #0000);
+}
+.glass::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(135deg, var(--amb-glass-rim), transparent 35%, transparent 70%,
+    color-mix(in srgb, var(--amb-glass-rim) 45%, transparent));
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+.glass::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  opacity: var(--amb-glass-noise);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.glass.thin { --glass-tint: var(--amb-material-thin-tint); --glass-filter: var(--amb-material-thin-filter); }
+.glass.regular { --glass-tint: var(--amb-material-regular-tint); --glass-filter: var(--amb-material-regular-filter); }
+.glass.thick { --glass-tint: var(--amb-material-thick-tint); --glass-filter: var(--amb-material-thick-filter); }
+.glass.clear { --glass-tint: var(--amb-material-clear-tint); --glass-filter: var(--amb-material-clear-filter); }

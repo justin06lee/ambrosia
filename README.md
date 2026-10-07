@@ -20,15 +20,16 @@ the shell and font rendering all read the same numbers.
 
 ## Status
 
-This is the foundation phase. The design system, the theme generator and a
-browser preview of the desktop exist. The Linux shell, the compositor effects
-and the distro itself don't yet.
+This is the foundation phase. The design system, the theme generator, a
+browser preview of the desktop and a design review site exist. The Linux shell,
+the compositor effects and the distro itself don't yet.
 
 ## Quick start
 
 ```sh
-make                       # test, generate every theme into dist/, install on Linux
-open preview/index.html    # the mock desktop (xdg-open on Linux)
+make                       # test, build every theme and the review site, install on Linux
+bun run review             # the design review site at http://localhost:4747
+open preview/index.html    # the mock desktop on its own (xdg-open on Linux)
 ```
 
 `make` needs [bun](https://bun.sh). On Linux it installs the themes for the
@@ -38,6 +39,25 @@ current user. Any config file ambrosia didn't write is kept beside it as
 In the preview, **D** toggles dark mode and **A** cycles the accent. You can
 also set the starting state in the URL: `?theme=dark&accent=honey&open=cc`
 (the `open` value can be `cc` for the control center or `view-menu`).
+
+## The design review site
+
+`bun run review` serves a site for reviewing the design together. It has one
+section per chapter of [`design/DESIGN.md`](design/DESIGN.md) and per entry in
+[`design/DECISIONS.md`](design/DECISIONS.md). Each section shows the reasoning
+and live examples built from the real tokens: the type scale, nested radii,
+every accent with its measured contrast, the glass materials with each layer
+switchable, the springs plotted and playable, and the desktop preview.
+
+Each section takes a verdict (looks right, change it, discuss) and a notes
+thread. With the review server running, these save to `design/review.json` in
+the repo. Claude reads that file and replies in the same threads, and replies
+appear in the open page within a few seconds. The site reads its text straight
+from the two markdown files, so it can't drift from them.
+
+`make build` also writes a static copy to `dist/site/`. Without the server it
+keeps verdicts and notes in the browser, and **Copy review** turns them into
+markdown you can paste into a chat.
 
 ## How it fits together
 
@@ -65,11 +85,13 @@ contrast in both modes, concentric radii, and the spacing grid.
 ## Layout
 
 ```
-design/        DESIGN.md (the rules) and tokens.ts (the values)
+design/        DESIGN.md (the rules), DECISIONS.md (the choices), tokens.ts (the values),
+               review.json (review verdicts and notes)
 tools/gen/     the generator and its tests
 tools/install.sh
-preview/       the mock desktop, styled only from dist/web/tokens.css
-assets/        banner and the "nectar" day/night wallpapers
+preview/       the mock desktop, styled only from dist/web/tokens.css; glass.css is shared
+site/          the design review site and its server
+assets/        banner, icon and the "nectar" day/night wallpapers
 ```
 
 ## Roadmap
