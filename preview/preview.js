@@ -17,7 +17,11 @@ const params = new URLSearchParams(location.search);
     const y = 0.5 + 0.5 * Math.sign(s) * Math.abs(s) ** (2 / n);
     points.push(`${x.toFixed(4)} ${y.toFixed(4)}`);
   }
-  document.getElementById("squircle-path").setAttribute("d", `M${points.join("L")}Z`);
+  const d = `M${points.join("L")}Z`;
+  document.getElementById("squircle-path").setAttribute("d", d);
+  // The same outline as a thin ring, used as a mask for the icons' glassy rim.
+  const ring = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><path d="${d}" fill="none" stroke="white" stroke-width="0.05"/></svg>`;
+  root.style.setProperty("--squircle-ring", `url("data:image/svg+xml,${encodeURIComponent(ring)}")`);
 }
 
 // Theme and accent ----------------------------------------------------------
@@ -25,7 +29,7 @@ const params = new URLSearchParams(location.search);
 const dark = matchMedia("(prefers-color-scheme: dark)");
 const setTheme = (mode) => {
   root.dataset.theme = mode;
-  document.getElementById("appearance").querySelector(".round").classList.toggle("on", mode === "dark");
+  document.getElementById("appearance").classList.toggle("on", mode === "dark");
 };
 setTheme(params.get("theme") ?? (dark.matches ? "dark" : "light"));
 dark.addEventListener("change", (e) => setTheme(e.matches ? "dark" : "light"));
@@ -81,8 +85,8 @@ for (const p of params.getAll("open")) document.querySelector(`[data-popup-toggl
 for (const t of document.querySelectorAll("[data-toggle]")) {
   t.addEventListener("click", () => t.classList.toggle("on"));
 }
-for (const t of document.querySelectorAll("[data-toggle-tile]")) {
-  t.addEventListener("click", () => t.querySelector(".round").classList.toggle("on"));
+for (const t of document.querySelectorAll("[data-toggle-child]")) {
+  t.addEventListener("click", () => t.querySelector(".toggle").classList.toggle("on"));
 }
 const play = document.getElementById("play");
 play.addEventListener("click", () => {
@@ -91,7 +95,7 @@ play.addEventListener("click", () => {
 });
 for (const slider of document.querySelectorAll(".slider")) {
   const set = (e) => {
-    const r = slider.getBoundingClientRect();
+    const r = slider.querySelector(".slider-track").getBoundingClientRect();
     slider.style.setProperty("--value", Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)).toFixed(3));
   };
   slider.addEventListener("pointerdown", (e) => {
@@ -101,6 +105,26 @@ for (const slider of document.querySelectorAll(".slider")) {
   });
   slider.addEventListener("pointerup", () => (slider.onpointermove = null));
 }
+
+// Dock: one tooltip that follows the pointer from icon to icon.
+const dock = document.querySelector(".dock");
+const tip = document.getElementById("dock-tip");
+for (const app of dock.querySelectorAll(".dock-app")) {
+  app.addEventListener("pointerenter", () => {
+    const icon = app.querySelector(".app-icon").getBoundingClientRect();
+    const showing = tip.classList.contains("show");
+    tip.textContent = app.dataset.name;
+    if (!showing) tip.style.transition = "none";
+    tip.style.left = `${icon.left + icon.width / 2}px`;
+    tip.style.top = `${dock.getBoundingClientRect().top - 12}px`;
+    if (!showing) {
+      tip.getBoundingClientRect();
+      tip.style.transition = "";
+    }
+    tip.classList.add("show");
+  });
+}
+dock.addEventListener("pointerleave", () => tip.classList.remove("show"));
 
 // Windows -------------------------------------------------------------------
 

@@ -55,14 +55,16 @@ export const space = {
 export const radius = {
   window: 16,
   sheet: 16,
-  panel: 22,
+  panel: 22, // notifications, launcher
   card: 12, // panel 22 − padding 10
+  module: 30, // control center modules: capsules, half the 60 unit
+  controlCenter: 44, // module 30 + padding 14
   popover: 12,
   row: 6, // popover 12 − padding 6
   control: 8,
   controlSmall: 6,
   tooltip: 8,
-  dock: 20, // icon corner 12 + padding 8
+  dock: 28, // icon corner 12 + padding 16
   capsule: 9999,
 } as const;
 
@@ -73,7 +75,8 @@ export const minRadius = 4;
 
 export const size = {
   menubar: { height: 28, itemPadding: 10, icon: 16 },
-  dock: { icon: 52, padding: 8, gap: 6, margin: 6, indicator: 4 },
+  dock: { icon: 52, padding: 16, gap: 16, margin: 6, indicator: 4, badge: 18 },
+  controlCenter: { unit: 60, gap: 12, padding: 14, columns: 4, toggle: 36, track: 6 },
   titlebar: { height: 40, toolbar: 52 },
   windowControls: { diameter: 12, gap: 8, inset: 20 },
   sidebar: { width: 220, row: 28, rowInset: 10 },

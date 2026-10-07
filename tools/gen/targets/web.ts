@@ -7,6 +7,9 @@ import type { Resolved, ResolvedAccent, ResolvedMode } from "../resolve";
 import { toCssLinear } from "../spring";
 import { HEADER, cssShadow, fontStack, kebab, slug } from "./shared";
 
+/** Size tokens that are counts, not lengths. */
+const COUNTS = new Set(["columns"]);
+
 const block = (selector: string, vars: [string, string][], indent = "") =>
   `${indent}${selector} {\n${vars.map(([k, v]) => `${indent}  --amb-${k}: ${v};`).join("\n")}\n${indent}}`;
 
@@ -29,7 +32,7 @@ function staticVars(r: Resolved): [string, string][] {
   for (const [k, px] of Object.entries(t.radius)) v.push([`radius-${kebab(k)}`, `${px}px`]);
   for (const [group, metrics] of Object.entries(t.size)) {
     if (typeof metrics === "number") v.push([`size-${kebab(group)}`, `${metrics}px`]);
-    else for (const [k, px] of Object.entries(metrics)) v.push([`size-${kebab(group)}-${kebab(k)}`, `${px}px`]);
+    else for (const [k, px] of Object.entries(metrics)) v.push([`size-${kebab(group)}-${kebab(k)}`, COUNTS.has(k) ? `${px}` : `${px}px`]);
   }
   for (const [name, m] of Object.entries(t.material)) {
     v.push([`material-${name}-filter`, `blur(${m.blur}px) saturate(${m.saturate})`]);

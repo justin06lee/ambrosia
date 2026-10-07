@@ -63,13 +63,15 @@ items, 16 between groups, 24 around page content.
 | Surface | Radius | Note |
 |---|---|---|
 | Window, sheet | 16 | |
-| Shell panels (control center, notifications, launcher) | 22 | |
+| Control center | 44 | module 30 + padding 14 |
+| Control center modules | 30 | capsules: half the 60px unit |
+| Shell panels (notifications, launcher) | 22 | |
 | Panel tiles, cards | 12 | panel 22 − padding 10 |
 | Menus, popovers | 12 | |
 | Menu items, list selection, sidebar rows | 6 | popover 12 − padding 6 |
 | Controls (buttons, fields) | 8 | small controls 6 |
 | Tooltips | 8 | |
-| Dock | 20 | icon corner 12 + padding 8 |
+| Dock | 28 | icon corner 12 + padding 16 |
 | App icons | 22.5% of size | continuous-curvature superellipse, never a plain rounded rect |
 
 The concentric rule is `inner = max(outer − inset, 4)`. The floor keeps small
@@ -215,10 +217,26 @@ Menus show shortcuts as glyphs in the fixed order ⌃ ⌥ ⇧ ⌘, then the key
 
 - **Menu bar:** 28 tall, `thin` glass across the full width. App name in
   `headline`, menus in `body`, 10px padding per item, 16px status icons. The
-  clock uses tabular figures.
-- **Dock:** 52px icons, 8px padding, 6px gap, 6px above the screen edge,
-  `regular` glass, radius 20. Running apps get a 4px dot. Hovering lifts an
-  icon 6px on the bouncy spring. Magnification is an opt-in setting.
+  clock uses tabular figures. Open menus and active status items highlight as
+  capsules.
+- **Dock:** 52px icons with 16px of padding and 16px gaps, so the icons
+  breathe. 6px above the screen edge, `regular` glass, radius 28, and a full
+  1px rim of light all the way round, not just along the top. Running apps get
+  a 4px dot. Icons are superellipses with a thin glassy rim, brighter at the
+  top. Badges are 18px red capsules at the icon's top-right. Full-height
+  hairlines separate apps, folders and the trash. Hovering lifts an icon 6px
+  on the bouncy spring, and one tooltip with a small caret follows the pointer
+  from icon to icon. Magnification is an opt-in setting.
+- **Control center:** a grid of 4 columns of 60px units with 12px gaps and
+  14px padding, in `regular` glass with radius 44. Everything in it is a
+  module: a capsule of `clear` glass with a 1px rim of light all the way round.
+  A 1×1 module is a circle, 2×1 a pill, 4×1 a bar, and 2×2 a tile (radius 30).
+  Pills hold a 36px toggle circle, a `headline` label and a `caption` status.
+  A toggle that is on is a solid circle: white with an accent glyph in dark
+  mode, accent with a white glyph in light mode. A circle module that is on
+  fills the same way. Sliders sit in bars under a `headline` label: a 6px
+  track with no knob, filled from the left, with a small glyph at each end.
+  An outlined "Edit Controls" capsule sits under the grid.
 - **Window controls:** three 12px circles (close, minimize, zoom), 8px apart,
   20px from the left edge, centered vertically in the title bar or toolbar.
   Glyphs only appear while hovering the group. Inactive windows show them as
