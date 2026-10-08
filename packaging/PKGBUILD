@@ -77,7 +77,7 @@ package_ambrosia-desktop() {
     ambrosia-shell
     sddm xdg-desktop-portal-kde polkit-kde-agent kscreen powerdevil
     networkmanager plasma-nm bluez bluez-utils bluedevil
-    pipewire pipewire-pulse pipewire-alsa wireplumber plasma-pa
+    pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber plasma-pa
     plasma-desktop breeze konsole dolphin systemsettings spectacle
   )
   backup=(etc/sddm.conf.d/10-ambrosia.conf)

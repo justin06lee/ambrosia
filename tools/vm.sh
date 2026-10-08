@@ -10,6 +10,7 @@
 #   tools/vm.sh key ctrl-alt-f2 ...   press keys (QEMU sendkey names)
 #   tools/vm.sh type 'ls ~'   type text (US layout); end with a newline to press enter
 #   tools/vm.sh stop          power the VM off
+# The VM's SSH port is forwarded to port 10022 on this machine (2222 is makima's).
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
@@ -30,7 +31,7 @@ boot() {
     -drive if=pflash,format=raw,file="$vm/vars.fd" \
     -drive file="$vm/disk.qcow2",if=virtio,format=qcow2 \
     -device virtio-vga,xres=1920,yres=1200 -display none \
-    -nic user,model=virtio-net-pci \
+    -nic user,model=virtio-net-pci,hostfwd=tcp::10022-:22 \
     -monitor unix:"$monitor",server,nowait \
     -daemonize -pidfile "$vm/qemu.pid" "$@"
 }
