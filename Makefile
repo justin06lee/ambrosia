@@ -24,6 +24,7 @@ update: clean install
 
 package:
 	mkdir -p out/pkg
+	rm -f out/pkg/ambrosia-*.pkg.tar.zst
 	cd packaging && BUILDDIR=$(CURDIR)/out/build PKGDEST=$(CURDIR)/out/pkg makepkg --force --cleanbuild
 
 # Quickshell rebuilt against the installed Qt, for when Arch's lags behind.

@@ -25,7 +25,8 @@ mount "$root" /mnt
 mount --mkdir -o fmask=0077,dmask=0077 "$efi" /mnt/boot
 
 step "Installing Ambrosia"
-packages=(base linux linux-firmware sudo nano man-db ambrosia-desktop)
+# pipewire-jack is named here so pacman doesn't pick jack2 for "jack" first.
+packages=(base linux linux-firmware sudo nano man-db pipewire-jack ambrosia-desktop)
 grep -q GenuineIntel /proc/cpuinfo && packages+=(intel-ucode)
 grep -q AuthenticAMD /proc/cpuinfo && packages+=(amd-ucode)
 # Graphics drivers for what's in the machine (VGA and 3D controllers).
