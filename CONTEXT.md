@@ -48,6 +48,12 @@ There is no git remote yet, so nothing has been pushed.
     the image (`/opt/ambrosia/repo`, listed first in pacman.conf), and the
     installer (`ambrosia-install` asks with kdialog, `ambrosia-install-system`
     installs as root; UEFI only; needs the internet).
+- **Verified in a VM on tenet** (2026-10-07): the image boots into the live
+  Ambrosia session with the installer open; both the interactive installer
+  (driven with keys) and the unattended one install, and the installed system
+  boots to SDDM (Breeze theme, Wayland greeter, Ambrosia preselected) and logs
+  into the menu bar desktop with no splash. Not yet tried on real hardware.
+  The current image is `out/iso/ambrosia-2026.10.07-x86_64.iso` on tenet.
 - **tenet has the packages installed**, so "Ambrosia" is a session on its GDM
   login screen. The user hasn't logged into it yet.
 
@@ -119,8 +125,8 @@ There is no git remote yet, so nothing has been pushed.
   the README stays current; stop any server you start unless asked to keep it.
 - **Change design values in `design/tokens.ts`, never in `dist/`.** Keep
   `DESIGN.md` general: exact numbers belong in tokens and the preview.
-- **ruri:** the component library has "the design preview desktop" and "the
-  design review site". After changing one, `ruri edit <slug> --shot …`.
+- **ruri:** the component library has "the design preview desktop", "the
+  design review site" and "the real menu bar" (the QML one in `shell/`). After changing one, `ruri edit <slug> --shot …`.
 - **Check visual work** by looking at it: the bridge browser for the preview,
   `tools/shot.sh` or `tools/vm.sh shot` for the real shell.
 
