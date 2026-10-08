@@ -854,6 +854,89 @@
         "Theme Targets / Generator Core — the PKGBUILD runs bun tools/gen/index.ts and installs dist/ system-wide",
         "tenet (Arch build host) — reached with makima; tools/remote.sh rsyncs the checkout there"
       ]
+    },
+    "generator-core": {
+      "summary": "Generator Core resolves design/tokens.ts into a concrete sRGB + solved-spring model that every target formats. It is built as Bun+TypeScript: color math, spring solver, a per-mode resolver, and a dist orchestrator. A newcomer must grasp that targets never read tokens directly — resolve() is the single agreement point for derived colors and motion.",
+      "map": [
+        {
+          "name": "Token resolution (per-mode model)",
+          "files": [
+            "tools/gen/resolve.ts",
+            "tools/gen/index.ts"
+          ]
+        },
+        {
+          "name": "OKLCH to sRGB conversion with gamut mapping",
+          "files": [
+            "tools/gen/color.ts",
+            "tools/gen/resolve.ts"
+          ]
+        },
+        {
+          "name": "Contrast derivation and label flattening",
+          "files": [
+            "tools/gen/color.ts",
+            "tools/gen/resolve.ts"
+          ]
+        },
+        {
+          "name": "Accent derivation (bg/fg/text/hover/pressed/highlight)",
+          "files": [
+            "tools/gen/resolve.ts",
+            "tools/gen/color.ts"
+          ]
+        },
+        {
+          "name": "Spring solving (response/damping to constants/curve)",
+          "files": [
+            "tools/gen/spring.ts",
+            "tools/gen/resolve.ts"
+          ]
+        },
+        {
+          "name": "Dist orchestration (generate all targets)",
+          "files": [
+            "tools/gen/index.ts",
+            "tools/gen/resolve.ts"
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "Generate dist from tokens",
+          "steps": [
+            "tools/gen/index.ts calls resolve()",
+            "resolve.ts parses OKLCH via color.ts and solves springs via spring.ts",
+            "index.ts passes Resolved model to each formatter in tools/gen/targets/",
+            "Formatted strings written to dist/ paths (web, gtk, kde, qml, fontconfig) plus resolved dump"
+          ]
+        },
+        {
+          "name": "Derive a concrete color",
+          "steps": [
+            "parseOklch() parses oklch() string",
+            "toLinear + gamut-mapped conversion to RGBA in color.ts",
+            "over()/withAlpha() composite translucency",
+            "contrast()/ensureContrast() enforce readability for accents and labels"
+          ]
+        }
+      ],
+      "files": [
+        "tools/gen/resolve.ts — resolves tokens.ts into per-mode Resolved colors, accents, material, glass, shadows and springs",
+        "tools/gen/index.ts — orchestrates generation: resolves once, formats every target, writes dist/",
+        "tools/gen/color.ts — OKLCH parsing, OKLCH to sRGB with gamut mapping, compositing, contrast, and output formatters",
+        "tools/gen/spring.ts — solves (response, damping) springs into stiffness/damping, settle duration, and sampled curve"
+      ],
+      "rules": [
+        "Never read design/tokens.ts directly from a target for colors — go through resolve() so derived accents and flattened labels agree everywhere.",
+        "Never bypass color.ts gamut mapping and contrast helpers with ad-hoc conversion — out-of-gamut OKLCH and unreadable text result.",
+        "Keep Resolved/ResolvedMode/ResolvedAccent shapes stable — every formatter in tools/gen/targets/ depends on them."
+      ],
+      "edges": [
+        "Design Tokens — sole input: reads design/tokens.ts types and values, never the reverse",
+        "Theme Targets — sole consumer: every formatter takes the Resolved model from resolve()",
+        "Build and Install — runs the generator to produce dist/ before install and test"
+      ]
     }
   },
   "builtAt": "43429bc"
