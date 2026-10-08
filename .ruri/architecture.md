@@ -5,7 +5,7 @@ Don't edit this file: ruri writes it. `ruri architecture` prints it with every l
 
 Read from the repo at 43429bc; folded forward from finished turns since. Where it and the code disagree, the code is right.
 
-Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one design authority, one token file, and a generator theming every toolkit identically. Currently in foundation phase: design system, theme generator, and browser preview exist; shell, compositor effects, and distro do not.
+Ambrosia is a Linux distro on Arch that looks and moves as one thing — one design authority, one token file, a generator theming every toolkit identically — shipped as Arch packages and an archiso installer image. The design system, preview and review site exist; the distro pipeline (packages, Ambrosia session on KWin, live image, installer) has a first cut; the shell has its menu bar.
 
 ## The stack, top to bottom
 
@@ -15,12 +15,15 @@ Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one de
 4. **Theme Targets** — Per-toolkit formatters turning resolved model into GTK, KDE, QML, fontconfig, web output (`tools/gen/targets/`) → `.ruri/layers/theme-targets.md`
 5. **Build and Install** — Bun, TypeScript, Make orchestration: test, build dist/, per-user Linux install with backups (`./, tools/ · 4 files`) → `.ruri/layers/build-install.md`
 6. **Review Site** — Design review website with live specimens, verdict threads, review server and static build (`site/`) → `.ruri/layers/review-site.md`
+7. **Shell and Session** — Quickshell QML shell (wallpaper, menu bar) and the Ambrosia session: Plasma's services with plasmashell swapped out, KWin/KDE defaults (`shell/, session/, tools/ · 1 file`) → `.ruri/layers/shell-and-session.md`
+8. **Packaging and Image** — Arch PKGBUILDs (ambrosia-theme/-shell/-desktop, the Quickshell rebuild), the archiso profile with live desktop and installer, ISO build and VM test scripts (`packaging/, iso/, tools/ · 3 files`) → `.ruri/layers/packaging-and-image.md`
 
 ## How it flows
 
 - **Token to theme:** design/tokens.ts → tools/gen/resolve.ts → tools/gen/targets/* → dist/ (gtk, kde, qml, fontconfig, web, tokens.json) → tools/install.sh
 - **Preview a change:** design/tokens.ts → make build (bun test + bun tools/gen/index.ts) → dist/web/tokens.css → preview/index.html + preview/preview.js
 - **Review design:** design/DESIGN.md + design/DECISIONS.md → site/ (bun run review on :4747) → design/review.json verdicts and replies
+- **Ship it:** tokens + shell/ + session/ → packaging/PKGBUILD (make package) → out/pkg → tools/build-iso.sh (local repo on the image) → mkarchiso → out/iso/*.iso → tools/vm.sh install
 
 ## Where things are
 
@@ -33,6 +36,12 @@ Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one de
 - assets/ — banner SVG and nectar day/night wallpapers
 - dist/ — generated output: gtk-*, kde/, qml/, fontconfig/, web/, tokens.json (never hand-edit)
 - Makefile / package.json / tsconfig.json — build, bun+typescript toolchain definition
+- CONTEXT.md — handoff sheet: what stands, what's next, machines (tenet), how to build/test, gotchas
+- shell/ — Quickshell QML shell (wallpaper, menu bar) on import Ambrosia
+- session/ — startambrosia, systemd units swapping plasmashell, /etc/xdg/ambrosia defaults
+- packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop and the Quickshell rebuild
+- iso/ — archiso profile: live desktop, local [ambrosia] repo, installer scripts
+- out/ — build output on the Arch host: pkg/, iso/, vm/ (git-ignored)
 
 ## How to run it
 
@@ -42,6 +51,10 @@ Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one de
 - bun test — check contrast, radii, and spacing-grid spec rules
 - bun run build — tsc --noEmit + bun tools/gen/index.ts
 - make clean — remove dist/
+- make package / make quickshell — Arch only: packages into out/pkg/
+- sudo make iso — Arch only: installer image into out/iso/
+- tools/remote.sh justin06lee@tenet <cmd> — rsync the checkout to tenet over makima and run there
+- tools/shot.sh out.png — screenshot the shell on a headless KWin; tools/vm.sh live|install|installed|shot — the image in a headless QEMU VM
 
 ## Conventions
 
@@ -65,3 +78,5 @@ Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one de
 - Installs themes per-user on Linux preserving prior configs
 - Mac-first keyboard spec with Super-as-Command and switcher
 - Roadmap toward KWin/Quickshell shell, effects, and archiso image
+- Arch packages and an archiso live image that installs Ambrosia (UEFI), testable unattended in QEMU
+- Ambrosia session: Plasma's services with a Quickshell menu bar and wallpaper in place of plasmashell

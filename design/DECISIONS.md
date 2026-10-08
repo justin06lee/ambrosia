@@ -189,3 +189,55 @@ laptop. A desktop GPU on the open driver is a good KWin Wayland setup, and the
 
 **Later:** the Jetson Orin Nano (ARM64, NVIDIA Tegra) is a separate effort with
 its own boot and driver story. It's on the roadmap but not scheduled.
+
+## Ship as an installer image from the start
+
+Status: accepted
+Id: ship-as-an-image
+
+Everything ships as Arch packages (`ambrosia-theme`, `ambrosia-shell`,
+`ambrosia-desktop`) and an archiso image that boots a live Ambrosia desktop and
+installs it. tenet runs the same packages the image installs; nothing is set up
+on it by hand.
+
+**Why:** the goal is an image anyone can flash onto a computer. Building
+through packages from the first day keeps every piece installable, and testing
+on tenet tests the distro.
+
+**Instead of:** configuring one machine first and packaging at the end, which
+hides everything a fresh install needs until the end.
+
+## Plasma's session services, Ambrosia's shell
+
+Status: proposed
+Id: session-on-plasma-services
+
+The Ambrosia session starts Plasma's session (KWin, kded, portals, the polkit
+agent, power management, display configuration, global shortcuts) and swaps
+plasmashell for the Ambrosia shell. Session defaults (fonts, colors, window
+buttons) come in through `XDG_CONFIG_DIRS`, so they apply in the Ambrosia
+session only.
+
+**Why:** each of those services already works and fits KWin. The shell takes
+them over one at a time (notifications, on-screen displays, the launcher) as
+its own versions are ready, instead of all at once before the first login.
+
+**Instead of:** a bare `kwin_wayland` session, which would need all of that
+plumbing rewritten before anything runs.
+
+## A simple installer now, an onboarding app later
+
+Status: proposed
+Id: installer
+
+The image's installer is a short script with native dialogs: a disk, a name, a
+password, a computer name and a time zone. It erases the disk, installs, and
+sets up booting (UEFI). A first-party onboarding app in QML replaces it later,
+and that app also asks Mac-first or Linux-first.
+
+**Why:** a complete install that can be tested unattended in a VM matters more
+right now than how the installer looks. Calamares isn't in Arch's repositories
+and doesn't look like Ambrosia; the first thing a new user sees should be ours.
+
+**Instead of:** archinstall (a terminal UI whose config format changes between
+releases) or Calamares.
