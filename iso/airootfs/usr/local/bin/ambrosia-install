@@ -7,6 +7,25 @@ set -euo pipefail
 
 title="Install Ambrosia"
 ask() { kdialog --title "$title" "$@"; }
+online() { curl -fsI --max-time 5 https://geo.mirror.pkgbuild.com >/dev/null; }
+
+# Joins Wi-Fi from here: pick a network (strongest first), type its password.
+join_wifi() {
+  nmcli -t -f TYPE device | grep -qx wifi || return 1
+  nmcli device wifi rescan 2>/dev/null || true
+  sleep 3
+  local networks=() ssid password
+  mapfile -t networks < <(nmcli -t -f SSID device wifi list | grep -v '^$' | awk '!seen[$0]++')
+  ((${#networks[@]})) || return 1
+  ssid=$(ask --combobox "Ambrosia needs the internet to install. Choose your Wi-Fi network:" \
+    "${networks[@]}" --default "${networks[0]}") || return 1
+  password=$(ask --password "Password for $ssid (leave it empty for an open network)") || return 1
+  if [[ -n "$password" ]]; then
+    nmcli device wifi connect "$ssid" password "$password" >/dev/null 2>&1
+  else
+    nmcli device wifi connect "$ssid" >/dev/null 2>&1
+  fi
+}
 auto=false
 grep -qw ambrosia.autoinstall /proc/cmdline && auto=true
 
@@ -40,9 +59,13 @@ else
     exit 1
   fi
 
-  until curl -fsI --max-time 5 https://geo.mirror.pkgbuild.com >/dev/null; do
+  # The Wi-Fi joined here carries over to the installed system.
+  until online; do
+    if join_wifi; then
+      for _ in 1 2 3 4 5; do online && break 2; sleep 2; done
+    fi
     kcmshell6 kcm_networkmanagement >/dev/null 2>&1 &
-    ask --warningcontinuecancel "Ambrosia needs the internet to install. Connect in the network settings, then try again." \
+    ask --warningcontinuecancel "Ambrosia needs the internet to install. Connect in the network settings (or plug in a cable), then try again." \
       --continue-label "Try Again" || exit 0
   done
 
