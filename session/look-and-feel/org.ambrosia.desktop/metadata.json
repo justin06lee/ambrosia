@@ -1,0 +1,12 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [{ "Name": "Ambrosia" }],
+        "Category": "",
+        "Description": "Ambrosia's colors and fonts, with no splash screen",
+        "Id": "org.ambrosia.desktop",
+        "Name": "Ambrosia",
+        "Website": "https://github.com/justin06lee/ambrosia"
+    },
+    "X-Plasma-APIVersion": "2"
+}

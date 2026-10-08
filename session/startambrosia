@@ -1,0 +1,17 @@
+#!/bin/sh
+# Starts an Ambrosia session: Plasma's session services (KWin, kded, portals,
+# polkit, power) with the Ambrosia shell in place of plasmashell. The swap is
+# done by systemd units keyed on XDG_SESSION_DESKTOP, which Plasma copies into
+# the user manager at every login.
+export XDG_SESSION_DESKTOP=ambrosia
+
+# Session defaults (kdeglobals, kwinrc) layered under the user's own config,
+# so they apply in this session only. kdeglobals names the session's
+# look-and-feel package, org.ambrosia.desktop.
+export XDG_CONFIG_DIRS="/etc/xdg/ambrosia:${XDG_CONFIG_DIRS:-/etc/xdg}"
+
+set -a
+. /usr/share/ambrosia/environment.d/50-ambrosia-fonts.conf
+set +a
+
+exec /usr/bin/startplasma-wayland "$@"

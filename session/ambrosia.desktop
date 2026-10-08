@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Ambrosia
+Comment=The Ambrosia desktop
+Exec=/usr/bin/startambrosia
+TryExec=/usr/bin/startambrosia
+DesktopNames=KDE
