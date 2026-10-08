@@ -808,6 +808,12 @@
             "iso/efiboot/loader/",
             "iso/syslinux/"
           ]
+        },
+        {
+          "name": "VM build / install / screenshot test tooling",
+          "files": [
+            "tools/vm.sh"
+          ]
         }
       ],
       "flows": [
@@ -847,7 +853,9 @@
         "[ambrosia] must stay first in iso/pacman.conf: pacman takes a package from the first repo that has it, regardless of version, so our Quickshell rebuild only wins from there.",
         "Quickshell links Qt internals: when Arch's quickshell was built for an older Qt than the system's, run make quickshell and ship ours.",
         "Build and work dirs go under out/ on /home (tenet's / has ~25 GB); mkarchiso needs root, makepkg refuses it.",
-        "The installer is UEFI-only and needs the internet (pacstrap pulls everything but our packages from Arch mirrors)."
+        "The installer is UEFI-only and needs the internet (pacstrap pulls everything but our packages from Arch mirrors).",
+        "Ship pipewire-jack, not jack2: the two conflict and broke restore/install when both were pulled in.",
+        "tools/vm.sh must not forward host port 2222: makima uses it to reach tenet, so the test VM SSH forward lives on 10022."
       ],
       "edges": [
         "Shell and Session — ambrosia-shell ships shell/ and session/",

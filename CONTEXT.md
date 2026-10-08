@@ -46,8 +46,9 @@ There is no git remote yet, so nothing has been pushed.
   - `iso/`: archiso profile from Arch's releng: live user autologin into the
     Ambrosia session, NetworkManager, the Ambrosia packages as a local repo on
     the image (`/opt/ambrosia/repo`, listed first in pacman.conf), and the
-    installer (`ambrosia-install` asks with kdialog, `ambrosia-install-system`
-    installs as root; UEFI only; needs the internet).
+    installer (`ambrosia-install` asks with kdialog and joins Wi-Fi itself when
+    offline, `ambrosia-install-system` installs as root; UEFI only; needs the
+    internet).
 - **Verified in a VM on tenet** (2026-10-07): the image boots into the live
   Ambrosia session with the installer open; both the interactive installer
   (driven with keys) and the unattended one install, and the installed system

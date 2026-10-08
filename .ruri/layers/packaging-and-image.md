@@ -16,6 +16,7 @@ Everything that turns the repo into an installable distro. packaging/PKGBUILD bu
 - **Live session: user, autologin, sudo, services:** iso/airootfs/etc/systemd/system/ambrosia-live-user.service, iso/airootfs/etc/sddm.conf.d/live.conf, iso/airootfs/etc/sudoers.d/10-live
 - **The installer: questions, then the install:** iso/airootfs/usr/local/bin/ambrosia-install, iso/airootfs/usr/local/bin/ambrosia-install-system
 - **Boot menu entries and kernel params:** iso/efiboot/loader/, iso/syslinux/
+- **VM build / install / screenshot test tooling:** tools/vm.sh
 
 ## How it works
 
@@ -29,6 +30,8 @@ Everything that turns the repo into an installable distro. packaging/PKGBUILD bu
 - Quickshell links Qt internals: when Arch's quickshell was built for an older Qt than the system's, run make quickshell and ship ours.
 - Build and work dirs go under out/ on /home (tenet's / has ~25 GB); mkarchiso needs root, makepkg refuses it.
 - The installer is UEFI-only and needs the internet (pacstrap pulls everything but our packages from Arch mirrors).
+- Ship pipewire-jack, not jack2: the two conflict and broke restore/install when both were pulled in.
+- tools/vm.sh must not forward host port 2222: makima uses it to reach tenet, so the test VM SSH forward lives on 10022.
 
 ## What it talks to
 
