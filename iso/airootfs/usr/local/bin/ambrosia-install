@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# Asks the few questions an install needs, then runs ambrosia-install-system
+# as root. With `ambrosia.autoinstall` on the kernel command line it asks
+# nothing: it erases the first disk, installs with test answers and powers
+# off. That is how the image is tested in a VM.
+set -euo pipefail
+
+title="Install Ambrosia"
+ask() { kdialog --title "$title" "$@"; }
+auto=false
+grep -qw ambrosia.autoinstall /proc/cmdline && auto=true
+
+# Disks to offer: whole disks, never the one the live system started from.
+live_dev=$(findmnt -no SOURCE /run/archiso/bootmnt 2>/dev/null || true)
+live_disk=""
+if [[ -n "$live_dev" ]]; then
+  live_disk=$(lsblk -no PKNAME "$live_dev" 2>/dev/null | head -n1)
+  live_disk=/dev/${live_disk:-$(basename "$live_dev")}
+fi
+disks=()
+while read -r name size type model; do
+  [[ "$type" == disk && "$name" != "$live_disk" && "$name" != /dev/zram* ]] || continue
+  disks+=("$name" "$size  ${model:-Disk}  ($name)")
+done < <(lsblk -dnpo NAME,SIZE,TYPE,MODEL)
+
+if ((${#disks[@]} == 0)); then
+  $auto || ask --error "There's no disk to install Ambrosia on."
+  echo "ambrosia-install: no disk to install on" >&2
+  exit 1
+fi
+
+if $auto; then
+  disk=${disks[0]} fullname="Ambrosia Test" user=test password=ambrosia hostname=ambrosia-test timezone=UTC
+else
+  ask --yesno "Ambrosia will be installed on this computer. You'll choose a disk and set up your account; the rest is automatic." \
+    --yes-label Continue --no-label Quit || exit 0
+
+  if [[ ! -d /sys/firmware/efi ]]; then
+    ask --error "This computer started in legacy BIOS mode. Ambrosia installs in UEFI mode: restart and choose the UEFI entry for this USB drive."
+    exit 1
+  fi
+
+  until curl -fsI --max-time 5 https://geo.mirror.pkgbuild.com >/dev/null; do
+    kcmshell6 kcm_networkmanagement >/dev/null 2>&1 &
+    ask --warningcontinuecancel "Ambrosia needs the internet to install. Connect in the network settings, then try again." \
+      --continue-label "Try Again" || exit 0
+  done
+
+  radio=()
+  for ((i = 0; i < ${#disks[@]}; i += 2)); do radio+=("${disks[i]}" "${disks[i + 1]}" "$([[ $i == 0 ]] && echo on || echo off)"); done
+  disk=$(ask --radiolist "Where should Ambrosia go? Everything on that disk will be erased." "${radio[@]}") || exit 0
+
+  fullname=$(ask --inputbox "Your name" "") || exit 0
+  suggested=$(tr '[:upper:]' '[:lower:]' <<<"${fullname%% *}" | tr -cd 'a-z0-9_-')
+  while :; do
+    user=$(ask --inputbox "Account name, used for your home folder" "${suggested:-user}") || exit 0
+    [[ "$user" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]] && break
+    ask --sorry "Use lowercase letters, digits, - and _, starting with a letter."
+  done
+  while :; do
+    password=$(ask --password "Choose a password for $user") || exit 0
+    again=$(ask --password "Type the password again") || exit 0
+    [[ -n "$password" && "$password" == "$again" ]] && break
+    ask --sorry "The passwords didn't match. Try again."
+  done
+  hostname=$(ask --inputbox "Computer name" "ambrosia") || exit 0
+  hostname=$(tr '[:upper:]' '[:lower:]' <<<"$hostname" | tr -c 'a-z0-9-\n' '-')
+
+  guess=$(curl -fs --max-time 5 https://geoip.kde.org/v1/calamares | sed -n 's/.*"time_zone" *: *"\([^"]*\)".*/\1/p' || true)
+  timezone=$(ask --combobox "Time zone" $(timedatectl list-timezones) --default "${guess:-UTC}") || exit 0
+
+  for ((i = 0; i < ${#disks[@]}; i += 2)); do [[ "${disks[i]}" == "$disk" ]] && label=${disks[i + 1]}; done
+  ask --warningcontinuecancel "Erase the disk ${label:-$disk} and install Ambrosia? Everything on it will be lost." \
+    --continue-label "Erase and Install" || exit 0
+fi
+
+# Hand the answers to the root half; the password goes as a hash only.
+answers=$(mktemp)
+chmod 600 "$answers"
+{
+  printf 'disk=%q\nfullname=%q\nuser=%q\nhostname=%q\ntimezone=%q\n' "$disk" "$fullname" "$user" "$hostname" "$timezone"
+  printf 'password_hash=%q\n' "$(openssl passwd -6 -stdin <<<"$password")"
+} >"$answers"
+unset password again
+
+if sudo /usr/local/bin/ambrosia-install-system "$answers" 2>&1 | tee /tmp/ambrosia-install.log; then
+  rm -f "$answers"
+  if $auto; then
+    systemctl poweroff
+  elif ask --yesno "Ambrosia is installed. Restart now, and remove the USB drive when the screen goes dark." \
+    --yes-label "Restart" --no-label "Later"; then
+    systemctl reboot
+  fi
+else
+  rm -f "$answers"
+  $auto && systemctl poweroff
+  ask --error "The install stopped with an error. The details are in /tmp/ambrosia-install.log."
+  exit 1
+fi

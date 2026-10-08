@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# Installs Ambrosia from the answers ambrosia-install wrote: erases the disk,
+# installs the packages, makes the account and the boot entry. Run as root.
+set -euo pipefail
+
+# shellcheck source=/dev/null
+source "$1" # disk fullname user hostname timezone password_hash
+step() { printf '\n\033[1m%s\033[0m\n' "$*"; }
+
+[[ -b "$disk" ]] || { echo "no such disk: $disk" >&2; exit 1; }
+# Partition names: sda1, vda1, but nvme0n1p1 and mmcblk0p1.
+part() { if [[ "$disk" =~ [0-9]$ ]]; then echo "${disk}p$1"; else echo "${disk}$1"; fi; }
+
+step "Erasing $disk"
+umount -R /mnt 2>/dev/null || true
+wipefs --all --force "$disk"
+sgdisk --zap-all "$disk"
+sgdisk -n 1:0:+1G -t 1:ef00 -c 1:EFI -n 2:0:0 -t 2:8304 -c 2:Ambrosia "$disk"
+partprobe "$disk"
+udevadm settle
+efi=$(part 1) root=$(part 2)
+mkfs.fat -F 32 -n EFI "$efi"
+mkfs.ext4 -F -L Ambrosia "$root"
+mount "$root" /mnt
+mount --mkdir -o fmask=0077,dmask=0077 "$efi" /mnt/boot
+
+step "Installing Ambrosia"
+packages=(base linux linux-firmware sudo nano man-db ambrosia-desktop)
+grep -q GenuineIntel /proc/cpuinfo && packages+=(intel-ucode)
+grep -q AuthenticAMD /proc/cpuinfo && packages+=(amd-ucode)
+# Graphics drivers for what's in the machine (VGA and 3D controllers).
+gpus=$(lspci -mm -d ::0300; lspci -mm -d ::0302)
+grep -q '"NVIDIA' <<<"$gpus" && packages+=(nvidia-open nvidia-utils)
+grep -q '"Intel' <<<"$gpus" && packages+=(vulkan-intel intel-media-driver)
+grep -qE '"(Advanced Micro Devices|AMD|ATI)' <<<"$gpus" && packages+=(vulkan-radeon)
+pacstrap -K /mnt "${packages[@]}"
+genfstab -U /mnt >>/mnt/etc/fstab
+
+step "Setting up $hostname"
+ln -sf "/usr/share/zoneinfo/$timezone" /mnt/etc/localtime
+arch-chroot /mnt hwclock --systohc
+sed -i 's/^#en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /mnt/etc/locale.gen
+arch-chroot /mnt locale-gen
+echo LANG=en_US.UTF-8 >/mnt/etc/locale.conf
+echo "$hostname" >/mnt/etc/hostname
+
+arch-chroot /mnt useradd --create-home --groups wheel --comment "$fullname" "$user"
+printf '%s:%s\n' "$user" "$password_hash" | arch-chroot /mnt chpasswd --encrypted
+arch-chroot /mnt passwd --lock root
+install -m 440 /dev/stdin /mnt/etc/sudoers.d/10-wheel <<<'%wheel ALL=(ALL:ALL) ALL'
+
+# Wi-Fi joined in the live session carries over.
+cp -a /etc/NetworkManager/system-connections/. /mnt/etc/NetworkManager/system-connections/ 2>/dev/null || true
+
+# The login screen starts on this account and the Ambrosia session.
+install -d /mnt/var/lib/sddm
+printf '[Last]\nSession=/usr/share/wayland-sessions/ambrosia.desktop\nUser=%s\n' "$user" >/mnt/var/lib/sddm/state.conf
+arch-chroot /mnt chown -R sddm:sddm /var/lib/sddm
+
+arch-chroot /mnt systemctl enable sddm NetworkManager bluetooth systemd-timesyncd fstrim.timer
+
+step "Making it bootable"
+arch-chroot /mnt bootctl install
+cat >/mnt/boot/loader/loader.conf <<LOADER
+default ambrosia.conf
+timeout 0
+editor no
+LOADER
+cat >/mnt/boot/loader/entries/ambrosia.conf <<ENTRY
+title   Ambrosia
+linux   /vmlinuz-linux
+initrd  /initramfs-linux.img
+options root=UUID=$(blkid -s UUID -o value "$root") rw quiet loglevel=3
+ENTRY
+
+# pacstrap -K leaves the new keyring's gpg-agent running inside /mnt.
+gpgconf --homedir /mnt/etc/pacman.d/gnupg --kill all 2>/dev/null || true
+sync
+umount -R /mnt || umount -R --lazy /mnt
+step "Done"

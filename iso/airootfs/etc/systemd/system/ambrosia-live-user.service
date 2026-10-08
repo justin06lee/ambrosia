@@ -1,0 +1,12 @@
+[Unit]
+Description=Create the live session's user
+Before=display-manager.service
+ConditionPathExists=!/home/live
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/useradd --create-home --groups wheel,video,audio,input --comment "Ambrosia" live
+ExecStart=/usr/bin/passwd --delete live
+
+[Install]
+WantedBy=multi-user.target
