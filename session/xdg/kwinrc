@@ -1,0 +1,16 @@
+# Ambrosia session defaults for KWin. A user's own kwinrc wins.
+
+# Window buttons on the left, in Mac order: close, minimize, zoom.
+[org.kde.kdecoration2]
+ButtonsOnLeft=XIA
+ButtonsOnRight=
+
+# No hot corner by default.
+[Effect-overview]
+BorderActivate=9
+
+[ElectricBorders]
+TopLeft=None
+
+[Plugins]
+blurEnabled=true

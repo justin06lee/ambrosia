@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Install Ambrosia
+Comment=Install Ambrosia on this computer
+Exec=konsole --hide-menubar --hide-tabbar -e /usr/local/bin/ambrosia-install
+Icon=system-software-install
+Terminal=false
+Categories=System;

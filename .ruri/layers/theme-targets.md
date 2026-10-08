@@ -13,6 +13,7 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - **Web CSS custom properties:** tools/gen/targets/web.ts, tools/gen/targets/shared.ts
 - **Fontconfig aliases and rasterization:** tools/gen/targets/fontconfig.ts, tools/gen/targets/shared.ts
 - **Shared formatting helpers:** tools/gen/targets/shared.ts
+- **Session kdeglobals (light scheme + type-scale fonts as QFont strings):** tools/gen/targets/kde.ts
 
 ## How it works
 
@@ -34,6 +35,7 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - KDE output must stay opaque r,g,b: flatten translucent values with flat() onto their background set.
 - GTK3 has no prefers-color-scheme: emit one file per mode; GTK4 emits light and dark in one file.
 - Keep QML identifiers safe: slug token keys and prefix leading digits.
+- QML property names can't be ECMAScript keywords; qml.ts suffixes them with _ (Theme.size.switch_), guarded by a test in tools/gen/rules.test.ts.
 
 ## What it talks to
 

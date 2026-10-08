@@ -20,9 +20,11 @@ the shell and font rendering all read the same numbers.
 
 ## Status
 
-This is the foundation phase. The design system, the theme generator, a
-browser preview of the desktop and a design review site exist. The Linux shell,
-the compositor effects and the distro itself don't yet.
+The design system, the theme generator, a browser preview of the desktop and a
+design review site exist. The distro pipeline has its first cut: Arch packages,
+an Ambrosia session on KWin with the first piece of the shell (the menu bar),
+and an installer image that boots a live desktop and installs it. The dock,
+control center, compositor effects and first-party apps don't exist yet.
 
 ## Quick start
 
@@ -31,6 +33,24 @@ make                       # test, build every theme and the review site, instal
 bun run review             # the design review site at http://localhost:4747
 open preview/index.html    # the mock desktop on its own (xdg-open on Linux)
 ```
+
+On an Arch machine, the distro builds from the same checkout:
+
+```sh
+make package               # ambrosia-theme, ambrosia-shell, ambrosia-desktop into out/pkg/
+make quickshell            # Quickshell rebuilt for the installed Qt, when Arch's lags
+sudo make iso              # the installer image, out/iso/ambrosia-*.iso
+tools/vm.sh install        # install the image unattended in a headless VM
+tools/vm.sh shot vm.png    # and photograph it
+```
+
+`dd` the image onto a USB drive and boot it (UEFI). It starts a live Ambrosia
+desktop and opens the installer, which asks for a disk, a name and a password
+and does the rest; the installer needs the internet. Installing the packages
+with `pacman -U` on an existing Arch system adds an "Ambrosia" session to the
+login screen instead. `tools/remote.sh <host> <command>` mirrors the checkout
+to a machine on the makima mesh and runs a command there, and `tools/shot.sh`
+photographs the shell on a headless KWin.
 
 `make` needs [bun](https://bun.sh). On Linux it installs the themes for the
 current user. Any config file ambrosia didn't write is kept beside it as
@@ -90,7 +110,11 @@ CONTEXT.md     where things stand and what's next, for picking the work back up
 design/        DESIGN.md (the rules), DECISIONS.md (the choices), tokens.ts (the values),
                review.json (review verdicts and notes)
 tools/gen/     the generator and its tests
-tools/install.sh
+tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remote.sh
+shell/         the shell in QML for Quickshell: wallpaper and menu bar so far
+session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults
+packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild
+iso/           the archiso profile: live desktop, installer (ambrosia-install)
 preview/       the mock desktop, styled only from dist/web/tokens.css; glass.css is shared
 site/          the design review site and its server
 assets/        banner, icon and the "nectar" day/night wallpapers
@@ -99,17 +123,21 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 ## Roadmap
 
 1. **Design system and theme generator.** Done.
-2. **Shell** on Arch with KWin and Quickshell: menu bar, dock, control center,
-   notifications and launcher, all on `Theme.qml`, plus the Mac-first keyboard
-   layer (keyd). Built and judged on tenet, the Arch desktop, with a Magic
-   Trackpad.
-3. **Compositor**: a KWin effect for glass refraction, window animations on
+2. **Packages and installer image.** First cut done: packages, the session, a
+   live image and an unattended-testable installer. Everything after this
+   ships through it.
+3. **Shell** on KWin and Quickshell: menu bar (first cut), dock, control
+   center, notifications and launcher, all on `Theme.qml`, plus the Mac-first
+   keyboard layer (keyd). Built and judged on tenet, the Arch desktop, with a
+   Magic Trackpad.
+4. **Compositor**: a KWin effect for glass refraction, window animations on
    the spring tokens, and window decorations.
-4. **Toolkits**: a Qt widget style and a full GTK theme beyond colors, an icon
+5. **Toolkits**: a Qt widget style and a full GTK theme beyond colors, an icon
    set and a cursor theme.
-5. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
+6. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
    dialogs in other apps match too.
-6. **Distro**: archiso image and Calamares installer, with onboarding that
-   asks Mac-first or Linux-first.
+7. **Onboarding**: a first-party onboarding app in place of the installer
+   script (asking Mac-first or Linux-first), a login screen and boot splash of
+   our own, and a hosted package repository for updates.
 
 Later: an ARM64 build for the Jetson Orin Nano.

@@ -6,7 +6,7 @@ import * as t from "../../../design/tokens";
 import type { Mode } from "../../../design/tokens";
 import { toKde, withAlpha, type RGBA } from "../color";
 import { flat, type Resolved, type ResolvedMode } from "../resolve";
-import { HEADER } from "./shared";
+import { HEADER, pt } from "./shared";
 
 function colorSet(m: ResolvedMode, bg: RGBA, alternate: RGBA): Record<string, RGBA> {
   const a = m.accents[t.accent.default]!;
@@ -50,7 +50,9 @@ const section = (name: string, entries: Record<string, RGBA | string | number>) 
     .map(([k, v]) => `${k}=${typeof v === "object" ? toKde(v) : v}`)
     .join("\n")}`;
 
-export function kde(r: Resolved, mode: Mode): string {
+type Extra = { General?: Record<string, string>; KDE?: Record<string, string>; WM?: Record<string, string> };
+
+export function kde(r: Resolved, mode: Mode, extra: Extra = {}): string {
   const m = r.modes[mode];
   const window = m.bg.window;
   const content = m.bg.content;
@@ -77,8 +79,8 @@ export function kde(r: Resolved, mode: Mode): string {
     section("Colors:Tooltip", colorSet(m, m.bg.elevated, m.bg.elevated)),
     section("Colors:View", colorSet(m, content, flat(m.fill.quaternary, content))),
     section("Colors:Window", windowSet),
-    section("General", { ColorScheme: `Ambrosia${title}`, Name: `Ambrosia ${title}`, shadeSortColumn: "true" }),
-    section("KDE", { contrast: 4 }),
+    section("General", { ColorScheme: `Ambrosia${title}`, Name: `Ambrosia ${title}`, shadeSortColumn: "true", ...extra.General }),
+    section("KDE", { contrast: 4, ...extra.KDE }),
     section("WM", {
       activeBackground: window,
       activeBlend: flat(m.label.primary, window),
@@ -86,7 +88,33 @@ export function kde(r: Resolved, mode: Mode): string {
       inactiveBackground: window,
       inactiveBlend: flat(m.label.tertiary, window),
       inactiveForeground: flat(m.label.tertiary, window),
+      ...extra.WM,
     }),
     "",
   ].join("\n\n");
+}
+
+/** A QFont string, the form kdeglobals stores fonts in. */
+const qfont = (family: string, px: number, weight: number) => `${family},${pt(px)},-1,5,${weight},0,0,0,0,0,0,0,0,0,0,1`;
+
+/**
+ * The Ambrosia session's kdeglobals defaults (/etc/xdg/ambrosia/kdeglobals):
+ * the light scheme plus the type scale's fonts. A user's own settings win.
+ */
+export function kdeglobals(r: Resolved): string {
+  const ui = t.font.ui[0];
+  const mono = t.font.mono[0];
+  const { body, callout, footnote, headline } = t.type;
+  return kde(r, "light", {
+    General: {
+      font: qfont(ui, body.size, body.weight),
+      menuFont: qfont(ui, body.size, body.weight),
+      toolBarFont: qfont(ui, callout.size, callout.weight),
+      smallestReadableFont: qfont(ui, footnote.size, 400),
+      fixed: qfont(mono, body.size, 400),
+    },
+    // Plasma applies this look-and-feel's defaults at login (session/look-and-feel).
+    KDE: { LookAndFeelPackage: "org.ambrosia.desktop" },
+    WM: { activeFont: qfont(ui, headline.size, headline.weight) },
+  });
 }

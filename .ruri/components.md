@@ -25,3 +25,10 @@ Reaches into: dist/web/tokens.css, preview/glass.css, preview/index.html, design
 Tags: site, review, docs, glass, specimens
 Screenshot (read it if you need to see it): /Users/huiyunlee/.config/ruri/uploads/9696513f-6d94-44fb-a522-ec1136e186b8-mcp-bridge-blob-1791334760389-1vai1t.png
 Its code has changed since that picture — if you change it, `ruri edit design-review-site --shot <new picture>`
+
+## shell-menu-bar — the real menu bar
+The Linux menu bar in QML (Quickshell, import Ambrosia): logo, app name and menus (fixed to "Files" until the KWin window bridge), status icons, clock, thin glass over KWin's blur. Must match the preview's menu bar.
+Its files: shell/MenuBar.qml, shell/MenuBarItem.qml, shell/Icon.qml, shell/icons.js, shell/Label.qml
+Reaches into: shell/shell.qml, dist/qml/Ambrosia/Theme.qml
+Tags: shell, menu bar, qml, quickshell
+Screenshot (read it if you need to see it): /Users/huiyunlee/.config/ruri/uploads/300cc92b-d7e6-4ccd-9502-b5e6edeaf0db-menubar-real.png

@@ -7,7 +7,7 @@ import { toCss } from "./color";
 import { resolve } from "./resolve";
 import { fontEnvironment, fontconfig } from "./targets/fontconfig";
 import { gtk3, gtk4 } from "./targets/gtk";
-import { kde } from "./targets/kde";
+import { kde, kdeglobals } from "./targets/kde";
 import { qml, qmldir } from "./targets/qml";
 import { web } from "./targets/web";
 
@@ -22,6 +22,7 @@ const files: Record<string, string> = {
   "gtk-3.0/gtk-dark.css": gtk3(r, "dark"),
   "kde/AmbrosiaLight.colors": kde(r, "light"),
   "kde/AmbrosiaDark.colors": kde(r, "dark"),
+  "kde/kdeglobals": kdeglobals(r),
   "qml/Ambrosia/Theme.qml": qml(r),
   "qml/Ambrosia/qmldir": qmldir,
   "fontconfig/50-ambrosia.conf": fontconfig(),

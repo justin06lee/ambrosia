@@ -10,6 +10,7 @@ This layer installs the already-generated themes for the current Linux user into
 - **Per-user theme install:** tools/install.sh
 - **GTK variant selection (light/dark via gsettings):** tools/install.sh
 - **Backup of pre-existing user files:** tools/install.sh
+- **make package / quickshell / iso targets (Arch):** Makefile
 
 ## How it works
 

@@ -1,5 +1,5 @@
 {
-  "description": "Ambrosia is a Linux desktop on Arch that looks and moves as one thing — one design authority, one token file, and a generator theming every toolkit identically. Currently in foundation phase: design system, theme generator, and browser preview exist; shell, compositor effects, and distro do not.",
+  "description": "Ambrosia is a Linux distro on Arch that looks and moves as one thing — one design authority, one token file, a generator theming every toolkit identically — shipped as Arch packages and an archiso installer image. The design system, preview and review site exist; the distro pipeline (packages, Ambrosia session on KWin, live image, installer) has a first cut; the shell has its menu bar.",
   "features": [
     "Single OKLCH token file drives every toolkit theme identically",
     "Generates GTK4, GTK3 light/dark, KDE colors, and QML shell theme",
@@ -14,7 +14,9 @@
     "Review site renders spec with live specimens and verdict threads",
     "Installs themes per-user on Linux preserving prior configs",
     "Mac-first keyboard spec with Super-as-Command and switcher",
-    "Roadmap toward KWin/Quickshell shell, effects, and archiso image"
+    "Roadmap toward KWin/Quickshell shell, effects, and archiso image",
+    "Arch packages and an archiso live image that installs Ambrosia (UEFI), testable unattended in QEMU",
+    "Ambrosia session: Plasma's services with a Quickshell menu bar and wallpaper in place of plasmashell"
   ],
   "layers": [
     {
@@ -71,6 +73,28 @@
         "site/"
       ],
       "slug": "review-site"
+    },
+    {
+      "name": "Shell and Session",
+      "what": "Quickshell QML shell (wallpaper, menu bar) and the Ambrosia session: Plasma's services with plasmashell swapped out, KWin/KDE defaults",
+      "slug": "shell-and-session",
+      "paths": [
+        "shell/",
+        "session/",
+        "tools/shot.sh"
+      ]
+    },
+    {
+      "name": "Packaging and Image",
+      "what": "Arch PKGBUILDs (ambrosia-theme/-shell/-desktop, the Quickshell rebuild), the archiso profile with live desktop and installer, ISO build and VM test scripts",
+      "slug": "packaging-and-image",
+      "paths": [
+        "packaging/",
+        "iso/",
+        "tools/build-iso.sh",
+        "tools/vm.sh",
+        "tools/remote.sh"
+      ]
     }
   ],
   "flows": [
@@ -100,6 +124,18 @@
         "site/ (bun run review on :4747)",
         "design/review.json verdicts and replies"
       ]
+    },
+    {
+      "name": "Ship it",
+      "steps": [
+        "tokens + shell/ + session/",
+        "packaging/PKGBUILD (make package)",
+        "out/pkg",
+        "tools/build-iso.sh (local repo on the image)",
+        "mkarchiso",
+        "out/iso/*.iso",
+        "tools/vm.sh install"
+      ]
     }
   ],
   "layout": [
@@ -111,7 +147,13 @@
     "site/ — review site: spec content, live specimens, verdict threads, server + static build",
     "assets/ — banner SVG and nectar day/night wallpapers",
     "dist/ — generated output: gtk-*, kde/, qml/, fontconfig/, web/, tokens.json (never hand-edit)",
-    "Makefile / package.json / tsconfig.json — build, bun+typescript toolchain definition"
+    "Makefile / package.json / tsconfig.json — build, bun+typescript toolchain definition",
+    "CONTEXT.md — handoff sheet: what stands, what's next, machines (tenet), how to build/test, gotchas",
+    "shell/ — Quickshell QML shell (wallpaper, menu bar) on import Ambrosia",
+    "session/ — startambrosia, systemd units swapping plasmashell, /etc/xdg/ambrosia defaults",
+    "packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop and the Quickshell rebuild",
+    "iso/ — archiso profile: live desktop, local [ambrosia] repo, installer scripts",
+    "out/ — build output on the Arch host: pkg/, iso/, vm/ (git-ignored)"
   ],
   "run": [
     "make — test, build all themes into dist/, install on Linux",
@@ -119,7 +161,11 @@
     "open preview/index.html — run the mock desktop (D dark, A accent)",
     "bun test — check contrast, radii, and spacing-grid spec rules",
     "bun run build — tsc --noEmit + bun tools/gen/index.ts",
-    "make clean — remove dist/"
+    "make clean — remove dist/",
+    "make package / make quickshell — Arch only: packages into out/pkg/",
+    "sudo make iso — Arch only: installer image into out/iso/",
+    "tools/remote.sh justin06lee@tenet <cmd> — rsync the checkout to tenet over makima and run there",
+    "tools/shot.sh out.png — screenshot the shell on a headless KWin; tools/vm.sh live|install|installed|shot — the image in a headless QEMU VM"
   ],
   "conventions": [
     "Never hand-edit dist/ output; change design/tokens.ts and regenerate",
@@ -227,7 +273,8 @@
         "Run `make build` first — preview is broken/stale without generated dist/web/tokens.css.",
         "Do not add build tooling or JS dependencies — static HTML/JS only.",
         "Keep glass.css shared-safe — it is also used by the review site, so no preview-specific layout in it.",
-        "Round inner panels (e.g. sidebar) to their own outer corners — scaled-down blur is cut to the window shape only if the panel itself is rounded, otherwise corners render sharp/square."
+        "Round inner panels (e.g. sidebar) to their own outer corners — scaled-down blur is cut to the window shape only if the panel itself is rounded, otherwise corners render sharp/square.",
+        "Keep file selection highlight behind the icon — replacing the document page fill with selection color turns clicked icons black."
       ],
       "edges": [
         "Design Tokens via dist/web/tokens.css — sole source of colors, type, radii, shadows, springs; preview breaks without a build",
@@ -276,7 +323,8 @@
         {
           "name": "Glass and materials",
           "files": [
-            "design/tokens.ts"
+            "design/tokens.ts",
+            "design/DESIGN.md"
           ]
         },
         {
@@ -484,6 +532,12 @@
           "files": [
             "tools/install.sh"
           ]
+        },
+        {
+          "name": "make package / quickshell / iso targets (Arch)",
+          "files": [
+            "Makefile"
+          ]
         }
       ],
       "flows": [
@@ -555,6 +609,12 @@
           "files": [
             "tools/gen/targets/shared.ts"
           ]
+        },
+        {
+          "name": "Session kdeglobals (light scheme + type-scale fonts as QFont strings)",
+          "files": [
+            "tools/gen/targets/kde.ts"
+          ]
         }
       ],
       "flows": [
@@ -581,12 +641,218 @@
         "Do not resolve or derive colors here — use the passed Resolved model and color.ts / resolve.ts helpers.",
         "KDE output must stay opaque r,g,b: flatten translucent values with flat() onto their background set.",
         "GTK3 has no prefers-color-scheme: emit one file per mode; GTK4 emits light and dark in one file.",
-        "Keep QML identifiers safe: slug token keys and prefix leading digits."
+        "Keep QML identifiers safe: slug token keys and prefix leading digits.",
+        "QML property names can't be ECMAScript keywords; qml.ts suffixes them with _ (Theme.size.switch_), guarded by a test in tools/gen/rules.test.ts."
       ],
       "edges": [
         "Design Tokens — reads type, color, font, shadow token definitions as input vocabulary",
         "Generator Core — consumes Resolved/ResolvedMode and color/spring serializers (toCss, toKde, toQtHex, toCssLinear, flat)",
         "Build and Install — dist orchestration writes formatter output to dist/ for install"
+      ]
+    },
+    "shell-and-session": {
+      "summary": "The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and the session that hosts it. startambrosia runs Plasma's session with XDG_SESSION_DESKTOP=ambrosia; systemd units keyed on that variable swap plasmashell for Quickshell, and /etc/xdg/ambrosia (via XDG_CONFIG_DIRS) carries session-only KDE/KWin defaults. The shell must match preview/ visually.",
+      "map": [
+        {
+          "name": "Menu bar (logo, app name, menus, status icons, clock)",
+          "files": [
+            "shell/MenuBar.qml",
+            "shell/MenuBarItem.qml"
+          ]
+        },
+        {
+          "name": "Desktop wallpaper",
+          "files": [
+            "shell/Wallpaper.qml"
+          ]
+        },
+        {
+          "name": "Line icons (same paths as the preview sprite)",
+          "files": [
+            "shell/icons.js",
+            "shell/Icon.qml"
+          ]
+        },
+        {
+          "name": "Text in the type scale",
+          "files": [
+            "shell/Label.qml"
+          ]
+        },
+        {
+          "name": "Which windows/screens the shell puts up",
+          "files": [
+            "shell/shell.qml"
+          ]
+        },
+        {
+          "name": "Session start, env and defaults scope",
+          "files": [
+            "session/startambrosia",
+            "session/ambrosia.desktop"
+          ]
+        },
+        {
+          "name": "Swapping plasmashell for the shell",
+          "files": [
+            "session/ambrosia-shell.service",
+            "session/plasmashell.conf"
+          ]
+        },
+        {
+          "name": "KWin defaults (button order, hot corner, blur) and splash off",
+          "files": [
+            "session/xdg/kwinrc",
+            "session/ksplash.conf"
+          ]
+        },
+        {
+          "name": "Session look-and-feel (colors, widget style, splash off)",
+          "files": [
+            "session/look-and-feel/org.ambrosia.desktop/"
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "Login",
+          "steps": [
+            "SDDM/GDM",
+            "startambrosia (XDG_SESSION_DESKTOP=ambrosia, XDG_CONFIG_DIRS=/etc/xdg/ambrosia:…)",
+            "startplasma-wayland",
+            "plasma-core.target",
+            "ambrosia-shell.service (ExecCondition) runs quickshell --path /usr/share/ambrosia/shell; plasma-plasmashell.service skipped by drop-in"
+          ]
+        },
+        {
+          "name": "Look at it without logging in",
+          "steps": [
+            "tools/shot.sh",
+            "dbus-run-session kwin_wayland --virtual",
+            "quickshell",
+            "spectacle --background screenshot"
+          ]
+        }
+      ],
+      "files": [],
+      "rules": [
+        "Build file URLs from Quickshell.shellDir with an explicit file:// — Quickshell's QML base URL is qrc:/qs-blackhole, so relative URLs and Qt.resolvedUrl don't reach files.",
+        "All values come from import Ambrosia (Theme.*); never hard-code colors or sizes that a token has.",
+        "KWin has no window-list protocol Quickshell reads (no wlr/ext foreign-toplevel), so ToplevelManager is empty; app name and dock dots need a KWin bridge.",
+        "KWin blur strength is global ([Effect-blur] in kwinrc), not per surface; BackgroundEffect.blurRegion only sets where."
+      ],
+      "edges": [
+        "Theme Targets — imports the generated Ambrosia QML module (/usr/lib/qt6/qml/Ambrosia) and kdeglobals",
+        "Packaging and Image — ambrosia-shell installs shell/ to /usr/share/ambrosia/shell and session/ files system-wide",
+        "Preview Desktop — the visual reference the QML must match"
+      ]
+    },
+    "packaging-and-image": {
+      "summary": "Everything that turns the repo into an installable distro. packaging/PKGBUILD builds ambrosia-theme, ambrosia-shell and ambrosia-desktop from the checkout; packaging/quickshell rebuilds Quickshell for the installed Qt. iso/ is an archiso profile (from Arch's releng) whose live system logs into Ambrosia and carries the packages as a local repo for its installer. Built on an Arch host (tenet), tested in a headless QEMU VM.",
+      "map": [
+        {
+          "name": "What each package installs and depends on",
+          "files": [
+            "packaging/PKGBUILD"
+          ]
+        },
+        {
+          "name": "SDDM defaults on installed systems",
+          "files": [
+            "packaging/sddm.conf"
+          ]
+        },
+        {
+          "name": "Our Quickshell build (pinned upstream commit)",
+          "files": [
+            "packaging/quickshell/PKGBUILD"
+          ]
+        },
+        {
+          "name": "Image name, compression, file permissions",
+          "files": [
+            "iso/profiledef.sh"
+          ]
+        },
+        {
+          "name": "What's on the live image",
+          "files": [
+            "iso/packages.x86_64"
+          ]
+        },
+        {
+          "name": "Package sources at build time and on the image ([ambrosia] first)",
+          "files": [
+            "iso/pacman.conf",
+            "tools/build-iso.sh"
+          ]
+        },
+        {
+          "name": "Live session: user, autologin, sudo, services",
+          "files": [
+            "iso/airootfs/etc/systemd/system/ambrosia-live-user.service",
+            "iso/airootfs/etc/sddm.conf.d/live.conf",
+            "iso/airootfs/etc/sudoers.d/10-live"
+          ]
+        },
+        {
+          "name": "The installer: questions, then the install",
+          "files": [
+            "iso/airootfs/usr/local/bin/ambrosia-install",
+            "iso/airootfs/usr/local/bin/ambrosia-install-system"
+          ]
+        },
+        {
+          "name": "Boot menu entries and kernel params",
+          "files": [
+            "iso/efiboot/loader/",
+            "iso/syslinux/"
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "Build",
+          "steps": [
+            "make package (user)",
+            "out/pkg/*.pkg.tar.zst",
+            "sudo make iso",
+            "tools/build-iso.sh copies iso/ to out/profile, repo-adds the packages into airootfs/opt/ambrosia/repo, fills @REPO@ in pacman.conf",
+            "mkarchiso",
+            "out/iso/ambrosia-*.iso"
+          ]
+        },
+        {
+          "name": "Install",
+          "steps": [
+            "boot",
+            "SDDM autologin live",
+            "Ambrosia session",
+            "autostart Konsole runs ambrosia-install (kdialog questions, answers file with a password hash)",
+            "sudo ambrosia-install-system (sgdisk EFI+root, pacstrap from [ambrosia]+mirrors, user, systemd-boot, sddm state)",
+            "reboot"
+          ]
+        },
+        {
+          "name": "Test",
+          "steps": [
+            "tools/vm.sh install extracts the image's kernel and boots it with ambrosia.autoinstall (test answers, powers off)",
+            "tools/vm.sh installed",
+            "tools/vm.sh shot"
+          ]
+        }
+      ],
+      "files": [],
+      "rules": [
+        "[ambrosia] must stay first in iso/pacman.conf: pacman takes a package from the first repo that has it, regardless of version, so our Quickshell rebuild only wins from there.",
+        "Quickshell links Qt internals: when Arch's quickshell was built for an older Qt than the system's, run make quickshell and ship ours.",
+        "Build and work dirs go under out/ on /home (tenet's / has ~25 GB); mkarchiso needs root, makepkg refuses it.",
+        "The installer is UEFI-only and needs the internet (pacstrap pulls everything but our packages from Arch mirrors)."
+      ],
+      "edges": [
+        "Shell and Session — ambrosia-shell ships shell/ and session/",
+        "Theme Targets / Generator Core — the PKGBUILD runs bun tools/gen/index.ts and installs dist/ system-wide",
+        "tenet (Arch build host) — reached with makima; tools/remote.sh rsyncs the checkout there"
       ]
     }
   },

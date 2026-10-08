@@ -13,7 +13,7 @@ Single-file source of truth for ambrosia's look and motion, exporting type scale
 - **Light/dark color pairs:** design/tokens.ts
 - **Palette and accents:** design/tokens.ts
 - **Status and window-control colors:** design/tokens.ts
-- **Glass and materials:** design/tokens.ts
+- **Glass and materials:** design/tokens.ts, design/DESIGN.md
 - **Shadows:** design/tokens.ts
 - **Springs and motion:** design/tokens.ts, design/DESIGN.md
 - **Control center module metrics:** design/tokens.ts, design/DESIGN.md

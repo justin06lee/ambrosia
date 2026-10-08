@@ -1,0 +1,13 @@
+[Unit]
+Description=Ambrosia shell: menu bar, dock and control center
+After=plasma-ksmserver.service plasma-kcminit.service
+PartOf=graphical-session.target
+
+[Service]
+ExecCondition=/bin/sh -c 'test "$XDG_SESSION_DESKTOP" = ambrosia'
+ExecStart=/usr/bin/quickshell --path /usr/share/ambrosia/shell
+Restart=on-failure
+Slice=session.slice
+
+[Install]
+WantedBy=plasma-core.target
