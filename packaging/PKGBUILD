@@ -1,0 +1,94 @@
+# Builds Ambrosia's packages from this checkout: `make package` on Arch.
+# ambrosia-theme   the generated themes (Qt/QML, KDE, GTK, fontconfig)
+# ambrosia-shell   the Quickshell shell and the Ambrosia session on KWin
+# ambrosia-desktop everything a fresh install needs, the ISO installs this
+
+pkgbase=ambrosia
+pkgname=(ambrosia-theme ambrosia-shell ambrosia-desktop)
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="A Linux desktop that looks and moves as one thing"
+arch=(any)
+url="https://github.com/justin06lee/ambrosia"
+license=(LicenseRef-TBD)
+makedepends=(bun git librsvg)
+
+_root="$(realpath "$startdir/..")"
+
+pkgver() {
+  cd "$_root"
+  printf '0.1.0.r%s.%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cd "$_root"
+  bun install --frozen-lockfile
+  bun tools/gen/index.ts
+  for w in nectar-day nectar-night; do
+    rsvg-convert -w 3840 -h 2400 "assets/wallpapers/$w.svg" -o "$srcdir/$w.png"
+  done
+}
+
+package_ambrosia-theme() {
+  pkgdesc="Ambrosia's design tokens as Qt/QML, KDE, GTK and fontconfig themes"
+  depends=(inter-font ttf-jetbrains-mono)
+  cd "$_root/dist"
+
+  install -Dm644 qml/Ambrosia/Theme.qml qml/Ambrosia/qmldir -t "$pkgdir/usr/lib/qt6/qml/Ambrosia/"
+  install -Dm644 kde/AmbrosiaLight.colors kde/AmbrosiaDark.colors -t "$pkgdir/usr/share/color-schemes/"
+  install -Dm644 gtk-4.0/gtk.css -t "$pkgdir/usr/share/ambrosia/gtk-4.0/"
+  install -Dm644 gtk-3.0/gtk-light.css gtk-3.0/gtk-dark.css -t "$pkgdir/usr/share/ambrosia/gtk-3.0/"
+  install -Dm644 environment.d/50-ambrosia-fonts.conf -t "$pkgdir/usr/share/ambrosia/environment.d/"
+  install -Dm644 fontconfig/50-ambrosia.conf -t "$pkgdir/usr/share/fontconfig/conf.avail/"
+  install -d "$pkgdir/etc/fonts/conf.d"
+  ln -s /usr/share/fontconfig/conf.avail/50-ambrosia.conf "$pkgdir/etc/fonts/conf.d/50-ambrosia.conf"
+
+  install -Dm644 "$srcdir/nectar-day.png" "$srcdir/nectar-night.png" -t "$pkgdir/usr/share/ambrosia/wallpapers/"
+  install -Dm644 "$_root"/assets/wallpapers/*.svg -t "$pkgdir/usr/share/ambrosia/wallpapers/"
+}
+
+package_ambrosia-shell() {
+  pkgdesc="The Ambrosia shell (menu bar, dock, control center) and session on KWin"
+  depends=(ambrosia-theme quickshell kwin plasma-workspace qt6-svg qt6-imageformats upower)
+  backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc)
+  cd "$_root"
+
+  install -d "$pkgdir/usr/share/ambrosia/shell" "$pkgdir/usr/share/plasma/look-and-feel"
+  cp -r shell/. "$pkgdir/usr/share/ambrosia/shell/"
+
+  install -Dm755 session/startambrosia -t "$pkgdir/usr/bin/"
+  install -Dm644 session/ambrosia.desktop -t "$pkgdir/usr/share/wayland-sessions/"
+  local units="$pkgdir/usr/lib/systemd/user"
+  install -Dm644 session/ambrosia-shell.service -t "$units/"
+  install -d "$units/plasma-core.target.wants"
+  ln -s ../ambrosia-shell.service "$units/plasma-core.target.wants/ambrosia-shell.service"
+  install -Dm644 session/plasmashell.conf "$units/plasma-plasmashell.service.d/ambrosia.conf"
+  install -Dm644 session/ksplash.conf "$units/plasma-ksplash.service.d/ambrosia.conf"
+
+  # Plasma writes its look-and-feel's defaults into ~/.config/kdedefaults,
+  # ahead of /etc/xdg/ambrosia, so the session's colors live in one of ours.
+  cp -r session/look-and-feel/. "$pkgdir/usr/share/plasma/look-and-feel/"
+  install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc -t "$pkgdir/etc/xdg/ambrosia/"
+}
+
+package_ambrosia-desktop() {
+  pkgdesc="The Ambrosia desktop: the shell plus the system services and apps a new install needs"
+  depends=(
+    ambrosia-shell
+    sddm xdg-desktop-portal-kde polkit-kde-agent kscreen powerdevil
+    networkmanager plasma-nm bluez bluez-utils bluedevil
+    pipewire pipewire-pulse pipewire-alsa wireplumber plasma-pa
+    plasma-desktop breeze konsole dolphin systemsettings spectacle
+  )
+  backup=(etc/sddm.conf.d/10-ambrosia.conf)
+  cd "$_root"
+
+  # In /etc: sddm's own /usr/lib/sddm/sddm.conf.d/default.conf would sort after
+  # ours there and reset it. System Settings' kde_settings.conf still wins.
+  install -Dm644 packaging/sddm.conf "$pkgdir/etc/sddm.conf.d/10-ambrosia.conf"
+
+  # New accounts start with Ambrosia's GTK colors; the CSS follows the package.
+  install -d "$pkgdir/etc/skel/.config/gtk-4.0" "$pkgdir/etc/skel/.config/gtk-3.0"
+  printf '@import url("file:///usr/share/ambrosia/gtk-4.0/gtk.css");\n' > "$pkgdir/etc/skel/.config/gtk-4.0/gtk.css"
+  printf '@import url("file:///usr/share/ambrosia/gtk-3.0/gtk-light.css");\n' > "$pkgdir/etc/skel/.config/gtk-3.0/gtk.css"
+}

@@ -1,0 +1,77 @@
+# Arch's quickshell PKGBUILD (Caleb Maclennan), rebuilt for Ambrosia whenever
+# Arch's build lags its Qt: Quickshell uses Qt internals, so it must be built
+# against the Qt it runs on. Built by `make quickshell`.
+#
+# Pinned to an upstream master commit after v0.3.1 for its Qt 6.12 fix
+# (5d5d49873f, "use MOC includes instead of opaque pointer definitions").
+# The version (0.3.1.rN.gHASH) sorts above Arch's 0.3.1 builds; Arch's next
+# release takes over again.
+#
+# Upstream maintainer: Caleb Maclennan <caleb@alerque.com>
+
+pkgname=quickshell
+pkgver=0.3.1.r21.g11ca60b
+pkgrel=1
+pkgdesc='Flexible toolkit for making desktop shells with QtQuick'
+arch=(x86_64 aarch64)
+url="https://git.outfoxxed.me/$pkgname/$pkgname"
+license=(LGPL-3.0-only)
+options=(!debug)
+depends=(cpptrace libcpptrace.so
+         glibc # libc.so libm.so
+         hicolor-icon-theme
+         jemalloc libjemalloc.so
+         libdrm # libdrm.so
+         libgcc libgcc_s.so
+         libglvnd libEGL.so libOpenGL.so
+         libpipewire libpipewire-0.3.so
+         libstdc++ libstdc++.so
+         libxcb # libxcb.so
+         mesa # libgbm.so
+         pam libpam.so
+         polkit
+         qt6-base # libQt6Core.so libQt6DBus.so libQt6Gui.so libQt6Network.so libQt6Widgets.so
+         qt6-declarative # libQt6Qml.so libQt6Quick.so
+         qt6-svg
+         qt6-wayland # libQt6WaylandClient.so
+         wayland libwayland-client.so)
+makedepends=(git
+             cli11
+             cmake
+             ninja
+             qt6-shadertools
+             spirv-tools
+             vulkan-headers
+             wayland-protocols)
+_commit=11ca60be22b063478ed9586ca1d7f92f0f261caf
+source=("git+$url.git#commit=$_commit")
+sha256sums=('SKIP')
+
+pkgver() {
+	cd "$pkgname"
+	git describe --long --tags | sed 's/^v//;s/-/.r/;s/-/./'
+}
+
+build() {
+	cd "$pkgname"
+	local cmake_options=(
+		-D CMAKE_BUILD_TYPE=RelWithDebInfo
+		-D DISTRIBUTOR='Ambrosia'
+		-D DISTRIBUTOR_DEBUGINFO_AVAILABLE=No
+		-D CRASH_REPORTER=Off
+		-D CMAKE_INSTALL_PREFIX=/usr
+		-D INSTALL_QML_PREFIX=lib/qt6/qml
+		# Ambrosia runs on KWin: no Hyprland or i3 integration. (Qt 6.12's
+		# stricter moc also rejects the Hyprland module as of 0.3.1.)
+		-D HYPRLAND=OFF
+		-D I3=OFF
+	)
+	cmake -G Ninja -B build -W no-dev "${cmake_options[@]}"
+	cmake --build build
+}
+
+package() {
+	cd "$pkgname"
+	DESTDIR="$pkgdir" cmake --install build
+	install -Dm0644 -t "$pkgdir/usr/share/licenses/$pkgname/" LICENSE
+}
