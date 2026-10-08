@@ -18,10 +18,23 @@ function value(v: unknown): [string, string] {
   return ["var", JSON.stringify(v)];
 }
 
+// QML rejects ECMAScript keywords as property names (qmllint caught `switch`);
+// those keys get a trailing underscore: `Theme.size.switch_.width`.
+const keywords = new Set(
+  ("break case catch class const continue debugger default delete do else enum export extends false finally for " +
+    "function if import in instanceof let new null return static super switch this throw true try typeof var void " +
+    "while with yield await implements interface package private protected public").split(" "),
+);
+
+const identifier = (key: string) => {
+  const name = slug(key).replace(/^(\d)/, "s$1");
+  return keywords.has(name) ? `${name}_` : name;
+};
+
 function object(tree: Tree, depth: number): string {
   const pad = "    ".repeat(depth + 1);
   const lines = Object.entries(tree).map(([key, v]) => {
-    const name = slug(key).replace(/^(\d)/, "s$1");
+    const name = identifier(key);
     if (typeof v === "object" && v !== null && !Array.isArray(v) && !isColor(v)) {
       return `${pad}readonly property QtObject ${name}: ${object(v as Tree, depth + 1)}`;
     }

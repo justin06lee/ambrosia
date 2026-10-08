@@ -3,6 +3,7 @@ import { expect, test } from "bun:test";
 import * as t from "../../design/tokens";
 import { contrast } from "./color";
 import { flat, resolve } from "./resolve";
+import { qml } from "./targets/qml";
 
 const r = resolve();
 
@@ -44,3 +45,9 @@ for (const mode of t.modes) {
     }
   });
 }
+
+test("the QML theme loads: no ECMAScript keywords as property names", () => {
+  const names = [...qml(r).matchAll(/readonly property \w+ (\w+):/g)].map((m) => m[1]);
+  expect(names.filter((n) => ["switch", "default", "case", "in", "function", "delete"].includes(n!))).toEqual([]);
+  expect(names).toContain("switch_");
+});
