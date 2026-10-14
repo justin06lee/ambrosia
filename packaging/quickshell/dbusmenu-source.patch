@@ -1,0 +1,73 @@
+diff --git a/src/dbus/dbusmenu/dbusmenu.cpp b/src/dbus/dbusmenu/dbusmenu.cpp
+index cbc6f63..276fd6b 100644
+--- a/src/dbus/dbusmenu/dbusmenu.cpp
++++ b/src/dbus/dbusmenu/dbusmenu.cpp
+@@ -565,6 +565,24 @@ void DBusMenuHandle::onMenuPathChanged() {
+ 
+ QsMenuEntry* DBusMenuHandle::menu() { return this->loaded ? &this->mMenu->rootItem : nullptr; }
+ 
++DBusMenuSource::DBusMenuSource(QObject* parent): menu::QsMenuHandle(parent) {
++	QObject::connect(&this->handle, &menu::QsMenuHandle::menuChanged, this, &menu::QsMenuHandle::menuChanged);
++}
++
++void DBusMenuSource::setService(const QString& service) {
++	if (service == this->mService) return;
++	this->mService = service;
++	this->handle.setAddress(this->mService, this->mPath);
++	emit this->serviceChanged();
++}
++
++void DBusMenuSource::setPath(const QString& path) {
++	if (path == this->mPath) return;
++	this->mPath = path;
++	this->handle.setAddress(this->mService, this->mPath);
++	emit this->pathChanged();
++}
++
+ QDebug operator<<(QDebug debug, const DBusMenuHandle* handle) {
+ 	if (handle) {
+ 		auto saver = QDebugStateSaver(debug);
+diff --git a/src/dbus/dbusmenu/dbusmenu.hpp b/src/dbus/dbusmenu/dbusmenu.hpp
+index 06cbc34..c12a542 100644
+--- a/src/dbus/dbusmenu/dbusmenu.hpp
++++ b/src/dbus/dbusmenu/dbusmenu.hpp
+@@ -193,4 +193,39 @@ private:
+ 	friend QDebug operator<<(QDebug debug, const DBusMenuHandle* handle);
+ };
+ 
++///! A DBusMenu at a known address.
++/// The `com.canonical.dbusmenu` menu that @@service publishes at @@path, such
++/// as the application menu a window advertises. Pass it to
++/// @@Quickshell.QsMenuOpener or @@Quickshell.QsMenuAnchor to read or show it.
++class DBusMenuSource: public menu::QsMenuHandle {
++	Q_OBJECT;
++	/// The DBus service that owns the menu.
++	Q_PROPERTY(QString service READ service WRITE setService NOTIFY serviceChanged);
++	/// The object path of the menu.
++	Q_PROPERTY(QString path READ path WRITE setPath NOTIFY pathChanged);
++	QML_ELEMENT;
++
++public:
++	explicit DBusMenuSource(QObject* parent = nullptr);
++
++	void refHandle() override { this->handle.refHandle(); }
++	void unrefHandle() override { this->handle.unrefHandle(); }
++	[[nodiscard]] menu::QsMenuEntry* menu() override { return this->handle.menu(); }
++
++	[[nodiscard]] QString service() const { return this->mService; }
++	void setService(const QString& service);
++
++	[[nodiscard]] QString path() const { return this->mPath; }
++	void setPath(const QString& path);
++
++signals:
++	void serviceChanged();
++	void pathChanged();
++
++private:
++	DBusMenuHandle handle {this};
++	QString mService;
++	QString mPath;
++};
++
+ } // namespace qs::dbus::dbusmenu
