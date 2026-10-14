@@ -22,9 +22,11 @@ the shell and font rendering all read the same numbers.
 
 The design system, the theme generator, a browser preview of the desktop and a
 design review site exist. The distro pipeline has its first cut: Arch packages,
-an Ambrosia session on KWin with the first piece of the shell (the menu bar),
-and an installer image that boots a live desktop and installs it. The dock,
-control center, compositor effects and first-party apps don't exist yet.
+an Ambrosia session on KWin, and an installer image that boots a live desktop
+and installs it. The shell works on real hardware: the menu bar with the
+focused app's own menus, Search (Super+Space), the Dock, the control center
+and notification banners. Its look still trails the design preview, and
+compositor effects and first-party apps don't exist yet.
 
 ## Quick start
 
@@ -111,9 +113,11 @@ design/        DESIGN.md (the rules), DECISIONS.md (the choices), tokens.ts (the
                review.json (review verdicts and notes)
 tools/gen/     the generator and its tests
 tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remote.sh
-shell/         the shell in QML for Quickshell: wallpaper and menu bar so far
-session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults
-packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild
+shell/         the shell in QML for Quickshell: wallpaper, menu bar and menus, Search,
+               Dock, control center, notifications
+session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
+               the `ambrosia` command and the shell's desktop files
+packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild (with our DBusMenuSource patch)
 iso/           the archiso profile: live desktop, installer (ambrosia-install)
 preview/       the mock desktop, styled only from dist/web/tokens.css; glass.css is shared
 site/          the design review site and its server
@@ -126,10 +130,10 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 2. **Packages and installer image.** First cut done: packages, the session, a
    live image and an unattended-testable installer. Everything after this
    ships through it.
-3. **Shell** on KWin and Quickshell: menu bar (first cut), dock, control
-   center, notifications and launcher, all on `Theme.qml`, plus the Mac-first
-   keyboard layer (keyd). Built and judged on tenet, the Arch desktop, with a
-   Magic Trackpad.
+3. **Shell** on KWin and Quickshell: menu bar, Dock, control center,
+   notifications and Search work (first cut); next, matching the preview's
+   look, a notification center and the Mac-first keyboard layer (keyd). Built
+   and judged on tenet, the Arch desktop, with a Magic Trackpad.
 4. **Compositor**: a KWin effect for glass refraction, window animations on
    the spring tokens, and window decorations.
 5. **Toolkits**: a Qt widget style and a full GTK theme beyond colors, an icon

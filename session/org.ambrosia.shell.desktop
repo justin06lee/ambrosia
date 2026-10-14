@@ -1,0 +1,10 @@
+# The Ambrosia shell. KWin hands its restricted Wayland interfaces (the window
+# list, which the Dock and the menu bar read) only to programs a desktop file
+# lists them for, matching the program by its Exec path.
+[Desktop Entry]
+Type=Application
+Name=Ambrosia Shell
+Comment=The menu bar, Dock and control center
+Exec=/usr/bin/quickshell --path /usr/share/ambrosia/shell
+NoDisplay=true
+X-KDE-Wayland-Interfaces=org_kde_plasma_window_management,org_kde_kwin_keystate,org_kde_plasma_activation_feedback

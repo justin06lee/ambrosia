@@ -1,0 +1,11 @@
+# Super+Space opens Search. KDE's shortcut daemon picks up desktop files with
+# an X-KDE-Shortcuts key, so it can be changed in System Settings, Shortcuts.
+[Desktop Entry]
+Type=Application
+Name=Search
+Comment=Find and open apps
+Icon=search
+Exec=/usr/bin/ambrosia search
+NoDisplay=true
+StartupNotify=false
+X-KDE-Shortcuts=Meta+Space

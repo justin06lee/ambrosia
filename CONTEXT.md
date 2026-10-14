@@ -40,9 +40,14 @@ There is no git remote yet, so nothing has been pushed.
     order, no hot corner, Inter fonts, and the `org.ambrosia.desktop`
     look-and-feel package (`session/look-and-feel/`), which carries the
     Ambrosia color scheme.
-  - `shell/`: wallpaper and menu bar (logo, app name, menus, status icons,
-    clock) on `import Ambrosia`, thin glass through KWin's blur. The app name
-    and menus are fixed ("Files") until the window bridge exists.
+  - `shell/` (working on real hardware since 2026-10-13): the menu bar (the
+    Ambrosia menu, the focused app's name and its own menus over DBus, Wi-Fi,
+    Search, control center, clock), Search on Super+Space, the Dock, the
+    control center (every control acts) and notification banners. KWin's
+    window list comes through Plasma's task manager model (`Apps.qml`),
+    granted by `session/org.ambrosia.shell.desktop`. Menus, the control
+    center and confirmations draw on each screen's `Overlay`; their state is
+    `Popups.qml`. The look still trails the preview: function came first.
   - `iso/`: archiso profile from Arch's releng: live user autologin into the
     Ambrosia session, NetworkManager, the Ambrosia packages as a local repo on
     the image (`/opt/ambrosia/repo`, listed first in pacman.conf), and the
@@ -55,28 +60,29 @@ There is no git remote yet, so nothing has been pushed.
   boots to SDDM (Breeze theme, Wayland greeter, Ambrosia preselected) and logs
   into the menu bar desktop with no splash. Not yet tried on real hardware.
   The current image is `out/iso/ambrosia-2026.10.07-x86_64.iso` on tenet.
-- **tenet has the packages installed**, so "Ambrosia" is a session on its GDM
-  login screen. The user hasn't logged into it yet.
+- **tenet runs Ambrosia** (flashed from the SanDisk on 2026-10-13, account
+  justin06lee). Its old setup isn't restored yet: `/Volumes/T7/Backups/tenet`
+  `./restore.sh` brings it back (makima, services, home) whenever the user
+  wants. The restore leaves our quickshell and ambrosia-* packages alone.
 
 ## Next
 
-1. Have the user log into the Ambrosia session on tenet and judge the menu bar
-   by feel; tune KWin's blur strength (global, `[Effect-blur]` in
-   `session/xdg/kwinrc`) against the preview's thin material.
-2. **The KWin window bridge**: KWin offers no window-list protocol Quickshell
-   can read (no wlr or ext foreign-toplevel; plasma-window-management is
-   restricted). Needed for the menu bar's app name and the dock's running dots.
-   Likely a KWin script plus a small helper, or a C++ QML plugin on the
-   plasma window-management protocol with a desktop file that grants it.
-3. The dock, then the control center (Quickshell has Pipewire, Bluetooth,
-   Networking and UPower modules), then notifications (Quickshell's
-   NotificationServer, since plasmashell's is gone) and the launcher.
-4. The Mac-first keyboard layer with keyd (system-wide, so ask before enabling
-   it on tenet, where GNOME is still the daily session).
-5. Distro gaps: an SDDM theme of our own (Breeze from plasma-desktop for now), `os-release`
-   branding, a hosted package repo (installed systems have no `[ambrosia]`
-   repo, so they can't update Ambrosia's packages yet), BIOS boot, our own
-   boot menu art (syslinux still shows Arch's splash), a license.
+1. **Make it look like the preview.** The user said function first, looks
+   next: the shell works but "nothing looks perfect like the design sheet".
+   Compare tenet screenshots with `preview/` piece by piece (menus, Dock,
+   control center, Search, banners) and tune KWin's blur strength (global,
+   `[Effect-blur]` in `session/xdg/kwinrc`).
+2. Gaps in the shell: menu items don't show apps' shortcuts (Quickshell's
+   QsMenuEntry doesn't expose them), no notification center or Focus icon in
+   the bar, no Dock magnification or drag to reorder, GTK apps' menus don't
+   reach the bar (needs appmenu-gtk-module).
+3. The Mac-first keyboard layer with keyd.
+4. Distro gaps: `os-release` branding ("About This Computer" says Arch
+   Linux), an SDDM theme of our own, a hosted package repo (installed systems
+   can't update Ambrosia's packages, and an Arch quickshell update would
+   replace our patched build), BIOS boot, boot menu art, a license.
+5. Rebuild the image when the user wants to reflash: the SanDisk still has
+   the 2026-10-08 image without this shell.
 
 ## Machines
 
@@ -84,16 +90,15 @@ There is no git remote yet, so nothing has been pushed.
   (`/Volumes/T7/Stockpile/Workspace/github.com/justin06lee/ambrosia`). No Qt or
   GTK; Docker is installed but its daemon is off. Don't start Docker Desktop
   without asking.
-- **tenet:** i7-10700, 16 GB, GTX 1660 Ti on nvidia-open, 4K over HDMI, Arch,
-  GNOME 51 as the user's daily session (still on GDM), plus KWin/Plasma 6.7,
-  our Quickshell, archiso, QEMU/OVMF. **The user gave full permission to run
-  any command on tenet as root** (2026-10-07). It was fully upgraded that day;
-  the new kernel and NVIDIA driver take effect at its next reboot.
-  - `makima possess tenet '<cmd>' < /dev/null` runs as root;
-    `makima possess justin06lee@tenet '<cmd>'` as the user. The "Logging in as
-    root" banner goes to stderr, so stdout is clean (base64 files back with it).
-  - The checkout lives at `/home/justin06lee/ambrosia` (`/home` has 700 GB free;
-    `/` only ~25 GB).
+- **tenet:** i7-10700, 16 GB, GTX 1660 Ti on nvidia-open, an LG UltraGear
+  over HDMI at 2560x1440, now running Ambrosia (one 915 GB root partition).
+  **The user gave full permission to run any command on tenet as root**
+  (2026-10-07).
+  - Until the restore brings makima back, reach it over plain SSH:
+    `ssh -i ~/.ssh/id_ed25519_justin -o IdentitiesOnly=yes root@192.168.1.172`
+    (Wi-Fi, DHCP; the address may change). `AMBROSIA_RSH=ssh tools/remote.sh`
+    syncs over SSH. After the restore: `makima possess tenet '<cmd>' < /dev/null`.
+  - The checkout lives at `/home/justin06lee/ambrosia`.
 
 ## How the work runs
 
@@ -110,6 +115,16 @@ There is no git remote yet, so nothing has been pushed.
   - `make iso` as root (`makima possess tenet 'cd /home/justin06lee/ambrosia && make iso'`)
     builds `out/iso/ambrosia-*.iso` (~15 minutes; the pacman cache makes
     rebuilds faster).
+  - **Testing the shell in the live session** (2026-10-13 loop): rsync
+    `shell/` onto `/usr/share/ambrosia/shell/` and
+    `systemctl --user -M justin06lee@ restart ambrosia-shell`; photograph
+    with `spectacle -b -n -f -o` run as the user with `XDG_RUNTIME_DIR`,
+    `DBUS_SESSION_BUS_ADDRESS` and `WAYLAND_DISPLAY=wayland-0`; click and
+    type with `/root/ui.py` (a python-evdev absolute pointer and keyboard:
+    `ui.py click X Y`, `rclick`, `key super+space`, `type text`). A locked
+    or blanked screen photographs black: `loginctl unlock-session`,
+    `kscreen-doctor --dpms on`, and hold `kde-inhibit --screenSaver` while
+    testing. The shell logs to the user journal.
   - `tools/shot.sh out.png` photographs the installed shell on a headless KWin
     (virtual backend, private D-Bus), without touching the logged-in desktop.
     `AMBROSIA_SHELL=$HOME/ambrosia/shell AMBROSIA_WALLPAPERS=/usr/share/ambrosia/wallpapers`
@@ -143,7 +158,17 @@ There is no git remote yet, so nothing has been pushed.
   package, not in `/etc/xdg/ambrosia` alone.
 - **Quickshell loads QML from a virtual `qrc:/qs-blackhole` base**, so
   relative URLs and `Qt.resolvedUrl` don't point at files. Build file URLs
-  from `Quickshell.shellDir` with an explicit `file://`.
+  from `Quickshell.shellDir` with an explicit `file://`. A file loaded that
+  way gets its own copies of the shell's singletons (Apps, Popups...), so
+  pass it values instead (see `AppMenu.qml`).
+- **Apps only send their menus to the bar while `org.kde.kappmenuview` is on
+  the bus** (Plasma's appmenu kded only collects them then). `Apps.qml` holds
+  the name with `dbus-test-tool black-hole`.
+- **Our menus take the keyboard, and with it focus, from the app.** The menu
+  bar freezes its app while one is open (`Apps.frozen`), and window actions
+  capture their window when the menu opens.
+- Pinned apps' ids from the task model end in `.desktop`; running ones don't
+  (`Apps.entryFor`).
 - **QML rejects ECMAScript keywords as property names.** The generator renames
   them with a trailing underscore (`Theme.size.switch_`); a test guards it.
 - KWin's blur strength is one global setting, not per surface; per-material

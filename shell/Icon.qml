@@ -25,7 +25,7 @@ Item {
 
         ShapePath {
             strokeColor: icon.glyph.stroke ? icon.color : "transparent"
-            strokeWidth: 1.5
+            strokeWidth: icon.glyph.width ?? 1.5
             fillColor: "transparent"
             capStyle: ShapePath.RoundCap
             joinStyle: ShapePath.RoundJoin
@@ -34,6 +34,7 @@ Item {
         ShapePath {
             strokeColor: "transparent"
             fillColor: icon.glyph.fill ? icon.color : "transparent"
+            fillRule: ShapePath.WindingFill
             PathSvg { path: icon.glyph.fill ?? "" }
         }
     }

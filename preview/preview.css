@@ -61,7 +61,7 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: 0; 
 }
 .mb-item:hover, .mb-item.active { background: var(--amb-fill-primary); }
 .mb-app { font-weight: var(--amb-headline-weight); }
-.mb-logo .i { width: 15px; height: 15px; color: var(--amb-label-primary); }
+.mb-logo .i { width: 16px; height: 16px; color: var(--amb-label-primary); }
 .mb-icon { padding: 0 7px; }
 .mb-clock { font-variant-numeric: tabular-nums; padding-left: 8px; }
 

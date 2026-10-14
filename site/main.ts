@@ -96,7 +96,7 @@ function renderThread(item: Item) {
   if (!list) return;
   list.replaceChildren(...review.getItem(item.id).thread.map((m) =>
     h("div", { class: `message ${m.author}` },
-      h("div", { class: "message-head" }, m.author === "claude" ? icon("i-drop", 12) : null, h("b", null, m.author === "claude" ? "Claude" : "You"), h("span", null, timeAgo(m.at))),
+      h("div", { class: "message-head" }, m.author === "claude" ? icon("i-bowl", 12) : null, h("b", null, m.author === "claude" ? "Claude" : "You"), h("span", null, timeAgo(m.at))),
       m.author === "claude" ? h("div", { class: "message-body", html: marked.parse(m.text, { async: false }) }) : h("div", { class: "message-body" }, m.text))));
 }
 
@@ -182,7 +182,7 @@ async function main() {
   copy.addEventListener("click", () => copyReview(copy));
 
   document.getElementById("sidebar")!.append(
-    h("a", { class: "brand", href: "#overview" }, icon("i-drop", 18), h("span", null, "ambrosia"), h("small", null, "Design review")),
+    h("a", { class: "brand", href: "#overview" }, icon("i-bowl", 18), h("span", null, "ambrosia"), h("small", null, "Design review")),
     h("nav", null, nav()),
     h("p", { class: "progress", id: "progress" }));
 
