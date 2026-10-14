@@ -49,14 +49,20 @@ package_ambrosia-theme() {
 
 package_ambrosia-shell() {
   pkgdesc="The Ambrosia shell (menu bar, dock, control center) and session on KWin"
-  depends=(ambrosia-theme quickshell kwin plasma-workspace qt6-svg qt6-imageformats upower)
+  # kde-cli-tools: kstart and kioclient, which start apps in their own
+  # scopes; dbus: dbus-test-tool holds the app menu view's bus name.
+  depends=(ambrosia-theme quickshell kwin plasma-workspace kde-cli-tools kconfig dbus
+           qt6-svg qt6-imageformats upower)
   backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc)
   cd "$_root"
 
   install -d "$pkgdir/usr/share/ambrosia/shell" "$pkgdir/usr/share/plasma/look-and-feel"
   cp -r shell/. "$pkgdir/usr/share/ambrosia/shell/"
 
-  install -Dm755 session/startambrosia -t "$pkgdir/usr/bin/"
+  install -Dm755 session/startambrosia session/ambrosia -t "$pkgdir/usr/bin/"
+  # The shell's grant to KWin's window list, and Super+Space for Search.
+  install -Dm644 session/org.ambrosia.shell.desktop session/org.ambrosia.search.desktop \
+    -t "$pkgdir/usr/share/applications/"
   install -Dm644 session/ambrosia.desktop -t "$pkgdir/usr/share/wayland-sessions/"
   local units="$pkgdir/usr/lib/systemd/user"
   install -Dm644 session/ambrosia-shell.service -t "$units/"
@@ -78,7 +84,9 @@ package_ambrosia-desktop() {
     sddm xdg-desktop-portal-kde polkit-kde-agent kscreen powerdevil
     networkmanager plasma-nm bluez bluez-utils bluedevil
     pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber plasma-pa
-    plasma-desktop breeze konsole dolphin systemsettings spectacle
+    plasma-desktop breeze konsole dolphin systemsettings spectacle kinfocenter
+    # The apps a new install starts with, and Discover to get more.
+    firefox kate gwenview okular ark kcalc discover packagekit-qt6 flatpak
   )
   backup=(etc/sddm.conf.d/10-ambrosia.conf)
   cd "$_root"

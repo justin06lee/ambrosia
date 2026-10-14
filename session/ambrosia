@@ -1,0 +1,11 @@
+#!/bin/sh
+# Talks to the running Ambrosia shell. Keyboard shortcuts run these.
+#   ambrosia search           open or close Search
+#   ambrosia control-center   open or close the control center
+shell=${AMBROSIA_SHELL:-/usr/share/ambrosia/shell}
+case $1 in
+  search) function=search ;;
+  control-center) function=controlCenter ;;
+  *) echo "usage: ambrosia search | control-center" >&2; exit 2 ;;
+esac
+exec quickshell ipc --path "$shell" call shell "$function"

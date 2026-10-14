@@ -14,3 +14,8 @@ TopLeft=None
 
 [Plugins]
 blurEnabled=true
+
+# Super alone does nothing: it's Command, held for shortcuts. (Plasma's
+# default opens plasmashell's launcher, which isn't running here.)
+[ModifierOnlyShortcuts]
+Meta=
