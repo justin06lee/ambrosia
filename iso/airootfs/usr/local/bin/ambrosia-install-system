@@ -50,8 +50,11 @@ printf '%s:%s\n' "$user" "$password_hash" | arch-chroot /mnt chpasswd --encrypte
 arch-chroot /mnt passwd --lock root
 install -m 440 /dev/stdin /mnt/etc/sudoers.d/10-wheel <<<'%wheel ALL=(ALL:ALL) ALL'
 
-# Wi-Fi joined in the live session carries over.
+# Wi-Fi joined in the live session carries over, unbound from the live
+# system's device name: the live image calls the card wlan0 (iwd's naming),
+# the installed system by its predictable name (wlo1, wlp3s0...).
 cp -a /etc/NetworkManager/system-connections/. /mnt/etc/NetworkManager/system-connections/ 2>/dev/null || true
+sed -i '/^interface-name=/d' /mnt/etc/NetworkManager/system-connections/*.nmconnection 2>/dev/null || true
 
 # The login screen starts on this account and the Ambrosia session.
 install -d /mnt/var/lib/sddm
