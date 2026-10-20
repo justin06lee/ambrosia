@@ -1,10 +1,11 @@
 # Builds Ambrosia's packages from this checkout: `make package` on Arch.
+# ambrosia-keyring the key the packages are signed with, and the repo's address
 # ambrosia-theme   the generated themes (Qt/QML, KDE, GTK, fontconfig)
 # ambrosia-shell   the Quickshell shell and the Ambrosia session on KWin
 # ambrosia-desktop everything a fresh install needs, the ISO installs this
 
 pkgbase=ambrosia
-pkgname=(ambrosia-theme ambrosia-shell ambrosia-desktop)
+pkgname=(ambrosia-keyring ambrosia-theme ambrosia-shell ambrosia-desktop)
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A Linux desktop that looks and moves as one thing"
@@ -29,6 +30,18 @@ build() {
   done
 }
 
+package_ambrosia-keyring() {
+  pkgdesc="The key Ambrosia's packages are signed with, and where pacman gets them"
+  # After pacman, so pacman-key is there when the install script trusts the key.
+  depends=(pacman)
+  install=ambrosia-keyring.install
+  backup=(etc/pacman.d/ambrosia-mirrorlist)
+  cd "$_root/packaging/keyring"
+
+  install -Dm644 ambrosia.gpg ambrosia-trusted ambrosia-revoked -t "$pkgdir/usr/share/pacman/keyrings/"
+  install -Dm644 ambrosia-mirrorlist -t "$pkgdir/etc/pacman.d/"
+}
+
 package_ambrosia-theme() {
   pkgdesc="Ambrosia's design tokens as Qt/QML, KDE, GTK and fontconfig themes"
   depends=(inter-font ttf-jetbrains-mono)
@@ -49,9 +62,11 @@ package_ambrosia-theme() {
 
 package_ambrosia-shell() {
   pkgdesc="The Ambrosia shell (menu bar, dock, control center) and session on KWin"
+  # quickshell-dbusmenu-source: only our Quickshell build (make quickshell)
+  # provides it, so pacman won't swap Arch's in and lose the app menus.
   # kde-cli-tools: kstart and kioclient, which start apps in their own
   # scopes; dbus: dbus-test-tool holds the app menu view's bus name.
-  depends=(ambrosia-theme quickshell kwin plasma-workspace kde-cli-tools kconfig dbus
+  depends=(ambrosia-theme quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
            qt6-svg qt6-imageformats upower)
   backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc)
   cd "$_root"
@@ -80,7 +95,7 @@ package_ambrosia-shell() {
 package_ambrosia-desktop() {
   pkgdesc="The Ambrosia desktop: the shell plus the system services and apps a new install needs"
   depends=(
-    ambrosia-shell
+    ambrosia-shell ambrosia-keyring
     sddm xdg-desktop-portal-kde polkit-kde-agent kscreen powerdevil
     networkmanager plasma-nm bluez bluez-utils bluedevil
     pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber plasma-pa

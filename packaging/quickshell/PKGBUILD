@@ -1,25 +1,28 @@
-# Arch's quickshell PKGBUILD (Caleb Maclennan), rebuilt for Ambrosia whenever
-# Arch's build lags its Qt: Quickshell uses Qt internals, so it must be built
-# against the Qt it runs on. Built by `make quickshell`.
-#
-# Pinned to an upstream master commit after v0.3.1 for its Qt 6.12 fix
-# (5d5d49873f, "use MOC includes instead of opaque pointer definitions").
-# The version (0.3.1.rN.gHASH) sorts above Arch's 0.3.1 builds; Arch's next
-# release takes over again.
-#
-# dbusmenu-source.patch adds DBusMenuSource to Quickshell.DBusMenu: a menu
-# at a given DBus service and path, so the menu bar can show the focused
+# Arch's quickshell PKGBUILD (Caleb Maclennan), rebuilt for Ambrosia with
+# dbusmenu-source.patch, which adds DBusMenuSource to Quickshell.DBusMenu: a
+# menu at a given DBus service and path, so the menu bar can show the focused
 # app's own menus (the address comes from KDE's task manager model).
+#
+# Ours must win over Arch's quickshell, or an update undoes the patch:
+# [ambrosia] comes first in pacman.conf (pacman takes a package from the first
+# repo that has it, whatever the version), ambrosia-shell depends on the
+# quickshell-dbusmenu-source only this build provides, and the version
+# (0.3.2.rN.gHASH) sorts above Arch's 0.3.2-1 so -Syu replaces Arch's.
+#
+# Quickshell uses Qt internals, so it must be built against the Qt it runs
+# on: when Arch updates Qt, bump pkgrel, and `make publish` rebuilds it.
 #
 # Upstream maintainer: Caleb Maclennan <caleb@alerque.com>
 
 pkgname=quickshell
-pkgver=0.3.1.r21.g11ca60b
-pkgrel=2
+# The pinned commit's `git describe --long --tags`, as 0.3.2.rN.gHASH.
+pkgver=0.3.2.r0.g4f508be
+pkgrel=1
 pkgdesc='Flexible toolkit for making desktop shells with QtQuick'
 arch=(x86_64 aarch64)
 url="https://git.outfoxxed.me/$pkgname/$pkgname"
 license=(LGPL-3.0-only)
+provides=(quickshell-dbusmenu-source)
 options=(!debug)
 depends=(cpptrace libcpptrace.so
          glibc # libc.so libm.so
@@ -47,16 +50,11 @@ makedepends=(git
              spirv-tools
              vulkan-headers
              wayland-protocols)
-_commit=11ca60be22b063478ed9586ca1d7f92f0f261caf
+_commit=4f508be500dea6e5732cc3d50382a0048b17e7b1 # v0.3.2
 source=("git+$url.git#commit=$_commit"
         dbusmenu-source.patch)
 sha256sums=('SKIP'
             'cb29d0dd397a97a5b2553cc0a346929e8e0d86828181c6d057271b73899b0357')
-
-pkgver() {
-	cd "$pkgname"
-	git describe --long --tags | sed 's/^v//;s/-/.r/;s/-/./'
-}
 
 prepare() {
 	cd "$pkgname"
@@ -72,8 +70,7 @@ build() {
 		-D CRASH_REPORTER=Off
 		-D CMAKE_INSTALL_PREFIX=/usr
 		-D INSTALL_QML_PREFIX=lib/qt6/qml
-		# Ambrosia runs on KWin: no Hyprland or i3 integration. (Qt 6.12's
-		# stricter moc also rejects the Hyprland module as of 0.3.1.)
+		# Ambrosia runs on KWin: no Hyprland or i3 integration.
 		-D HYPRLAND=OFF
 		-D I3=OFF
 	)

@@ -37,6 +37,21 @@ grep -qE '"(Advanced Micro Devices|AMD|ATI)' <<<"$gpus" && packages+=(vulkan-rad
 pacstrap -K /mnt "${packages[@]}"
 genfstab -U /mnt >>/mnt/etc/fstab
 
+# Updates come from the hosted [ambrosia] repo (its address and key come with
+# ambrosia-keyring), listed first so our builds win over Arch's.
+ambrosia=$(cat <<'CONF'
+# Ambrosia's own packages, signed with the key in ambrosia-keyring. First, so
+# pacman takes them over Arch's packages of the same name (our Quickshell).
+[ambrosia]
+SigLevel = Required
+Include = /etc/pacman.d/ambrosia-mirrorlist
+CONF
+)
+block="$ambrosia" awk '/^\[core\]$/ && !done { print ENVIRON["block"] "\n"; done = 1 } { print }' \
+  /mnt/etc/pacman.conf >/mnt/etc/pacman.conf.new
+mv /mnt/etc/pacman.conf.new /mnt/etc/pacman.conf
+grep -qx '\[ambrosia\]' /mnt/etc/pacman.conf || { echo "no [core] in the new pacman.conf" >&2; exit 1; }
+
 step "Setting up $hostname"
 ln -sf "/usr/share/zoneinfo/$timezone" /mnt/etc/localtime
 arch-chroot /mnt hwclock --systohc
