@@ -28,13 +28,14 @@ package repo below), and they carry `shell/` and `session/` as they are.
   QML `Theme` singleton, fontconfig and CSS into `dist/`. `preview/` is the HTML
   mock of the desktop the real shell must match; `site/` is the review site.
 - **Distro pipeline, first cut** (branch `feat/distro-pipeline`):
-  - `packaging/PKGBUILD` builds `ambrosia-theme` (themes, wallpapers),
-    `ambrosia-shell` (the QML shell, the session, KDE/KWin defaults) and
-    `ambrosia-desktop` (the meta package: SDDM, portals, NetworkManager,
-    PipeWire, Bluetooth, Konsole, Dolphin, System Settings, GTK skel).
-  - `packaging/quickshell/PKGBUILD` is our Quickshell build, pinned to an
-    upstream master commit with the Qt 6.12 fix (Arch's 0.3.1 was built for Qt
-    6.11 and can't be rebuilt for 6.12 without it).
+  - `packaging/PKGBUILD` builds `ambrosia-keyring` (the repo's key and
+    address), `ambrosia-theme` (themes, wallpapers, icons), `ambrosia-shell`
+    (the QML shell, the session, KDE/KWin defaults), `ambrosia-files` (Files,
+    built with CMake from `files/`; the only x86_64 one) and `ambrosia-desktop`
+    (the meta package: SDDM, portals, NetworkManager, PipeWire, Bluetooth,
+    Konsole, Dolphin, Files, System Settings, GTK skel, os-release).
+  - `packaging/quickshell/PKGBUILD` is our Quickshell build: upstream v0.3.2
+    with the DBusMenuSource patch, served from the hosted repo.
   - `session/`: `startambrosia` runs Plasma's session (`startplasma-wayland`)
     with `XDG_SESSION_DESKTOP=ambrosia`; `ambrosia-shell.service` runs
     Quickshell and a drop-in keeps plasmashell from starting, both keyed on that

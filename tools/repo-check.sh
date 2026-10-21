@@ -8,7 +8,7 @@ set -uo pipefail
 
 exec >"$(dirname "$0")/repo-check.log" 2>&1
 key=2DB46FDF911241FC9406002BCF43580DA0F59EB8
-ours=(ambrosia-keyring ambrosia-theme ambrosia-shell ambrosia-desktop quickshell)
+ours=(ambrosia-keyring ambrosia-theme ambrosia-shell ambrosia-files ambrosia-desktop quickshell)
 failures=()
 fail() { failures+=("$*"); echo "FAIL: $*"; }
 section() { printf '\n== %s\n' "$*"; }

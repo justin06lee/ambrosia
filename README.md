@@ -41,7 +41,7 @@ open preview/index.html    # the mock desktop on its own (xdg-open on Linux)
 On an Arch machine, the distro builds from the same checkout:
 
 ```sh
-make package               # ambrosia-keyring, -theme, -shell, -desktop into out/pkg/
+make package               # ambrosia-keyring, -theme, -shell, -files, -desktop into out/pkg/
 make quickshell            # our Quickshell (with the app menu patch) for the installed Qt
 sudo make iso              # the installer image, out/iso/ambrosia-*.iso
 tools/vm.sh install        # install the image unattended in a headless VM
