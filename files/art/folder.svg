@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Ambrosia's folder, drawn by hand to match Finder's light blue folder:
+       a darker back with its tab, a sheet of paper, then the front. -->
+  <defs>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5dbdeb"/>
+      <stop offset="1" stop-color="#3a9fd6"/>
+    </linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#87d3f8"/>
+      <stop offset="0.5" stop-color="#63c4f0"/>
+      <stop offset="1" stop-color="#45abe0"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef3f6"/>
+    </linearGradient>
+  </defs>
+  <path d="M10 17h31.5c2.2 0 3.6.8 4.9 2.3l2.6 2.9c.9 1 1.9 1.4 3.3 1.4H118c2.5 0 4.5 2 4.5 4.5v75.4c0 2.5-2 4.5-4.5 4.5H10c-2.5 0-4.5-2-4.5-4.5V21.5c0-2.5 2-4.5 4.5-4.5z" fill="url(#back)"/>
+  <rect x="9.5" y="27" width="109" height="40" rx="2.5" fill="url(#paper)"/>
+  <path d="M10.5 31.5h107c2.8 0 5 2.2 5 5v67.5c0 2.5-2 4.5-4.5 4.5H10c-2.5 0-4.5-2-4.5-4.5V36.5c0-2.8 2.2-5 5-5z" fill="url(#front)"/>
+  <path d="M10.5 31.5h107c2.8 0 5 2.2 5 5v.8c0-2.8-2.2-5-5-5h-107c-2.8 0-5 2.2-5 5v-.8c0-2.8 2.2-5 5-5z" fill="#b2e6fd" opacity="0.9"/>
+  <path d="M5.5 103.4c0 2.5 2 4.5 4.5 4.5h108c2.5 0 4.5-2 4.5-4.5v.6c0 2.5-2 4.5-4.5 4.5H10c-2.5 0-4.5-2-4.5-4.5z" fill="#2f8fc4" opacity="0.6"/>
+</svg>

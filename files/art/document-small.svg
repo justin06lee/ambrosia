@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+  <!-- The document page at list size: the same sheet as document.svg with
+       an edge and a few lines dark enough to read at 16 points. -->
+  <path d="M3.6 1.25h6.2l3.1 3.1v9.9a.5.5 0 0 1-.5.5H3.6a.5.5 0 0 1-.5-.5V1.75a.5.5 0 0 1 .5-.5z" fill="#fbfbfb" stroke="#b4b4b4" stroke-width=".6"/>
+  <path d="M9.8 1.25v2.6a.5.5 0 0 0 .5.5h2.6" fill="#e9e9e9" stroke="#b4b4b4" stroke-width=".6" stroke-linejoin="round"/>
+  <path d="M5 6.6h6M5 8.4h6M5 10.2h6M5 12h4" stroke="#c6c6c6" stroke-width=".6" stroke-linecap="round"/>
+</svg>

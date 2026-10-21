@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Name=Files
+GenericName=File Manager
+Comment=Browse and organise your files
+Icon=org.ambrosia.files
+Exec=ambrosia-files %U
+MimeType=inode/directory;
+Categories=Qt;KDE;System;FileTools;FileManager;
+Keywords=finder;files;folders;browser;
+StartupNotify=true
+StartupWMClass=org.ambrosia.files
+Actions=new-window;
+
+[Desktop Action new-window]
+Name=New Window
+Exec=ambrosia-files --new-window
