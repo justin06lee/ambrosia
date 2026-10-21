@@ -1,14 +1,17 @@
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Shapes
+import Qt.labs.folderlistmodel
 import Ambrosia
 import "icons.js" as Icons
 
 // The Dock: pinned apps, then the others that have windows, then Downloads
-// and the Trash. A dot marks running apps. Click to open or bring forward;
+// and the Trash, which shows full while the trash has anything in it and
+// takes files dropped on it. A dot marks running apps. Click to open or bring forward;
 // right-click for New Window, Keep in Dock and Quit. Windows maximize above
 // it. The window is taller than the Dock to make room for the name tooltip,
 // but only the Dock itself takes clicks.
@@ -27,6 +30,27 @@ PanelWindow {
     WlrLayershell.namespace: "ambrosia-dock"
     mask: Region { item: body }
     BackgroundEffect.blurRegion: Region { item: body; radius: Theme.radius.dock }
+
+    // What's in the trash, watched, so the Trash fills and empties with it.
+    // The folder is made first, so there's one to watch.
+    readonly property string trashDir: (Quickshell.env("XDG_DATA_HOME") || Quickshell.env("HOME") + "/.local/share") + "/Trash/files"
+    property bool trashWatched: false
+    readonly property bool trashFull: trashWatched && trashFiles.count > 0
+    FolderListModel {
+        id: trashFiles
+        showHidden: true
+        showDirs: true
+        showDotAndDotDot: false
+        sortField: FolderListModel.Unsorted
+    }
+    Process {
+        running: true
+        command: ["mkdir", "-p", dock.trashDir]
+        onExited: {
+            trashFiles.folder = "file://" + dock.trashDir;
+            dock.trashWatched = true;
+        }
+    }
 
     Item {
         id: body
@@ -100,7 +124,8 @@ PanelWindow {
             DockItem {
                 id: trash
                 name: "Trash"
-                glyph: "trash"
+                iconSource: `file://${Quickshell.shellDir}/trash-${dock.trashFull ? "full" : "empty"}.svg`
+                highlighted: dropArea.containsDrag
                 onClicked: Session.open("trash:/")
                 onMenuRequested: dock.openMenu(trash, [
                     { text: "Open", action: () => Session.open("trash:/") },
@@ -110,6 +135,28 @@ PanelWindow {
                         text: "You can't undo this action.", accept: "Empty Trash",
                         action: () => Quickshell.execDetached(["kioclient", "empty-trash"]) }) },
                 ])
+
+                // Files dragged onto it go to the trash; it darkens and shows
+                // its name while they're over it.
+                DropArea {
+                    id: dropArea
+                    anchors.fill: parent
+                    onEntered: drag => {
+                        if (!drag.hasUrls) {
+                            drag.accepted = false;
+                            return;
+                        }
+                        drag.accept(Qt.MoveAction);
+                        tip.over = trash;
+                    }
+                    onExited: if (tip.over === trash) tip.over = null
+                    onDropped: drop => {
+                        if (tip.over === trash) tip.over = null;
+                        if (!drop.hasUrls) return;
+                        Quickshell.execDetached(["kioclient", "move"].concat(Array.from(drop.urls, url => url.toString()), ["trash:/"]));
+                        drop.accept(Qt.MoveAction);
+                    }
+                }
             }
         }
     }
@@ -201,6 +248,8 @@ PanelWindow {
         property bool running
         property bool attention
         property bool starting
+        // Lifted and darkened, as under a drag that can drop on it.
+        property bool highlighted
         signal clicked
         signal menuRequested(real x, real y)
 
@@ -211,7 +260,7 @@ PanelWindow {
             id: lift
             width: parent.width
             height: parent.height
-            y: area.pressed ? -2 : area.containsMouse ? -6 : 0
+            y: area.pressed ? -2 : area.containsMouse || item.highlighted ? -6 : 0
             scale: area.pressed ? 0.94 : 1
             Behavior on y { SpringAnimation { spring: 5; damping: 0.35 } }
             Behavior on scale { SpringAnimation { spring: 8; damping: 0.5 } }
@@ -220,6 +269,8 @@ PanelWindow {
                 visible: item.glyph === ""
                 anchors.fill: parent
                 source: item.iconSource
+                layer.enabled: item.highlighted
+                layer.effect: MultiEffect { brightness: -0.3 }
                 // A launching app bounces until its window appears.
                 SequentialAnimation on y {
                     running: item.starting
