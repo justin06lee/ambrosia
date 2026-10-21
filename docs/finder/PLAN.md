@@ -297,7 +297,10 @@ Not v1:
   - tag dots.
   - No SF Symbols, nothing from Finder.app, CoreTypes.bundle or any system
     bundle, no SF fonts.
-  - The app icon comes from Shell and Session.
+  - The app icon is Shell and Session's `assets/icons/org.ambrosia.files.svg`,
+    installed by ambrosia-theme as the hicolor icon `org.ambrosia.files`. The
+    desktop file (`Icon=org.ambrosia.files`) and the window icon use that
+    name.
 
 ## 4. Performance targets
 
