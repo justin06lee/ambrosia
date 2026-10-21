@@ -219,6 +219,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
   glass). `org.kde.KWin.reconfigure` doesn't reload them: call
   `/Effects reconfigureEffect blur`. It doesn't unload effects either
   (`unloadEffect fadingpopups`).
+- **The installed shell doesn't reload itself when its files change**
+  (`settings.watchFiles` in `shell.qml`): pacman replaces them one at a time,
+  and Quickshell reloading partway through found no `shell.qml` and stayed
+  down. ambrosia-shell's pacman hook (`session/ambrosia-shell-restart.hook`)
+  restarts running shells after an upgrade of the shell, the Theme module or
+  Quickshell. After rsyncing `shell/` onto a system, restart it yourself.
 - **Plasma rewrites `~/.config/kdedefaults` only when the look-and-feel
   package's name changes** (`kdedefaults/package`), so keys added to our
   look-and-feel's `defaults` never reach existing users. Settings no
