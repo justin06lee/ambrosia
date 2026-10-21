@@ -1,0 +1,19 @@
+# Ambrosia session defaults for Breeze, which draws KWin's window frames and
+# Qt apps' widgets, set toward preview/: a centered title on a roomier
+# titlebar, a large soft shadow, rounded corners, and menus of thick glass
+# (translucent, so KWin blurs what's behind them). A user's own breezerc wins.
+# Breeze has no setting for traffic-light buttons or its corner radius.
+
+[Windeco]
+TitleAlignment=AlignCenterFullWidth
+ButtonSize=ButtonLarge
+DrawBackgroundGradient=false
+
+[Common]
+RoundedCorners=true
+OutlineEnabled=true
+ShadowSize=ShadowVeryLarge
+
+[Style]
+# The thick material's tint, 72% opaque.
+MenuOpacity=72
