@@ -51,6 +51,9 @@ block="$ambrosia" awk '/^\[core\]$/ && !done { print ENVIRON["block"] "\n"; done
   /mnt/etc/pacman.conf >/mnt/etc/pacman.conf.new
 mv /mnt/etc/pacman.conf.new /mnt/etc/pacman.conf
 grep -qx '\[ambrosia\]' /mnt/etc/pacman.conf || { echo "no [core] in the new pacman.conf" >&2; exit 1; }
+# The image's unsigned database would fail SigLevel = Required until the first
+# sync; without it, the first -Syu just fetches the hosted one.
+rm -f /mnt/var/lib/pacman/sync/ambrosia.*
 
 step "Setting up $hostname"
 ln -sf "/usr/share/zoneinfo/$timezone" /mnt/etc/localtime

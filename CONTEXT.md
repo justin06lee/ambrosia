@@ -64,6 +64,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
     `ambrosia-keyring` (as archlinux-keyring does Arch's). The installer lists
     it first in the installed pacman.conf with `SigLevel = Required`.
     `make publish` on the Mac fills it. Our Quickshell is served from it.
+  - **The system is called Ambrosia** (2026-10-20): ambrosia-desktop ships an
+    os-release (`ID=ambrosia`, `ID_LIKE=arch`, `LOGO=ambrosia-logo`, the
+    mark from `assets/icon.svg`) that a pacman hook copies over Arch's
+    `/etc/os-release` symlink, and again whenever filesystem puts it back.
+    About This Computer (`kcm_about-distro`), the console's `/etc/issue` and
+    `hostnamectl` read it.
 - **Verified in a VM on tenet** (2026-10-07): the image boots into the live
   Ambrosia session with the installer open; both the interactive installer
   (driven with keys) and the unattended one install, and the installed system
@@ -87,10 +93,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
    the bar, no Dock magnification or drag to reorder, GTK apps' menus don't
    reach the bar (needs appmenu-gtk-module).
 3. The Mac-first keyboard layer with keyd.
-4. Distro gaps: `os-release` branding ("About This Computer" says Arch
-   Linux), an SDDM theme of our own, BIOS boot (the installer is UEFI-only,
-   though the image boots BIOS), boot menu art, and a license (Justin's call;
-   the packages are public now, `license=(LicenseRef-TBD)`).
+4. Distro gaps: an SDDM theme of our own, BIOS boot (the installer is
+   UEFI-only, though the image boots BIOS), boot menu art, and a license
+   (Justin's call; the packages are public now, `license=(LicenseRef-TBD)`).
 5. Rebuild the image when the user wants to reflash: the SanDisk still has
    the 2026-10-08 image without this shell.
 
