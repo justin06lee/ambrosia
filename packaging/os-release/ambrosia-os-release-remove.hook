@@ -1,0 +1,10 @@
+# When Ambrosia's os-release goes, /etc/os-release is Arch's symlink again.
+[Trigger]
+Type = Path
+Operation = Remove
+Target = usr/share/ambrosia/os-release
+
+[Action]
+Description = Giving /etc/os-release back to Arch...
+When = PreTransaction
+Exec = /usr/bin/ln -sfn ../usr/lib/os-release /etc/os-release

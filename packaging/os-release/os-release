@@ -1,0 +1,8 @@
+# Ambrosia, built on Arch: ID_LIKE keeps tools that look for Arch working.
+NAME="Ambrosia"
+PRETTY_NAME="Ambrosia"
+ID=ambrosia
+ID_LIKE=arch
+BUILD_ID=rolling
+ANSI_COLOR="38;2;240;177;53"
+LOGO=ambrosia-logo

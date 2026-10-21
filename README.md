@@ -126,7 +126,7 @@ shell/         the shell in QML for Quickshell: wallpaper, menu bar and menus, S
 session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
                the `ambrosia` command and the shell's desktop files
 packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild (with our DBusMenuSource patch),
-               the repo's public key (keyring/)
+               the repo's public key (keyring/), the os-release that names the system
 iso/           the archiso profile: live desktop, installer (ambrosia-install)
 preview/       the mock desktop, styled only from dist/web/tokens.css; glass.css is shared
 site/          the design review site and its server

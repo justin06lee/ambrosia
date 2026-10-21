@@ -110,6 +110,12 @@ package_ambrosia-desktop() {
   # ours there and reset it. System Settings' kde_settings.conf still wins.
   install -Dm644 packaging/sddm.conf "$pkgdir/etc/sddm.conf.d/10-ambrosia.conf"
 
+  # The system's name: our os-release, which a pacman hook keeps in /etc over
+  # Arch's (About This Computer and the console read it), and its logo.
+  install -Dm644 packaging/os-release/os-release -t "$pkgdir/usr/share/ambrosia/"
+  install -Dm644 packaging/os-release/*.hook -t "$pkgdir/usr/share/libalpm/hooks/"
+  install -Dm644 assets/icon.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/ambrosia-logo.svg"
+
   # New accounts start with Ambrosia's GTK colors; the CSS follows the package.
   install -d "$pkgdir/etc/skel/.config/gtk-4.0" "$pkgdir/etc/skel/.config/gtk-3.0"
   printf '@import url("file:///usr/share/ambrosia/gtk-4.0/gtk.css");\n' > "$pkgdir/etc/skel/.config/gtk-4.0/gtk.css"
