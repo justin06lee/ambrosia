@@ -61,6 +61,8 @@ package_ambrosia-theme() {
 
   install -Dm644 "$srcdir/nectar-day.png" "$srcdir/nectar-night.png" -t "$pkgdir/usr/share/ambrosia/wallpapers/"
   install -Dm644 "$_root"/assets/wallpapers/*.svg -t "$pkgdir/usr/share/ambrosia/wallpapers/"
+  # App icons of our own (Files), for the Dock and the apps.
+  install -Dm644 "$_root"/assets/icons/*.svg -t "$pkgdir/usr/share/icons/hicolor/scalable/apps/"
 }
 
 package_ambrosia-shell() {
