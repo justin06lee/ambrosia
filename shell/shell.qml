@@ -8,6 +8,13 @@ import QtQuick
 import Ambrosia
 
 ShellRoot {
+    // The installed shell doesn't reload itself when its files change:
+    // pacman replaces them one at a time, and a reload partway through finds
+    // no shell.qml and stays down. After an upgrade a pacman hook restarts it
+    // instead (session/ambrosia-shell-restart). Run from a checkout, it still
+    // reloads as you edit.
+    settings.watchFiles: !Quickshell.shellDir.startsWith("/usr/")
+
     // The shell's look follows its settings.
     Binding { target: Theme; property: "dark"; value: Settings.dark }
     Binding { target: Theme; property: "accentName"; value: Settings.accent }

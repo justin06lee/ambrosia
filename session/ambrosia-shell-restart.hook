@@ -1,0 +1,13 @@
+# After an upgrade of the shell, its Theme module or Quickshell, the shells
+# that are running restart, so the new version takes over.
+[Trigger]
+Type = Path
+Operation = Upgrade
+Target = usr/share/ambrosia/shell/*
+Target = usr/lib/qt6/qml/Ambrosia/*
+Target = usr/bin/quickshell
+
+[Action]
+Description = Restarting the Ambrosia shell...
+When = PostTransaction
+Exec = /usr/share/libalpm/scripts/ambrosia-shell-restart

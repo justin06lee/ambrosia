@@ -85,6 +85,9 @@ package_ambrosia-shell() {
   ln -s ../ambrosia-shell.service "$units/plasma-core.target.wants/ambrosia-shell.service"
   install -Dm644 session/plasmashell.conf "$units/plasma-plasmashell.service.d/ambrosia.conf"
   install -Dm644 session/ksplash.conf "$units/plasma-ksplash.service.d/ambrosia.conf"
+  # Running shells restart after an upgrade; they don't reload themselves.
+  install -Dm644 session/ambrosia-shell-restart.hook -t "$pkgdir/usr/share/libalpm/hooks/"
+  install -Dm755 session/ambrosia-shell-restart -t "$pkgdir/usr/share/libalpm/scripts/"
 
   # Plasma writes its look-and-feel's defaults into ~/.config/kdedefaults,
   # ahead of /etc/xdg/ambrosia, so the session's colors live in one of ours.
