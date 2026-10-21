@@ -141,7 +141,9 @@ Singleton {
         groupMode: TaskManager.TasksModel.GroupApplications
         groupInline: false
         sortMode: TaskManager.TasksModel.SortManual
-        separateLaunchers: false
+        // A pinned app's windows take its launcher's place, as on a Mac.
+        // (launchInPlace only works with the launchers kept separate.)
+        separateLaunchers: true
         launchInPlace: true
         filterByVirtualDesktop: false
         filterByScreen: false
