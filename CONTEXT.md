@@ -93,11 +93,16 @@ package repo below), and they carry `shell/` and `session/` as they are.
 
 ## Next
 
-1. **Make it look like the preview.** The user said function first, looks
-   next: the shell works but "nothing looks perfect like the design sheet".
-   Compare tenet screenshots with `preview/` piece by piece (menus, Dock,
-   control center, Search, banners) and tune KWin's blur strength (global,
-   `[Effect-blur]` in `session/xdg/kwinrc`).
+1. **Make it look like the preview.** A first parity pass is done
+   (2026-10-20, branch `feat/visual-parity`): glass rims and specular ring,
+   menus, Dock tiles and tooltip, banner motion, control center spacing,
+   KWin's blur, Breeze's frames and menus. Side-by-side screenshots are in
+   `out/parity/` on the Mac. Still apart from the preview: window buttons
+   (Breeze draws glyphs, not traffic lights; an Aurorae SVG theme generated
+   from the tokens could), Breeze's menu radius and row height (only our own
+   QStyle could change them), real apps' icons (no Ambrosia icon theme),
+   per-surface blur and saturation (KWin has one setting for all), and the
+   control center's feathered blur edge (KWin's blur regions are hard-edged).
 2. Gaps in the shell: menu items don't show apps' shortcuts (Quickshell's
    QsMenuEntry doesn't expose them), no notification center or Focus icon in
    the bar, no Dock magnification or drag to reorder, GTK apps' menus don't
@@ -146,7 +151,8 @@ package repo below), and they carry `shell/` and `session/` as they are.
     with `spectacle -b -n -f -o` run as the user with `XDG_RUNTIME_DIR`,
     `DBUS_SESSION_BUS_ADDRESS` and `WAYLAND_DISPLAY=wayland-0`; click and
     type with `/root/ui.py` (a python-evdev absolute pointer and keyboard:
-    `ui.py click X Y`, `rclick`, `key super+space`, `type text`). A locked
+    `ui.py click X Y`, `rclick`, `key super+space`, `type text`). The
+    session's Wayland socket is `wayland-1` now. A locked
     or blanked screen photographs black: `loginctl unlock-session`,
     `kscreen-doctor --dpms on`, and hold `kde-inhibit --screenSaver` while
     testing. The shell logs to the user journal.
@@ -207,6 +213,16 @@ package repo below), and they carry `shell/` and `session/` as they are.
   `/etc/xdg/ambrosia`. Anything a look-and-feel sets (color scheme, widget
   style, icons, cursor, decoration, splash) must be set in our look-and-feel
   package, not in `/etc/xdg/ambrosia` alone.
+- **KWin's blur is one setting for every surface**: `[Effect-blur]`
+  `BlurStrength` (its default is stronger than 9) and `Saturation` (an
+  integer, 100 = none; its default boosts color like the preview's 160-180%
+  glass). `org.kde.KWin.reconfigure` doesn't reload them: call
+  `/Effects reconfigureEffect blur`. It doesn't unload effects either
+  (`unloadEffect fadingpopups`).
+- **Plasma rewrites `~/.config/kdedefaults` only when the look-and-feel
+  package's name changes** (`kdedefaults/package`), so keys added to our
+  look-and-feel's `defaults` never reach existing users. Settings no
+  look-and-feel touches (Breeze's `breezerc`) go in `/etc/xdg/ambrosia`.
 - **Quickshell loads QML from a virtual `qrc:/qs-blackhole` base**, so
   relative URLs and `Qt.resolvedUrl` don't point at files. Build file URLs
   from `Quickshell.shellDir` with an explicit `file://`. A file loaded that
