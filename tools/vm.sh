@@ -11,6 +11,8 @@
 #   tools/vm.sh type 'ls ~'   type text (US layout); end with a newline to press enter
 #   tools/vm.sh stop          power the VM off
 # The VM's SSH port is forwarded to port 10022 on this machine (2222 is makima's).
+# Needs qemu-base, qemu-hw-display-virtio-vga and -virtio-gpu (without it
+# virtio-vga segfaults), edk2-ovmf and socat.
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
@@ -77,5 +79,5 @@ case "${1:-}" in
     done
     ;;
   stop) hmp quit || true; rm -f "$monitor" ;;
-  *) sed -n '2,13p' "$0" >&2; exit 1 ;;
+  *) sed -n '2,15p' "$0" >&2; exit 1 ;;
 esac
