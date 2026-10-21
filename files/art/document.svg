@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Ambrosia's document page, drawn by hand to match Finder's: a white
+       sheet with a folded top-right corner and a hairline edge. -->
+  <defs>
+    <linearGradient id="sheet" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbfbfb"/>
+      <stop offset="1" stop-color="#f4f4f5"/>
+    </linearGradient>
+    <linearGradient id="fold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#d9d9da"/>
+    </linearGradient>
+  </defs>
+  <path d="M26 9.5h52.5L106.5 37.5v77a4 4 0 0 1-4 4H26a4 4 0 0 1-4-4v-101a4 4 0 0 1 4-4z" fill="url(#sheet)" stroke="#d6d6d6" stroke-width="1"/>
+  <path d="M78.5 9.5v24a4 4 0 0 0 4 4h24z" fill="url(#fold)" stroke="#d0d0d0" stroke-width="1" stroke-linejoin="round"/>
+</svg>

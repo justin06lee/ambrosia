@@ -1,0 +1,63 @@
+#include "app.h"
+
+#include <QApplication>
+#include <QCommandLineParser>
+#include <QDBusConnection>
+#include <QDBusMessage>
+#include <QDir>
+#include <QQmlApplicationEngine>
+
+int main(int argc, char *argv[])
+{
+    QApplication app(argc, argv);
+    QApplication::setApplicationName(QStringLiteral("ambrosia-files"));
+    QApplication::setApplicationDisplayName(QStringLiteral("Files"));
+    QApplication::setApplicationVersion(QStringLiteral(FILES_VERSION));
+    // The Wayland app id: the Dock and the menu bar know Files by it.
+    QApplication::setDesktopFileName(QStringLiteral("org.ambrosia.files"));
+
+    QCommandLineParser parser;
+    parser.setApplicationDescription(QStringLiteral("Ambrosia's Files"));
+    parser.addHelpOption();
+    parser.addVersionOption();
+    const QCommandLineOption newWindow(QStringLiteral("new-window"), QStringLiteral("Open a new window on the home folder."));
+    const QCommandLineOption appearance(QStringLiteral("appearance"), QStringLiteral("Force light or dark."), QStringLiteral("mode"));
+    const QCommandLineOption view(QStringLiteral("view"), QStringLiteral("The first window's view: icon, list."), QStringLiteral("view"));
+    const QCommandLineOption size(QStringLiteral("size"), QStringLiteral("The first window's size, WxH in points."), QStringLiteral("size"));
+    const QCommandLineOption grab(QStringLiteral("grab"), QStringLiteral("Save the first window to a PNG once its folder is shown, then quit."), QStringLiteral("file"));
+    const QCommandLineOption bench(QStringLiteral("bench"), QStringLiteral("Print how long the first folder took to load, then quit."));
+    parser.addOptions({newWindow, appearance, view, size, grab, bench});
+    parser.addPositionalArgument(QStringLiteral("urls"), QStringLiteral("Folders to open."), QStringLiteral("[urls...]"));
+    parser.process(app);
+
+    QStringList urls;
+    for (const QString &arg : parser.positionalArguments())
+        urls << QUrl::fromUserInput(arg, QDir::currentPath(), QUrl::AssumeLocalFile).toString();
+
+    App::Options options;
+    options.appearance = parser.value(appearance);
+    options.view = parser.value(view);
+    options.grab = parser.value(grab);
+    options.bench = parser.isSet(bench);
+    if (const QStringList wh = parser.value(size).split(QLatin1Char('x')); wh.size() == 2)
+        options.size = QSize(wh[0].toInt(), wh[1].toInt());
+    const bool oneShot = options.bench || !options.grab.isEmpty();
+
+    // One process serves every window: a second launch hands its folders to
+    // the first and leaves.
+    QDBusConnection bus = QDBusConnection::sessionBus();
+    if (!oneShot && bus.isConnected() && !bus.registerService(QStringLiteral("org.ambrosia.files"))) {
+        QDBusMessage call = QDBusMessage::createMethodCall(QStringLiteral("org.ambrosia.files"), QStringLiteral("/org/ambrosia/files"),
+                                                           QStringLiteral("org.ambrosia.Files"), QStringLiteral("Open"));
+        call << urls;
+        bus.call(call);
+        return 0;
+    }
+
+    QQmlApplicationEngine engine;
+    App files(&engine, options);
+    if (!oneShot)
+        bus.registerObject(QStringLiteral("/org/ambrosia/files"), &files, QDBusConnection::ExportScriptableSlots);
+    files.Open(urls);
+    return app.exec();
+}
