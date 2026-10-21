@@ -99,8 +99,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
    KWin's blur, Breeze's frames and menus. Side-by-side screenshots are in
    `out/parity/` on the Mac. Windows have traffic lights since 2026-10-20
    (an Aurorae theme generated from the tokens, `tools/gen/targets/aurorae.ts`).
-   The Dock's Trash is Mac-style since 2026-10-21: a frosted bin like the
-   current macOS one (not wire mesh), full or empty with the home trash
+   The Dock's Trash is Mac-style since 2026-10-21: the current macOS
+   frosted bin, redrawn by hand and matched 1:1 against a screenshot (empty
+   is the full bin without its paper: no empty screenshot to match), full or empty with the home trash
    (other drives' trashes aren't watched), and it takes dropped files.
    Still apart from the preview: windows' bottom corners (square: Aurorae
    can't round the app's own content), the buttons' glyphs (on the hovered
