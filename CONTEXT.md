@@ -64,6 +64,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
     `ambrosia-keyring` (as archlinux-keyring does Arch's). The installer lists
     it first in the installed pacman.conf with `SigLevel = Required`.
     `make publish` on the Mac fills it. Our Quickshell is served from it.
+    Verified 2026-10-20 with `tools/repo-test.sh`, twice: fresh installs from
+    images carrying r62 and r64 upgraded to r64 and r67 from GitHub, every
+    signature checked. That image (r64, with the installer's repo setup) is
+    `out/iso/ambrosia-2026.10.20-x86_64.iso` on tenet.
   - **The system is called Ambrosia** (2026-10-20): ambrosia-desktop ships an
     os-release (`ID=ambrosia`, `ID_LIKE=arch`, `LOGO=ambrosia-logo`, the
     mark from `assets/icon.svg`) that a pacman hook copies over Arch's
@@ -80,6 +84,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
   justin06lee). Its old setup isn't restored yet: `/Volumes/T7/Backups/tenet`
   `./restore.sh` brings it back (makima, services, home) whenever the user
   wants. The restore leaves our quickshell and ambrosia-* packages alone.
+  Since 2026-10-20 its pacman.conf lists `[ambrosia]` first (the old one is
+  `/etc/pacman.conf.before-ambrosia`), and it runs the r67 packages with our
+  Quickshell, installed with `pacman -U`. It hasn't synced since 2026-10-16
+  (no `-Syu` while a GPU training job ran), so its next `pacman -Syu` fetches
+  the hosted repo. gpg prints `release_dotlock: lockfile error` when its
+  keyring is populated, but the key ends up trusted.
 
 ## Next
 
