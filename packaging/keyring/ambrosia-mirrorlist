@@ -1,0 +1,4 @@
+# Where pacman gets Ambrosia's packages: the [ambrosia] section of
+# /etc/pacman.conf includes this file. The repo is the `repo` release of
+# ambrosia-packages, signed with the key in ambrosia-keyring.
+Server = https://github.com/justin06lee/ambrosia-packages/releases/download/repo

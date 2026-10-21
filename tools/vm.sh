@@ -5,7 +5,7 @@
 #   tools/vm.sh live          boot the image into the live desktop
 #   tools/vm.sh install       erase the VM's disk and install unattended
 #                             (ambrosia.autoinstall); the VM powers off when done
-#   tools/vm.sh installed     boot what the VM installed
+#   tools/vm.sh installed     boot what the VM installed (more QEMU options may follow)
 #   tools/vm.sh shot out.png  screenshot the running VM
 #   tools/vm.sh key ctrl-alt-f2 ...   press keys (QEMU sendkey names)
 #   tools/vm.sh type 'ls ~'   type text (US layout); end with a newline to press enter
@@ -53,7 +53,7 @@ case "${1:-}" in
     boot -cdrom "$image" -kernel "$vm/vmlinuz-linux" -initrd "$vm/initramfs-linux.img" \
       -append "archisobasedir=arch archisosearchuuid=$(blkid -s UUID -o value "$image") cow_spacesize=4G ambrosia.autoinstall"
     ;;
-  installed) boot ;;
+  installed) shift; boot "$@" ;;
   shot)
     hmp "screendump $(realpath "$2") -f png"
     sleep 1

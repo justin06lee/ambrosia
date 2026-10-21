@@ -18,7 +18,10 @@ start (DECISIONS: "Ship as an installer image from the start").
 
 ## Where it stands
 
-There is no git remote yet, so nothing has been pushed.
+The source is private on GitHub: `origin` is
+`github.com/justin06lee/ambrosia` (master). It must never be made public. The
+built packages are public, in `github.com/justin06lee/ambrosia-packages` (the
+package repo below), and they carry `shell/` and `session/` as they are.
 
 - **Design system (phase 1), done.** `design/tokens.ts` holds every value;
   `tools/gen` generates GTK 4/3, KDE color schemes plus session `kdeglobals`, a
@@ -54,6 +57,13 @@ There is no git remote yet, so nothing has been pushed.
     installer (`ambrosia-install` asks with kdialog and joins Wi-Fi itself when
     offline, `ambrosia-install-system` installs as root; UEFI only; needs the
     internet).
+  - **The package repo** (2026-10-20): installed systems update from
+    `[ambrosia]`, the rolling `repo` release of the public
+    `justin06lee/ambrosia-packages`. Its address is
+    `/etc/pacman.d/ambrosia-mirrorlist` and its key is trusted by
+    `ambrosia-keyring` (as archlinux-keyring does Arch's). The installer lists
+    it first in the installed pacman.conf with `SigLevel = Required`.
+    `make publish` on the Mac fills it. Our Quickshell is served from it.
 - **Verified in a VM on tenet** (2026-10-07): the image boots into the live
   Ambrosia session with the installer open; both the interactive installer
   (driven with keys) and the unattended one install, and the installed system
@@ -78,9 +88,9 @@ There is no git remote yet, so nothing has been pushed.
    reach the bar (needs appmenu-gtk-module).
 3. The Mac-first keyboard layer with keyd.
 4. Distro gaps: `os-release` branding ("About This Computer" says Arch
-   Linux), an SDDM theme of our own, a hosted package repo (installed systems
-   can't update Ambrosia's packages, and an Arch quickshell update would
-   replace our patched build), BIOS boot, boot menu art, a license.
+   Linux), an SDDM theme of our own, BIOS boot (the installer is UEFI-only,
+   though the image boots BIOS), boot menu art, and a license (Justin's call;
+   the packages are public now, `license=(LicenseRef-TBD)`).
 5. Rebuild the image when the user wants to reflash: the SanDisk still has
    the 2026-10-08 image without this shell.
 
@@ -133,6 +143,22 @@ There is no git remote yet, so nothing has been pushed.
     headless QEMU VM (state in `out/vm/`). `install` boots with
     `ambrosia.autoinstall`, which installs to the VM's disk with test answers
     (user `test`, password `ambrosia`) and powers off.
+  - `sudo tools/repo-test.sh` tests the hosted repo: it installs the newest
+    image in the VM, boots the installed system into `tools/repo-check.sh`
+    alone (a 9p share, and a command line systemd-boot reads from SMBIOS),
+    which runs `pacman -Syu` and installs from the repo, and prints its
+    report. Publish packages newer than the image first, so it upgrades.
+- **Publishing packages, from the Mac:** `make publish`, or while makima is
+  down
+  `AMBROSIA_RSH="ssh -i $HOME/.ssh/id_ed25519_justin -o IdentitiesOnly=yes" tools/publish-repo.sh justin06lee@192.168.1.172`.
+  It syncs the checkout to tenet and builds there (`make package`, plus
+  `make quickshell` when the release lacks the version in
+  `packaging/quickshell/PKGBUILD`), signs on the Mac, uploads, and drops the
+  versions it replaced. **The signing key** (ed25519, fingerprint
+  `2DB46FDF911241FC9406002BCF43580DA0F59EB8`, no passphrase) lives only in
+  `~/.config/ambrosia/gnupg` on the Mac, backed up with its revocation
+  certificate in `/Volumes/T7/Backups/ambrosia-signing/`. Without it, installed
+  systems can't trust new packages: keep the backup.
 - **The review server** may still be running detached from an earlier
   session: PID in `/tmp/ambrosia-review.pid`, logs in `/tmp/ambrosia-review.log`.
 - **Conventions** (the zanka and omniscience skills): bun only; the default
@@ -149,8 +175,18 @@ There is no git remote yet, so nothing has been pushed.
 ## Gotchas
 
 - **Quickshell must be built against the Qt it runs on** (it uses Qt
-  internals). When Arch's Quickshell lags a Qt update, `make quickshell`; the
-  `[ambrosia]` repo is first in the image's pacman.conf so our build wins.
+  internals). When Arch updates qt6-base, bump `pkgrel` in
+  `packaging/quickshell/PKGBUILD` and `make publish`.
+- **pacman takes a package from the first repo that has it**, whatever the
+  version: on `-Syu` it compares only with that repo's, and says "local is
+  newer" rather than downgrade. So ours wins where `[ambrosia]` comes first
+  (and ambrosia-shell needs `quickshell-dbusmenu-source`, which only our build
+  provides). A system without `[ambrosia]` takes Arch's quickshell on `-Syu`
+  and loses the app menus: tenet did on 2026-10-16.
+- **GitHub renames release assets**: `:` and `~` become `.` (`+` survives),
+  so a package version with an epoch would 404; `publish-repo.sh` refuses such
+  names. Assets can't be symlinks, so `ambrosia.db` and `.files` are uploaded
+  as real files.
 - **Plasma writes its look-and-feel's defaults into `~/.config/kdedefaults`
   at login and puts that directory first in `XDG_CONFIG_DIRS`**, ahead of
   `/etc/xdg/ambrosia`. Anything a look-and-feel sets (color scheme, widget

@@ -1,0 +1,19 @@
+# Trusts the key Ambrosia's packages are signed with, as archlinux-keyring
+# does Arch's. On a new install pacstrap -K has made the keyring by now; on
+# the live image pacman-init.service populates it at boot.
+
+populate_ambrosia() {
+	if usr/bin/pacman-key -l >/dev/null 2>&1; then
+		usr/bin/pacman-key --populate ambrosia
+	fi
+}
+
+post_install() {
+	if [ -x usr/bin/pacman-key ]; then
+		populate_ambrosia
+	fi
+}
+
+post_upgrade() {
+	populate_ambrosia
+}
