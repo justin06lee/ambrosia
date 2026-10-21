@@ -149,7 +149,7 @@ Window {
             }
             if (!win.shownOnce) {
                 win.shownOnce = true;
-                App.shown(win, loadMs);
+                App.shown(win, loadMs, firstMs);
             }
         }
     }

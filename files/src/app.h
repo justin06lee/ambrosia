@@ -44,7 +44,7 @@ public:
     // Gives a frameless Files window KWin's shadow, for its corner radius.
     Q_INVOKABLE void decorate(QQuickWindow *window, int radius);
     // A window's first folder is on screen: grab or report it if asked to.
-    Q_INVOKABLE void shown(QQuickWindow *window, double loadMs);
+    Q_INVOKABLE void shown(QQuickWindow *window, double loadMs, double firstMs);
 
 public Q_SLOTS:
     // org.ambrosia.Files.Open: another launch hands its folders over.

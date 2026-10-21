@@ -32,6 +32,8 @@ class FolderModel : public QAbstractListModel
     Q_PROPERTY(bool showHidden READ showHidden WRITE setShowHidden NOTIFY showHiddenChanged)
     // Milliseconds from asking for the folder to having it, sorted.
     Q_PROPERTY(double loadMs READ loadMs NOTIFY loaded)
+    // ... and to having its first rows (sooner than loadMs in big folders).
+    Q_PROPERTY(double firstMs READ firstMs NOTIFY loaded)
 
 public:
     enum Role {
@@ -84,6 +86,7 @@ public:
     bool showHidden() const { return m_showHidden; }
     void setShowHidden(bool show);
     double loadMs() const { return m_loadMs; }
+    double firstMs() const { return m_firstMs; }
 
     Q_INVOKABLE QUrl urlAt(int row) const;
     Q_INVOKABLE QString nameAt(int row) const;
@@ -106,7 +109,7 @@ private:
     void load();
     void listRemote();
     void resort();
-    void apply(std::shared_ptr<Listing> listing, quint64 generation);
+    void apply(std::shared_ptr<Listing> listing, quint64 generation, bool partial);
     const char *str(quint32 offset) const { return m_listing->strings.data() + offset; }
 
     QUrl m_url;
@@ -116,6 +119,7 @@ private:
     bool m_showHidden = false;
     bool m_loading = false;
     double m_loadMs = 0;
+    double m_firstMs = 0;
     quint64 m_generation = 0;
     QElapsedTimer m_clock;
     QFileSystemWatcher *m_watcher = nullptr;

@@ -14,9 +14,14 @@
 #include <QThreadPool>
 #include <QTimer>
 
+#include <QElapsedTimer>
+
 #include <algorithm>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <numeric>
+#include <functional>
 #include <thread>
 
 #include <fcntl.h>
@@ -35,6 +40,15 @@ struct Dirent64 {
 };
 
 using Listing = FolderModel::Listing;
+
+// FILES_TRACE=1 prints how long each stage of a listing takes.
+const bool trace = std::getenv("FILES_TRACE") != nullptr;
+void stage(QElapsedTimer &clock, const char *what)
+{
+    if (trace)
+        std::fprintf(stderr, "files: %-8s %7.2f ms\n", what, clock.nsecsElapsed() / 1e6);
+    clock.restart();
+}
 using Entry = FolderModel::Entry;
 
 quint32 addString(Listing &l, const char *s, size_t len)
@@ -85,13 +99,27 @@ void statRange(int dirfd, Listing &l, size_t begin, size_t end)
     }
 }
 
-std::shared_ptr<Listing> listLocal(const QString &path, bool showHidden)
+enum class Column { Name, Date, Size, Kind };
+
+Column columnOf(const QString &name)
 {
-    auto l = std::make_shared<Listing>();
+    if (name == QLatin1String("date"))
+        return Column::Date;
+    if (name == QLatin1String("size"))
+        return Column::Size;
+    if (name == QLatin1String("kind"))
+        return Column::Kind;
+    return Column::Name;
+}
+
+// Reads a folder's names with getdents64 into l and returns the folder, open
+// for statAll, or -1 (with l.error set).
+int readNames(const QString &path, bool showHidden, Listing &l)
+{
     const int fd = ::open(QFile::encodeName(path).constData(), O_RDONLY | O_DIRECTORY | O_CLOEXEC);
     if (fd < 0) {
-        l->error = errorText(errno);
-        return l;
+        l.error = errorText(errno);
+        return -1;
     }
     // The first read is small so a huge folder's first names come at once;
     // after that 1 MiB reads keep the number of calls down.
@@ -101,7 +129,7 @@ std::shared_ptr<Listing> listLocal(const QString &path, bool showHidden)
         if (n < 0) {
             if (errno == EINTR)
                 continue;
-            l->error = errorText(errno);
+            l.error = errorText(errno);
             break;
         }
         if (n == 0)
@@ -116,72 +144,103 @@ std::shared_ptr<Listing> listLocal(const QString &path, bool showHidden)
             if (hidden && !showHidden)
                 continue;
             Entry e;
-            e.name = e.display = addString(*l, d->name, len);
+            e.name = e.display = addString(l, d->name, len);
             e.flags = (d->type == DT_DIR ? FolderModel::Dir : 0) | (hidden ? FolderModel::Hidden : 0);
-            l->entries.push_back(e);
+            l.entries.push_back(e);
         }
         if (buffer.size() < (1u << 20))
             buffer.resize(1u << 20);
     }
-    // statx costs about half a microsecond an entry: split big folders
-    // across threads.
-    const size_t count = l->entries.size();
-    const size_t threads = count < 4096 ? 1 : std::clamp<size_t>(std::thread::hardware_concurrency() / 2, 1, 8);
-    if (threads == 1) {
-        statRange(fd, *l, 0, count);
-    } else {
-        std::vector<std::thread> pool;
-        const size_t chunk = (count + threads - 1) / threads;
-        for (size_t t = 0; t < threads; ++t) {
-            const size_t begin = t * chunk, end = std::min(count, begin + chunk);
-            if (begin < end)
-                pool.emplace_back(statRange, fd, std::ref(*l), begin, end);
-        }
-        for (auto &thread : pool)
-            thread.join();
-    }
-    ::close(fd);
-    return l;
+    return fd;
 }
 
-// Sorts a listing in place by one of Finder's columns.
-void sortListing(Listing &l, const QString &column, bool ascending)
+// statx costs about half a microsecond an entry: big folders split it
+// across threads.
+void statAll(int fd, Listing &l)
+{
+    const size_t count = l.entries.size();
+    const size_t threads = count < 4096 ? 1 : std::clamp<size_t>(std::thread::hardware_concurrency() / 2, 1, 8);
+    if (threads == 1) {
+        statRange(fd, l, 0, count);
+        return;
+    }
+    std::vector<std::thread> pool;
+    const size_t chunk = (count + threads - 1) / threads;
+    for (size_t t = 0; t < threads; ++t) {
+        const size_t begin = t * chunk, end = std::min(count, begin + chunk);
+        if (begin < end)
+            pool.emplace_back(statRange, fd, std::ref(l), begin, end);
+    }
+    for (auto &thread : pool)
+        thread.join();
+}
+
+// Name-order keys for a listing: byte keys when every name is ASCII (with
+// each key's first 8 bytes as an integer, so most comparisons never touch
+// the strings), ICU keys otherwise.
+struct Keys {
+    bool ascii = true;
+    std::string bytes;
+    std::vector<quint32> at;
+    std::vector<quint64> prefix;
+    std::vector<QCollatorSortKey> icu;
+
+    int compare(const Listing &l, quint32 a, quint32 b) const
+    {
+        if (ascii) {
+            if (prefix[a] != prefix[b])
+                return prefix[a] < prefix[b] ? -1 : 1;
+            return std::string_view(bytes.data() + at[a], at[a + 1] - at[a])
+                .compare(std::string_view(bytes.data() + at[b], at[b + 1] - at[b]));
+        }
+        const int c = icu[a].compare(icu[b]);
+        return c != 0 ? c : std::strcmp(l.strings.data() + l.entries[a].display, l.strings.data() + l.entries[b].display);
+    }
+};
+
+Keys makeKeys(const Listing &l)
+{
+    Keys k;
+    const size_t n = l.entries.size();
+    k.at.resize(n + 1);
+    k.bytes.reserve(n * 24);
+    for (size_t i = 0; i < n && k.ascii; ++i) {
+        k.at[i] = quint32(k.bytes.size());
+        k.ascii = SortKey::append(l.strings.data() + l.entries[i].display, k.bytes);
+    }
+    if (k.ascii) {
+        k.at[n] = quint32(k.bytes.size());
+        k.prefix.resize(n);
+        for (size_t i = 0; i < n; ++i) {
+            quint64 p = 0;
+            const size_t len = k.at[i + 1] - k.at[i];
+            for (size_t j = 0; j < 8; ++j)
+                p = p << 8 | (j < len ? quint8(k.bytes[k.at[i] + j]) : 0);
+            k.prefix[i] = p;
+        }
+        return k;
+    }
+    k.bytes.clear();
+    QCollator collator;
+    collator.setNumericMode(true);
+    collator.setCaseSensitivity(Qt::CaseInsensitive);
+    k.icu.reserve(n);
+    for (size_t i = 0; i < n; ++i)
+        k.icu.push_back(collator.sortKey(QString::fromUtf8(l.strings.data() + l.entries[i].display)));
+    return k;
+}
+
+// The listing's order by a column, or only its first `limit` rows. Big
+// folders sort in parallel: chunks on threads, then merged pairwise.
+std::vector<quint32> sortedOrder(const Listing &l, const Keys &keys, Column column, bool ascending, size_t limit = SIZE_MAX)
 {
     const size_t n = l.entries.size();
-    auto display = [&](size_t i) { return std::string_view(l.strings.data() + l.entries[i].display); };
-
-    // Name order: byte keys when every name is ASCII, ICU otherwise.
-    std::string keys;
-    std::vector<quint32> keyAt(n + 1);
-    bool ascii = true;
-    for (size_t i = 0; i < n && ascii; ++i) {
-        keyAt[i] = quint32(keys.size());
-        ascii = SortKey::append(display(i), keys);
-    }
-    keyAt[n] = quint32(keys.size());
-    std::vector<QCollatorSortKey> icuKeys;
-    if (!ascii) {
-        QCollator collator;
-        collator.setNumericMode(true);
-        collator.setCaseSensitivity(Qt::CaseInsensitive);
-        icuKeys.reserve(n);
-        for (size_t i = 0; i < n; ++i)
-            icuKeys.push_back(collator.sortKey(QString::fromUtf8(display(i))));
-    }
-    auto nameCompare = [&](quint32 a, quint32 b) {
-        if (ascii)
-            return std::string_view(keys.data() + keyAt[a], keyAt[a + 1] - keyAt[a])
-                .compare(std::string_view(keys.data() + keyAt[b], keyAt[b + 1] - keyAt[b]));
-        const int c = icuKeys[a].compare(icuKeys[b]);
-        return c != 0 ? c : display(a).compare(display(b));
-    };
-
     std::vector<QString> kinds;
-    if (column == QLatin1String("kind")) {
+    if (column == Column::Kind) {
         QHash<QString, QString> cache;
         kinds.reserve(n);
         for (size_t i = 0; i < n; ++i) {
-            const QString name = QString::fromUtf8(display(i));
+            const QString name = QString::fromUtf8(l.strings.data() + l.entries[i].display);
             const bool dir = l.entries[i].flags & FolderModel::Dir;
             const QString ext = dir ? QString() : name.section(QLatin1Char('.'), -1).toLower();
             auto it = cache.find(ext);
@@ -190,36 +249,124 @@ void sortListing(Listing &l, const QString &column, bool ascending)
             kinds.push_back(*it);
         }
     }
-
-    std::vector<quint32> order(n);
-    std::iota(order.begin(), order.end(), 0);
     auto less = [&](quint32 a, quint32 b) {
         const Entry &x = l.entries[a], &y = l.entries[b];
         int c = 0;
-        if (column == QLatin1String("date"))
+        switch (column) {
+        case Column::Date:
             c = x.mtime < y.mtime ? -1 : x.mtime > y.mtime ? 1 : 0;
-        else if (column == QLatin1String("size"))
+            break;
+        case Column::Size:
             c = x.size < y.size ? -1 : x.size > y.size ? 1 : 0;
-        else if (column == QLatin1String("kind"))
+            break;
+        case Column::Kind:
             c = kinds[a].compare(kinds[b], Qt::CaseInsensitive);
+            break;
+        case Column::Name:
+            break;
+        }
         if (c == 0)
-            c = nameCompare(a, b);
+            c = keys.compare(l, a, b);
         return ascending ? c < 0 : c > 0;
     };
-    std::sort(order.begin(), order.end(), less);
+    std::vector<quint32> order(n);
+    std::iota(order.begin(), order.end(), 0);
+    if (limit < n) {
+        std::partial_sort(order.begin(), order.begin() + limit, order.end(), less);
+        order.resize(limit);
+        return order;
+    }
+    const size_t threads = n < 50000 ? 1 : std::clamp<size_t>(std::thread::hardware_concurrency() / 2, 2, 8);
+    if (threads == 1) {
+        std::sort(order.begin(), order.end(), less);
+        return order;
+    }
+    std::vector<size_t> bounds;
+    for (size_t t = 0; t <= threads; ++t)
+        bounds.push_back(n * t / threads);
+    std::vector<std::thread> pool;
+    for (size_t t = 0; t < threads; ++t)
+        pool.emplace_back([&, t] { std::sort(order.begin() + bounds[t], order.begin() + bounds[t + 1], less); });
+    for (auto &thread : pool)
+        thread.join();
+    while (bounds.size() > 2) {
+        std::vector<size_t> merged;
+        pool.clear();
+        for (size_t i = 0; i + 2 < bounds.size(); i += 2) {
+            const size_t a = bounds[i], m = bounds[i + 1], b = bounds[i + 2];
+            pool.emplace_back([&, a, m, b] { std::inplace_merge(order.begin() + a, order.begin() + m, order.begin() + b, less); });
+            merged.push_back(a);
+        }
+        if ((bounds.size() - 1) % 2 == 1)
+            merged.push_back(bounds[bounds.size() - 2]);
+        merged.push_back(n);
+        for (auto &thread : pool)
+            thread.join();
+        bounds.swap(merged);
+    }
+    return order;
+}
 
+void permute(Listing &l, const std::vector<quint32> &order)
+{
     std::vector<Entry> sorted;
-    sorted.reserve(n);
+    sorted.reserve(order.size());
     for (quint32 i : order)
         sorted.push_back(l.entries[i]);
     l.entries.swap(sorted);
     if (!l.urls.empty()) {
         std::vector<QUrl> urls;
-        urls.reserve(n);
+        urls.reserve(order.size());
         for (quint32 i : order)
             urls.push_back(l.urls[i]);
         l.urls.swap(urls);
     }
+}
+
+void sortListing(Listing &l, const QString &column, bool ascending)
+{
+    QElapsedTimer clock;
+    clock.start();
+    const Keys keys = makeKeys(l);
+    stage(clock, "keys");
+    const auto order = sortedOrder(l, keys, columnOf(column), ascending);
+    stage(clock, "sort");
+    permute(l, order);
+}
+
+// A local folder, sorted. A big one sorted by name shows its first
+// screenful (`first`) before every entry is stat'ed and sorted.
+std::shared_ptr<Listing> listLocal(const QString &path, bool showHidden, const QString &column, bool ascending,
+                                   const std::function<void(std::shared_ptr<Listing>)> &first)
+{
+    QElapsedTimer clock;
+    clock.start();
+    auto l = std::make_shared<Listing>();
+    const int fd = readNames(path, showHidden, *l);
+    stage(clock, "names");
+    if (fd < 0)
+        return l;
+    const Keys keys = makeKeys(*l);
+    stage(clock, "keys");
+    const Column by = columnOf(column);
+    if (l->entries.size() > 20000 && by == Column::Name) {
+        auto top = std::make_shared<Listing>();
+        for (quint32 i : sortedOrder(*l, keys, by, ascending, 256)) {
+            Entry e = l->entries[i];
+            e.name = e.display = addString(*top, l->strings.data() + e.name, strlen(l->strings.data() + e.name));
+            top->entries.push_back(e);
+        }
+        statAll(fd, *top);
+        first(top);
+        stage(clock, "first");
+    }
+    statAll(fd, *l);
+    ::close(fd);
+    stage(clock, "stat");
+    const auto order = sortedOrder(*l, keys, by, ascending);
+    stage(clock, "sort");
+    permute(*l, order);
+    return l;
 }
 
 }
@@ -280,6 +427,7 @@ void FolderModel::load()
 {
     const quint64 generation = ++m_generation;
     m_clock.start();
+    m_firstMs = 0;
     if (!m_loading) {
         m_loading = true;
         Q_EMIT loadingChanged();
@@ -293,14 +441,16 @@ void FolderModel::load()
     const QString column = m_sortColumn;
     const bool ascending = m_ascending, hidden = m_showHidden;
     QThreadPool::globalInstance()->start([self, generation, path, column, ascending, hidden] {
-        auto listing = listLocal(path, hidden);
-        sortListing(*listing, column, ascending);
-        QMetaObject::invokeMethod(
-            qApp, [self, listing, generation] {
-                if (self)
-                    self->apply(listing, generation);
-            },
-            Qt::QueuedConnection);
+        auto deliver = [self, generation](std::shared_ptr<Listing> listing, bool partial) {
+            QMetaObject::invokeMethod(
+                qApp, [self, listing, generation, partial] {
+                    if (self)
+                        self->apply(listing, generation, partial);
+                },
+                Qt::QueuedConnection);
+        };
+        auto listing = listLocal(path, hidden, column, ascending, [&](std::shared_ptr<Listing> top) { deliver(top, true); });
+        deliver(listing, false);
     });
 }
 
@@ -353,7 +503,7 @@ void FolderModel::listRemote()
             QMetaObject::invokeMethod(
                 qApp, [self, listing, generation] {
                     if (self)
-                        self->apply(listing, generation);
+                        self->apply(listing, generation, false);
                 },
                 Qt::QueuedConnection);
         });
@@ -373,13 +523,13 @@ void FolderModel::resort()
         QMetaObject::invokeMethod(
             qApp, [self, copy, generation] {
                 if (self)
-                    self->apply(copy, generation);
+                    self->apply(copy, generation, false);
             },
             Qt::QueuedConnection);
     });
 }
 
-void FolderModel::apply(std::shared_ptr<Listing> listing, quint64 generation)
+void FolderModel::apply(std::shared_ptr<Listing> listing, quint64 generation, bool partial)
 {
     if (generation != m_generation)
         return; // a newer request superseded this one
@@ -387,7 +537,15 @@ void FolderModel::apply(std::shared_ptr<Listing> listing, quint64 generation)
     beginResetModel();
     m_listing = std::move(listing);
     endResetModel();
+    if (partial || m_firstMs == 0)
+        m_firstMs = m_clock.nsecsElapsed() / 1e6;
+    if (partial) {
+        Q_EMIT countChanged();
+        return;
+    }
     m_loadMs = m_clock.nsecsElapsed() / 1e6;
+    if (trace)
+        std::fprintf(stderr, "files: applied  %7.2f ms after the request\n", m_loadMs);
     if (m_loading) {
         m_loading = false;
         Q_EMIT loadingChanged();

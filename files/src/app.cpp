@@ -195,12 +195,12 @@ void App::decorate(QQuickWindow *window, int radius)
         qWarning("Files: KWin took no shadow for the window");
 }
 
-void App::shown(QQuickWindow *window, double loadMs)
+void App::shown(QQuickWindow *window, double loadMs, double firstMs)
 {
     if (!window->property("first").toBool())
         return;
     if (m_options.bench) {
-        std::printf("load_ms=%.2f\n", loadMs);
+        std::printf("first_ms=%.2f load_ms=%.2f\n", firstMs, loadMs);
         std::fflush(stdout);
     }
     if (!m_options.grab.isEmpty()) {
