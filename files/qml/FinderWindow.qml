@@ -137,6 +137,25 @@ Window {
             open(Number(row));
     }
 
+    MenuBar { finder: win }
+
+    // Runs a command once per key press: the menu bar's shortcut and the
+    // window's key handler can both see the same press.
+    property var lastAct: ({ name: "", at: 0 })
+    function act(name, run) {
+        const now = Date.now();
+        if (lastAct.name === name && now - lastAct.at < 150)
+            return;
+        lastAct = { name: name, at: now };
+        run();
+    }
+    function selectAll() {
+        const all = {};
+        for (let i = 0; i < folder.count; ++i)
+            all[i] = true;
+        selected = all;
+    }
+
     FolderModel {
         id: folder
         url: win.url
@@ -267,7 +286,7 @@ Window {
                 else win.select(win.current < 0 ? 0 : Math.min(folder.count - 1, win.current + columns), shift, false);
                 break;
             case Qt.Key_Up:
-                if (ctrl) win.up();
+                if (ctrl) win.act("up", win.up);
                 else win.select(win.current < 0 ? folder.count - 1 : Math.max(0, win.current - columns), shift, false);
                 break;
             case Qt.Key_Right:
@@ -277,36 +296,32 @@ Window {
                 if (win.view === "icon") win.select(Math.max(0, win.current - 1), shift, false);
                 break;
             case Qt.Key_BracketLeft:
-                if (ctrl) win.back();
+                if (ctrl) win.act("back", win.back);
                 break;
             case Qt.Key_BracketRight:
-                if (ctrl) win.forward();
+                if (ctrl) win.act("forward", win.forward);
                 break;
             case Qt.Key_1:
-                if (ctrl) win.view = "icon";
+                if (ctrl) win.act("icons", () => win.view = "icon");
                 break;
             case Qt.Key_2:
-                if (ctrl) win.view = "list";
+                if (ctrl) win.act("list", () => win.view = "list");
                 break;
             case Qt.Key_O:
-                if (ctrl) win.openSelection();
+                if (ctrl) win.act("open", win.openSelection);
                 break;
             case Qt.Key_N:
-                if (ctrl && !shift) App.openWindow(win.url);
+                if (ctrl && !shift) win.act("new", () => App.openWindow(win.url));
                 break;
             case Qt.Key_W:
-                if (ctrl) win.close();
+                if (ctrl) win.act("close", win.close);
                 break;
             case Qt.Key_A:
-                if (ctrl) {
-                    const all = {};
-                    for (let i = 0; i < folder.count; ++i) all[i] = true;
-                    win.selected = all;
-                }
+                if (ctrl) win.act("all", win.selectAll);
                 break;
             case Qt.Key_Period:
             case Qt.Key_Greater:
-                if (ctrl && shift) folder.showHidden = !folder.showHidden;
+                if (ctrl && shift) win.act("hidden", () => folder.showHidden = !folder.showHidden);
                 break;
             case Qt.Key_Escape:
                 win.clearSelection();

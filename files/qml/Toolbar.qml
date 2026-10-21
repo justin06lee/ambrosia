@@ -59,7 +59,8 @@ Item {
                 required property var modelData
                 glyph: modelData[1]
                 selected: toolbar.finder.view === modelData[0]
-                onClicked: toolbar.finder.view = modelData[0]
+                // Column and gallery views come in a later slice.
+                onClicked: if (modelData[0] === "icon" || modelData[0] === "list") toolbar.finder.view = modelData[0]
             }
         }
     }

@@ -5,6 +5,7 @@
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDir>
+#include <QIcon>
 #include <QQmlApplicationEngine>
 
 int main(int argc, char *argv[])
@@ -15,6 +16,7 @@ int main(int argc, char *argv[])
     QApplication::setApplicationVersion(QStringLiteral(FILES_VERSION));
     // The Wayland app id: the Dock and the menu bar know Files by it.
     QApplication::setDesktopFileName(QStringLiteral("org.ambrosia.files"));
+    QApplication::setWindowIcon(QIcon::fromTheme(QStringLiteral("org.ambrosia.files")));
 
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral("Ambrosia's Files"));

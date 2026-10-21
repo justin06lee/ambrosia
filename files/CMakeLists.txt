@@ -28,6 +28,7 @@ qt_add_qml_module(ambrosia-files
         src/sortkey.h src/sortkey.cpp
     QML_FILES
         qml/FinderWindow.qml
+        qml/MenuBar.qml
         qml/Finder.qml
         qml/Sidebar.qml
         qml/Toolbar.qml

@@ -26,7 +26,9 @@ an Ambrosia session on KWin, and an installer image that boots a live desktop
 and installs it. The shell works on real hardware: the menu bar with the
 focused app's own menus, Search (Super+Space), the Dock, the control center
 and notification banners. Its look still trails the design preview, and
-compositor effects and first-party apps don't exist yet.
+compositor effects don't exist yet. The first first-party app, Files (a Finder
+look-alike), browses folders in list and icon views; file operations, Quick
+Look and search come next.
 
 ## Quick start
 
@@ -125,6 +127,9 @@ shell/         the shell in QML for Quickshell: wallpaper, menu bar and menus, S
                Dock, control center, notifications
 session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
                the `ambrosia` command and the shell's desktop files
+files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks (bench/)
+               and tools/tenet.sh to build and photograph it on tenet
+docs/finder/   the Files plan: research, stack, v1 scope, performance targets
 packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild (with our DBusMenuSource patch),
                the repo's public key (keyring/), the os-release that names the system
 iso/           the archiso profile: live desktop, installer (ambrosia-install)
