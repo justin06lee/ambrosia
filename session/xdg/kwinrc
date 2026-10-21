@@ -4,6 +4,11 @@
 [org.kde.kdecoration2]
 ButtonsOnLeft=XIA
 ButtonsOnRight=
+# No borders on the sides or bottom, as on a Mac; KWin keeps an invisible
+# edge to resize by. (The frame itself, Ambrosia's Aurorae theme, comes from
+# the look-and-feel package; see startambrosia.)
+BorderSize=None
+BorderSizeAuto=false
 
 # No hot corner by default.
 [Effect-overview]
