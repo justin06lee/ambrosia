@@ -125,6 +125,9 @@ PanelWindow {
                 id: trash
                 name: "Trash"
                 iconSource: `file://${Quickshell.shellDir}/trash-${dock.trashFull ? "full" : "empty"}.svg`
+                // Sized as macOS sizes its Trash: drawn on a whole Dock tile,
+                // of which an app icon's body (our icon size) is 0.805.
+                art: 1 / 0.805
                 highlighted: dropArea.containsDrag
                 onClicked: Session.open("trash:/")
                 onMenuRequested: dock.openMenu(trash, [
@@ -250,6 +253,8 @@ PanelWindow {
         property bool starting
         // Lifted and darkened, as under a drag that can drop on it.
         property bool highlighted
+        // The image's size against the icon's, for art drawn past it.
+        property real art: 1
         signal clicked
         signal menuRequested(real x, real y)
 
@@ -267,7 +272,10 @@ PanelWindow {
 
             IconImage {
                 visible: item.glyph === ""
-                anchors.fill: parent
+                x: (parent.width - width) / 2
+                y: (parent.height - height) / 2
+                width: parent.width * item.art
+                height: parent.height * item.art
                 source: item.iconSource
                 layer.enabled: item.highlighted
                 layer.effect: MultiEffect { brightness: -0.3 }

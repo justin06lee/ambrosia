@@ -1,34 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-<!-- Ambrosia's Dock Trash, empty. Original artwork. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<!-- Ambrosia's Dock Trash, empty: original vector artwork, drawn by hand. -->
 <defs>
-<linearGradient id="wall" x1="22" x2="106" y1="0" y2="0" gradientUnits="userSpaceOnUse">
-  <stop offset="0" stop-color="#cdd2d9" stop-opacity="0.95"/>
-  <stop offset="0.2" stop-color="#f3f5f7" stop-opacity="0.96"/>
-  <stop offset="0.45" stop-color="#fbfcfd" stop-opacity="0.82"/>
-  <stop offset="0.78" stop-color="#e2e6ea" stop-opacity="0.86"/>
-  <stop offset="1" stop-color="#bcc2ca" stop-opacity="0.95"/>
-</linearGradient>
-<linearGradient id="depth" x1="0" x2="0" y1="24" y2="121" gradientUnits="userSpaceOnUse">
-  <stop offset="0" stop-color="#8d949d" stop-opacity="0"/>
-  <stop offset="0.55" stop-color="#8d949d" stop-opacity="0.06"/>
-  <stop offset="1" stop-color="#6f7782" stop-opacity="0.38"/>
-</linearGradient>
-<linearGradient id="opening" x1="0" x2="0" y1="18" y2="30" gradientUnits="userSpaceOnUse">
-  <stop offset="0" stop-color="#aab0b8"/>
-  <stop offset="1" stop-color="#e6e9ec"/>
-</linearGradient>
-<radialGradient id="floor" cx="64" cy="121" r="40" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 121) scale(1 0.14) translate(0 -121)">
-  <stop offset="0" stop-color="#000" stop-opacity="0.28"/>
-  <stop offset="1" stop-color="#000" stop-opacity="0"/>
-</radialGradient>
+<linearGradient id="wall" x1="0" y1="70" x2="0" y2="246" gradientUnits="userSpaceOnUse"><stop offset="0.034" stop-color="#aba9a3"/><stop offset="0.227" stop-color="#a7a5a4"/><stop offset="0.312" stop-color="#a9a8a8"/><stop offset="0.398" stop-color="#b6b6b6"/><stop offset="0.483" stop-color="#c2c2c2"/><stop offset="0.568" stop-color="#cbcbcb"/><stop offset="0.653" stop-color="#d2d2d2"/><stop offset="0.739" stop-color="#d5d5d5"/><stop offset="0.824" stop-color="#dbdbdb"/><stop offset="0.898" stop-color="#e5e5e4"/><stop offset="0.943" stop-color="#dcdcdb"/><stop offset="0.966" stop-color="#d1d0ce"/><stop offset="0.983" stop-color="#bbbab7"/><stop offset="1.000" stop-color="#a5a29c"/></linearGradient>
+<linearGradient id="sideL" x1="34.0" y1="76" x2="55.7" y2="72.4" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0.45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<linearGradient id="sideR" x1="222.0" y1="76" x2="200.3" y2="72.4" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#fff" stop-opacity="0.45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<linearGradient id="rim" x1="0" y1="49" x2="0" y2="74" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ececec"/><stop offset="0.5" stop-color="#f7f7f7"/><stop offset="1" stop-color="#fdfdfd"/></linearGradient>
+<linearGradient id="inside" x1="0" y1="53" x2="0" y2="70" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#d6d6d6"/><stop offset="1" stop-color="#c2c2c2"/></linearGradient>
+<radialGradient id="floor" cx="128" cy="247" r="72" gradientUnits="userSpaceOnUse" gradientTransform="translate(0 247) scale(1 0.1) translate(0 -247)"><stop offset="0" stop-color="#000" stop-opacity="0.2"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<linearGradient id="photo" x1="130" y1="64" x2="182" y2="36" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ff4b3a"/><stop offset="0.2" stop-color="#ff9a1f"/><stop offset="0.33" stop-color="#ffd43a"/><stop offset="0.5" stop-color="#4cd964"/><stop offset="0.68" stop-color="#2fb5ff"/><stop offset="0.82" stop-color="#4a6cf7"/><stop offset="1" stop-color="#c35be8"/></linearGradient>
 </defs>
-<ellipse cx="64" cy="121" rx="34" ry="5" fill="url(#floor)"/>
-<path d="M22,24 A42,6 0 0 0 106,24 L96.5,110 C95.5,117.5 81.875,121 64,121 C46.125,121 32.5,117.5 31.5,110 Z" fill="#9aa1aa" fill-opacity="0.32"/>
-<ellipse cx="64" cy="24" rx="42" ry="6" fill="url(#opening)"/>
-<path d="M22,24 A42,6 0 0 0 106,24 L96.5,110 C95.5,117.5 81.875,121 64,121 C46.125,121 32.5,117.5 31.5,110 Z" fill="url(#wall)"/>
-<path d="M22,24 A42,6 0 0 0 106,24 L96.5,110 C95.5,117.5 81.875,121 64,121 C46.125,121 32.5,117.5 31.5,110 Z" fill="url(#depth)"/>
-<path d="M22,24 A42,6 0 0 0 106,24 L96.5,110 C95.5,117.5 81.875,121 64,121 C46.125,121 32.5,117.5 31.5,110 Z" fill="none" stroke="#000" stroke-opacity="0.13" stroke-width="0.8"/>
-<ellipse cx="64" cy="24" rx="42" ry="6" fill="none" stroke="#ffffff" stroke-opacity="0.95" stroke-width="2.6"/>
-<ellipse cx="64" cy="24" rx="43.4" ry="7.4" fill="none" stroke="#000" stroke-opacity="0.16" stroke-width="0.7"/>
-<path d="M23,25.5 A41,5 0 0 0 105,25.5" fill="none" stroke="#9aa1aa" stroke-opacity="0.35" stroke-width="0.8"/>
+<ellipse cx="128" cy="247" rx="72" ry="7" fill="url(#floor)"/>
+<path d="M33.0,70 L59.6,232 Q61.9,246 75.9,246 L180.1,246 Q194.1,246 196.4,232 L223.0,70 Z" fill="url(#wall)"/>
+<polygon points="33.0,70.0 57.0,70.0 54.7,190.0 52.7,190.0" fill="url(#sideL)" />
+<polygon points="223.0,70.0 199.0,70.0 201.3,190.0 203.3,190.0" fill="url(#sideR)" />
+<path d="M33.0,70 L59.6,232 Q61.9,246 75.9,246 L180.1,246 Q194.1,246 196.4,232 L223.0,70 Z" fill="none" stroke="#000" stroke-opacity="0.16" stroke-width="1"/>
+<path d="M43.5,49 H212.5 A12.5,12.5 0 0 1 212.5,74 H43.5 A12.5,12.5 0 0 1 43.5,49 Z M46,53 H210 A8,8 0 0 1 210,69 H46 A8,8 0 0 1 46,53 Z" fill="url(#rim)" fill-rule="evenodd" stroke="#000" stroke-opacity="0.2" stroke-width="0.7"/>
+<path d="M46,53 H210 A8,8 0 0 1 210,69 H46 A8,8 0 0 1 46,53 Z" fill="url(#inside)"/>
+<path d="M31,61.5 A12.5,12.5 0 0 0 43.5,74 H212.5 A12.5,12.5 0 0 0 225,61.5 H218 A8,8 0 0 1 210,69 H46 A8,8 0 0 1 38,61.5 Z" fill="url(#rim)" stroke="#000" stroke-opacity="0.2" stroke-width="0.7" stroke-linejoin="round"/>
 </svg>
