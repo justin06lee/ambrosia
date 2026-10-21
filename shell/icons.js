@@ -13,6 +13,21 @@ function rect(x, y, w, h, r) {
         `h${2 * r - w}a${r} ${r} 0 0 1 ${-r} ${-r}v${2 * r - h}a${r} ${r} 0 0 1 ${r} ${-r}z`;
 }
 
+// The app icon outline: a superellipse (n = 5) in the square at x, y of side
+// s, as preview.js draws it.
+function squircle(x, y, s) {
+    const n = 5;
+    let d = "";
+    for (let i = 0; i < 360; i += 2) {
+        const t = i * Math.PI / 180;
+        const c = Math.cos(t), sn = Math.sin(t);
+        const px = x + s * (0.5 + 0.5 * Math.sign(c) * Math.pow(Math.abs(c), 2 / n));
+        const py = y + s * (0.5 + 0.5 * Math.sign(sn) * Math.pow(Math.abs(sn), 2 / n));
+        d += (i === 0 ? "M" : "L") + px.toFixed(2) + " " + py.toFixed(2);
+    }
+    return d + "Z";
+}
+
 var glyphs = {
     // The Ambrosia mark: a bowl of ambrosia, heaped in three scoops, with a
     // spoon standing in it.

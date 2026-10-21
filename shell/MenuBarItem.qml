@@ -18,10 +18,11 @@ Item {
     property bool bold
     property bool active: Popups.menuOpen && Popups.owner === owner && Popups.screen === QsWindow.window?.screen
     property real padding: icon ? 7 : Theme.size.menubar.itemPadding
+    property real leftPadding: padding
     signal pressed
 
     implicitHeight: 22
-    implicitWidth: (icon ? iconSize : label.implicitWidth) + 2 * padding
+    implicitWidth: (icon ? iconSize : label.implicitWidth) + leftPadding + padding
 
     Rectangle {
         anchors.fill: parent
@@ -38,7 +39,8 @@ Item {
     Label {
         id: label
         visible: !item.icon
-        anchors.centerIn: parent
+        x: item.leftPadding
+        anchors.verticalCenter: parent.verticalCenter
         text: item.text
         style: item.bold ? Theme.text.headline : Theme.text.body
         font.features: ({ "tnum": 1 })

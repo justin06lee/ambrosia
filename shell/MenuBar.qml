@@ -257,7 +257,7 @@ PanelWindow {
         MenuBarItem {
             owner: "clock"; menu: bar.clockMenu
             text: Qt.formatDateTime(clock.date, "ddd MMM d  h:mm AP")
-            padding: Theme.space.s2
+            leftPadding: Theme.space.s2
         }
     }
 

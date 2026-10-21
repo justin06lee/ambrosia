@@ -68,7 +68,7 @@ package_ambrosia-shell() {
   # scopes; dbus: dbus-test-tool holds the app menu view's bus name.
   depends=(ambrosia-theme quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
            qt6-svg qt6-imageformats upower)
-  backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc)
+  backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc etc/xdg/ambrosia/breezerc)
   cd "$_root"
 
   install -d "$pkgdir/usr/share/ambrosia/shell" "$pkgdir/usr/share/plasma/look-and-feel"
@@ -89,7 +89,7 @@ package_ambrosia-shell() {
   # Plasma writes its look-and-feel's defaults into ~/.config/kdedefaults,
   # ahead of /etc/xdg/ambrosia, so the session's colors live in one of ours.
   cp -r session/look-and-feel/. "$pkgdir/usr/share/plasma/look-and-feel/"
-  install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc -t "$pkgdir/etc/xdg/ambrosia/"
+  install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/breezerc -t "$pkgdir/etc/xdg/ambrosia/"
 }
 
 package_ambrosia-desktop() {
