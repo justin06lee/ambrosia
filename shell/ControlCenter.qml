@@ -3,8 +3,12 @@ import Quickshell.Bluetooth
 import Quickshell.Networking
 import Quickshell.Services.Mpris
 import Quickshell.Services.Pipewire
+import Quickshell.Widgets
 import QtQuick
+import QtQuick.Effects
+import QtQuick.Shapes
 import Ambrosia
+import "icons.js" as Icons
 
 // The control center: one capsule module per control, on a grid of
 // size.controlCenter.unit cells, floating on a pure blur with no panel.
@@ -112,27 +116,55 @@ Item {
             width: cc.span(2)
             height: cc.span(2)
 
-            Rectangle {
+            // The album art, or a honey-to-pink tile without one.
+            Item {
                 id: art
                 x: Theme.space.s4
                 y: Theme.space.s4
                 width: 36
                 height: 36
-                radius: Theme.radius.control
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0; color: Theme.color.palette.yellow }
-                    GradientStop { position: 0.55; color: Theme.color.palette.orange }
-                    GradientStop { position: 1; color: Theme.color.palette.pink }
-                }
 
-                Image {
+                Repeater {
+                    model: Theme.color.shadow.control.layers
+
+                    RectangularShadow {
+                        required property var modelData
+                        x: modelData.x
+                        y: modelData.y
+                        width: art.width
+                        height: art.height
+                        radius: Theme.radius.control
+                        blur: modelData.blur
+                        color: Qt.alpha(Theme.color.shadow.control.color, modelData.opacity)
+                    }
+                }
+                Shape {
                     anchors.fill: parent
-                    source: nowPlaying.player?.trackArtUrl ?? ""
-                    fillMode: Image.PreserveAspectCrop
-                    asynchronous: true
-                    visible: status === Image.Ready
-                    layer.enabled: true
+                    preferredRendererType: Shape.CurveRenderer
+                    ShapePath {
+                        strokeColor: "transparent"
+                        fillGradient: LinearGradient {
+                            x2: art.width
+                            y2: art.height
+                            GradientStop { position: 0; color: Theme.color.palette.yellow }
+                            GradientStop { position: 0.55; color: Theme.color.palette.orange }
+                            GradientStop { position: 1; color: Theme.color.palette.pink }
+                        }
+                        PathSvg { path: Icons.rect(0, 0, art.width, art.height, Theme.radius.control) }
+                    }
+                }
+                ClippingRectangle {
+                    anchors.fill: parent
+                    radius: Theme.radius.control
+                    color: "transparent"
+
+                    Image {
+                        anchors.fill: parent
+                        source: nowPlaying.player?.trackArtUrl ?? ""
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        visible: status === Image.Ready
+                    }
                 }
             }
 
@@ -157,7 +189,7 @@ Item {
 
             Row {
                 id: transport
-                anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: Theme.space.s4; bottomMargin: Theme.space.s3 }
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: Theme.space.s4 + Theme.space.s1; bottomMargin: Theme.space.s3 }
                 spacing: (width - 20 - 26 - 20) / 2
                 enabled: nowPlaying.player !== null
 
@@ -208,7 +240,7 @@ Item {
             onMoved: value => Brightness.set(value)
         }
 
-        // Sound
+        // Sound, and its output at the end.
         Bar {
             id: sound
             readonly property var sink: Pipewire.defaultAudioSink
@@ -217,11 +249,16 @@ Item {
             enabled: !!sink?.audio
             value: sink?.audio?.muted ? 0 : (sink?.audio?.volume ?? 0)
             lowIcon: sink?.audio?.muted ? "speakerOff" : "speaker"
+            endButton: "speakerbox"
             onMoved: value => {
                 sink.audio.muted = false;
                 sink.audio.volume = value;
             }
             onLowIconClicked: sink.audio.muted = !sink.audio.muted
+            onEndClicked: {
+                Popups.close();
+                Session.settings("kcm_pulseaudio");
+            }
 
             PwObjectTracker { objects: [sound.sink] }
         }
@@ -234,51 +271,62 @@ Item {
             width: cc.span(4)
             height: cc.unit
 
-            Label {
-                x: Theme.space.s4
-                y: Theme.space.s2
-                text: "Accent"
-                style: Theme.text.headline
-            }
+            Column {
+                anchors { left: parent.left; right: parent.right; margins: Theme.space.s4; verticalCenter: parent.verticalCenter }
+                spacing: Theme.space.s2
 
-            Row {
-                anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: Theme.space.s4; bottomMargin: Theme.space.s2 + 2 }
-                spacing: (width - 8 * 20) / 7
+                Label {
+                    text: "Accent"
+                    style: Theme.text.headline
+                }
 
-                Repeater {
-                    model: ["blue", "purple", "pink", "red", "orange", "honey", "green", "graphite"]
+                Row {
+                    x: Theme.space.s1
+                    width: parent.width - 2 * Theme.space.s1
+                    spacing: (width - 8 * 20) / 7
 
-                    Item {
-                        id: swatch
-                        required property string modelData
-                        readonly property bool chosen: Settings.accent === modelData
-                        width: 20
-                        height: 20
+                    Repeater {
+                        model: ["blue", "purple", "pink", "red", "orange", "honey", "green", "graphite"]
 
-                        Rectangle {
-                            anchors.centerIn: parent
-                            visible: swatch.chosen
-                            width: 28
-                            height: 28
-                            radius: 14
-                            color: "transparent"
-                            border.width: 2
-                            border.color: Theme.color.accents[swatch.modelData].bg
-                        }
-                        Rectangle {
-                            anchors.fill: parent
-                            radius: 10
-                            color: Theme.color.accents[swatch.modelData].bg
-                            border.width: 0.5
-                            border.color: Qt.rgba(0, 0, 0, 0.15)
-                            scale: swatchArea.containsMouse ? 1.1 : 1
-                            Behavior on scale { SpringAnimation { spring: 6; damping: 0.4 } }
-                        }
-                        MouseArea {
-                            id: swatchArea
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            onClicked: Appearance.setAccent(swatch.modelData)
+                        Item {
+                            id: swatch
+                            required property string modelData
+                            readonly property bool chosen: Settings.accent === modelData
+                            width: 20
+                            height: 20
+
+                            // Chosen: ringed in its color, a little apart.
+                            Rectangle {
+                                anchors.centerIn: parent
+                                visible: swatch.chosen
+                                width: 28
+                                height: 28
+                                radius: 14
+                                color: Theme.color.accents[swatch.modelData].bg
+                            }
+                            Rectangle {
+                                anchors.centerIn: parent
+                                visible: swatch.chosen
+                                width: 24
+                                height: 24
+                                radius: 12
+                                color: Theme.color.bg.elevated
+                            }
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: 10
+                                color: Theme.color.accents[swatch.modelData].bg
+                                border.width: 0.5
+                                border.color: Qt.rgba(0, 0, 0, 0.15)
+                                scale: swatchArea.containsMouse ? 1.1 : 1
+                                Behavior on scale { SpringAnimation { spring: 6; damping: 0.4 } }
+                            }
+                            MouseArea {
+                                id: swatchArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                onClicked: Appearance.setAccent(swatch.modelData)
+                            }
                         }
                     }
                 }
@@ -356,7 +404,7 @@ Item {
             onClicked: pill.toggled()
         }
         Column {
-            anchors { left: pillToggle.right; right: parent.right; leftMargin: Theme.space.s2; rightMargin: Theme.space.s2; verticalCenter: parent.verticalCenter }
+            anchors { left: pillToggle.right; right: parent.right; leftMargin: Theme.space.s3; rightMargin: Theme.space.s2; verticalCenter: parent.verticalCenter }
 
             Label {
                 width: parent.width
@@ -411,7 +459,9 @@ Item {
         }
     }
 
-    // A titled slider across the grid. Drag or click the track to set it.
+    // A titled slider across the grid, the title over it, both centered in
+    // the module. Drag or click the track to set it. `endButton` puts a round
+    // button at its end, as Sound's output.
     component Bar: Module {
         id: barModule
         property point position
@@ -419,8 +469,10 @@ Item {
         property real value
         property string lowIcon
         property string highIcon
+        property string endButton
         signal moved(real value)
         signal lowIconClicked
+        signal endClicked
 
         x: position.x
         y: position.y
@@ -428,70 +480,98 @@ Item {
         height: cc.unit
         opacity: enabled ? 1 : 0.5
 
-        Label {
-            x: Theme.space.s4
-            y: Theme.space.s2
-            text: barModule.title
-            style: Theme.text.headline
-        }
-
-        Row {
-            anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: Theme.space.s4; bottomMargin: Theme.space.s3 }
+        Column {
+            anchors { left: parent.left; right: parent.right; margins: Theme.space.s4; verticalCenter: parent.verticalCenter }
             spacing: Theme.space.s2
 
-            Icon {
-                id: low
-                anchors.verticalCenter: parent.verticalCenter
-                name: barModule.lowIcon
-                size: barModule.highIcon ? 13 : 16
-
-                MouseArea {
-                    anchors.fill: parent
-                    anchors.margins: -4
-                    onClicked: barModule.lowIconClicked()
-                }
+            Label {
+                text: barModule.title
+                style: Theme.text.headline
             }
 
-            Item {
-                id: track
-                anchors.verticalCenter: parent.verticalCenter
-                width: parent.width - low.width - (high.visible ? high.width : 0) - parent.spacing * (high.visible ? 2 : 1)
-                height: 16
+            Row {
+                width: parent.width
+                spacing: Theme.space.s2
 
-                Rectangle {
+                Icon {
+                    id: low
                     anchors.verticalCenter: parent.verticalCenter
-                    width: parent.width
-                    height: Theme.size.controlCenter.track
-                    radius: height / 2
-                    color: Theme.color.fill.primary
+                    name: barModule.lowIcon
+                    size: barModule.highIcon ? 13 : 16
+
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.margins: -4
+                        onClicked: barModule.lowIconClicked()
+                    }
+                }
+
+                Item {
+                    id: track
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: parent.width - low.width - parent.spacing
+                        - (high.visible ? high.width + parent.spacing : 0)
+                        - (end.visible ? end.width + parent.spacing : 0)
+                    height: 16
 
                     Rectangle {
-                        width: Math.max(height, parent.width * Math.max(0, Math.min(1, barModule.value)))
-                        height: parent.height
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: parent.width
+                        height: Theme.size.controlCenter.track
                         radius: height / 2
-                        color: Theme.color.label.primary
+                        color: Theme.color.fill.primary
+
+                        Rectangle {
+                            width: parent.width * Math.max(0, Math.min(1, barModule.value))
+                            height: parent.height
+                            radius: Math.min(width, height) / 2
+                            color: Theme.color.label.primary
+                        }
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        anchors.topMargin: -8
+                        anchors.bottomMargin: -8
+                        preventStealing: true
+                        function set(mouseX) {
+                            barModule.moved(Math.max(0, Math.min(1, mouseX / track.width)));
+                        }
+                        onPressed: mouse => set(mouse.x)
+                        onPositionChanged: mouse => set(mouse.x)
                     }
                 }
 
-                MouseArea {
-                    anchors.fill: parent
-                    anchors.topMargin: -8
-                    anchors.bottomMargin: -8
-                    preventStealing: true
-                    function set(mouseX) {
-                        barModule.moved(Math.max(0, Math.min(1, mouseX / track.width)));
-                    }
-                    onPressed: mouse => set(mouse.x)
-                    onPositionChanged: mouse => set(mouse.x)
+                Icon {
+                    id: high
+                    visible: barModule.highIcon !== ""
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: barModule.highIcon
+                    size: 19
                 }
-            }
 
-            Icon {
-                id: high
-                visible: barModule.highIcon !== ""
-                anchors.verticalCenter: parent.verticalCenter
-                name: barModule.highIcon
-                size: 19
+                Rectangle {
+                    id: end
+                    visible: barModule.endButton !== ""
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 28
+                    height: 28
+                    radius: 14
+                    color: Theme.color.fill.primary
+                    scale: endArea.pressed ? 0.92 : 1
+                    Behavior on scale { SpringAnimation { spring: 8; damping: 0.5 } }
+
+                    Icon {
+                        anchors.centerIn: parent
+                        name: barModule.endButton
+                        size: 15
+                    }
+                    MouseArea {
+                        id: endArea
+                        anchors.fill: parent
+                        onClicked: barModule.endClicked()
+                    }
+                }
             }
         }
     }

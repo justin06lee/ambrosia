@@ -2,7 +2,10 @@ import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
 import QtQuick
+import QtQuick.Effects
+import QtQuick.Shapes
 import Ambrosia
+import "icons.js" as Icons
 
 // The Dock: pinned apps, then the others that have windows, then Downloads
 // and the Trash. A dot marks running apps. Click to open or bring forward;
@@ -36,6 +39,7 @@ PanelWindow {
             tint: Theme.color.material.regular.tint
             radius: Theme.radius.dock
             shadow: Theme.color.shadow.panel
+            ring: true
         }
 
         Row {
@@ -89,6 +93,7 @@ PanelWindow {
             DockItem {
                 name: "Downloads"
                 glyph: "download"
+                glyphColor: Theme.accent.text
                 onClicked: Session.open(Quickshell.env("HOME") + "/Downloads")
             }
 
@@ -109,24 +114,71 @@ PanelWindow {
         }
     }
 
-    // The tooltip: the name of the app under the pointer, above it.
-    Rectangle {
+    // The tooltip: the name of the app under the pointer, above it. It fades
+    // in where it's needed, then follows the pointer from icon to icon.
+    Item {
         id: tip
         property Item over: null
-        visible: over !== null && !Popups.menuOpen
-        x: over ? over.mapToItem(dock.contentItem, over.width / 2, 0).x - width / 2 : 0
-        y: body.y - height - Theme.space.s3
-        width: tipLabel.implicitWidth + 2 * Theme.space.s3 - 4
-        height: tipLabel.implicitHeight + 6
-        radius: Theme.radius.tooltip
-        color: Theme.color.bg.elevated
-        border.width: 0.5
-        border.color: Theme.color.glass.edge
+        // The item it points at, kept while it fades out.
+        property Item at: null
+        readonly property bool shown: over !== null && !Popups.menuOpen
+
+        onOverChanged: {
+            if (!over) return;
+            follow.enabled = opacity > 0;
+            at = over;
+            follow.enabled = true;
+        }
+
+        x: at ? at.mapToItem(dock.contentItem, at.width / 2, 0).x - width / 2 : 0
+        y: body.y - height - Theme.space.s3 + (shown ? 0 : 4)
+        width: tipLabel.implicitWidth + 2 * 10
+        height: tipLabel.implicitHeight + 2 * 3
+        opacity: shown ? 1 : 0
+        visible: opacity > 0
+
+        Behavior on x { id: follow; SpringAnimation { spring: 8; damping: 0.5 } }
+        Behavior on y { SpringAnimation { spring: 8; damping: 0.5 } }
+        Behavior on opacity { NumberAnimation { duration: Theme.fade.fast } }
+
+        Repeater {
+            model: Theme.color.shadow.popover.layers
+
+            RectangularShadow {
+                required property var modelData
+                x: modelData.x
+                y: modelData.y
+                width: tip.width
+                height: tip.height
+                radius: Theme.radius.tooltip
+                blur: modelData.blur
+                color: Qt.alpha(Theme.color.shadow.popover.color, modelData.opacity)
+            }
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            radius: Theme.radius.tooltip
+            color: Theme.color.bg.elevated
+            border.width: 0.5
+            border.color: Theme.color.glass.edge
+        }
+
+        // The point, under the middle.
+        Rectangle {
+            x: (tip.width - width) / 2
+            y: tip.height - height / 2 - 0.5
+            width: 9
+            height: 9
+            rotation: 45
+            bottomRightRadius: 2
+            color: Theme.color.bg.elevated
+        }
 
         Label {
             id: tipLabel
             anchors.centerIn: parent
-            text: tip.over?.name ?? ""
+            text: tip.at?.name ?? ""
         }
     }
 
@@ -145,6 +197,7 @@ PanelWindow {
         property string name
         property string iconSource
         property string glyph
+        property color glyphColor: Theme.color.label.secondary
         property bool running
         property bool attention
         property bool starting
@@ -177,23 +230,40 @@ PanelWindow {
                 }
             }
 
-            // Folders in the Dock: a glyph on a frosted tile.
-            Rectangle {
+            // Folders in the Dock: a glyph on a frosted tile, the app icon's
+            // superellipse, ringed with light that's brightest along the top.
+            Shape {
                 visible: item.glyph !== ""
                 anchors.fill: parent
-                radius: width * Theme.radius.iconCorner
-                gradient: Gradient {
-                    GradientStop { position: 0; color: Qt.rgba(1, 1, 1, Theme.dark ? 0.22 : 0.55) }
-                    GradientStop { position: 1; color: Qt.rgba(1, 1, 1, Theme.dark ? 0.08 : 0.2) }
+                preferredRendererType: Shape.CurveRenderer
+
+                ShapePath {
+                    strokeColor: "transparent"
+                    fillGradient: LinearGradient {
+                        y2: dock.icon
+                        GradientStop { position: 0; color: Qt.rgba(1, 1, 1, Theme.dark ? 0.22 : 0.55) }
+                        GradientStop { position: 1; color: Qt.rgba(1, 1, 1, Theme.dark ? 0.08 : 0.2) }
+                    }
+                    PathSvg { path: Icons.squircle(0, 0, dock.icon) }
                 }
-                border.width: 1
-                border.color: Theme.color.glass.rim
+                ShapePath {
+                    strokeColor: "transparent"
+                    fillRule: ShapePath.OddEvenFill
+                    fillGradient: LinearGradient {
+                        y2: dock.icon
+                        GradientStop { position: 0; color: Qt.rgba(1, 1, 1, 0.85) }
+                        GradientStop { position: 0.45; color: Qt.rgba(1, 1, 1, 0.2) }
+                        GradientStop { position: 1; color: Qt.rgba(1, 1, 1, 0.45) }
+                    }
+                    PathSvg { path: Icons.squircle(0, 0, dock.icon) + Icons.squircle(1.3, 1.3, dock.icon - 2.6) }
+                }
 
                 Icon {
                     anchors.centerIn: parent
                     name: item.glyph
                     size: 28
-                    color: Theme.color.label.secondary
+                    weight: 1.75
+                    color: item.glyphColor
                 }
             }
         }

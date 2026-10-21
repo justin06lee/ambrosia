@@ -82,6 +82,25 @@ Item {
             let widest = 0;
             for (let i = 0; i < repeater.count; i++) widest = Math.max(widest, repeater.itemAt(i)?.implicitWidth ?? 0);
             rows.widest = widest;
+            Qt.callLater(rows.tidy);
+        }
+        // Apps' menus can start or end on a separator, or have two in a row;
+        // a menu only draws the ones between items.
+        function tidy() {
+            let afterItem = false;
+            let pending = null;
+            for (let i = 0; i < repeater.count; i++) {
+                const row = repeater.itemAt(i);
+                if (!row) continue;
+                if (row.separator) {
+                    row.collapsed = true;
+                    if (afterItem && !pending) pending = row;
+                } else {
+                    if (pending) pending.collapsed = false;
+                    pending = null;
+                    afterItem = true;
+                }
+            }
         }
     }
 
@@ -95,10 +114,12 @@ Item {
         readonly property bool hasSubmenu: modelData.hasChildren === true || Array.isArray(modelData.submenu)
         readonly property bool checked: modelData.checked === true || modelData.checkState === Qt.Checked
         readonly property bool highlighted: menu.current === index && enabled && !separator
+        property bool collapsed: false
 
         enabled: modelData.enabled !== false
+        visible: !collapsed
         width: rows.width
-        height: separator ? 2 * Theme.space.s1_5 + 1 : Theme.size.row.compact
+        height: collapsed ? 0 : separator ? 2 * Theme.space.s1_5 + 1 : Theme.size.row.compact
         implicitWidth: separator ? 0 : 26 + label.implicitWidth + Theme.space.s3
             + (shortcut.text ? Theme.space.s6 + shortcut.implicitWidth : 0)
             + (hasSubmenu ? Theme.space.s6 + 12 : 0)
@@ -130,7 +151,7 @@ Item {
         Rectangle {
             visible: row.separator
             anchors.verticalCenter: parent.verticalCenter
-            x: Theme.space.s3 - menu.padding
+            x: Theme.space.s3
             width: parent.width - 2 * x
             height: 1
             color: Theme.color.separator
@@ -176,7 +197,7 @@ Item {
             visible: row.hasSubmenu
             name: "right"
             size: 12
-            anchors { right: parent.right; rightMargin: Theme.space.s3 - 2; verticalCenter: parent.verticalCenter }
+            anchors { right: parent.right; rightMargin: Theme.space.s3; verticalCenter: parent.verticalCenter }
             color: row.highlighted ? Theme.accent.fg : Theme.color.label.tertiary
         }
 

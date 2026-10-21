@@ -12,6 +12,8 @@ Item {
     property real size: Theme.size.menubar.icon
     property color color: Theme.color.label.primary
     readonly property var glyph: Icons.glyphs[name] ?? {}
+    // The stroke, in units of the 24-unit grid.
+    property real weight: glyph.width ?? 1.5
 
     implicitWidth: size
     implicitHeight: size
@@ -25,7 +27,7 @@ Item {
 
         ShapePath {
             strokeColor: icon.glyph.stroke ? icon.color : "transparent"
-            strokeWidth: icon.glyph.width ?? 1.5
+            strokeWidth: icon.weight
             fillColor: "transparent"
             capStyle: ShapePath.RoundCap
             joinStyle: ShapePath.RoundJoin
