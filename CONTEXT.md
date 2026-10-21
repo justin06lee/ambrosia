@@ -103,6 +103,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
    frosted bin, redrawn by hand and matched 1:1 against a screenshot (empty
    is the full bin without its paper: no empty screenshot to match), full or empty with the home trash
    (other drives' trashes aren't watched), and it takes dropped files.
+   Files has its own Finder-style icon (2026-10-21, `assets/icons/`, hicolor
+   `org.ambrosia.files`); until Ambrosia's Files app exists, Dolphin's Dock
+   pin shows as Files with it (`standIns` in `shell/Dock.qml`).
    Still apart from the preview: windows' bottom corners (square: Aurorae
    can't round the app's own content), the buttons' glyphs (on the hovered
    button only, not all three as on a Mac), Breeze's menu radius and row height (only our own
