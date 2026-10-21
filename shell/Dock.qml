@@ -31,6 +31,14 @@ PanelWindow {
     mask: Region { item: body }
     BackgroundEffect.blurRegion: Region { item: body; radius: Theme.radius.dock }
 
+    // Icons drawn on a whole Dock tile, as macOS draws its own (the Trash,
+    // Files), are shown that much bigger than the icon size: an app icon's
+    // body is 0.805 of the tile.
+    readonly property real tileArt: 1 / 0.805
+    readonly property var tileIcons: ["org.ambrosia.files"]
+    // Dolphin stands in for Ambrosia's own Files app until there is one.
+    readonly property var standIns: ({ "org.kde.dolphin": { name: "Files", icon: "org.ambrosia.files" } })
+
     // What's in the trash, watched, so the Trash fills and empties with it.
     // The folder is made first, so there's one to watch.
     readonly property string trashDir: (Quickshell.env("XDG_DATA_HOME") || Quickshell.env("HOME") + "/.local/share") + "/Trash/files"
@@ -80,9 +88,12 @@ PanelWindow {
                     required property var model
                     required property int index
                     readonly property var entry: Apps.entryFor(model.AppId, model.AppName)
+                    readonly property var standIn: dock.standIns[entry?.id ?? ""] ?? null
+                    readonly property string iconName: standIn?.icon ?? entry?.icon ?? ""
 
-                    name: model.AppName || entry?.name || ""
-                    iconSource: Quickshell.iconPath(entry?.icon ?? "", "application-x-executable")
+                    name: standIn?.name ?? (model.AppName || entry?.name || "")
+                    iconSource: Quickshell.iconPath(iconName, "application-x-executable")
+                    art: dock.tileIcons.includes(iconName) ? dock.tileArt : 1
                     running: model.IsWindow === true || (model.ChildCount ?? 0) > 0
                     attention: model.IsDemandingAttention === true
                     starting: model.IsStartup === true
@@ -125,9 +136,7 @@ PanelWindow {
                 id: trash
                 name: "Trash"
                 iconSource: `file://${Quickshell.shellDir}/trash-${dock.trashFull ? "full" : "empty"}.svg`
-                // Sized as macOS sizes its Trash: drawn on a whole Dock tile,
-                // of which an app icon's body (our icon size) is 0.805.
-                art: 1 / 0.805
+                art: dock.tileArt
                 highlighted: dropArea.containsDrag
                 onClicked: Session.open("trash:/")
                 onMenuRequested: dock.openMenu(trash, [
