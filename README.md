@@ -39,12 +39,19 @@ open preview/index.html    # the mock desktop on its own (xdg-open on Linux)
 On an Arch machine, the distro builds from the same checkout:
 
 ```sh
-make package               # ambrosia-theme, ambrosia-shell, ambrosia-desktop into out/pkg/
-make quickshell            # Quickshell rebuilt for the installed Qt, when Arch's lags
+make package               # ambrosia-keyring, -theme, -shell, -desktop into out/pkg/
+make quickshell            # our Quickshell (with the app menu patch) for the installed Qt
 sudo make iso              # the installer image, out/iso/ambrosia-*.iso
 tools/vm.sh install        # install the image unattended in a headless VM
 tools/vm.sh shot vm.png    # and photograph it
+sudo tools/repo-test.sh    # install it in the VM, then pacman -Syu from the hosted repo
 ```
+
+From the Mac, `make publish` builds the packages on tenet, signs them and
+uploads them to Ambrosia's hosted pacman repo (`tools/publish-repo.sh`); the
+signing key never leaves the Mac. Installed systems update from that repo:
+the installer lists `[ambrosia]` first in their pacman.conf, and
+`ambrosia-keyring` trusts its key.
 
 `dd` the image onto a USB drive and boot it (UEFI). It starts a live Ambrosia
 desktop and opens the installer, which asks for a disk, a name and a password
@@ -112,12 +119,14 @@ CONTEXT.md     where things stand and what's next, for picking the work back up
 design/        DESIGN.md (the rules), DECISIONS.md (the choices), tokens.ts (the values),
                review.json (review verdicts and notes)
 tools/gen/     the generator and its tests
-tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remote.sh
+tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remote.sh,
+               publish-repo.sh (the hosted repo), repo-test.sh + repo-check.sh (its VM test)
 shell/         the shell in QML for Quickshell: wallpaper, menu bar and menus, Search,
                Dock, control center, notifications
 session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
                the `ambrosia` command and the shell's desktop files
-packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild (with our DBusMenuSource patch)
+packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild (with our DBusMenuSource patch),
+               the repo's public key (keyring/)
 iso/           the archiso profile: live desktop, installer (ambrosia-install)
 preview/       the mock desktop, styled only from dist/web/tokens.css; glass.css is shared
 site/          the design review site and its server
@@ -128,8 +137,8 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 
 1. **Design system and theme generator.** Done.
 2. **Packages and installer image.** First cut done: packages, the session, a
-   live image and an unattended-testable installer. Everything after this
-   ships through it.
+   live image, an unattended-testable installer, and a hosted, signed package
+   repo installed systems update from. Everything after this ships through it.
 3. **Shell** on KWin and Quickshell: menu bar, Dock, control center,
    notifications and Search work (first cut); next, matching the preview's
    look, a notification center and the Mac-first keyboard layer (keyd). Built
@@ -141,7 +150,7 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 6. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
    dialogs in other apps match too.
 7. **Onboarding**: a first-party onboarding app in place of the installer
-   script (asking Mac-first or Linux-first), a login screen and boot splash of
-   our own, and a hosted package repository for updates.
+   script (asking Mac-first or Linux-first), and a login screen and boot
+   splash of our own.
 
 Later: an ARM64 build for the Jetson Orin Nano.
