@@ -1,33 +1,62 @@
 #!/bin/sh
-# thumbfix.sh DIR: the thumbnail benchmark's fixtures (plan targets #9, #10), under DIR:
+# thumbfix.sh DIR [pics|kinds]: the thumbnail benchmark's fixtures (plan targets #9, #10), under DIR
+# (with "pics", only Pics/, for the demo; with "kinds", only Kinds/):
 #   jpeg-exif/  8 × 24 MP noisy JPEGs (6000×4000, ~7 MB) with a 160×107 EXIF thumbnail
 #   jpeg-plain/ the same 8 without one
 #   many/       60 × 12 MP JPEGs without one, for scrolling a cold folder
 #   Pics/       a mixed folder for the views: photos, PNG, WebP, GIF, SVG, PDF, text
+#   Kinds/      videos (one opening on a second of black), fonts, office documents, audio with and without covers
 # Writes about 0.35 GB; run it capped (nice, idle I/O), as tenet.sh does.
 set -e
-D=${1:?usage: thumbfix.sh DIR}
-mkdir -p "$D/jpeg-exif" "$D/jpeg-plain" "$D/many" "$D/Pics"
-ff() { ffmpeg -loglevel error -y "$@"; }
-# Noise makes the files the size of real photos; each frame differs.
-for i in 1 2 3 4 5 6 7 8; do
-    [ -f "$D/jpeg-plain/plain-$i.jpg" ] && continue
-    ff -f lavfi -i "testsrc2=s=6000x4000:r=1,noise=alls=24:allf=t+u:all_seed=$i" -frames:v 1 -q:v 3 "$D/jpeg-plain/plain-$i.jpg"
-done
-for i in 1 2 3 4 5 6 7 8; do
-    out=$D/jpeg-exif/exif-$i.jpg
-    [ -f "$out" ] && continue
-    cp "$D/jpeg-plain/plain-$i.jpg" "$out"
-    ff -i "$out" -vf scale=160:-1 -q:v 4 "$D/jpeg-exif/exif-$i-thumb.jpg"
-    exiv2 -it "$out" && rm "$D/jpeg-exif/exif-$i-thumb.jpg"
-done
-[ -f "$D/many/IMG_0060.jpg" ] ||
-    ff -f lavfi -i "testsrc2=s=4000x3000:r=1,noise=alls=24:allf=t+u,hue=H=t/5" -frames:v 60 -q:v 3 "$D/many/IMG_%04d.jpg"
-
+D=${1:?usage: thumbfix.sh DIR [pics]}
 P=$D/Pics
+mkdir -p "$P"
+ff() { ffmpeg -loglevel error -y "$@"; }
+# A 24 MP photo's worth of noise (each seed differs), and its EXIF thumbnail.
+photo() { ff -f lavfi -i "testsrc2=s=6000x4000:r=1,noise=alls=24:allf=t+u:all_seed=$2" -frames:v 1 -q:v 3 "$1"; }
+exifthumb() { ff -i "$1" -vf scale=160:-1 -q:v 4 "${1%.jpg}-thumb.jpg"; exiv2 -it "$1" && rm "${1%.jpg}-thumb.jpg"; }
+if [ "$2" = kinds ]; then
+    K=$D/Kinds; mkdir -p "$K"; here=$(dirname "$0")
+    ff -f lavfi -i "color=black:s=1280x720:d=1:r=25" -loop 1 -t 5 -i /usr/share/sddm/themes/maldives/background.jpg -filter_complex \
+        "[1]scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,zoompan=z='1+0.002*on':d=1:s=1280x720:fps=25,setsar=1,format=yuv420p[p];[0]setsar=1,format=yuv420p[b];[b][p]concat=n=2:v=1[v]" \
+        -map "[v]" -c:v libx264 -crf 26 "$K/Harbour.mp4"
+    ff -f lavfi -i "gradients=s=960x540:speed=0.04:d=6:c0=0x0f766e:c1=0xfbbf24:c2=0xbe185d:n=3" -c:v libx264 -crf 26 -pix_fmt yuv420p "$K/Dusk.mov"
+    ff -f lavfi -i "testsrc2=s=854x480:d=5" -c:v libx264 -crf 28 -pix_fmt yuv420p "$K/Test Pattern.m4v"
+    for f in /usr/share/fonts/noto/NotoSerif-Regular.ttf /usr/share/fonts/TTF/JetBrainsMono-Regular.ttf /usr/share/fonts/inter/InterVariable.ttf; do
+        [ -f "$f" ] && cp "$f" "$K/"
+    done
+    ff -f lavfi -i "mandelbrot=s=600x600:start_scale=0.15" -frames:v 1 -q:v 3 "$D/cover.jpg"
+    ff -f lavfi -i "sine=f=440:d=8" -i "$D/cover.jpg" -map 0 -map 1 -c:a libmp3lame -q:a 7 -c:v copy -id3v2_version 3 \
+        -metadata title="Harbour Lights" -metadata artist="The Ridge" -metadata:s:v comment="Cover (front)" "$K/Harbour Lights.mp3"
+    ff -f lavfi -i "sine=f=330:d=6" -c:a libmp3lame -q:a 7 "$K/Tone.mp3"
+    ff -f lavfi -i "sine=f=550:d=6" -i "$D/cover.jpg" -map 0 -map 1 -c:a aac -b:a 96k -c:v copy -disposition:v:0 attached_pic "$K/Field Recording.m4a"
+    ff -f lavfi -i "sine=f=660:d=6" -i "$D/cover.jpg" -map 0 -map 1 -c:a flac -c:v copy -disposition:v:0 attached_pic "$K/Album.flac"
+    ff -f lavfi -i "anoisesrc=d=4:a=0.1" "$K/Voice Memo.wav"
+    cat > "$D/minutes.svg" <<'SVG'
+<svg xmlns="http://www.w3.org/2000/svg" width="181" height="256"><rect width="181" height="256" fill="#fff"/>
+<text x="18" y="34" font-family="sans-serif" font-size="13" font-weight="700">Minutes, 14 October</text>
+<g fill="#888"><rect x="18" y="50" width="120" height="3"/><rect x="18" y="62" width="145" height="3"/><rect x="18" y="70" width="140" height="3"/>
+<rect x="18" y="78" width="132" height="3"/><rect x="18" y="86" width="90" height="3"/><rect x="18" y="104" width="60" height="5"/>
+<rect x="18" y="118" width="140" height="3"/></g></svg>
+SVG
+    rsvg-convert "$D/minutes.svg" -o "$D/minutes.png"
+    python3 "$here/officefix.py" "$K" "$D/minutes.png"
+    ls -la "$K"
+    exit 0
+fi
+if [ "$2" != pics ]; then
+    mkdir -p "$D/jpeg-exif" "$D/jpeg-plain" "$D/many"
+    for i in 1 2 3 4 5 6 7 8; do
+        [ -f "$D/jpeg-plain/plain-$i.jpg" ] || photo "$D/jpeg-plain/plain-$i.jpg" $i
+        [ -f "$D/jpeg-exif/exif-$i.jpg" ] || { cp "$D/jpeg-plain/plain-$i.jpg" "$D/jpeg-exif/exif-$i.jpg"; exifthumb "$D/jpeg-exif/exif-$i.jpg"; }
+    done
+    [ -f "$D/many/IMG_0060.jpg" ] ||
+        ff -f lavfi -i "testsrc2=s=4000x3000:r=1,noise=alls=24:allf=t+u,hue=H=t/5" -frames:v 60 -q:v 3 "$D/many/IMG_%04d.jpg"
+fi
+
 [ -f /usr/share/sddm/themes/maldives/background.jpg ] && cp /usr/share/sddm/themes/maldives/background.jpg "$P/Maldives.jpg"
 [ -f /usr/share/wallpapers/Next/contents/images/1440x2960.png ] && cp /usr/share/wallpapers/Next/contents/images/1440x2960.png "$P/Next.png"
-cp "$D/jpeg-exif/exif-1.jpg" "$P/Test Card.jpg"
+photo "$P/Test Card.jpg" 1 && exifthumb "$P/Test Card.jpg"
 ff -f lavfi -i "mandelbrot=s=1600x1200:end_pts=40:start_scale=0.5" -ss 30 -frames:v 1 -q:v 3 "$P/Mandelbrot.jpg"
 ff -f lavfi -i "gradients=s=1200x900:c0=0xff7a59:c1=0x5b6cff:x0=0:y0=0:x1=1200:y1=900:seed=3" -frames:v 1 "$P/Gradient.webp"
 ff -f lavfi -i "cellauto=s=320x240:rule=110,scale=640:480:flags=neighbor" -frames:v 24 "$P/Cells.gif"
