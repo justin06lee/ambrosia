@@ -422,6 +422,10 @@ this Mac's Finder:
   listing at once as it moves in, and re-reads it in the background.
 - **Resizing:** dragging a divider sizes its column; with Option, every
   column.
+- **Under the glass** (f0e887c): the rows run up under the toolbar and
+  fade out there, Finder's soft edge; columns scrolled away to the left go
+  under the floating sidebar and show blurred in the window's margin
+  around it. The toolbar's empty space still moves the window.
 - **Not yet:** Finder's full preview pane (Quick Look, More…) and
   remembered column widths.
 

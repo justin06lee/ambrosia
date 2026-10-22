@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls.Basic as Controls
+import QtQuick.Effects
 import Ambrosia
 
 // Finder's column view: the folders from the columns' root down to the
@@ -8,11 +9,15 @@ import Ambrosia
 // folder is the column in focus: keys, the selection and file operations
 // work there as in the other views. Each column reads its own folder, and
 // the window's model takes a column's listing as it moves into it.
+// As in Finder, the columns run on under the toolbar, fading, and under
+// the floating sidebar, blurred where they show around it.
 FocusScope {
     id: pane
 
     required property var finder
     readonly property var model: finder.model
+    // Where the sidebar ends, left of this pane: how far the columns run on under it.
+    property real sidebarEdge: 0
 
     function clean(u) { return u.toString().replace(/\/+$/, ""); }
 
@@ -89,98 +94,142 @@ FocusScope {
         reveal();
     }
 
-    Flickable {
-        id: strip
-        anchors.fill: parent
-        contentWidth: lane.width
-        contentHeight: height
-        flickableDirection: Flickable.HorizontalFlick
-        boundsBehavior: Flickable.StopAtBounds
-        acceptedButtons: Qt.NoButton // the mouse drags items; the touchpad scrolls
+    // The columns that have scrolled away to the left, under the sidebar:
+    // blurred, they show in the window's margin around it.
+    ShaderEffectSource {
+        x: -pane.sidebarEdge
+        y: Finder.windowRadius // clear of the window's rounded corner
+        width: pane.sidebarEdge
+        height: pane.height - y
+        visible: pane.sidebarEdge > 0 && strip.contentX > 0
+        sourceItem: lane
+        sourceRect: Qt.rect(strip.contentX - pane.sidebarEdge, y, width, height)
+        layer.enabled: visible
+        layer.effect: MultiEffect {
+            autoPaddingEnabled: false
+            blurEnabled: true
+            blur: 0.8
+            blurMax: 24
+        }
+    }
+
+    // The columns run up under the toolbar from below the window's rounded
+    // corners.
+    Item {
+        id: view
+        y: Finder.windowRadius
+        width: parent.width
+        height: parent.height - y
         clip: true
 
-        Row {
-            id: lane
-            height: strip.height
-            Repeater {
-                id: repeater
-                model: columns
-                delegate: Item {
-                    id: slot
-                    required property int index
-                    required property string url
-                    required property bool preview
-                    required property real w
-                    width: w
-                    height: lane.height
-                    function positionAt(target) { loader.item?.positionAt?.(target); }
+        Flickable {
+            id: strip
+            y: -view.y
+            width: parent.width
+            height: pane.height
+            contentWidth: lane.width
+            contentHeight: height
+            flickableDirection: Flickable.HorizontalFlick
+            boundsBehavior: Flickable.StopAtBounds
+            acceptedButtons: Qt.NoButton // the mouse drags items; the touchpad scrolls
+            clip: true
 
-                    Loader {
-                        id: loader
-                        anchors.fill: parent
-                        sourceComponent: slot.preview ? previewColumn : folderColumn
-                    }
-                    Component {
-                        id: folderColumn
-                        FolderColumn {
-                            owner: pane
-                            index: slot.index
-                            url: slot.url
+            Row {
+                id: lane
+                height: strip.height
+                Repeater {
+                    id: repeater
+                    model: columns
+                    delegate: Item {
+                        id: slot
+                        required property int index
+                        required property string url
+                        required property bool preview
+                        required property real w
+                        width: w
+                        height: lane.height
+                        function positionAt(target) { loader.item?.positionAt?.(target); }
+
+                        Loader {
+                            id: loader
+                            anchors.fill: parent
+                            sourceComponent: slot.preview ? previewColumn : folderColumn
                         }
-                    }
-                    Component {
-                        id: previewColumn
-                        PreviewColumn { owner: pane }
-                    }
+                        Component {
+                            id: folderColumn
+                            FolderColumn {
+                                owner: pane
+                                index: slot.index
+                                url: slot.url
+                            }
+                        }
+                        Component {
+                            id: previewColumn
+                            PreviewColumn { owner: pane }
+                        }
 
-                    // The divider on the column's right; dragging it sizes
-                    // the column (with Option, every column).
-                    Rectangle {
-                        x: parent.width - 1
-                        y: Finder.columnTop
-                        width: 1
-                        height: parent.height - y
-                        color: Finder.separator
-                    }
-                    Item {
-                        x: parent.width - 4
-                        y: Finder.columnTop
-                        width: 8
-                        height: parent.height - y
-                        HoverHandler { cursorShape: Qt.SizeHorCursor }
-                        DragHandler {
-                            property real from: 0
-                            target: null
-                            yAxis.enabled: false
-                            cursorShape: Qt.SizeHorCursor
-                            onActiveChanged: if (active) from = slot.w
-                            onTranslationChanged: {
-                                if (!active)
-                                    return;
-                                const w = Math.max(Finder.columnMin, from + translation.x);
-                                if (centroid.modifiers & Qt.AltModifier) {
-                                    for (let i = 0; i < columns.count; ++i)
-                                        columns.setProperty(i, "w", w);
-                                } else {
-                                    columns.setProperty(slot.index, "w", w);
+                        // The divider on the column's right; dragging it sizes
+                        // the column (with Option, every column).
+                        Rectangle {
+                            x: parent.width - 1
+                            y: Finder.columnTop
+                            width: 1
+                            height: parent.height - y
+                            color: Finder.separator
+                        }
+                        Item {
+                            x: parent.width - 4
+                            y: Finder.columnTop
+                            width: 8
+                            height: parent.height - y
+                            HoverHandler { cursorShape: Qt.SizeHorCursor }
+                            DragHandler {
+                                property real from: 0
+                                target: null
+                                yAxis.enabled: false
+                                cursorShape: Qt.SizeHorCursor
+                                onActiveChanged: if (active) from = slot.w
+                                onTranslationChanged: {
+                                    if (!active)
+                                        return;
+                                    const w = Math.max(Finder.columnMin, from + translation.x);
+                                    if (centroid.modifiers & Qt.AltModifier) {
+                                        for (let i = 0; i < columns.count; ++i)
+                                            columns.setProperty(i, "w", w);
+                                    } else {
+                                        columns.setProperty(slot.index, "w", w);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
 
-        Controls.ScrollBar.horizontal: Controls.ScrollBar {
-            policy: Controls.ScrollBar.AsNeeded
-            contentItem: Rectangle {
-                implicitHeight: Theme.size.scrollbar.thin
-                radius: height / 2
-                color: Theme.color.label.tertiary
-                opacity: parent.active ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
+            Controls.ScrollBar.horizontal: Controls.ScrollBar {
+                policy: Controls.ScrollBar.AsNeeded
+                contentItem: Rectangle {
+                    implicitHeight: Theme.size.scrollbar.thin
+                    radius: height / 2
+                    color: Theme.color.label.tertiary
+                    opacity: parent.active ? 1 : 0
+                    Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
+                }
+                background: null
             }
-            background: null
+        }
+    }
+
+    // Finder's soft edge: the columns fade out under the toolbar.
+    Rectangle {
+        x: -pane.sidebarEdge
+        y: Finder.windowRadius
+        width: parent.width + pane.sidebarEdge
+        height: Finder.columnTop - y
+        gradient: Gradient {
+            GradientStop { position: 0; color: Finder.content }
+            GradientStop { position: 0.3; color: Qt.alpha(Finder.content, 0.62) }
+            GradientStop { position: 1; color: Qt.alpha(Finder.content, 0) }
         }
     }
 
@@ -205,10 +254,18 @@ FocusScope {
             showHidden: owner.model.showHidden
         }
 
+        // A row in view, below the toolbar, scrolling as little as it takes.
         function positionAt(target) {
             const row = folder.rowsOf([target])[0];
-            if (row >= 0)
-                list.positionViewAtIndex(row, ListView.Contain);
+            if (row < 0)
+                return;
+            const top = row * Finder.columnRow;
+            let to = list.contentY;
+            if (top < to + Finder.columnRowsTop)
+                to = top - Finder.columnRowsTop;
+            else if (top + Finder.columnRow > to + list.height - list.bottomMargin)
+                to = top + Finder.columnRow - list.height + list.bottomMargin;
+            list.contentY = Math.max(-list.topMargin, Math.min(to, list.contentHeight + list.bottomMargin - list.height));
         }
         // A row's place in the window's folder (the focused column's rows
         // are the window's, read separately).
@@ -221,29 +278,16 @@ FocusScope {
             return windowRow(row);
         }
 
-        ListView {
-            id: list
+        // Clicks and drags on the rows, from below the toolbar (its empty
+        // space above them still moves the window), and under the rows, so
+        // a name being edited takes its own clicks.
+        Item {
+            id: hits
             y: Finder.columnTop
-            width: parent.width
-            height: parent.height - y
-            topMargin: Finder.columnRowsTop - Finder.columnTop
-            bottomMargin: 6
-            clip: true
-            model: folder
-            reuseItems: true
-            boundsBehavior: Flickable.StopAtBounds
-            acceptedButtons: Qt.NoButton
-            keyNavigationEnabled: false
-            // No current item: a view gives its current item the keyboard
-            // whenever its rows change, which would close a name being edited.
-            currentIndex: -1
-            highlightFollowsCurrentItem: false
+            width: list.width
+            height: list.height - y
 
-            function rowAt(point) { return indexAt(point.x, point.y + contentY); }
-            function onName(row, x) {
-                const item = itemAtIndex(row);
-                return item !== null && x >= item.nameStart && x <= item.nameEnd;
-            }
+            function rowAt(point) { return list.indexAt(point.x, point.y + y + list.contentY); }
 
             // A click selects in the focused column (with Ctrl or Shift, adds
             // to the selection), and moves the window into any other; a
@@ -252,7 +296,7 @@ FocusScope {
                 id: tap
                 acceptedModifiers: Qt.KeyboardModifierMask
                 onTapped: (point) => {
-                    const row = list.rowAt(point.position);
+                    const row = hits.rowAt(point.position);
                     renameSoon.stop();
                     if (!col.focused) {
                         col.take(row);
@@ -273,7 +317,7 @@ FocusScope {
                 }
                 onDoubleTapped: (point) => {
                     renameSoon.stop();
-                    const at = col.focused ? col.windowRow(list.rowAt(point.position)) : col.take(list.rowAt(point.position));
+                    const at = col.focused ? col.windowRow(hits.rowAt(point.position)) : col.take(hits.rowAt(point.position));
                     if (at >= 0)
                         owner.finder.open(at);
                 }
@@ -291,7 +335,7 @@ FocusScope {
                     if (!active)
                         return;
                     renameSoon.stop();
-                    const row = list.rowAt(centroid.pressPosition);
+                    const row = hits.rowAt(centroid.pressPosition);
                     if (row < 0)
                         return;
                     const at = col.focused ? col.windowRow(row) : col.take(row);
@@ -299,9 +343,34 @@ FocusScope {
                         owner.finder.startDrag(at);
                 }
             }
+        }
+
+        // The rows, from the window's top: they scroll up under the toolbar.
+        ListView {
+            id: list
+            width: parent.width
+            height: parent.height
+            topMargin: Finder.columnRowsTop
+            bottomMargin: 6
+            clip: true
+            model: folder
+            reuseItems: true
+            boundsBehavior: Flickable.StopAtBounds
+            acceptedButtons: Qt.NoButton
+            keyNavigationEnabled: false
+            // No current item: a view gives its current item the keyboard
+            // whenever its rows change, which would close a name being edited.
+            currentIndex: -1
+            highlightFollowsCurrentItem: false
+
+            function onName(row, x) {
+                const item = itemAtIndex(row);
+                return item !== null && x >= item.nameStart && x <= item.nameEnd;
+            }
 
             Controls.ScrollBar.vertical: Controls.ScrollBar {
                 policy: Controls.ScrollBar.AsNeeded
+                topPadding: Finder.columnTop + 2
                 contentItem: Rectangle {
                     implicitWidth: Theme.size.scrollbar.thin
                     radius: width / 2
@@ -397,10 +466,12 @@ FocusScope {
         DropArea {
             id: drops
             property int row: -1
-            anchors.fill: list
+            y: Finder.columnTop
+            width: list.width
+            height: list.height - y
             keys: ["text/uri-list"]
             function over(drag) {
-                const at = list.indexAt(drag.x, drag.y + list.contentY);
+                const at = list.indexAt(drag.x, drag.y + y + list.contentY);
                 row = at >= 0 && folder.isDirAt(at) && !(owner.finder.dragging && owner.finder.selectedSet[folder.urlAt(at).toString()]) ? at : -1;
                 drag.accept(Qt.MoveAction);
             }
@@ -414,7 +485,7 @@ FocusScope {
             }
         }
         Rectangle {
-            anchors.fill: list
+            anchors.fill: drops
             anchors.margins: 2
             radius: Finder.rowRadius
             color: "transparent"
