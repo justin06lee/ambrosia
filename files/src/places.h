@@ -11,11 +11,14 @@ class Places : public QObject
     Q_OBJECT
     QML_ELEMENT
     QML_SINGLETON
-    Q_PROPERTY(QVariantList sections READ sections CONSTANT)
+    Q_PROPERTY(QVariantList sections READ sections NOTIFY sectionsChanged)
     Q_PROPERTY(QString computer READ computer CONSTANT)
 
 public:
-    using QObject::QObject;
+    explicit Places(QObject *parent = nullptr);
     QVariantList sections() const;
     QString computer() const;
+
+Q_SIGNALS:
+    void sectionsChanged();
 };

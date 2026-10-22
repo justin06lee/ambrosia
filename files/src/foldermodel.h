@@ -66,6 +66,7 @@ public:
         KindShortRole,
         DepthRole,
         ExpandedRole,
+        TagsRole, // the colors of its tags, read when asked for
     };
     Q_ENUM(Role)
 

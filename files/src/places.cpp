@@ -1,4 +1,5 @@
 #include "places.h"
+#include "tags.h"
 
 #include <QDir>
 #include <QStandardPaths>
@@ -24,6 +25,12 @@ QUrl standard(QStandardPaths::StandardLocation location)
 
 }
 
+Places::Places(QObject *parent)
+    : QObject(parent)
+{
+    connect(Tags::instance(), &Tags::listChanged, this, &Places::sectionsChanged);
+}
+
 QString Places::computer() const
 {
     return QSysInfo::machineHostName();
@@ -40,11 +47,7 @@ QVariantList Places::sections() const
     locations << item(QDir(home).dirName(), QUrl::fromLocalFile(home), QStringLiteral("home"))
               << item(computer(), QUrl::fromLocalFile(QStringLiteral("/")), QStringLiteral("drive"))
               << item(QStringLiteral("Trash"), QUrl(QStringLiteral("trash:/")), QStringLiteral("trash"));
-    QVariantList tags;
-    const char *const colors[][2] = {{"Red", "red"}, {"Orange", "orange"}, {"Yellow", "yellow"}, {"Green", "green"},
-                                     {"Blue", "blue"}, {"Purple", "purple"}, {"Gray", "gray"}};
-    for (const auto &c : colors)
-        tags << QVariantMap{{QStringLiteral("name"), QString::fromLatin1(c[0])}, {QStringLiteral("color"), QString::fromLatin1(c[1])}};
+    const QVariantList tags = Tags::instance()->all();
     return {
         section(QString(), {item(QStringLiteral("Recents"), QUrl(QStringLiteral("recentlyused:/files")), QStringLiteral("recents"))}),
         section(QStringLiteral("Favorites"), favorites),

@@ -105,6 +105,7 @@ FocusScope {
             required property bool isDir
             required property string badge
             required property url url
+            required property var tags
             readonly property bool selected: pane.finder.selected[index] === true || pane.dropCell === index
             readonly property bool renaming: pane.finder.renaming && pane.finder.editing.toString() === url.toString()
             function onName(x, y) {
@@ -132,9 +133,20 @@ FocusScope {
                 size: Finder.iconSize
                 kind: cell.isDir ? "folder" : "document"
                 badge: cell.badge
+                tint: cell.isDir && cell.tags.length > 0 ? cell.tags[0] : ""
+            }
+            // Its tags, before its name (the name moves over for them).
+            TagDots {
+                id: dots
+                visible: !cell.renaming
+                x: name.x + name.leftPadding + (name.width - name.leftPadding - name.paintedWidth) / 2 - width - 4
+                y: name.y + name.paintedHeight / Math.max(1, name.lineCount) / 2 - height / 2
+                colors: cell.tags
+                ring: Finder.content
             }
             Rectangle {
                 anchors.centerIn: name
+                anchors.horizontalCenterOffset: name.leftPadding / 2
                 width: name.paintedWidth + 10
                 height: name.paintedHeight + 2
                 radius: 4
@@ -161,6 +173,7 @@ FocusScope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 y: icon.y + icon.height + 6
                 width: parent.width - 8
+                leftPadding: dots.width > 0 ? dots.width + 4 : 0
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
                 maximumLineCount: 2

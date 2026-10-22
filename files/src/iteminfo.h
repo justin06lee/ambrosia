@@ -8,6 +8,8 @@
 #include <QVariantList>
 #include <QtQml/qqmlregistration.h>
 
+#include "tags.h"
+
 #include <atomic>
 #include <memory>
 
@@ -49,6 +51,10 @@ class ItemInfo : public QObject
     Q_PROPERTY(QString appIcon READ appIcon NOTIFY changed)
     // Get Info's Comments, kept where Dolphin keeps them (user.xdg.comment).
     Q_PROPERTY(QString comment READ comment WRITE setComment NOTIFY changed)
+    // Its tags' names, in the order they were given.
+    Q_PROPERTY(QStringList tags READ tags NOTIFY changed)
+    // A folder's first colored tag's color, which its icon takes.
+    Q_PROPERTY(QString tint READ tint NOTIFY changed)
     // "You can read and write"; then [{name, privilege}] for the owner, the
     // group and everyone.
     Q_PROPERTY(QString access READ access NOTIFY changed)
@@ -80,6 +86,8 @@ public:
     QString appName() const { return m_appName; }
     QString appIcon() const { return m_appIcon; }
     QString comment() const { return m_comment; }
+    QStringList tags() const { return m_tags; }
+    QString tint() const { return m_isDir ? Tags::instance()->colorsOf(m_tags).value(0) : QString(); }
     void setComment(const QString &comment);
     QString access() const { return m_access; }
     QVariantList permissions() const { return m_permissions; }
@@ -107,6 +115,7 @@ private:
     QString m_created, m_modified, m_modifiedSeconds, m_opened;
     QString m_appName, m_appIcon, m_comment, m_access;
     QVariantList m_permissions;
+    QStringList m_tags;
     bool m_isDir = false;
     qint64 m_bytes = -1; // its size; a folder's contents', once counted
     qint64 m_disk = -1;  // the blocks they take on disk

@@ -13,7 +13,10 @@ Platform.MenuBar {
     required property var finder
 
     Platform.Menu {
-        onAboutToShow: bar.finder.menusOpen += 1
+        onAboutToShow: {
+            bar.finder.menusOpen += 1;
+            tagsMenu.common = bar.finder.hasSelection ? Tags.common(bar.finder.selectedUrls()) : [];
+        }
         onAboutToHide: bar.finder.menusOpen = Math.max(0, bar.finder.menusOpen - 1)
         title: "File"
         Platform.MenuItem { text: "New Finder Window"; shortcut: "Ctrl+N"; onTriggered: bar.finder.act("new", () => App.openWindow(bar.finder.url)) }
@@ -38,6 +41,29 @@ Platform.MenuBar {
             shortcut: "Ctrl+Backspace"
             enabled: bar.finder.hasSelection
             onTriggered: bar.finder.act("trash", bar.finder.trashSelection)
+        }
+        Platform.MenuSeparator {}
+        // Finder's row of tag colors, as a submenu of their names (the
+        // shell's menus draw no icons). A tag every item selected has is
+        // checked; choosing it takes it from all of them, or gives it to all.
+        Platform.Menu {
+            id: tagsMenu
+            property var common: []
+            title: "Tags"
+            enabled: bar.finder.hasSelection && bar.finder.local
+            onAboutToShow: common = Tags.common(bar.finder.selectedUrls())
+            Instantiator {
+                model: Tags.all
+                delegate: Platform.MenuItem {
+                    required property var modelData
+                    text: modelData.name
+                    checkable: true
+                    checked: tagsMenu.common.indexOf(modelData.name) >= 0
+                    onTriggered: bar.finder.act("tag " + modelData.name, () => Tags.toggle(bar.finder.selectedUrls(), modelData.name))
+                }
+                onObjectAdded: (index, object) => tagsMenu.insertItem(index, object)
+                onObjectRemoved: (index, object) => tagsMenu.removeItem(object)
+            }
         }
     }
     Platform.Menu {

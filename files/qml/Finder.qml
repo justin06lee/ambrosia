@@ -113,6 +113,28 @@ QtObject {
     readonly property int infoRadius: 16
     readonly property int infoWidth: 400
 
+    // Tags: the dots by a name (10 points, each further tag 5 to the left),
+    // their fill and rim the same in light and dark; Get Info's tokens.
+    readonly property int tagDot: 10
+    readonly property int tagStep: 5
+    readonly property var tagFill: ({ red: "#ef716c", orange: "#f3a969", yellow: "#f7d35f", green: "#85d384",
+                                      blue: "#62a2f9", purple: "#ce64e7", gray: "#b1b1b5" })
+    readonly property var tagRim: ({ red: "#e6524c", orange: "#ec9647", yellow: "#f0c43c", green: "#66c966",
+                                     blue: "#4089f2", purple: "#c043dc", gray: "#98989d" })
+    // A token is its tag's color, darker in dark and lighter in light; a tag
+    // without a color is grey.
+    function tagToken(name) {
+        const rim = tagRim[name];
+        if (!rim)
+            return dark ? "#4a4a46" : "#e0e0e0";
+        const c = Qt.color(rim);
+        return dark ? Qt.rgba(c.r * 0.9, c.g * 0.9, c.b * 0.9, 1)
+                    : Qt.rgba(c.r + 0.35 * (1 - c.r), c.g + 0.35 * (1 - c.g), c.b + 0.35 * (1 - c.b), 1);
+    }
+    function tagTokenText(name) {
+        return !tagRim[name] ? Theme.color.label.primary : dark ? "#ffffff" : "#1a1a1a";
+    }
+
     // Window colors, light and dark
     readonly property color content: dark ? "#282824" : "#ffffff"
     readonly property color sidebar: dark ? "#191915" : "#f8f8f8"

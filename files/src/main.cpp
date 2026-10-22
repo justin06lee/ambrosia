@@ -5,9 +5,13 @@
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDir>
+#include <QFile>
 #include <QIcon>
 #include <QQmlApplicationEngine>
+#include <QPainter>
 #include <QQuickImageProvider>
+#include <QRegularExpression>
+#include <QSvgRenderer>
 #include <QSettings>
 #include <QStandardPaths>
 
@@ -26,6 +30,58 @@ public:
         if (size)
             *size = pixmap.size();
         return pixmap;
+    }
+};
+
+// A tagged folder in its tag's color, as macOS 26 draws it
+// (image://folder/COLOR): the art's blues move to the tag's hue, its middle
+// blue becoming the tag's color and the rest keeping their steps of light
+// around it; the paper stays white.
+class FolderProvider : public QQuickImageProvider
+{
+public:
+    FolderProvider()
+        : QQuickImageProvider(QQuickImageProvider::Image)
+    {
+    }
+    QImage requestImage(const QString &id, QSize *size, const QSize &requested) override
+    {
+        static const QHash<QString, QColor> tags = {
+            {QStringLiteral("red"), QColor(0xe6524c)},    {QStringLiteral("orange"), QColor(0xec9647)},
+            {QStringLiteral("yellow"), QColor(0xf0c43c)}, {QStringLiteral("green"), QColor(0x66c966)},
+            {QStringLiteral("blue"), QColor(0x4089f2)},   {QStringLiteral("purple"), QColor(0xc043dc)},
+            {QStringLiteral("gray"), QColor(0x98989d)},
+        };
+        QFile file(QStringLiteral(":/qt/qml/Files/art/folder.svg"));
+        file.open(QIODevice::ReadOnly);
+        QString svg = QString::fromUtf8(file.readAll());
+        if (const QColor tag = tags.value(id); tag.isValid()) {
+            const QColor middle(0x63c4f0); // the front's middle blue
+            static const QRegularExpression hex(QStringLiteral("#[0-9a-fA-F]{6}"));
+            QString out;
+            qsizetype last = 0;
+            for (auto it = hex.globalMatch(svg); it.hasNext();) {
+                const auto m = it.next();
+                QColor c(m.captured());
+                if (c.hslSaturationF() > 0.3) { // a blue, not the paper
+                    const float light = std::clamp(tag.lightnessF() + 0.8f * (c.lightnessF() - middle.lightnessF()), 0.0f, 1.0f);
+                    const float saturation = std::clamp(tag.hslSaturationF() * c.hslSaturationF() / middle.hslSaturationF(), 0.0f, 1.0f);
+                    c = QColor::fromHslF(std::max(0.0f, tag.hslHueF()), saturation, light);
+                }
+                out += svg.mid(last, m.capturedStart() - last) + c.name();
+                last = m.capturedEnd();
+            }
+            svg = out + svg.mid(last);
+        }
+        QSvgRenderer renderer(svg.toUtf8());
+        QImage image(requested.isValid() ? requested : QSize(64, 64), QImage::Format_ARGB32_Premultiplied);
+        image.fill(Qt::transparent);
+        QPainter painter(&image);
+        renderer.render(&painter);
+        painter.end();
+        if (size)
+            *size = image.size();
+        return image;
     }
 };
 
@@ -100,6 +156,7 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
     engine.addImageProvider(QStringLiteral("icon"), new IconProvider);
+    engine.addImageProvider(QStringLiteral("folder"), new FolderProvider);
     App files(&engine, options);
     if (!oneShot)
         bus.registerObject(QStringLiteral("/org/ambrosia/files"), &files, QDBusConnection::ExportScriptableSlots);

@@ -1,5 +1,6 @@
 #include "iteminfo.h"
 #include "format.h"
+#include "tags.h"
 
 #include <KApplicationTrader>
 
@@ -91,6 +92,12 @@ ItemInfo::ItemInfo(QObject *parent)
     connect(&m_settle, &QTimer::timeout, this, &ItemInfo::follow);
     connect(&m_watcher, &QFileSystemWatcher::directoryChanged, &m_settle, qOverload<>(&QTimer::start));
     connect(&m_watcher, &QFileSystemWatcher::fileChanged, &m_settle, qOverload<>(&QTimer::start));
+    connect(Tags::instance(), &Tags::changed, this, [this](const QList<QUrl> &urls) {
+        if (urls.contains(m_url)) {
+            m_tags = Tags::read(localPath(m_url));
+            Q_EMIT changed();
+        }
+    });
     m_progress.setInterval(150);
     connect(&m_progress, &QTimer::timeout, this, [this] {
         if (!m_count)
@@ -138,6 +145,7 @@ void ItemInfo::read(bool recount)
     m_appName.clear();
     m_appIcon.clear();
     m_comment.clear();
+    m_tags.clear();
     m_access.clear();
     m_permissions.clear();
     m_preview = QStringLiteral("generic");
@@ -214,6 +222,7 @@ void ItemInfo::read(bool recount)
     const ssize_t got = getxattr(native.constData(), commentKey, value, sizeof value);
     if (got > 0)
         m_comment = QString::fromUtf8(value, got);
+    m_tags = Tags::read(path);
 
     const passwd *owner = getpwuid(sx.stx_uid);
     const group *grp = getgrgid(sx.stx_gid);
