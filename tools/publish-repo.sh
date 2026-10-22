@@ -4,7 +4,8 @@
 # `repo` release of github.com/justin06lee/ambrosia-packages, which installed
 # systems use as [ambrosia] (packaging/keyring/ambrosia-mirrorlist).
 #
-#   tools/publish-repo.sh [user@host]     (default tenet; or `make publish`)
+#   tools/publish-repo.sh [user@host]     (default tenet, justin06lee@192.168.1.172;
+#                                         or `make publish`)
 #
 # Every run publishes new ambrosia-* packages from the checkout. Our Quickshell
 # is rebuilt only when the release doesn't have the version in
@@ -12,13 +13,15 @@
 #
 # The private key never leaves this Mac: it lives in $AMBROSIA_GNUPGHOME
 # (default ~/.config/ambrosia/gnupg), backed up in
-# /Volumes/T7/Backups/ambrosia-signing. AMBROSIA_RSH swaps the transport to the
-# build host, as for tools/remote.sh (AMBROSIA_RSH=ssh while makima is down).
+# /Volumes/T7/Backups/ambrosia-signing. It builds in the build host's checkout
+# (~/work/ambrosia, through tools/remote.sh); AMBROSIA_RSH and
+# AMBROSIA_REMOTE_DIR change the transport and the checkout, as for remote.sh.
 set -euo pipefail
 
-host=${1:-justin06lee@tenet}
+host=${1:-justin06lee@192.168.1.172}
 root=$(cd "$(dirname "$0")/.." && pwd)
-rsh=${AMBROSIA_RSH:-makima possess}
+rsh=${AMBROSIA_RSH:-ssh -i $HOME/.ssh/id_ed25519_justin -o IdentitiesOnly=yes}
+dir=${AMBROSIA_REMOTE_DIR:-work/ambrosia}
 release=(-R justin06lee/ambrosia-packages)
 tag=repo
 key=2DB46FDF911241FC9406002BCF43580DA0F59EB8
@@ -43,7 +46,7 @@ build="$cap make package"
 # Quickshell is built when the release lacks its version, unless the host
 # already has that build in out/pkg (bump pkgrel for a new one).
 if ! grep -qxF "$qs" <<<"$assets"; then
-  remote "test -f ~/ambrosia/out/pkg/$qs" || build="$cap make quickshell && $build"
+  remote "test -f ~/$dir/out/pkg/$qs" || build="$cap make quickshell && $build"
   publish_qs=1
 fi
 
@@ -52,7 +55,7 @@ step "Building on $host: $build"
 
 rm -rf "$stage"
 mkdir -p "$stage/pkg" "$stage/repo"
-rsync -a -e "$rsh" "$host:ambrosia/out/pkg/" "$stage/pkg/"
+rsync -a -e "$rsh" "$host:$dir/out/pkg/" "$stage/pkg/"
 cd "$stage/pkg"
 packages=(ambrosia-*.pkg.tar.zst)
 [[ -n "${publish_qs:-}" ]] && packages+=("$qs")
@@ -74,10 +77,10 @@ if grep -qxF ambrosia.db <<<"$assets"; then
   done
 fi
 # repo-add is pacman's, so it runs on the build host, next to the packages.
-remote "rm -rf ~/ambrosia/out/repo && mkdir -p ~/ambrosia/out/repo"
-rsync -a -e "$rsh" "$stage/repo/" "$host:ambrosia/out/repo/"
-remote "cd ~/ambrosia/out/repo && repo-add -q ambrosia.db.tar.gz ${packages[*]/#/../pkg/}"
-rsync -a -e "$rsh" "$host:ambrosia/out/repo/" "$stage/repo/"
+remote "rm -rf ~/$dir/out/repo && mkdir -p ~/$dir/out/repo"
+rsync -a -e "$rsh" "$stage/repo/" "$host:$dir/out/repo/"
+remote "cd ~/$dir/out/repo && repo-add -q ambrosia.db.tar.gz ${packages[*]/#/../pkg/}"
+rsync -a -e "$rsh" "$host:$dir/out/repo/" "$stage/repo/"
 
 step "Signing with $key"
 cd "$stage/repo"

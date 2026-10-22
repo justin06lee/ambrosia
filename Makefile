@@ -7,8 +7,17 @@
 #
 # On the Mac: `make publish` builds the packages on tenet, signs them and
 # uploads them to the hosted [ambrosia] repo (tools/publish-repo.sh).
+# `make remote-build` runs the build gate on tenet instead of the Mac, and
+# `make review-remote` serves the review site from tenet on localhost:4747.
+# Both use tenet's own checkout (tools/remote.sh) and run capped there.
 
-.PHONY: all build install update clean package quickshell iso publish
+HOST ?= justin06lee@192.168.1.172
+AMBROSIA_RSH ?= ssh -i $(HOME)/.ssh/id_ed25519_justin -o IdentitiesOnly=yes
+export AMBROSIA_RSH
+# tenet has no swap and runs other projects' services.
+CAP = systemd-run --user --scope --quiet -p MemoryMax=6G nice -n 19 ionice -c3
+
+.PHONY: all build install update clean package quickshell iso publish remote-build review-remote
 
 all: install
 
@@ -41,6 +50,16 @@ iso:
 
 publish:
 	tools/publish-repo.sh $(HOST)
+
+remote-build:
+	tools/remote.sh $(HOST) '$(CAP) make build'
+
+# The server keeps running on tenet after the tunnel closes:
+# `tools/remote.sh $(HOST) systemctl --user stop ambrosia-review` stops it.
+review-remote:
+	tools/remote.sh $(HOST) 'systemctl --user stop ambrosia-review 2>/dev/null; bun install --frozen-lockfile >/dev/null && systemd-run --user --unit=ambrosia-review --quiet -p MemoryMax=2G -p Nice=10 --working-directory=$$PWD bun run review'
+	@echo "review site: http://localhost:4747 (Ctrl-C closes the tunnel)"
+	$(AMBROSIA_RSH) -N -L 4747:localhost:4747 $(HOST)
 
 clean:
 	rm -rf dist out

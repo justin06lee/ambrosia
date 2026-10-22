@@ -35,6 +35,8 @@ Look and search come next.
 ```sh
 make                       # test, build every theme and the review site, install on Linux
 bun run review             # the design review site at http://localhost:4747
+make remote-build          # the build gate on tenet, the Arch build box (Mac stays light)
+make review-remote         # the review site served from tenet, tunnelled to localhost:4747
 open preview/index.html    # the mock desktop on its own (xdg-open on Linux)
 ```
 
@@ -59,8 +61,8 @@ the installer lists `[ambrosia]` first in their pacman.conf, and
 desktop and opens the installer, which asks for a disk, a name and a password
 and does the rest; the installer needs the internet. Installing the packages
 with `pacman -U` on an existing Arch system adds an "Ambrosia" session to the
-login screen instead. `tools/remote.sh <host> <command>` mirrors the checkout
-to a machine on the makima mesh and runs a command there, and `tools/shot.sh`
+login screen instead. `tools/remote.sh <host> <command>` runs a command in the
+build box's own git checkout, synced from this one over SSH, and `tools/shot.sh`
 photographs the shell on a headless KWin.
 
 `make` needs [bun](https://bun.sh). On Linux it installs the themes for the
