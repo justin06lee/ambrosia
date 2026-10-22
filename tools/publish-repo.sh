@@ -50,8 +50,18 @@ if ! grep -qxF "$qs" <<<"$assets"; then
   publish_qs=1
 fi
 
-step "Building on $host: $build"
-"$root/tools/remote.sh" "$host" "$build"
+# A run cut short after its build (on 2026-10-22, the Mac side was killed while
+# a saturated disk held makepkg up) needn't build again: with nothing
+# uncommitted, the host's packages for this commit are the ones to publish.
+ver="0.1.0.r$(git -C "$root" rev-list --count HEAD).$(git -C "$root" rev-parse --short HEAD)-1"
+names=$(sed -n 's/^pkgname=(\(.*\))$/\1/p' "$root/packaging/PKGBUILD")
+if [[ "$build" == "$cap make package" && -z "$(git -C "$root" status --porcelain -- . ':(exclude).ruri')" ]] &&
+  remote "cd ~/$dir/out/pkg && for p in $names; do ls \$p-$ver-*.pkg.tar.zst >/dev/null 2>&1 || exit 1; done"; then
+  step "Already built on $host: $ver"
+else
+  step "Building on $host: $build"
+  "$root/tools/remote.sh" "$host" "$build"
+fi
 
 rm -rf "$stage"
 mkdir -p "$stage/pkg" "$stage/repo"

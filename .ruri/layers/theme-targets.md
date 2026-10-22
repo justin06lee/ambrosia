@@ -14,6 +14,7 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - **Fontconfig aliases and rasterization:** tools/gen/targets/fontconfig.ts, tools/gen/targets/shared.ts
 - **Shared formatting helpers:** tools/gen/targets/shared.ts
 - **Session kdeglobals (light scheme + type-scale fonts as QFont strings):** tools/gen/targets/kde.ts
+- **KWin window decoration (Aurorae SVG theme: traffic lights, titlebar, window shadow):** tools/gen/targets/aurorae.ts
 
 ## How it works
 
@@ -27,6 +28,7 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - tools/gen/targets/qml.ts — Ambrosia QML singleton tree with Theme.dark / Theme.accentName switching
 - tools/gen/targets/web.ts — --amb-* CSS custom properties for preview/web surfaces
 - tools/gen/targets/fontconfig.ts — sans-serif/monospace aliases and rasterization defaults
+- tools/gen/targets/aurorae.ts — Aurorae theme per mode: rc layout, nine-slice decoration.svg painted as PNGs (window color, rim, edge, box-shadows), vector button SVGs
 
 ## Rules and traps
 
@@ -36,6 +38,7 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - GTK3 has no prefers-color-scheme: emit one file per mode; GTK4 emits light and dark in one file.
 - Keep QML identifiers safe: slug token keys and prefix leading digits.
 - QML property names can't be ECMAScript keywords; qml.ts suffixes them with _ (Theme.size.switch_), guarded by a test in tools/gen/rules.test.ts.
+- Aurorae makes KWin's window shadow from what decoration.svg paints in its Padding*, slicing it at the pieces' own sizes; KSvg only takes a prefix whose -center element exists, so each button state has both 'x' and 'x-center'. The frame is 1x PNG (soft on HiDPI).
 
 ## What it talks to
 
