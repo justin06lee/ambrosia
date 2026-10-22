@@ -361,7 +361,9 @@ merged, packaged and reported with screenshots, a recording and its numbers.
 Slice 1, a Finder window that browses folders (sidebar, toolbar, list and
 icon views, path bar, menus in the menu bar), merged in 59e9610 and ships as
 `ambrosia-files` from r103. Slice 2 is file operations and drag and drop;
-after it the Dock pin and the default file manager move to Files.
+with it, Shell and Session moved the Dock pin and the default for folders
+from Dolphin to Files (d0dd093), and Dolphin stays installed. Slice 3 is the
+Columns view.
 
 **Slice 2, file operations** (`FileOps` in `src/fileops.cpp`, all through
 KIO and recorded in KIO's undo manager):
@@ -374,9 +376,10 @@ KIO and recorded in KIO's undo manager):
   as in Finder.
 - Move to Trash (⌘⌫) goes to the real freedesktop Trash; in the Trash the
   same key is Put Back.
-- Undo (⌘Z) and Redo (⇧⌘Z) carry Finder's labels ("Undo Move to Trash").
-  Undoing New Folder skips KIO's delete prompt, while undoing a copy still
-  asks.
+- Undo (⌘Z) and Redo (⇧⌘Z) carry Finder's labels both ways: "Undo Move of
+  “notes.md”" becomes "Redo Move of “notes.md”", and also "Undo Rename" and
+  "Undo New Folder". Undoing New Folder skips KIO's delete prompt, while
+  undoing a copy still asks.
 - Drag and drop: rows and icons drag out to other apps and to the Dock.
   Drops land on folder rows and icons, the sidebar, the path bar and the
   folder's empty space. A drop moves on the same disk; across disks, or
