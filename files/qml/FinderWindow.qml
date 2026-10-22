@@ -25,7 +25,11 @@ Window {
     property var selected: ({})
     property int current: -1
     property int anchor: -1
-    readonly property bool hasSelection: Object.keys(selected).length > 0
+    readonly property int selectedCount: Object.keys(selected).length
+    readonly property bool hasSelection: selectedCount > 0
+    // Where New Folder, Paste and renaming work: folders on this computer.
+    readonly property bool local: url.toString().startsWith("file:")
+    readonly property bool inTrash: url.toString().startsWith("trash:")
 
     readonly property alias model: folder
 
@@ -97,6 +101,8 @@ Window {
     property string reselect: ""
     function show_(target, from) {
         clearSelection();
+        editing = "";
+        pending = null;
         if (from !== "" && from.toString().startsWith(target.toString()))
             reselect = decodeURIComponent(from.toString().slice(target.toString().replace(/\/+$/, "").length + 1)).split("/")[0];
         url = target;
@@ -153,6 +159,139 @@ Window {
         for (const row of Object.keys(selected))
             open(Number(row));
     }
+    // The selection's items, in row order.
+    function selectedUrls() {
+        return Object.keys(selected).map(Number).sort((a, b) => a - b).map(row => folder.urlAt(row));
+    }
+
+    // File operations (FileOps, through KIO, undoable). What one of them
+    // makes in this folder is selected once the folder shows it: its reread
+    // can come before the operation ends, or after.
+    property var started: ({}) // FileOps id → {select, edit}
+    function run(id, then) {
+        if (id >= 0)
+            started[id] = then ?? {};
+    }
+    Connections {
+        target: FileOps
+        function onFinished(id, urls, ok) {
+            const then = win.started[id];
+            if (then === undefined)
+                return;
+            delete win.started[id];
+            if (ok && then.select && urls.length > 0)
+                win.selectWhenShown(Array.from(urls), then.edit === true);
+        }
+    }
+    property var pending: null
+    function selectWhenShown(urls, edit) {
+        pending = { urls: urls, edit: edit, until: Date.now() + 3000 };
+        selectPending();
+    }
+    function selectPending() {
+        if (!pending)
+            return;
+        const rows = folder.rowsOf(pending.urls).filter(row => row >= 0);
+        if (rows.length < pending.urls.length && Date.now() < pending.until)
+            return;
+        const p = pending;
+        pending = null;
+        if (rows.length === 0)
+            return;
+        const next = {};
+        for (const row of rows)
+            next[row] = true;
+        selected = next;
+        current = rows[0];
+        anchor = rows[0];
+        pane.item.positionAt(rows[0]);
+        if (p.edit)
+            beginRename(rows[0]);
+    }
+
+    function newFolder() {
+        if (local)
+            run(FileOps.newFolder(url), { select: true, edit: true });
+    }
+    function duplicate() {
+        if (hasSelection && local)
+            run(FileOps.duplicate(selectedUrls()), { select: true });
+    }
+    function trashSelection() {
+        if (!hasSelection)
+            return;
+        run(inTrash ? FileOps.putBack(selectedUrls()) : FileOps.trash(selectedUrls()));
+    }
+    function copySelection() {
+        if (hasSelection)
+            FileOps.copyToClipboard(selectedUrls());
+    }
+    function paste(move) {
+        if (local)
+            run(FileOps.paste(url, move), { select: true });
+    }
+
+    // Renaming in place: the item whose name is being edited, and its field.
+    property url editing: ""
+    property var editor: null
+    readonly property bool renaming: editing.toString() !== ""
+    function beginRename(row) {
+        if (row < 0 || !folder.urlAt(row).toString().startsWith("file:"))
+            return;
+        select(row, false, false);
+        editing = folder.urlAt(row);
+    }
+    function renameSelection() {
+        if (selectedCount === 1)
+            beginRename(Number(Object.keys(selected)[0]));
+    }
+    // The field is done: text is the new name, or undefined to keep the old.
+    function endRename(text) {
+        const target = editing;
+        editing = "";
+        pane.forceActiveFocus();
+        if (text !== undefined)
+            run(FileOps.rename(target, text), { select: true });
+    }
+
+    // Dragging items out: a real drag (text/uri-list) that this and other
+    // windows, other apps and the Dock's Trash take; whoever takes it does
+    // the work.
+    property bool dragging: false
+    property var dragUrls: []
+    Item {
+        id: dragItem
+        Drag.dragType: Drag.Automatic
+        Drag.supportedActions: Qt.CopyAction | Qt.MoveAction
+        Drag.proposedAction: Qt.MoveAction
+        Drag.mimeData: ({ "text/uri-list": win.dragUrls.map(u => u.toString()).join("\r\n") })
+        Drag.imageSourceSize: Qt.size(48, 48)
+        Drag.onDragFinished: win.dragging = false
+    }
+    function startDrag(row) {
+        if (!selected[row])
+            select(row, false, false);
+        dragUrls = selectedUrls();
+        dragItem.Drag.imageSource = "qrc:/qt/qml/Files/art/" + (folder.isDirAt(row) ? "folder" : "document") + ".svg";
+        dragging = true;
+        dragItem.Drag.active = true;
+    }
+    // Items dropped on a folder (dir): moved within a disk, copied across
+    // disks or with Option held, as Finder does; on the Trash, trashed.
+    // Returns the action taken, for the drag's source.
+    function dropOn(urls, dir) {
+        urls = Array.from(urls);
+        if (urls.length === 0)
+            return Qt.IgnoreAction;
+        if (dir.toString().startsWith("trash:")) {
+            run(FileOps.trash(urls));
+            return Qt.MoveAction;
+        }
+        const copy = (App.modifiers() & Qt.AltModifier) || !FileOps.dropMoves(urls, dir);
+        const here = dir.toString() === url.toString();
+        run(copy ? FileOps.copy(urls, dir) : FileOps.move(urls, dir), { select: here });
+        return copy ? Qt.CopyAction : Qt.MoveAction;
+    }
 
     MenuBar { finder: win }
 
@@ -164,6 +303,12 @@ Window {
         if (lastAct.name === name && now - lastAct.at < 150)
             return;
         lastAct = { name: name, at: now };
+        if (renaming) {
+            // ⌘⌫ deletes a word in the name field; it never trashes then.
+            if (name === "trash")
+                return;
+            editor?.commit();
+        }
         run();
     }
     function selectAll() {
@@ -183,6 +328,7 @@ Window {
                 if (row >= 0)
                     win.select(row, false, false);
             }
+            win.selectPending();
             if (!win.shownOnce) {
                 win.shownOnce = true;
                 if (win.first) {
@@ -229,14 +375,35 @@ Window {
         current = current < 0 ? -1 : move(current);
         anchor = anchor < 0 ? -1 : move(anchor);
     }
+    // A reset (a reread changed too much to line up) keeps the selection
+    // by its items.
+    property var keepSelected: []
     Connections {
         target: folder
         function onRowsInserted(parent, first, last) {
             win.shiftRows(first, last - first + 1);
             if (win.pendingExpand.length > 0)
                 Qt.callLater(win.expandPending);
+            if (win.pending)
+                Qt.callLater(win.selectPending);
         }
         function onRowsRemoved(parent, first, last) { win.shiftRows(first, -(last - first + 1)); }
+        function onModelAboutToBeReset() { win.keepSelected = win.selectedUrls(); }
+        function onModelReset() {
+            const urls = win.keepSelected;
+            win.keepSelected = [];
+            win.clearSelection();
+            if (urls.length === 0)
+                return;
+            const next = {};
+            for (const row of folder.rowsOf(urls))
+                if (row >= 0)
+                    next[row] = true;
+            win.selected = next;
+            const rows = Object.keys(next).map(Number);
+            if (rows.length > 0)
+                win.current = win.anchor = Math.min(...rows);
+        }
     }
 
     onVisibleChanged: if (visible) App.decorate(win, Finder.windowRadius)
@@ -263,13 +430,25 @@ Window {
             onActiveChanged: if (active) win.startSystemMove()
         }
 
-        Sidebar {
+        // The sidebar: the floating inset glass panel (macOS 26's Finder)
+        // or, with --sidebar flush, the flush one along the window's edge, a
+        // stub for now. Both take the window and fill this space.
+        Loader {
             id: sidebar
-            x: Finder.sidebarInset
-            y: Finder.sidebarInset
-            width: Finder.sidebarWidth
-            height: parent.height - 2 * Finder.sidebarInset
-            finder: win
+            readonly property bool flush: App.sidebar === "flush"
+            x: flush ? 0 : Finder.sidebarInset
+            y: x
+            width: flush ? Finder.sidebarInset + Finder.sidebarWidth : Finder.sidebarWidth
+            height: parent.height - 2 * y
+            sourceComponent: flush ? flushSidebar : floatingSidebar
+        }
+        Component {
+            id: floatingSidebar
+            Sidebar { finder: win }
+        }
+        Component {
+            id: flushSidebar
+            SidebarFlush { finder: win }
         }
 
         Item {
@@ -348,6 +527,8 @@ Window {
 
     // On the frame, the focused pane's keys come here unless it took them.
     function keyPressed(event) {
+        if (renaming)
+            return; // the name field's keys
         // Command is Ctrl (what the Mac-first keyboard gives apps), or
         // Super itself.
         const ctrl = event.modifiers & (Qt.ControlModifier | Qt.MetaModifier);
@@ -393,6 +574,7 @@ Window {
             break;
         case Qt.Key_D:
             if (ctrl && shift) win.act("desktop", () => win.goPlace("desktop"));
+            else if (ctrl) win.act("duplicate", win.duplicate);
             break;
         case Qt.Key_L:
             if (ctrl && alt) win.act("downloads", () => win.goPlace("downloads"));
@@ -402,9 +584,28 @@ Window {
             break;
         case Qt.Key_C:
             if (ctrl && shift) win.act("computer", () => win.goPlace("computer"));
+            else if (ctrl) win.act("copy", win.copySelection);
+            break;
+        case Qt.Key_V:
+            if (ctrl && alt) win.act("moveHere", () => win.paste(true));
+            else if (ctrl) win.act("paste", () => win.paste(false));
+            break;
+        case Qt.Key_Z:
+            if (ctrl && shift) win.act("redo", FileOps.redo);
+            else if (ctrl) win.act("undo", FileOps.undo);
             break;
         case Qt.Key_N:
-            if (ctrl && !shift) win.act("new", () => App.openWindow(win.url));
+            if (ctrl && shift) win.act("newFolder", win.newFolder);
+            else if (ctrl) win.act("new", () => App.openWindow(win.url));
+            break;
+        case Qt.Key_Backspace:
+            if (ctrl) win.act("trash", win.trashSelection);
+            else return;
+            break;
+        case Qt.Key_Return:
+        case Qt.Key_Enter:
+            if (ctrl) win.act("open", win.openSelection);
+            else win.act("rename", win.renameSelection);
             break;
         case Qt.Key_W:
             if (ctrl) win.act("close", win.close);

@@ -43,6 +43,14 @@ FocusScope {
 
     function positionAt(row) { list.positionViewAtIndex(row, ListView.Contain); }
 
+    // Drops: on a folder's row, into it; anywhere else, into this folder.
+    property int dropRow: -1
+    function dragOver(drag) {
+        const row = list.indexAt(drag.x, drag.y + list.contentY);
+        dropRow = row >= 0 && model.isDirAt(row) && !(finder.dragging && finder.selected[row]) ? row : -1;
+        drag.accept(Qt.MoveAction);
+    }
+
     // A narrow date column takes a shorter date, as Finder's does.
     readonly property real dateWidth: dateW - 12
     Label { id: dateProbe0; visible: false; text: "Sep 28, 2026 at 10:59 PM" }
@@ -168,16 +176,21 @@ FocusScope {
         model: pane.model
         reuseItems: true
         boundsBehavior: Flickable.StopAtBounds
+        acceptedButtons: Qt.NoButton // the mouse drags items, not the list
         currentIndex: pane.finder.current
         highlightFollowsCurrentItem: false
         keyNavigationEnabled: false
 
-        // Whether a point in a row is on its disclosure triangle.
+        // Whether a point in a row is on its disclosure triangle, or its name.
         function onTriangle(row, x) {
             if (row < 0 || !pane.model.isDirAt(row))
                 return false;
             const depth = list.itemAtIndex(row)?.depth ?? 0;
             return Math.abs(x - (Finder.disclosureX + depth * Finder.indent)) <= 9;
+        }
+        function onName(row, x) {
+            const item = list.itemAtIndex(row);
+            return item !== null && x >= item.nameStart && x <= item.nameEnd;
         }
 
         // One handler for the whole list: a row's click selects it (with
@@ -185,22 +198,54 @@ FocusScope {
         // and a click below the rows clears the selection. A click on a
         // folder's triangle opens it in place (with Option, everything in
         // it too) and leaves the selection alone.
+        // A click on the name of the one item selected renames it, once
+        // it's clear the click isn't the first of a double click.
         TapHandler {
             id: tap
             acceptedModifiers: Qt.KeyboardModifierMask
             onTapped: (point) => {
                 const row = list.indexAt(point.position.x, point.position.y + list.contentY);
-                if (list.onTriangle(row, point.position.x))
+                renameSoon.stop();
+                if (list.onTriangle(row, point.position.x)) {
                     pane.model.setExpanded(row, !pane.model.isExpanded(row), tap.point.modifiers & Qt.AltModifier);
-                else if (row < 0)
+                } else if (row < 0) {
                     pane.finder.clearSelection();
-                else
+                } else {
+                    const again = pane.finder.selectedCount === 1 && pane.finder.selected[row] === true
+                        && tap.point.modifiers === Qt.NoModifier && list.onName(row, point.position.x);
                     pane.finder.click(row, tap.point.modifiers);
+                    if (again) {
+                        renameSoon.row = row;
+                        renameSoon.start();
+                    }
+                }
             }
             onDoubleTapped: (point) => {
+                renameSoon.stop();
                 const row = list.indexAt(point.position.x, point.position.y + list.contentY);
                 if (row >= 0 && !list.onTriangle(row, point.position.x))
                     pane.finder.open(row);
+            }
+        }
+        Timer {
+            id: renameSoon
+            property int row: -1
+            interval: 600
+            onTriggered: pane.finder.beginRename(row)
+        }
+        // Pressing an item and dragging takes the selection along (the item
+        // is selected first if it wasn't).
+        DragHandler {
+            target: null
+            enabled: !pane.finder.renaming
+            onActiveChanged: {
+                if (!active)
+                    return;
+                renameSoon.stop();
+                const p = centroid.pressPosition;
+                const row = list.indexAt(p.x, p.y + list.contentY);
+                if (row >= 0 && !list.onTriangle(row, p.x))
+                    pane.finder.startDrag(row);
             }
         }
 
@@ -228,7 +273,11 @@ FocusScope {
             required property bool expanded
             required property bool isDir
             required property string badge
-            readonly property bool selected: pane.finder.selected[index] === true
+            required property url url
+            readonly property bool selected: pane.finder.selected[index] === true || pane.dropRow === index
+            readonly property bool renaming: pane.finder.renaming && pane.finder.editing.toString() === url.toString()
+            readonly property real nameStart: nameLabel.x
+            readonly property real nameEnd: nameLabel.x + nameLabel.paintedWidth
 
             width: list.width
             height: Finder.row
@@ -266,12 +315,26 @@ FocusScope {
                 kind: rowItem.isDir ? "folder" : "document"
             }
             Label {
+                id: nameLabel
+                visible: !rowItem.renaming
                 x: Finder.nameText + rowItem.indent
                 width: pane.dateX - x - 8
                 anchors.verticalCenter: parent.verticalCenter
                 text: rowItem.name
                 elide: Text.ElideMiddle
                 color: rowItem.ink
+            }
+            Loader {
+                active: rowItem.renaming
+                x: nameLabel.x - 5
+                width: Math.min(item ? item.implicitWidth : 0, pane.dateX - x - 4)
+                height: Finder.row - 2
+                anchors.verticalCenter: parent.verticalCenter
+                sourceComponent: RenameField {
+                    finder: pane.finder
+                    name: rowItem.name
+                    isDir: rowItem.isDir
+                }
             }
             Label {
                 x: pane.dateX + 8
@@ -301,5 +364,30 @@ FocusScope {
                 TextMetrics { id: kindFull; font: kindLabel.font; text: rowItem.kind }
             }
         }
+    }
+    // Over the rows and the empty space below them (not inside the list,
+    // whose content ends with its last row).
+    DropArea {
+        id: drops
+        anchors.fill: list
+        keys: ["text/uri-list"]
+        onEntered: (drag) => pane.dragOver(drag)
+        onPositionChanged: (drag) => pane.dragOver(drag)
+        onExited: pane.dropRow = -1
+        onDropped: (drop) => {
+            const row = pane.dropRow;
+            pane.dropRow = -1;
+            drop.accept(pane.finder.dropOn(drop.urls, row >= 0 ? pane.model.urlAt(row) : pane.finder.url));
+        }
+    }
+    // Into this folder: Finder rings the whole list.
+    Rectangle {
+        anchors.fill: list
+        anchors.margins: 2
+        radius: Finder.rowRadius
+        color: "transparent"
+        border.width: 3
+        border.color: Theme.accent.bg
+        visible: drops.containsDrag && pane.dropRow < 0 && !pane.finder.dragging
     }
 }

@@ -17,14 +17,51 @@ Platform.MenuBar {
         onAboutToHide: bar.finder.menusOpen = Math.max(0, bar.finder.menusOpen - 1)
         title: "File"
         Platform.MenuItem { text: "New Finder Window"; shortcut: "Ctrl+N"; onTriggered: bar.finder.act("new", () => App.openWindow(bar.finder.url)) }
+        Platform.MenuItem { text: "New Folder"; shortcut: "Ctrl+Shift+N"; enabled: bar.finder.local; onTriggered: bar.finder.act("newFolder", bar.finder.newFolder) }
         Platform.MenuItem { text: "Open"; shortcut: "Ctrl+O"; enabled: bar.finder.hasSelection; onTriggered: bar.finder.act("open", bar.finder.openSelection) }
-        Platform.MenuSeparator {}
         Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+W"; onTriggered: bar.finder.act("close", bar.finder.close) }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Rename"; enabled: bar.finder.selectedCount === 1 && bar.finder.local; onTriggered: bar.finder.act("rename", bar.finder.renameSelection) }
+        Platform.MenuItem { text: "Duplicate"; shortcut: "Ctrl+D"; enabled: bar.finder.hasSelection && bar.finder.local; onTriggered: bar.finder.act("duplicate", bar.finder.duplicate) }
+        Platform.MenuSeparator {}
+        // In the Trash, the same key puts items back where they came from.
+        Platform.MenuItem {
+            text: bar.finder.inTrash ? "Put Back" : "Move to Trash"
+            shortcut: "Ctrl+Backspace"
+            enabled: bar.finder.hasSelection
+            onTriggered: bar.finder.act("trash", bar.finder.trashSelection)
+        }
     }
     Platform.Menu {
         onAboutToShow: bar.finder.menusOpen += 1
         onAboutToHide: bar.finder.menusOpen = Math.max(0, bar.finder.menusOpen - 1)
         title: "Edit"
+        Platform.MenuItem { text: FileOps.undoText; shortcut: "Ctrl+Z"; enabled: FileOps.canUndo; onTriggered: bar.finder.act("undo", FileOps.undo) }
+        Platform.MenuItem { text: FileOps.redoText; shortcut: "Ctrl+Shift+Z"; enabled: FileOps.canRedo; onTriggered: bar.finder.act("redo", FileOps.redo) }
+        Platform.MenuSeparator {}
+        // Finder cuts no files: Copy, then Paste or Move Item Here.
+        Platform.MenuItem { text: "Cut"; shortcut: "Ctrl+X"; enabled: false }
+        Platform.MenuItem {
+            text: bar.finder.selectedCount === 1 ? "Copy “" + bar.finder.model.nameAt(bar.finder.current) + "”"
+                : bar.finder.selectedCount > 1 ? "Copy " + bar.finder.selectedCount + " Items" : "Copy"
+            shortcut: "Ctrl+C"
+            enabled: bar.finder.hasSelection
+            onTriggered: bar.finder.act("copy", bar.finder.copySelection)
+        }
+        Platform.MenuItem {
+            text: FileOps.clipboardCount === 1 ? "Paste Item" : FileOps.clipboardCount > 1 ? "Paste " + FileOps.clipboardCount + " Items" : "Paste"
+            shortcut: "Ctrl+V"
+            enabled: FileOps.clipboardCount > 0 && bar.finder.local
+            onTriggered: bar.finder.act("paste", () => bar.finder.paste(false))
+        }
+        // Finder shows this one in Paste's place while Option is down; a
+        // menu over DBusMenu can't swap items, so it has its own.
+        Platform.MenuItem {
+            text: FileOps.clipboardCount > 1 ? "Move " + FileOps.clipboardCount + " Items Here" : "Move Item Here"
+            shortcut: "Ctrl+Alt+V"
+            enabled: FileOps.clipboardCount > 0 && bar.finder.local
+            onTriggered: bar.finder.act("moveHere", () => bar.finder.paste(true))
+        }
         Platform.MenuItem { text: "Select All"; shortcut: "Ctrl+A"; onTriggered: bar.finder.act("all", bar.finder.selectAll) }
     }
     Platform.Menu {

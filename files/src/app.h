@@ -24,6 +24,8 @@ class App : public QObject
     Q_PROPERTY(QString view READ view CONSTANT)
     Q_PROPERTY(QStringList expand READ expand CONSTANT)
     Q_PROPERTY(QString select READ select CONSTANT)
+    // "floating" (the inset glass panel) or "flush" (the stub along the edge).
+    Q_PROPERTY(QString sidebar READ sidebar CONSTANT)
 
 public:
     struct Options {
@@ -34,6 +36,7 @@ public:
         bool bench = false; // print how long the first folder took, then quit
         QStringList expand; // folders (paths in the first folder) to open in place, for grabs
         QString select;     // the item to select in the first folder, for grabs
+        QString sidebar;    // which sidebar windows have
     };
 
     App(QQmlEngine *engine, const Options &options);
@@ -44,9 +47,12 @@ public:
     QString view() const { return m_options.view; }
     QStringList expand() const { return m_options.expand; }
     QString select() const { return m_options.select; }
+    QString sidebar() const { return m_options.sidebar; }
 
     Q_INVOKABLE void openWindow(const QUrl &url);
     Q_INVOKABLE void openFile(const QUrl &url);
+    // The keys held now (Qt.AltModifier ...), for what a drop does.
+    Q_INVOKABLE int modifiers() const;
     // Gives a frameless Files window KWin's shadow, for its corner radius.
     Q_INVOKABLE void decorate(QQuickWindow *window, int radius);
     // A window's first folder is on screen: grab or report it if asked to.
@@ -55,6 +61,9 @@ public:
 public Q_SLOTS:
     // org.ambrosia.Files.Open: another launch hands its folders over.
     Q_SCRIPTABLE void Open(const QStringList &urls);
+    // org.ambrosia.Files.Trash: the Dock's Trash hands over what's dropped
+    // on it, so Edit > Undo in Files puts it back, as in Finder.
+    Q_SCRIPTABLE void Trash(const QStringList &urls);
 
 Q_SIGNALS:
     void appearanceChanged();

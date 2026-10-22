@@ -1,4 +1,5 @@
 #include "app.h"
+#include "fileops.h"
 
 #include <KIO/OpenUrlJob>
 #include <KWindowShadow>
@@ -75,6 +76,20 @@ void App::openFile(const QUrl &url)
 {
     auto *job = new KIO::OpenUrlJob(url);
     job->start();
+}
+
+void App::Trash(const QStringList &urls)
+{
+    QList<QUrl> list;
+    for (const QString &url : urls)
+        list << QUrl(url);
+    if (auto *ops = m_engine->singletonInstance<FileOps *>("Files", "FileOps"))
+        ops->trash(list);
+}
+
+int App::modifiers() const
+{
+    return int(QGuiApplication::queryKeyboardModifiers());
 }
 
 void App::Open(const QStringList &urls)

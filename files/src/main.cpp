@@ -7,6 +7,8 @@
 #include <QDir>
 #include <QIcon>
 #include <QQmlApplicationEngine>
+#include <QSettings>
+#include <QStandardPaths>
 
 int main(int argc, char *argv[])
 {
@@ -30,7 +32,8 @@ int main(int argc, char *argv[])
     const QCommandLineOption bench(QStringLiteral("bench"), QStringLiteral("Print how long the first folder took to load, then quit."));
     const QCommandLineOption expand(QStringLiteral("expand"), QStringLiteral("Folders in the first one to open in place, comma-separated paths (for grabs)."), QStringLiteral("paths"));
     const QCommandLineOption select(QStringLiteral("select"), QStringLiteral("The item to select in the first folder (for grabs)."), QStringLiteral("name"));
-    parser.addOptions({newWindow, appearance, view, size, grab, bench, expand, select});
+    const QCommandLineOption sidebar(QStringLiteral("sidebar"), QStringLiteral("The sidebar: floating (the default) or flush."), QStringLiteral("style"));
+    parser.addOptions({newWindow, appearance, view, size, grab, bench, expand, select, sidebar});
     parser.addPositionalArgument(QStringLiteral("urls"), QStringLiteral("Folders to open."), QStringLiteral("[urls...]"));
     parser.process(app);
 
@@ -45,6 +48,10 @@ int main(int argc, char *argv[])
     options.bench = parser.isSet(bench);
     options.expand = parser.value(expand).split(QLatin1Char(','), Qt::SkipEmptyParts);
     options.select = parser.value(select);
+    // The sidebar, from the command line or ~/.config/ambrosia/files.conf.
+    const QSettings settings(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QStringLiteral("/ambrosia/files.conf"),
+                             QSettings::IniFormat);
+    options.sidebar = parser.isSet(sidebar) ? parser.value(sidebar) : settings.value(QStringLiteral("sidebar"), QStringLiteral("floating")).toString();
     if (const QStringList wh = parser.value(size).split(QLatin1Char('x')); wh.size() == 2)
         options.size = QSize(wh[0].toInt(), wh[1].toInt());
     const bool oneShot = options.bench || !options.grab.isEmpty();

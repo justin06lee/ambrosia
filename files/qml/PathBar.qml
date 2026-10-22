@@ -68,8 +68,18 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text: crumb.modelData.name
                     style: Theme.text.callout
-                    color: Theme.color.label.secondary
+                    color: drop.containsDrag ? Theme.accent.bg : Theme.color.label.secondary
                     TapHandler { onTapped: bar.finder.go(crumb.modelData.url) }
+                    // Each folder takes drops, as Finder's path bar does.
+                    DropArea {
+                        id: drop
+                        anchors.fill: parent
+                        anchors.margins: -4
+                        enabled: crumb.modelData.url.toString().startsWith("file:///") && crumb.modelData.url.toString() !== "file:///"
+                        keys: ["text/uri-list"]
+                        onEntered: (drag) => drag.accept(Qt.MoveAction)
+                        onDropped: (drop) => drop.accept(bar.finder.dropOn(drop.urls, Qt.url(crumb.modelData.url)))
+                    }
                 }
             }
         }
