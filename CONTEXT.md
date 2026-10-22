@@ -152,7 +152,8 @@ package repo below), and they carry `shell/` and `session/` as they are.
     `pacman -U out/pkg/*.pkg.tar.zst` as root.
   - `make iso` as root (`makima possess tenet 'cd /home/justin06lee/ambrosia && make iso'`)
     builds `out/iso/ambrosia-*.iso` (~15 minutes; the pacman cache makes
-    rebuilds faster).
+    rebuilds faster). Cap it like every build on tenet:
+    `systemd-run --unit=ambrosia-iso -p MemoryMax=6G -p Nice=19 -p IOSchedulingClass=idle -p WorkingDirectory=/home/justin06lee/ambrosia make iso`.
   - **Testing the shell in the live session** (2026-10-13 loop): rsync
     `shell/` onto `/usr/share/ambrosia/shell/` and
     `systemctl --user -M justin06lee@ restart ambrosia-shell`; photograph
@@ -182,8 +183,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
   `AMBROSIA_RSH="ssh -i $HOME/.ssh/id_ed25519_justin -o IdentitiesOnly=yes" tools/publish-repo.sh justin06lee@192.168.1.172`.
   It syncs the checkout to tenet and builds there (`make package`, plus
   `make quickshell` when the release lacks the version in
-  `packaging/quickshell/PKGBUILD`), signs on the Mac, uploads, and drops the
-  versions it replaced. **The signing key** (ed25519, fingerprint
+  `packaging/quickshell/PKGBUILD` and tenet's `out/pkg` doesn't have it yet),
+  signs on the Mac, uploads, and drops the versions it replaced. **Builds on
+  tenet are capped** (`systemd-run --user --scope -p MemoryMax=6G nice -n 19
+  ionice -c3` with two jobs): tenet has no swap and runs other projects'
+  services (mira's gateway), and an uncapped Quickshell build (ninja's 18
+  jobs) starved it on 2026-10-21. **The signing key** (ed25519, fingerprint
   `2DB46FDF911241FC9406002BCF43580DA0F59EB8`, no passphrase) lives only in
   `~/.config/ambrosia/gnupg` on the Mac, backed up with its revocation
   certificate in `/Volumes/T7/Backups/ambrosia-signing/`. Without it, installed

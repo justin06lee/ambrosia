@@ -36,9 +36,16 @@ gh release view "$tag" "${release[@]}" >/dev/null 2>&1 ||
 assets=$(gh release view "$tag" "${release[@]}" --json assets --jq '.assets[].name')
 
 qs="quickshell-$(sed -n 's/^pkgver=//p' "$root/packaging/quickshell/PKGBUILD")-$(sed -n 's/^pkgrel=//p' "$root/packaging/quickshell/PKGBUILD")-x86_64.pkg.tar.zst"
-# Niced: the build host is someone's desktop too.
-build="nice make package"
-grep -qxF "$qs" <<<"$assets" || build="nice make quickshell && nice make package"
+# Capped: tenet also runs other projects' services and has no swap, and an
+# uncapped C++ build (ninja's default 18 jobs) starved it on 2026-10-21.
+cap="systemd-run --user --scope --quiet -p MemoryMax=6G nice -n 19 ionice -c3 env MAKEFLAGS=-j2 CMAKE_BUILD_PARALLEL_LEVEL=2"
+build="$cap make package"
+# Quickshell is built when the release lacks its version, unless the host
+# already has that build in out/pkg (bump pkgrel for a new one).
+if ! grep -qxF "$qs" <<<"$assets"; then
+  remote "test -f ~/ambrosia/out/pkg/$qs" || build="$cap make quickshell && $build"
+  publish_qs=1
+fi
 
 step "Building on $host: $build"
 "$root/tools/remote.sh" "$host" "$build"
@@ -48,7 +55,7 @@ mkdir -p "$stage/pkg" "$stage/repo"
 rsync -a -e "$rsh" "$host:ambrosia/out/pkg/" "$stage/pkg/"
 cd "$stage/pkg"
 packages=(ambrosia-*.pkg.tar.zst)
-[[ "$build" == *quickshell* ]] && packages+=("$qs")
+[[ -n "${publish_qs:-}" ]] && packages+=("$qs")
 for f in "${packages[@]}"; do
   [[ -f "$f" ]] || die "the build didn't make $f"
   # GitHub renames assets with other characters (an epoch's ':' becomes '.'),
