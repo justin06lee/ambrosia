@@ -254,6 +254,71 @@ struct Tree {
         }
         return e;
     }
+    // Drops gone items' rows in place, keeping the rest in order: names
+    // stay increasing with the row, and each folder's rows stay together.
+    void compact()
+    {
+        if (gone == 0)
+            return;
+        const size_t n = size();
+        std::vector<quint32> before(n + 1); // the live rows before each row: its new number
+        quint32 live = 0;
+        for (size_t i = 0; i < n; ++i) {
+            before[i] = live;
+            if (!(flags[i] & IsGone))
+                ++live;
+        }
+        before[n] = live;
+        const auto alive = [&](quint32 i) { return i < n && before[i + 1] != before[i]; };
+        size_t nameAt = 0, origAt = 0;
+        for (size_t i = 0; i < n; ++i) {
+            if (!alive(quint32(i)))
+                continue;
+            const quint32 j = before[i];
+            const size_t len = std::strlen(folded.data() + name[i]) + 1;
+            std::memmove(folded.data() + nameAt, folded.data() + name[i], len);
+            name[j] = quint32(nameAt);
+            nameAt += len;
+            if (orig[i] != None) {
+                const size_t olen = std::strlen(originals.data() + orig[i]) + 1;
+                std::memmove(originals.data() + origAt, originals.data() + orig[i], olen);
+                orig[j] = quint32(origAt);
+                origAt += olen;
+            } else {
+                orig[j] = None;
+            }
+            parent[j] = alive(parent[i]) ? before[parent[i]] : None;
+            flags[j] = flags[i];
+            tags[j] = tags[i];
+        }
+        folded.resize(nameAt);
+        originals.resize(origAt);
+        name.resize(live);
+        orig.resize(live);
+        parent.resize(live);
+        flags.resize(live);
+        tags.resize(live);
+        std::unordered_map<quint32, Folder> moved;
+        moved.reserve(folders.size());
+        for (const auto &[e, f] : folders)
+            if (alive(e))
+                moved.emplace(before[e], Folder{before[f.first], before[f.first + f.count] - before[f.first], f.wd, f.stamp});
+        folders = std::move(moved);
+        std::unordered_multimap<quint32, quint32> later;
+        for (const auto &[dir, e] : added)
+            if (alive(dir) && alive(e))
+                later.emplace(before[dir], before[e]);
+        added = std::move(later);
+        for (auto it = wds.begin(); it != wds.end();) {
+            if (alive(it->second)) {
+                it->second = before[it->second];
+                ++it;
+            } else {
+                it = wds.erase(it);
+            }
+        }
+        gone = 0;
+    }
     void shrink()
     {
         folded.shrink_to_fit();
@@ -1030,6 +1095,12 @@ void Index::Core::write()
 {
     if (!save)
         return;
+    // Gone items' rows go first, from memory and from the snapshot.
+    if (tree.gone > 0) {
+        WriteLock w(&lock);
+        tree.compact();
+        tree.shrink();
+    }
     saveLater->stop();
     const QString path = snapshotPath();
     QDir().mkpath(QFileInfo(path).absolutePath());
@@ -1119,6 +1190,8 @@ bool Index::Core::load()
         if ((t.parent[i] != None && t.parent[i] >= rows) || t.name[i] >= t.folded.size() || (t.orig[i] != None && t.orig[i] >= t.originals.size())
             || t.tags[i] >= t.tagSets.size())
             return false;
+    t.compact();
+    t.shrink();
     WriteLock w(&lock);
     tree = std::move(t);
     return true;
