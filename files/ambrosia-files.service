@@ -1,0 +1,13 @@
+[Unit]
+Description=Files, Ambrosia's Finder, running from login as Finder does
+PartOf=graphical-session.target
+After=plasma-core.target
+
+[Service]
+ExecCondition=/bin/sh -c 'test "$XDG_SESSION_DESKTOP" = ambrosia'
+ExecStart=/usr/bin/ambrosia-files --background
+Restart=on-failure
+Slice=app.slice
+
+[Install]
+WantedBy=plasma-workspace.target

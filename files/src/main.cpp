@@ -25,6 +25,7 @@ int main(int argc, char *argv[])
     parser.addHelpOption();
     parser.addVersionOption();
     const QCommandLineOption newWindow(QStringLiteral("new-window"), QStringLiteral("Open a new window on the home folder."));
+    const QCommandLineOption background(QStringLiteral("background"), QStringLiteral("Start with no window, as at login, and keep running."));
     const QCommandLineOption appearance(QStringLiteral("appearance"), QStringLiteral("Force light or dark."), QStringLiteral("mode"));
     const QCommandLineOption view(QStringLiteral("view"), QStringLiteral("The first window's view: icon, list."), QStringLiteral("view"));
     const QCommandLineOption size(QStringLiteral("size"), QStringLiteral("The first window's size, WxH in points."), QStringLiteral("size"));
@@ -33,7 +34,7 @@ int main(int argc, char *argv[])
     const QCommandLineOption expand(QStringLiteral("expand"), QStringLiteral("Folders in the first one to open in place, comma-separated paths (for grabs)."), QStringLiteral("paths"));
     const QCommandLineOption select(QStringLiteral("select"), QStringLiteral("The item to select in the first folder (for grabs)."), QStringLiteral("name"));
     const QCommandLineOption sidebar(QStringLiteral("sidebar"), QStringLiteral("The sidebar: floating (the default) or flush."), QStringLiteral("style"));
-    parser.addOptions({newWindow, appearance, view, size, grab, bench, expand, select, sidebar});
+    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, sidebar});
     parser.addPositionalArgument(QStringLiteral("urls"), QStringLiteral("Folders to open."), QStringLiteral("[urls...]"));
     parser.process(app);
 
@@ -55,11 +56,14 @@ int main(int argc, char *argv[])
     if (const QStringList wh = parser.value(size).split(QLatin1Char('x')); wh.size() == 2)
         options.size = QSize(wh[0].toInt(), wh[1].toInt());
     const bool oneShot = options.bench || !options.grab.isEmpty();
+    const bool quiet = parser.isSet(background) && urls.isEmpty();
 
     // One process serves every window: a second launch hands its folders to
     // the first and leaves.
     QDBusConnection bus = QDBusConnection::sessionBus();
     if (!oneShot && bus.isConnected() && !bus.registerService(QStringLiteral("org.ambrosia.files"))) {
+        if (quiet)
+            return 0; // already running
         QDBusMessage call = QDBusMessage::createMethodCall(QStringLiteral("org.ambrosia.files"), QStringLiteral("/org/ambrosia/files"),
                                                            QStringLiteral("org.ambrosia.Files"), QStringLiteral("Open"));
         call << urls;
@@ -67,10 +71,17 @@ int main(int argc, char *argv[])
         return 0;
     }
 
+    // Files keeps running with no window open, as Finder does: started at
+    // login (ambrosia-files.service), it is there for the Dock's Trash,
+    // whose drops it trashes undoably, and for the next window.
+    if (!oneShot)
+        app.setQuitOnLastWindowClosed(false);
+
     QQmlApplicationEngine engine;
     App files(&engine, options);
     if (!oneShot)
         bus.registerObject(QStringLiteral("/org/ambrosia/files"), &files, QDBusConnection::ExportScriptableSlots);
-    files.Open(urls);
+    if (!quiet)
+        files.Open(urls);
     return app.exec();
 }
