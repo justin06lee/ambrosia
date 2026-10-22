@@ -424,6 +424,16 @@ this Mac's Finder:
 - **Not yet:** Finder's full preview pane (Quick Look, More…) and
   remembered column widths.
 
+**Files stays running, as Finder does** (r155):
+- **At login:** `ambrosia-files.service`, a user unit for the Ambrosia
+  session that `plasma-workspace.target` wants, starts `ambrosia-files
+  --background` with no window, at about 65 MB.
+- **Closing the last window keeps it running,** and the Dock's Quit only
+  closes windows.
+- **Every launch is a window in that one process:** the Dock, a folder
+  opened anywhere, `ambrosia-files <dir>`.
+- **So the Dock's Trash always trashes through Files,** and ⌘Z undoes it.
+
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).
 
