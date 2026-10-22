@@ -45,7 +45,7 @@ Item {
         elide: Text.ElideRight
         text: toolbar.finder.title
         style: Theme.text.title3
-        color: toolbar.finder.active ? Theme.color.label.primary : Theme.color.label.tertiary
+        color: toolbar.finder.looksActive ? Theme.color.label.primary : Theme.color.label.tertiary
     }
 
     Capsule {

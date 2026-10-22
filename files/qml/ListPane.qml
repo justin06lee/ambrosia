@@ -239,10 +239,10 @@ FocusScope {
                 height: parent.height
                 radius: Finder.rowRadius
                 visible: rowItem.selected
-                color: pane.finder.active ? Theme.accent.bg : Finder.selectionInactive
+                color: pane.finder.looksActive ? Theme.accent.bg : Finder.selectionInactive
             }
-            readonly property color ink: selected && pane.finder.active ? Theme.accent.fg : Theme.color.label.primary
-            readonly property color softInk: selected && pane.finder.active ? Theme.accent.fg : Theme.color.label.secondary
+            readonly property color ink: selected && pane.finder.looksActive ? Theme.accent.fg : Theme.color.label.primary
+            readonly property color softInk: selected && pane.finder.looksActive ? Theme.accent.fg : Theme.color.label.secondary
 
             readonly property real indent: depth * Finder.indent
 

@@ -28,6 +28,13 @@ Window {
     readonly property bool hasSelection: Object.keys(selected).length > 0
 
     readonly property alias model: folder
+
+    // A window keeps its active look while one of its menus is open, as on
+    // a Mac: the menu bar's menu takes the keyboard, so Qt calls the window
+    // inactive. The count clears whenever the window has the keyboard again.
+    property int menusOpen: 0
+    readonly property bool looksActive: active || menusOpen > 0
+    onActiveChanged: if (active) menusOpen = 0
     readonly property var window: win
 
     width: 920
