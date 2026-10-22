@@ -19,7 +19,9 @@ const white = (a: number) => `oklch(1 0 0 / ${a})`;
 // Typography ----------------------------------------------------------------
 
 export const font = {
-  ui: ["Inter", "Inter Variable"],
+  // The variable face first: Qt maps the static Inter.ttc (13 MB, every cut
+  // in one file) once per weight, which costs each app about 50–75 MB.
+  ui: ["Inter Variable", "Inter"],
   mono: ["JetBrains Mono"],
   fallback: { ui: "sans-serif", mono: "monospace" },
 } as const;
