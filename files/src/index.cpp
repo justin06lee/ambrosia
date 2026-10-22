@@ -140,7 +140,31 @@ struct Tree {
     };
     std::unordered_map<quint32, Folder> folders;
     std::unordered_multimap<quint32, quint32> added; // children that came after the read
-    std::unordered_map<int, quint32> wds;
+    // inotify's watch numbers (small, and increasing) → the folder's row:
+    // a plain array, about a tenth of a hash map's memory.
+    struct Watches {
+        std::vector<quint32> rows; // None where there's no watch
+        size_t count = 0;
+        quint32 find(int wd) const { return wd >= 0 && size_t(wd) < rows.size() ? rows[size_t(wd)] : None; }
+        void set(int wd, quint32 row)
+        {
+            if (wd < 0)
+                return;
+            if (size_t(wd) >= rows.size())
+                rows.resize(std::max(size_t(wd) + 1, rows.size() + rows.size() / 2), None);
+            if (rows[size_t(wd)] == None)
+                ++count;
+            rows[size_t(wd)] = row;
+        }
+        void erase(int wd)
+        {
+            if (find(wd) != None) {
+                rows[size_t(wd)] = None;
+                --count;
+            }
+        }
+        size_t size() const { return count; }
+    } wds;
     size_t gone = 0;
     std::string root, prefix; // prefix: root, or "" for "/"
     dev_t dev = 0;
@@ -309,12 +333,14 @@ struct Tree {
             if (alive(dir) && alive(e))
                 later.emplace(before[dir], before[e]);
         added = std::move(later);
-        for (auto it = wds.begin(); it != wds.end();) {
-            if (alive(it->second)) {
-                it->second = before[it->second];
-                ++it;
+        for (quint32 &row : wds.rows) {
+            if (row == None)
+                continue;
+            if (alive(row)) {
+                row = before[row];
             } else {
-                it = wds.erase(it);
+                row = None;
+                --wds.count;
             }
         }
         gone = 0;
@@ -332,7 +358,7 @@ struct Tree {
     size_t bytes() const
     {
         return folded.capacity() + originals.capacity() + (name.capacity() + orig.capacity() + parent.capacity()) * 4
-            + flags.capacity() + tags.capacity() * 2 + folders.size() * 48 + wds.size() * 32 + added.size() * 32;
+            + flags.capacity() + tags.capacity() * 2 + folders.size() * 48 + wds.rows.capacity() * 4 + added.size() * 32;
     }
 };
 
@@ -456,8 +482,7 @@ struct Walk {
         folder.count = quint32(items.size());
         folder.wd = wd;
         folder.stamp = stampOf(st);
-        if (wd >= 0)
-            tree.wds[wd] = entry;
+        tree.wds.set(wd, entry);
         const bool more = tree.size() < limit;
         for (const Item &item : items) {
             const quint32 e = tree.append(entry, names.data() + item.at, item.len, item.dir ? IsDir : 0, tree.intern(item.tags));
@@ -778,15 +803,14 @@ void Index::Core::events()
                 overflow = true;
                 continue;
             }
-            const auto it = tree.wds.find(ev.wd);
-            if (it == tree.wds.end())
+            const quint32 dir = tree.wds.find(ev.wd);
+            if (dir == None)
                 continue;
-            const quint32 dir = it->second;
             if (ev.mask & IN_IGNORED) {
                 const auto f = tree.folders.find(dir);
                 if (f != tree.folders.end() && f->second.wd == ev.wd)
                     f->second.wd = -1;
-                tree.wds.erase(it);
+                tree.wds.erase(ev.wd);
                 continue;
             }
             // The folder's own changes come with a name in its parent's.
@@ -905,7 +929,7 @@ void Index::Core::move(quint32 source, quint32 dir, const std::string &name)
         tree.folders.erase(f);
         tree.folders[n] = folder;
         if (folder.wd >= 0)
-            tree.wds[folder.wd] = n;
+            tree.wds.set(folder.wd, n);
     }
 }
 
@@ -1020,7 +1044,7 @@ void Index::Core::check()
             WriteLock w(&lock);
             auto &folder = tree.folders[e];
             folder.wd = wd;
-            tree.wds[wd] = e;
+            tree.wds.set(wd, e);
         }
         if (const auto f = tree.folders.find(e); f != tree.folders.end() && stampOf(st) != f->second.stamp) {
             reread(e, path, stampOf(st), toWalk);
