@@ -3,7 +3,8 @@ import QtQuick.Controls.Basic as Controls
 import Ambrosia
 
 // Finder's list view: sortable column headers, then one row per item on
-// alternating stripes that run on down the empty space below.
+// alternating stripes that run on down the empty space below. As in
+// Finder, the rows slide up under the headers and the toolbar.
 FocusScope {
     id: pane
 
@@ -41,12 +42,21 @@ FocusScope {
         }
     }
 
-    function positionAt(row) { list.positionViewAtIndex(row, ListView.Contain); }
+    // A row in view, below the headers, scrolling as little as it takes.
+    function positionAt(row) {
+        const top = row * Finder.row;
+        let to = list.contentY;
+        if (top < to + list.topMargin)
+            to = top - list.topMargin;
+        else if (top + Finder.row > to + list.height - list.bottomMargin)
+            to = top + Finder.row - list.height + list.bottomMargin;
+        list.contentY = Math.max(-list.topMargin, Math.min(to, list.contentHeight + list.bottomMargin - list.height));
+    }
 
     // Drops: on a folder's row, into it; anywhere else, into this folder.
     property int dropRow: -1
     function dragOver(drag) {
-        const row = list.indexAt(drag.x, drag.y + list.contentY);
+        const row = list.indexAt(drag.x, drag.y + hits.y + list.contentY);
         dropRow = row >= 0 && model.isDirAt(row) && !(finder.dragging && finder.selected[row]) ? row : -1;
         drag.accept(Qt.MoveAction);
     }
@@ -65,8 +75,18 @@ FocusScope {
     Item {
         id: header
         y: Finder.headerTop
+        z: 1 // over the rows sliding under it
         width: parent.width
         height: Finder.headerHeight
+
+        // Behind the headers and up to below the window's rounded corners,
+        // the rows that slid up out of view all but vanish, as in Finder.
+        Rectangle {
+            y: Finder.windowRadius - Finder.headerTop
+            width: parent.width
+            height: parent.height - y
+            color: Qt.alpha(Finder.content, 0.95)
+        }
 
         Repeater {
             model: [
@@ -147,51 +167,16 @@ FocusScope {
         }
     }
 
-    // Stripes, behind the rows and down through the empty space.
+    // Clicks and drags on the rows, from below the headers (the toolbar's
+    // empty space still moves the window), and under the rows, so a name
+    // being edited takes its own clicks.
     Item {
-        anchors.fill: list
-        clip: true
-        Repeater {
-            model: Math.ceil(list.height / Finder.row / 2) + 2
-            Rectangle {
-                required property int index
-                readonly property real phase: (list.contentY - list.originY) % (2 * Finder.row)
-                x: pane.stripeLeft
-                width: pane.stripeRight - pane.stripeLeft
-                y: (2 * index + 1) * Finder.row - phase - list.topMargin * 0
-                height: Finder.row
-                radius: Finder.rowRadius
-                color: Finder.stripe
-            }
-        }
-    }
+        id: hits
+        y: Finder.headerTop + Finder.headerHeight
+        width: list.width
+        height: pane.height - y
 
-    ListView {
-        id: list
-        y: Finder.rowsTop
-        width: parent.width
-        height: parent.height - y
-        clip: true
-        focus: true
-        model: pane.model
-        reuseItems: true
-        boundsBehavior: Flickable.StopAtBounds
-        acceptedButtons: Qt.NoButton // the mouse drags items, not the list
-        currentIndex: pane.finder.current
-        highlightFollowsCurrentItem: false
-        keyNavigationEnabled: false
-
-        // Whether a point in a row is on its disclosure triangle, or its name.
-        function onTriangle(row, x) {
-            if (row < 0 || !pane.model.isDirAt(row))
-                return false;
-            const depth = list.itemAtIndex(row)?.depth ?? 0;
-            return Math.abs(x - (Finder.disclosureX + depth * Finder.indent)) <= 9;
-        }
-        function onName(row, x) {
-            const item = list.itemAtIndex(row);
-            return item !== null && x >= item.nameStart && x <= item.nameEnd;
-        }
+        function rowAt(point) { return list.indexAt(point.x, point.y + y + list.contentY); }
 
         // One handler for the whole list: a row's click selects it (with
         // Ctrl or Shift, adds to the selection), a double click opens it,
@@ -204,7 +189,7 @@ FocusScope {
             id: tap
             acceptedModifiers: Qt.KeyboardModifierMask
             onTapped: (point) => {
-                const row = list.indexAt(point.position.x, point.position.y + list.contentY);
+                const row = hits.rowAt(point.position);
                 renameSoon.stop();
                 if (list.onTriangle(row, point.position.x)) {
                     pane.model.setExpanded(row, !pane.model.isExpanded(row), tap.point.modifiers & Qt.AltModifier);
@@ -222,7 +207,7 @@ FocusScope {
             }
             onDoubleTapped: (point) => {
                 renameSoon.stop();
-                const row = list.indexAt(point.position.x, point.position.y + list.contentY);
+                const row = hits.rowAt(point.position);
                 if (row >= 0 && !list.onTriangle(row, point.position.x))
                     pane.finder.open(row);
             }
@@ -243,138 +228,195 @@ FocusScope {
                     return;
                 renameSoon.stop();
                 const p = centroid.pressPosition;
-                const row = list.indexAt(p.x, p.y + list.contentY);
+                const row = hits.rowAt(p);
                 if (row >= 0 && !list.onTriangle(row, p.x))
                     pane.finder.startDrag(row);
             }
         }
+    }
 
-        Controls.ScrollBar.vertical: Controls.ScrollBar {
-            policy: Controls.ScrollBar.AsNeeded
-            contentItem: Rectangle {
-                implicitWidth: Theme.size.scrollbar.thin
-                radius: width / 2
-                color: Theme.color.label.tertiary
-                opacity: parent.active ? 1 : 0
-                Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
+    // The rows, from the window's top: they scroll up under the headers and
+    // the toolbar, from below the window's rounded corners.
+    Item {
+        id: view
+        y: Finder.windowRadius
+        width: parent.width
+        height: parent.height - y
+        clip: true
+
+        // Stripes, behind the rows and down through the empty space.
+        Item {
+            anchors.fill: list
+            Repeater {
+                model: Math.ceil(list.height / Finder.row / 2) + 2
+                Rectangle {
+                    required property int index
+                    readonly property real phase: (list.contentY + list.topMargin - list.originY) % (2 * Finder.row)
+                    x: pane.stripeLeft
+                    width: pane.stripeRight - pane.stripeLeft
+                    y: list.topMargin + (2 * index - 1) * Finder.row - phase
+                    height: Finder.row
+                    radius: Finder.rowRadius
+                    color: Finder.stripe
+                }
             }
-            background: null
         }
 
-        delegate: Item {
-            id: rowItem
-            required property int index
-            required property string name
-            required property string dateText
-            required property string sizeText
-            required property string kind
-            required property string kindShort
-            required property int depth
-            required property bool expanded
-            required property bool isDir
-            required property string badge
-            required property url url
-            required property var tags
-            required property string thumb
-            readonly property bool selected: pane.finder.selected[index] === true || pane.dropRow === index
-            readonly property bool renaming: pane.finder.renaming && pane.finder.editing.toString() === url.toString()
-            readonly property real nameStart: nameLabel.x
-            readonly property real nameEnd: nameLabel.x + nameLabel.paintedWidth
+        ListView {
+            id: list
+            y: -view.y
+            width: pane.width
+            height: pane.height
+            topMargin: Finder.rowsTop
+            focus: true
+            model: pane.model
+            reuseItems: true
+            boundsBehavior: Flickable.StopAtBounds
+            acceptedButtons: Qt.NoButton // the mouse drags items, not the list
+            currentIndex: pane.finder.current
+            highlightFollowsCurrentItem: false
+            keyNavigationEnabled: false
 
-            width: list.width
-            height: Finder.row
-
-            Rectangle {
-                x: pane.stripeLeft
-                width: pane.stripeRight - pane.stripeLeft
-                height: parent.height
-                radius: Finder.rowRadius
-                visible: rowItem.selected
-                color: pane.finder.looksActive ? Theme.accent.bg : Finder.selectionInactive
+            // Whether a point in a row is on its disclosure triangle, or its name.
+            function onTriangle(row, x) {
+                if (row < 0 || !pane.model.isDirAt(row))
+                    return false;
+                const depth = list.itemAtIndex(row)?.depth ?? 0;
+                return Math.abs(x - (Finder.disclosureX + depth * Finder.indent)) <= 9;
             }
-            readonly property color ink: selected && pane.finder.looksActive ? Theme.accent.fg : Theme.color.label.primary
-            readonly property color softInk: selected && pane.finder.looksActive ? Theme.accent.fg : Theme.color.label.secondary
+            function onName(row, x) {
+                const item = list.itemAtIndex(row);
+                return item !== null && x >= item.nameStart && x <= item.nameEnd;
+            }
 
-            readonly property real indent: depth * Finder.indent
-
-            Glyph {
-                visible: rowItem.isDir
-                x: Finder.disclosureX + rowItem.indent - width / 2
-                anchors.verticalCenter: parent.verticalCenter
-                name: "disclosure"
-                size: 14
-                color: rowItem.softInk
-                rotation: rowItem.expanded ? 90 : 0
-                Behavior on rotation {
-                    enabled: !list.moving
-                    NumberAnimation { duration: Theme.fade.base; easing.type: Easing.OutCubic }
+            Controls.ScrollBar.vertical: Controls.ScrollBar {
+                policy: Controls.ScrollBar.AsNeeded
+                topPadding: list.topMargin
+                contentItem: Rectangle {
+                    implicitWidth: Theme.size.scrollbar.thin
+                    radius: width / 2
+                    color: Theme.color.label.tertiary
+                    opacity: parent.active ? 1 : 0
+                    Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
                 }
+                background: null
             }
-            FileIcon {
-                x: Finder.nameText - 21 + rowItem.indent
-                anchors.verticalCenter: parent.verticalCenter
-                size: Finder.listIcon
-                kind: rowItem.isDir ? "folder" : "document"
-                thumb: rowItem.thumb
-                tint: rowItem.isDir && rowItem.tags.length > 0 ? rowItem.tags[0] : ""
-            }
-            // Its tags, at the end of the Name column.
-            TagDots {
-                id: dots
-                x: pane.dateX - 8.5 - width
-                anchors.verticalCenter: parent.verticalCenter
-                colors: rowItem.tags
-                ring: rowItem.selected ? (pane.finder.looksActive ? Theme.accent.bg : Finder.selectionInactive)
-                    : rowItem.index % 2 ? Finder.stripe : Finder.content
-            }
-            Label {
-                id: nameLabel
-                visible: !rowItem.renaming
-                x: Finder.nameText + rowItem.indent
-                width: pane.dateX - x - 8 - (dots.width > 0 ? dots.width + 8 : 0)
-                anchors.verticalCenter: parent.verticalCenter
-                text: rowItem.name
-                elide: Text.ElideMiddle
-                color: rowItem.ink
-            }
-            Loader {
-                active: rowItem.renaming
-                x: nameLabel.x - 5
-                width: Math.min(item ? item.implicitWidth : 0, pane.dateX - x - 4)
-                height: Finder.row - 2
-                anchors.verticalCenter: parent.verticalCenter
-                sourceComponent: RenameField {
-                    finder: pane.finder
-                    name: rowItem.name
-                    isDir: rowItem.isDir
+
+            delegate: Item {
+                id: rowItem
+                required property int index
+                required property string name
+                required property string dateText
+                required property string sizeText
+                required property string kind
+                required property string kindShort
+                required property int depth
+                required property bool expanded
+                required property bool isDir
+                required property string badge
+                required property url url
+                required property var tags
+                required property string thumb
+                readonly property bool selected: pane.finder.selected[index] === true || pane.dropRow === index
+                readonly property bool renaming: pane.finder.renaming && pane.finder.editing.toString() === url.toString()
+                readonly property real nameStart: nameLabel.x
+                readonly property real nameEnd: nameLabel.x + nameLabel.paintedWidth
+
+                width: list.width
+                height: Finder.row
+
+                Rectangle {
+                    x: pane.stripeLeft
+                    width: pane.stripeRight - pane.stripeLeft
+                    height: parent.height
+                    radius: Finder.rowRadius
+                    visible: rowItem.selected
+                    color: pane.finder.looksActive ? Theme.accent.bg : Finder.selectionInactive
                 }
-            }
-            Label {
-                x: pane.dateX + 8
-                width: pane.dateW - 12
-                anchors.verticalCenter: parent.verticalCenter
-                text: rowItem.dateText
-                elide: Text.ElideRight
-                color: rowItem.softInk
-            }
-            Label {
-                x: pane.sizeX
-                width: pane.sizeW - 4.5
-                anchors.verticalCenter: parent.verticalCenter
-                horizontalAlignment: Text.AlignRight
-                text: rowItem.sizeText
-                color: rowItem.softInk
-            }
-            // Finder cuts a kind in the middle, after trying its short name.
-            Label {
-                id: kindLabel
-                x: pane.kindX + 8
-                width: pane.kindW - 12
-                anchors.verticalCenter: parent.verticalCenter
-                text: kindFull.width > width ? rowItem.kindShort : rowItem.kind
-                elide: Text.ElideMiddle
-                color: rowItem.softInk
-                TextMetrics { id: kindFull; font: kindLabel.font; text: rowItem.kind }
+                readonly property color ink: selected && pane.finder.looksActive ? Theme.accent.fg : Theme.color.label.primary
+                readonly property color softInk: selected && pane.finder.looksActive ? Theme.accent.fg : Theme.color.label.secondary
+
+                readonly property real indent: depth * Finder.indent
+
+                Glyph {
+                    visible: rowItem.isDir
+                    x: Finder.disclosureX + rowItem.indent - width / 2
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "disclosure"
+                    size: 14
+                    color: rowItem.softInk
+                    rotation: rowItem.expanded ? 90 : 0
+                    Behavior on rotation {
+                        enabled: !list.moving
+                        NumberAnimation { duration: Theme.fade.base; easing.type: Easing.OutCubic }
+                    }
+                }
+                FileIcon {
+                    x: Finder.nameText - 21 + rowItem.indent
+                    anchors.verticalCenter: parent.verticalCenter
+                    size: Finder.listIcon
+                    kind: rowItem.isDir ? "folder" : "document"
+                    thumb: rowItem.thumb
+                    tint: rowItem.isDir && rowItem.tags.length > 0 ? rowItem.tags[0] : ""
+                }
+                // Its tags, at the end of the Name column.
+                TagDots {
+                    id: dots
+                    x: pane.dateX - 8.5 - width
+                    anchors.verticalCenter: parent.verticalCenter
+                    colors: rowItem.tags
+                    ring: rowItem.selected ? (pane.finder.looksActive ? Theme.accent.bg : Finder.selectionInactive)
+                        : rowItem.index % 2 ? Finder.stripe : Finder.content
+                }
+                Label {
+                    id: nameLabel
+                    visible: !rowItem.renaming
+                    x: Finder.nameText + rowItem.indent
+                    width: pane.dateX - x - 8 - (dots.width > 0 ? dots.width + 8 : 0)
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: rowItem.name
+                    elide: Text.ElideMiddle
+                    color: rowItem.ink
+                }
+                Loader {
+                    active: rowItem.renaming
+                    x: nameLabel.x - 5
+                    width: Math.min(item ? item.implicitWidth : 0, pane.dateX - x - 4)
+                    height: Finder.row - 2
+                    anchors.verticalCenter: parent.verticalCenter
+                    sourceComponent: RenameField {
+                        finder: pane.finder
+                        name: rowItem.name
+                        isDir: rowItem.isDir
+                    }
+                }
+                Label {
+                    x: pane.dateX + 8
+                    width: pane.dateW - 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: rowItem.dateText
+                    elide: Text.ElideRight
+                    color: rowItem.softInk
+                }
+                Label {
+                    x: pane.sizeX
+                    width: pane.sizeW - 4.5
+                    anchors.verticalCenter: parent.verticalCenter
+                    horizontalAlignment: Text.AlignRight
+                    text: rowItem.sizeText
+                    color: rowItem.softInk
+                }
+                // Finder cuts a kind in the middle, after trying its short name.
+                Label {
+                    id: kindLabel
+                    x: pane.kindX + 8
+                    width: pane.kindW - 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: kindFull.width > width ? rowItem.kindShort : rowItem.kind
+                    elide: Text.ElideMiddle
+                    color: rowItem.softInk
+                    TextMetrics { id: kindFull; font: kindLabel.font; text: rowItem.kind }
+                }
             }
         }
     }
@@ -382,7 +424,7 @@ FocusScope {
     // whose content ends with its last row).
     DropArea {
         id: drops
-        anchors.fill: list
+        anchors.fill: hits
         keys: ["text/uri-list"]
         onEntered: (drag) => pane.dragOver(drag)
         onPositionChanged: (drag) => pane.dragOver(drag)
@@ -395,7 +437,7 @@ FocusScope {
     }
     // Into this folder: Finder rings the whole list.
     Rectangle {
-        anchors.fill: list
+        anchors.fill: hits
         anchors.margins: 2
         radius: Finder.rowRadius
         color: "transparent"
