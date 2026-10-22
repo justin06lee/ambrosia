@@ -363,6 +363,39 @@ icon views, path bar, menus in the menu bar), merged in 59e9610 and ships as
 `ambrosia-files` from r103. Slice 2 is file operations and drag and drop;
 after it the Dock pin and the default file manager move to Files.
 
+**Slice 2, file operations** (`FileOps` in `src/fileops.cpp`, all through
+KIO and recorded in KIO's undo manager):
+
+- New Folder (⇧⌘N) opens "untitled folder" in its rename field.
+- Rename: Return, or a click on a selected name. The field selects the name
+  without its extension, and a taken name gets Finder's alert.
+- Duplicate (⌘D) makes "notes copy.md", then "notes copy 2.md".
+- Copy (⌘C), Paste Item (⌘V) and Move Item Here (⌥⌘V). Cut stays greyed,
+  as in Finder.
+- Move to Trash (⌘⌫) goes to the real freedesktop Trash; in the Trash the
+  same key is Put Back.
+- Undo (⌘Z) and Redo (⇧⌘Z) carry Finder's labels ("Undo Move to Trash").
+  Undoing New Folder skips KIO's delete prompt, while undoing a copy still
+  asks.
+- Drag and drop: rows and icons drag out to other apps and to the Dock.
+  Drops land on folder rows and icons, the sidebar, the path bar and the
+  folder's empty space. A drop moves on the same disk; across disks, or
+  with Option, it copies.
+- Views stay put through all of it: a re-read is matched against the rows
+  on screen and applied as inserts, removals and moves, so scroll and
+  selection survive. The Trash view follows KDirNotify.
+- `org.ambrosia.Files.Trash(as urls)` on `/org/ambrosia/files` (service
+  `org.ambrosia.files`) trashes undoably. The Dock's Trash should call it
+  while Files runs, because `kioclient move … trash:/` isn't recorded by
+  KIO's undo.
+- The sidebar is swappable behind one interface (`SidebarList.qml` holds the
+  shared contents). The default is the floating inset glass panel
+  (`Sidebar.qml`). The flush behind-window panel (`SidebarFlush.qml`) is
+  kept as an unpolished stub, chosen with `--sidebar flush` or
+  `sidebar=flush` in `~/.config/ambrosia/files.conf`.
+- Not yet: a progress view for long copies (jobs run with KIO's progress
+  hidden), and spring-loaded folders.
+
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).
 
