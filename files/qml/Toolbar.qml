@@ -59,10 +59,7 @@ Item {
                 required property var modelData
                 glyph: modelData[1]
                 selected: toolbar.finder.view === modelData[0]
-                // The gallery view comes in a later slice: greyed, as in the
-                // View menu.
-                enabled_: modelData[0] !== "gallery"
-                onClicked: if (enabled_) toolbar.finder.view = modelData[0]
+                onClicked: toolbar.finder.view = modelData[0]
             }
         }
     }

@@ -11,6 +11,7 @@
 #include <QCoreApplication>
 #include <QDBusConnection>
 #include <QFile>
+#include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QPointer>
 #include <QThreadPool>
@@ -765,6 +766,24 @@ QVariantMap FolderModel::infoAt(int row) const
     for (auto it = roles.begin(); it != roles.end(); ++it)
         info.insert(QString::fromLatin1(it.value()), data(at, it.key()));
     return info;
+}
+
+QVariantMap FolderModel::timesAt(int row) const
+{
+    QVariantMap times;
+    if (row < 0 || row >= rowCount())
+        return times;
+    times.insert(QStringLiteral("modified"), Format::date(data(index(row), DateRole).toLongLong()));
+    const QUrl url = urlAt(row);
+    if (!url.isLocalFile())
+        return times;
+    const QFileInfo file(url.toLocalFile());
+    const QDateTime created = file.birthTime(), opened = file.lastRead();
+    if (created.isValid())
+        times.insert(QStringLiteral("created"), Format::date(created.toSecsSinceEpoch()));
+    if (opened.isValid())
+        times.insert(QStringLiteral("opened"), Format::date(opened.toSecsSinceEpoch()));
+    return times;
 }
 
 int FolderModel::rowCount(const QModelIndex &parent) const

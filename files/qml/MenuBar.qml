@@ -71,9 +71,14 @@ Platform.MenuBar {
         Platform.MenuItem { text: "as Icons"; shortcut: "Ctrl+1"; checkable: true; checked: bar.finder.view === "icon"; onTriggered: bar.finder.act("icons", () => bar.finder.view = "icon") }
         Platform.MenuItem { text: "as List"; shortcut: "Ctrl+2"; checkable: true; checked: bar.finder.view === "list"; onTriggered: bar.finder.act("list", () => bar.finder.view = "list") }
         Platform.MenuItem { text: "as Columns"; shortcut: "Ctrl+3"; checkable: true; checked: bar.finder.view === "column"; onTriggered: bar.finder.act("columns", () => bar.finder.view = "column") }
-        // The gallery view comes in a later slice.
-        Platform.MenuItem { text: "as Gallery"; shortcut: "Ctrl+4"; enabled: false }
+        Platform.MenuItem { text: "as Gallery"; shortcut: "Ctrl+4"; checkable: true; checked: bar.finder.view === "gallery"; onTriggered: bar.finder.act("gallery", () => bar.finder.view = "gallery") }
         Platform.MenuSeparator {}
+        Platform.MenuItem {
+            text: bar.finder.showPreview ? "Hide Preview" : "Show Preview"
+            shortcut: "Ctrl+Shift+P"
+            enabled: bar.finder.view === "column" || bar.finder.view === "gallery"
+            onTriggered: bar.finder.act("preview", () => bar.finder.showPreview = !bar.finder.showPreview)
+        }
         Platform.MenuItem { text: bar.finder.model.showHidden ? "Hide Hidden Files" : "Show Hidden Files"; shortcut: "Ctrl+Shift+."; onTriggered: bar.finder.act("hidden", () => bar.finder.model.showHidden = !bar.finder.model.showHidden) }
     }
     Platform.Menu {

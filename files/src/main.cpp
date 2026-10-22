@@ -27,14 +27,15 @@ int main(int argc, char *argv[])
     const QCommandLineOption newWindow(QStringLiteral("new-window"), QStringLiteral("Open a new window on the home folder."));
     const QCommandLineOption background(QStringLiteral("background"), QStringLiteral("Start with no window, as at login, and keep running."));
     const QCommandLineOption appearance(QStringLiteral("appearance"), QStringLiteral("Force light or dark."), QStringLiteral("mode"));
-    const QCommandLineOption view(QStringLiteral("view"), QStringLiteral("The first window's view: icon, list."), QStringLiteral("view"));
+    const QCommandLineOption view(QStringLiteral("view"), QStringLiteral("The first window's view: icon, list, column, gallery."), QStringLiteral("view"));
     const QCommandLineOption size(QStringLiteral("size"), QStringLiteral("The first window's size, WxH in points."), QStringLiteral("size"));
     const QCommandLineOption grab(QStringLiteral("grab"), QStringLiteral("Save the first window to a PNG once its folder is shown, then quit."), QStringLiteral("file"));
     const QCommandLineOption bench(QStringLiteral("bench"), QStringLiteral("Print how long the first folder took to load, then quit."));
     const QCommandLineOption expand(QStringLiteral("expand"), QStringLiteral("Folders in the first one to open in place, comma-separated paths (for grabs)."), QStringLiteral("paths"));
     const QCommandLineOption select(QStringLiteral("select"), QStringLiteral("The item to select in the first folder (for grabs)."), QStringLiteral("name"));
+    const QCommandLineOption active(QStringLiteral("active"), QStringLiteral("Draw the first window as the active one (for grabs, where no window has the keyboard)."));
     const QCommandLineOption sidebar(QStringLiteral("sidebar"), QStringLiteral("The sidebar: floating (the default) or flush."), QStringLiteral("style"));
-    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, sidebar});
+    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, active, sidebar});
     parser.addPositionalArgument(QStringLiteral("urls"), QStringLiteral("Folders to open."), QStringLiteral("[urls...]"));
     parser.process(app);
 
@@ -49,6 +50,7 @@ int main(int argc, char *argv[])
     options.bench = parser.isSet(bench);
     options.expand = parser.value(expand).split(QLatin1Char(','), Qt::SkipEmptyParts);
     options.select = parser.value(select);
+    options.active = parser.isSet(active);
     // The sidebar, from the command line or ~/.config/ambrosia/files.conf.
     const QSettings settings(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QStringLiteral("/ambrosia/files.conf"),
                              QSettings::IniFormat);

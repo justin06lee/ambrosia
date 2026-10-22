@@ -24,6 +24,7 @@ class App : public QObject
     Q_PROPERTY(QString view READ view CONSTANT)
     Q_PROPERTY(QStringList expand READ expand CONSTANT)
     Q_PROPERTY(QString select READ select CONSTANT)
+    Q_PROPERTY(bool active READ active CONSTANT)
     // "floating" (the inset glass panel) or "flush" (the stub along the edge).
     Q_PROPERTY(QString sidebar READ sidebar CONSTANT)
 
@@ -36,6 +37,7 @@ public:
         bool bench = false; // print how long the first folder took, then quit
         QStringList expand; // folders (paths in the first folder) to open in place, for grabs
         QString select;     // the item to select in the first folder, for grabs
+        bool active = false; // draw the first window active, for grabs
         QString sidebar;    // which sidebar windows have
     };
 
@@ -47,6 +49,7 @@ public:
     QString view() const { return m_options.view; }
     QStringList expand() const { return m_options.expand; }
     QString select() const { return m_options.select; }
+    bool active() const { return m_options.active; }
     QString sidebar() const { return m_options.sidebar; }
 
     Q_INVOKABLE void openWindow(const QUrl &url);

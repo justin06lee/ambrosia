@@ -16,7 +16,17 @@ Window {
     // The Columns view's first column. Going somewhere (the sidebar, Back,
     // the path bar) starts the columns there; moving through them doesn't.
     property url columnRoot: startUrl
-    onViewChanged: if (view === "column") columnRoot = url
+    onViewChanged: {
+        if (view === "column")
+            columnRoot = url;
+        galleryKeep();
+    }
+    // View > Show Preview: the pane on the gallery's right, and the Columns
+    // view's last column for a file. The pane hides when the window is too
+    // narrow for it.
+    property bool showPreview: true
+    readonly property bool previewShown: view === "gallery" && showPreview
+        && main.width - Finder.previewPane >= Finder.previewPaneMinContent
 
     // Back and forward, as Finder keeps them per window.
     property var history: [startUrl]
@@ -38,6 +48,11 @@ Window {
         return set;
     }
     readonly property bool hasSelection: selectedCount > 0
+    // The item shown large (the gallery, the preview pane): the one the keys
+    // act on, or else the first selected; and its roles (name, kind,
+    // sizeText, …), read again whenever the selection is set again.
+    readonly property int shownRow: selected[current] ? current : hasSelection ? Number(Object.keys(selected)[0]) : -1
+    readonly property var shownInfo: shownRow >= 0 && selected ? folder.infoAt(shownRow) : ({})
     // Where New Folder, Paste and renaming work: folders on this computer.
     readonly property bool local: url.toString().startsWith("file:")
     readonly property bool inTrash: url.toString().startsWith("trash:")
@@ -47,8 +62,9 @@ Window {
     // A window keeps its active look while one of its menus is open, as on
     // a Mac: the menu bar's menu takes the keyboard, so Qt calls the window
     // inactive. The count clears whenever the window has the keyboard again.
+    // (--active draws the first window active, for grabs.)
     property int menusOpen: 0
-    readonly property bool looksActive: active || menusOpen > 0
+    readonly property bool looksActive: active || menusOpen > 0 || (first && App.active)
     onActiveChanged: if (active) menusOpen = 0
     readonly property var window: win
 
@@ -122,7 +138,10 @@ Window {
         if (from !== "" && from.toString().startsWith(target.toString()))
             reselect = decodeURIComponent(from.toString().slice(target.toString().replace(/\/+$/, "").length + 1)).split("/")[0];
         columnRoot = target;
+        galleryAt = 0;
         url = target;
+        if (!folder.loading && reselect === "")
+            galleryKeep(); // a folder already read shows at once
     }
     // The Columns view: the window moves to a folder one of its columns
     // shows, and selects item there (or, with first, its first item; or
@@ -148,6 +167,14 @@ Window {
             clearSelection();
         else if (selectFirst && !folder.loading && folder.count > 0)
             firstShown();
+    }
+    // The gallery always shows an item: when the one it showed goes, the
+    // one now in its place; in a folder just shown, the first.
+    property int galleryAt: 0
+    onCurrentChanged: if (current >= 0) galleryAt = current
+    function galleryKeep() {
+        if (view === "gallery" && !hasSelection && !pending && folder.count > 0)
+            select(Math.min(galleryAt, folder.count - 1), false, false);
     }
     function firstShown() {
         selectFirst = false;
@@ -389,6 +416,7 @@ Window {
             win.selectPending();
             if (win.selectFirst && !win.hasSelection)
                 win.firstShown();
+            win.galleryKeep();
             if (!win.shownOnce) {
                 win.shownOnce = true;
                 if (win.first) {
@@ -447,12 +475,16 @@ Window {
             if (win.pending)
                 Qt.callLater(win.selectPending);
         }
-        function onRowsRemoved(parent, first, last) { win.shiftRows(first, -(last - first + 1)); }
+        function onRowsRemoved(parent, first, last) {
+            win.shiftRows(first, -(last - first + 1));
+            Qt.callLater(win.galleryKeep);
+        }
         function onModelAboutToBeReset() { win.keepSelected = win.selectedUrls(); }
         function onModelReset() {
             const urls = win.keepSelected;
             win.keepSelected = [];
             win.clearSelection();
+            Qt.callLater(win.galleryKeep);
             if (urls.length === 0)
                 return;
             const next = {};
@@ -521,8 +553,13 @@ Window {
                 id: pane
                 anchors.fill: parent
                 anchors.bottomMargin: Finder.pathBar
+                anchors.rightMargin: win.previewShown ? Finder.previewPane : 0
                 focus: true
-                sourceComponent: win.view === "icon" ? iconPane : win.view === "column" ? columnPane : listPane
+                sourceComponent: ({ icon: iconPane, column: columnPane, gallery: galleryPane })[win.view] ?? listPane
+            }
+            Component {
+                id: galleryPane
+                GalleryPane { finder: win; focus: true }
             }
             Component {
                 id: columnPane
@@ -535,6 +572,14 @@ Window {
             Component {
                 id: iconPane
                 IconPane { finder: win; focus: true }
+            }
+
+            PreviewPane {
+                visible: win.previewShown
+                x: parent.width - width
+                width: Finder.previewPane
+                height: parent.height
+                finder: win
             }
 
             Toolbar {
@@ -552,7 +597,7 @@ Window {
 
             PathBar {
                 anchors.bottom: parent.bottom
-                width: parent.width
+                width: parent.width - (win.previewShown ? Finder.previewPane : 0)
                 finder: win
             }
         }
@@ -610,12 +655,12 @@ Window {
             break;
         case Qt.Key_Right:
             if (win.view === "column") win.columnInto();
-            else if (win.view === "icon") win.select(Math.min(folder.count - 1, win.current + 1), shift, false);
+            else if (win.view === "icon" || win.view === "gallery") win.select(Math.min(folder.count - 1, win.current + 1), shift, false);
             else if (win.current >= 0) folder.setExpanded(win.current, true, event.modifiers & Qt.AltModifier);
             break;
         case Qt.Key_Left:
             if (win.view === "column") win.columnOut();
-            else if (win.view === "icon") win.select(Math.max(0, win.current - 1), shift, false);
+            else if (win.view === "icon" || win.view === "gallery") win.select(Math.max(0, win.current - 1), shift, false);
             else if (win.current >= 0 && folder.isExpanded(win.current)) folder.setExpanded(win.current, false, event.modifiers & Qt.AltModifier);
             else if (folder.parentRow(win.current) >= 0) win.select(folder.parentRow(win.current), false, false);
             break;
@@ -633,6 +678,12 @@ Window {
             break;
         case Qt.Key_3:
             if (ctrl) win.act("columns", () => win.view = "column");
+            break;
+        case Qt.Key_4:
+            if (ctrl) win.act("gallery", () => win.view = "gallery");
+            break;
+        case Qt.Key_P:
+            if (ctrl && shift) win.act("preview", () => win.showPreview = !win.showPreview);
             break;
         case Qt.Key_O:
             if (ctrl && shift) win.act("documents", () => win.goPlace("documents"));
@@ -687,7 +738,7 @@ Window {
             if (ctrl && shift) win.act("hidden", () => folder.showHidden = !folder.showHidden);
             break;
         case Qt.Key_Escape:
-            win.clearSelection();
+            if (win.view !== "gallery") win.clearSelection();
             break;
         default:
             // Type-select: typing a name's start selects it.

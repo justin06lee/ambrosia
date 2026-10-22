@@ -80,6 +80,32 @@ QtObject {
     readonly property int columnChevron: 20  // the chevron's right, from the column's right
     readonly property int previewIcon: 128
 
+    // The gallery view: the item selected, large, over the filmstrip
+    readonly property int galleryTop: 52       // the large item's space, under the toolbar
+    readonly property real galleryScale: 0.8   // an icon's share of that space
+    readonly property int galleryStrip: 64     // the filmstrip, along the bottom
+    readonly property int galleryCell: 59
+    readonly property int galleryThumb: 48
+    readonly property int gallerySelection: 54 // the rounded square behind the one selected
+    readonly property int gallerySelectionRadius: 8
+    readonly property real galleryStripLeft: 2.5
+
+    // The preview pane, on the right of the gallery view
+    readonly property int previewPane: 240
+    readonly property int previewPaneFoot: 70    // its lower part, on the window's color
+    readonly property int previewPaneMinContent: 240 // narrower than this beside it, the pane hides
+    readonly property int previewPaneIcon: 50
+    readonly property int previewPaneIconX: 9
+    readonly property int previewPaneIconY: 71
+    readonly property real previewPaneNameX: 68.5
+    readonly property int previewPaneNameBase: 93   // baselines, from the window's top
+    readonly property int previewPaneKindBase: 113
+    readonly property int previewPaneTextX: 10
+    readonly property int previewPaneInfoBase: 153
+    readonly property int previewPaneRowBase: 175
+    readonly property int previewPaneRow: 23
+    readonly property int previewPaneValueRight: 11 // the values' right, from the window's right
+
     readonly property int pathBar: 28
 
     // Window colors, light and dark
@@ -93,4 +119,7 @@ QtObject {
     readonly property color segmentSelected: dark ? "#3a3a36" : "#e0e0e0"
     readonly property color lightInactive: dark ? "#4a4a46" : "#dcdcdc"
     readonly property color selectionInactive: dark ? "#46463f" : "#dcdcdc"
+    readonly property color gallerySelected: dark ? "#5b5b58" : "#bdbdbd"
+    readonly property color previewPaneFill: dark ? "#181815" : "#f4f4f4"
+    readonly property color previewPaneRule: dark ? "#232323" : "#e6e6e6"
 }

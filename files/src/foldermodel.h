@@ -121,6 +121,9 @@ public:
     // A row's roles by name (name, kind, sizeText, dateText, …), for the
     // Columns view's preview of one file.
     Q_INVOKABLE QVariantMap infoAt(int row) const;
+    // A row's dates as Finder's preview writes them: created, modified and
+    // last opened (only modified for an item not on this computer).
+    Q_INVOKABLE QVariantMap timesAt(int row) const;
     Q_INVOKABLE void reload();
     // The outline: whether a folder's row is open, opening or closing it
     // (with all, every folder under it too, as Option-click does), and the

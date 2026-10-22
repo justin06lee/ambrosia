@@ -43,6 +43,9 @@ qt_add_qml_module(ambrosia-files
         qml/ListPane.qml
         qml/IconPane.qml
         qml/ColumnPane.qml
+        qml/GalleryPane.qml
+        qml/PreviewPane.qml
+        qml/Thumbnail.qml
         qml/PathBar.qml
         qml/FileIcon.qml
         qml/Glyph.qml
