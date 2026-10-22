@@ -70,8 +70,9 @@ env = dict(os.environ, QT_LINUX_ACCESSIBILITY_ALWAYS_ON="1")
 for _ in range(runs):
     state["done"] = None
     start = time.monotonic()
-    app = subprocess.Popen(command, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                           start_new_session=True)
+    # PROBE_DEBUG=1 keeps the app's own output, to see why one fails.
+    quiet = None if os.environ.get("PROBE_DEBUG") else subprocess.DEVNULL
+    app = subprocess.Popen(command, env=env, stdout=quiet, stderr=quiet, start_new_session=True)
     # Both stay until removed below, so neither can end a later run.
     sources = [GLib.timeout_add_seconds(timeout_s, lambda: loop.quit() or True),
                GLib.timeout_add(100, lambda: app.poll() is None or loop.quit() or True)]
@@ -86,9 +87,12 @@ for _ in range(runs):
             GLib.MainContext.default().iteration(False)
             time.sleep(0.01)
         print(f"listed_ms={(state['done'] - start) * 1000:.0f} rss_mb={rss_mb(app.pid):.0f}", flush=True)
-    os.killpg(app.pid, signal.SIGTERM)
+    # The app may be gone already (the run failed): then so is its group.
     try:
+        os.killpg(app.pid, signal.SIGTERM)
         app.wait(10)
+    except ProcessLookupError:
+        pass
     except subprocess.TimeoutExpired:
         os.killpg(app.pid, signal.SIGKILL)
         app.wait()

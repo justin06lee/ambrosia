@@ -57,13 +57,13 @@ config=$(mktemp -d)
 # Everything (KWin, the accessibility bus, the apps and their workers) shares
 # one scope, held to 4 GB with no swap and 30 minutes: a runaway app is killed
 # there instead of starving the machine. Dolphin's first-run settings go in a
-# folder of their own, so nobody's are touched. KWin composites with OpenGL
-# (Mesa's software one): with QPainter it crashes when an app asks for an
-# activation token, as normal launches do.
+# folder of their own, so nobody's are touched. This headless KWin has no
+# effects handler and crashes when an app asks for an xdg-activation token, as
+# normal launches do, so Qt apps (Files and Dolphin alike) skip that protocol.
 systemd-run --scope --unit=files-probe --quiet --collect -p MemoryMax=4G -p MemorySwapMax=0 -p RuntimeMaxSec=1800 \
-    env XDG_CONFIG_HOME="$config" XDG_RUNTIME_DIR="/run/user/$(id -u)" KWIN_COMPOSE=O LIBGL_ALWAYS_SOFTWARE=1 \
+    env XDG_CONFIG_HOME="$config" XDG_RUNTIME_DIR="/run/user/$(id -u)" KWIN_COMPOSE=Q LIBGL_ALWAYS_SOFTWARE=1 \
     __GLX_VENDOR_LIBRARY_NAME=mesa __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
-    QT_QPA_PLATFORM=wayland LANG=en_US.UTF-8 nice -n 19 ionice -c3 \
+    QT_QPA_PLATFORM=wayland QT_WAYLAND_DISABLED_INTERFACES=xdg_activation_v1 LANG=en_US.UTF-8 nice -n 19 ionice -c3 \
     dbus-run-session -- kwin_wayland --virtual --width 1470 --height 956 --scale 2 --socket files-probe \
     --no-lockscreen --no-global-shortcuts --exit-with-session "sh $here/gui.sh --inside $build $fixtures $results '$sizes'" \
     >"$fixtures/gui-kwin.log" 2>&1 || true
