@@ -34,6 +34,10 @@ ${prefer("monospace", t.font.mono)}
 </fontconfig>
 `;
 
-/** Slight hinting runs FreeType's autofitter, whose stem darkening is opt-in. */
+/**
+ * Slight hinting runs FreeType's autofitter, whose stem darkening is opt-in.
+ * Qt fakes bold on top of Inter Variable's own Bold, because the variable
+ * file says Regular in its OS/2 table; QT_NO_SYNTHESIZED_BOLD stops that.
+ */
 export const fontEnvironment = () =>
-  `# ${HEADER}\nFREETYPE_PROPERTIES="autofitter:no-stem-darkening=0 cff:no-stem-darkening=0"\n`;
+  `# ${HEADER}\nFREETYPE_PROPERTIES="autofitter:no-stem-darkening=0 cff:no-stem-darkening=0"\nQT_NO_SYNTHESIZED_BOLD=1\n`;
