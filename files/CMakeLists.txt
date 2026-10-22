@@ -63,3 +63,11 @@ target_link_libraries(ambrosia-files PRIVATE
 include(GNUInstallDirs)
 install(TARGETS ambrosia-files RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES org.ambrosia.files.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+# Files runs from login, as Finder does: a user unit for the Ambrosia session,
+# wanted by Plasma's workspace target (installed enabled, like the shell's).
+install(FILES ambrosia-files.service DESTINATION lib/systemd/user)
+install(CODE "
+    set(wants \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/lib/systemd/user/plasma-workspace.target.wants\")
+    file(MAKE_DIRECTORY \"\${wants}\")
+    file(CREATE_LINK ../ambrosia-files.service \"\${wants}/ambrosia-files.service\" SYMBOLIC)
+")
