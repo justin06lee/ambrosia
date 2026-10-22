@@ -28,12 +28,17 @@ Item {
     // A shortcut as a Mac menu shows it. Ours come as text; an app's as its
     // DBusMenu key names, a list per key of the sequence, modifiers first
     // ([["Control", "Shift", "S"]]): modifiers as ⌃⌥⇧⌘ in that order, then
-    // the key, arrows and editing keys as their symbols.
-    readonly property var modifierGlyphs: ({ Control: "⌃", Alt: "⌥", Shift: "⇧", Super: "⌘", Meta: "⌘" })
+    // the key, arrows and editing keys as their symbols. On the Mac-first
+    // keyboard (design/DECISIONS.md) Super is Command and keyd hands apps
+    // Ctrl, so an app's Control is the ⌘ key, and its Super or Meta ⌃.
+    readonly property var modifierGlyphs: ({ Super: "⌃", Meta: "⌃", Alt: "⌥", Shift: "⇧", Control: "⌘" })
+    // Qt names keys as they print ("[", "Up"); others use X keysym names.
     readonly property var keyGlyphs: ({
-        Up: "↑", Down: "↓", Left: "←", Right: "→", Return: "↩", Enter: "⌤", Tab: "⇥", Backtab: "⇤",
-        Backspace: "⌫", Del: "⌦", Delete: "⌦", Esc: "⎋", Escape: "⎋", PgUp: "⇞", PgDown: "⇟",
-        Home: "↖", End: "↘", plus: "+", minus: "-"
+        Up: "↑", Down: "↓", Left: "←", Right: "→", Return: "↩", Enter: "⌤", KP_Enter: "⌤", Tab: "⇥",
+        Backtab: "⇤", Backspace: "⌫", BackSpace: "⌫", Del: "⌦", Delete: "⌦", Esc: "⎋", Escape: "⎋",
+        PgUp: "⇞", PgDown: "⇟", Page_Up: "⇞", Page_Down: "⇟", Home: "↖", End: "↘", space: "Space",
+        plus: "+", minus: "-", equal: "=", bracketleft: "[", bracketright: "]", period: ".", comma: ",",
+        slash: "/", backslash: "\\", semicolon: ";", apostrophe: "'", grave: "`"
     })
     function shortcutText(shortcut) {
         if (!shortcut || typeof shortcut === "string") return shortcut ?? "";
