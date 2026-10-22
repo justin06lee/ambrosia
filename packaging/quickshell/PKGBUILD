@@ -1,7 +1,9 @@
 # Arch's quickshell PKGBUILD (Caleb Maclennan), rebuilt for Ambrosia with
 # dbusmenu-source.patch, which adds DBusMenuSource to Quickshell.DBusMenu: a
 # menu at a given DBus service and path, so the menu bar can show the focused
-# app's own menus (the address comes from KDE's task manager model).
+# app's own menus (the address comes from KDE's task manager model). It also
+# gives DBusMenuItem the `shortcut` the app publishes, for the menus' shortcut
+# column.
 #
 # Ours must win over Arch's quickshell, or an update undoes the patch:
 # [ambrosia] comes first in pacman.conf (pacman takes a package from the first
@@ -17,7 +19,7 @@
 pkgname=quickshell
 # The pinned commit's `git describe --long --tags`, as 0.3.2.rN.gHASH.
 pkgver=0.3.2.r0.g4f508be
-pkgrel=1
+pkgrel=2
 pkgdesc='Flexible toolkit for making desktop shells with QtQuick'
 arch=(x86_64 aarch64)
 url="https://git.outfoxxed.me/$pkgname/$pkgname"
@@ -54,7 +56,7 @@ _commit=4f508be500dea6e5732cc3d50382a0048b17e7b1 # v0.3.2
 source=("git+$url.git#commit=$_commit"
         dbusmenu-source.patch)
 sha256sums=('SKIP'
-            'cb29d0dd397a97a5b2553cc0a346929e8e0d86828181c6d057271b73899b0357')
+            '20a0f5af66ac5f8e6790ab148271b3ceb7449f7e855ce907bc911da5ce29414e')
 
 prepare() {
 	cd "$pkgname"

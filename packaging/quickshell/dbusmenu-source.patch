@@ -1,8 +1,50 @@
 diff --git a/src/dbus/dbusmenu/dbusmenu.cpp b/src/dbus/dbusmenu/dbusmenu.cpp
-index cbc6f63..276fd6b 100644
+index cbc6f63..8e50622 100644
 --- a/src/dbus/dbusmenu/dbusmenu.cpp
 +++ b/src/dbus/dbusmenu/dbusmenu.cpp
-@@ -565,6 +565,24 @@ void DBusMenuHandle::onMenuPathChanged() {
+@@ -4,6 +4,7 @@
+ #include <qbytearray.h>
+ #include <qcontainerfwd.h>
+ #include <qdatetime.h>
++#include <qdbusargument.h>
+ #include <qdbusconnection.h>
+ #include <qdbusextratypes.h>
+ #include <qdbusmetatype.h>
+@@ -119,6 +120,7 @@ void DBusMenuItem::updateProperties(const QVariantMap& properties, const QString
+ 	auto originalButtonType = this->mButtonType;
+ 	auto originalToggleState = this->mCheckState;
+ 	auto originalDisplayChildren = this->displayChildren;
++	auto originalShortcut = this->mShortcut;
+ 
+ 	auto label = properties.value("label");
+ 	if (label.canConvert<QString>()) {
+@@ -234,6 +236,17 @@ void DBusMenuItem::updateProperties(const QVariantMap& properties, const QString
+ 		this->displayChildren = false;
+ 	}
+ 
++	// "shortcut" is an array of arrays of strings (aas), left as a QDBusArgument.
++	auto shortcut = properties.value("shortcut");
++	if (shortcut.canConvert<QDBusArgument>()) {
++		QList<QStringList> keys;
++		shortcut.value<QDBusArgument>() >> keys;
++		this->mShortcut.clear();
++		for (const auto& key: keys) this->mShortcut.append(key);
++	} else if (removed.isEmpty() || removed.contains("shortcut")) {
++		this->mShortcut.clear();
++	}
++
+ 	if (this->mText != originalText) emit this->textChanged();
+ 	//if (this->mnemonic != originalMnemonic) emit this->labelChanged();
+ 	if (this->mEnabled != originalEnabled) emit this->enabledChanged();
+@@ -243,6 +256,7 @@ void DBusMenuItem::updateProperties(const QVariantMap& properties, const QString
+ 	if (this->mCheckState != originalToggleState) emit this->checkStateChanged();
+ 	if (this->mSeparator != originalIsSeparator) emit this->isSeparatorChanged();
+ 	if (this->displayChildren != originalDisplayChildren) emit this->hasChildrenChanged();
++	if (this->mShortcut != originalShortcut) emit this->shortcutChanged();
+ 
+ 	if (this->iconName != originalIconName || imageChanged) {
+ 		emit this->iconChanged();
+@@ -565,6 +579,24 @@ void DBusMenuHandle::onMenuPathChanged() {
  
  QsMenuEntry* DBusMenuHandle::menu() { return this->loaded ? &this->mMenu->rootItem : nullptr; }
  
@@ -28,10 +70,52 @@ index cbc6f63..276fd6b 100644
  	if (handle) {
  		auto saver = QDebugStateSaver(debug);
 diff --git a/src/dbus/dbusmenu/dbusmenu.hpp b/src/dbus/dbusmenu/dbusmenu.hpp
-index 06cbc34..c12a542 100644
+index 06cbc34..1b4030c 100644
 --- a/src/dbus/dbusmenu/dbusmenu.hpp
 +++ b/src/dbus/dbusmenu/dbusmenu.hpp
-@@ -193,4 +193,39 @@ private:
+@@ -12,6 +12,7 @@
+ #include <qquickimageprovider.h>
+ #include <qtmetamacros.h>
+ #include <qtypes.h>
++#include <qvariant.h>
+ 
+ #include "../../core/doc.hpp"
+ #include "../../core/imageprovider.hpp"
+@@ -49,6 +50,9 @@ class DBusMenuItem: public QsMenuEntry {
+ 	Q_OBJECT;
+ 	/// Handle to the root of this menu.
+ 	Q_PROPERTY(qs::dbus::dbusmenu::DBusMenu* menuHandle READ menuHandle CONSTANT);
++	/// The item's keyboard shortcut as the menu gives it: for each key of the sequence, its key
++	/// names, modifiers first, such as `[["Control", "Shift", "S"]]`. Empty if it has none.
++	Q_PROPERTY(QVariantList shortcut READ shortcut NOTIFY shortcutChanged);
+ 	QML_ELEMENT;
+ 	QML_UNCREATABLE("DBusMenus can only be acquired from a DBusMenuHandle");
+ 
+@@ -72,6 +76,7 @@ public:
+ 	[[nodiscard]] menu::QsMenuButtonType::Enum buttonType() const override;
+ 	[[nodiscard]] Qt::CheckState checkState() const override;
+ 	[[nodiscard]] bool hasChildren() const override;
++	[[nodiscard]] QVariantList shortcut() const { return this->mShortcut; }
+ 
+ 	[[nodiscard]] bool isShowingChildren() const;
+ 	void setShowChildrenRecursive(bool showChildren);
+@@ -90,6 +95,7 @@ public:
+ 
+ signals:
+ 	void layoutUpdated();
++	void shortcutChanged();
+ 
+ private slots:
+ 	void sendOpened() const;
+@@ -107,6 +113,7 @@ private:
+ 	menu::QsMenuButtonType::Enum mButtonType = menu::QsMenuButtonType::None;
+ 	Qt::CheckState mCheckState = Qt::Unchecked;
+ 	bool displayChildren = false;
++	QVariantList mShortcut;
+ 	ObjectModel<DBusMenuItem> enabledChildren {this};
+ 	DBusMenuItem* parentMenu = nullptr;
+ };
+@@ -193,4 +200,39 @@ private:
  	friend QDebug operator<<(QDebug debug, const DBusMenuHandle* handle);
  };
  

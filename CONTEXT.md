@@ -113,9 +113,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
    QStyle could change them), real apps' icons (no Ambrosia icon theme),
    per-surface blur and saturation (KWin has one setting for all), and the
    control center's feathered blur edge (KWin's blur regions are hard-edged).
-2. Gaps in the shell: menu items don't show apps' shortcuts (Quickshell's
-   QsMenuEntry doesn't expose them), no notification center or Focus icon in
-   the bar, no Dock magnification or drag to reorder, GTK apps' menus don't
+2. Gaps in the shell: no notification center or Focus icon in the bar, no Dock magnification or drag to reorder, GTK apps' menus don't
    reach the bar (needs appmenu-gtk-module).
 3. The Mac-first keyboard layer with keyd.
 4. Distro gaps: an SDDM theme of our own, BIOS boot (the installer is
@@ -255,8 +253,13 @@ package repo below), and they carry `shell/` and `session/` as they are.
 - **Apps only send their menus to the bar while `org.kde.kappmenuview` is on
   the bus** (Plasma's appmenu kded only collects them then). `Apps.qml` holds
   the name with `dbus-test-tool black-hole`.
-- **Our menus take the keyboard, and with it focus, from the app.** The menu
-  bar freezes its app while one is open (`Apps.frozen`), and window actions
+- **Menus keep the app's window active; Search doesn't.** Menus, the control
+  center and confirmations draw on a grabbing popup of the menu bar
+  (`Overlay.qml`): KWin sends it the keys without activating it. A layer
+  surface taking the keyboard (Search) becomes KWin's active window. The
+  popup spans the whole screen with the bar's strip masked out, since Qt
+  hands it the bar's pointer events first, by position. The menu bar still
+  freezes its app while one is open (`Apps.frozen`), and window actions
   capture their window when the menu opens.
 - Pinned apps' ids from the task model end in `.desktop`; running ones don't
   (`Apps.entryFor`).

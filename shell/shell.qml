@@ -19,8 +19,9 @@ ShellRoot {
     Binding { target: Theme; property: "dark"; value: Settings.dark }
     Binding { target: Theme; property: "accentName"; value: Settings.accent }
 
-    // Our menus, the control center and Search take the keyboard, and with
-    // it focus, from the app; the menu bar keeps showing the app meanwhile.
+    // Search takes the keyboard, and with it focus, from the app; menus keep
+    // the app active, but its window may change under them. Either way the
+    // menu bar keeps showing the app it opened on.
     Binding { target: Apps; property: "frozen"; value: Popups.kind !== "" || Popups.searchOpen }
 
     Variants {
@@ -31,8 +32,8 @@ ShellRoot {
             required property ShellScreen modelData
 
             Wallpaper { screen: perScreen.modelData }
-            MenuBar { screen: perScreen.modelData }
-            Overlay { screen: perScreen.modelData; home: perScreen.modelData }
+            MenuBar { id: bar; screen: perScreen.modelData }
+            Overlay { home: perScreen.modelData; bar: bar }
             Search { screen: perScreen.modelData; home: perScreen.modelData }
         }
     }
