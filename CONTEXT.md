@@ -148,7 +148,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
   on tenet.** `make remote-build` runs the build gate (tests, generator,
   review site) on tenet, capped; it must pass after the last change.
   `make review-remote` serves the review site from tenet through an SSH
-  tunnel on localhost:4747. `open preview/index.html` opens the preview
+  tunnel on localhost:4747. `make shot-remote` photographs the preview in
+  headless Firefox on tenet into `out/shots/preview.png` (`PAGE='preview/index.html?theme=dark'`
+  or a URL such as the review site's, `SHOT=name`); it shows layout and
+  colour but not the glass blur. `qmllint` is
+  `tools/remote.sh justin06lee@192.168.1.172 '/usr/lib/qt6/bin/qmllint shell/*.qml'`.
+  `open preview/index.html` opens the preview
   (`?theme=dark&accent=honey&open=cc|view-menu`; D and A switch theme and
   accent).
 - **tenet, from the Mac:** `tools/remote.sh justin06lee@192.168.1.172 <cmd>`

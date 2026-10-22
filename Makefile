@@ -8,8 +8,9 @@
 # On the Mac: `make publish` builds the packages on tenet, signs them and
 # uploads them to the hosted [ambrosia] repo (tools/publish-repo.sh).
 # `make remote-build` runs the build gate on tenet instead of the Mac, and
-# `make review-remote` serves the review site from tenet on localhost:4747.
-# Both use tenet's own checkout (tools/remote.sh) and run capped there.
+# `make review-remote` serves the review site from tenet on localhost:4747,
+# and `make shot-remote` photographs a page there into out/shots/. All three
+# use tenet's own checkout (tools/remote.sh) and run capped there.
 
 HOST ?= justin06lee@192.168.1.172
 AMBROSIA_RSH ?= ssh -i $(HOME)/.ssh/id_ed25519_justin -o IdentitiesOnly=yes
@@ -17,7 +18,7 @@ export AMBROSIA_RSH
 # tenet has no swap and runs other projects' services.
 CAP = systemd-run --user --scope --quiet -p MemoryMax=6G nice -n 19 ionice -c3
 
-.PHONY: all build install update clean package quickshell iso publish remote-build review-remote
+.PHONY: all build install update clean package quickshell iso publish remote-build review-remote shot-remote
 
 all: install
 
@@ -60,6 +61,17 @@ review-remote:
 	tools/remote.sh $(HOST) 'systemctl --user stop ambrosia-review 2>/dev/null; bun install --frozen-lockfile >/dev/null && systemd-run --user --unit=ambrosia-review --quiet -p MemoryMax=2G -p Nice=10 --working-directory=$$PWD bun run review'
 	@echo "review site: http://localhost:4747 (Ctrl-C closes the tunnel)"
 	$(AMBROSIA_RSH) -N -L 4747:localhost:4747 $(HOST)
+
+# Headless Firefox at 1440x900. PAGE is a file in the checkout or a URL (the
+# review site is http://localhost:4747/ while review-remote runs); SHOT names
+# the picture.
+PAGE ?= preview/index.html
+SHOT ?= preview
+shot-remote:
+	tools/remote.sh $(HOST) 'bun install --frozen-lockfile >/dev/null && $(CAP) bun tools/gen/index.ts >/dev/null && mkdir -p out/shots out/firefox && rm -f out/shots/$(SHOT).png && { systemd-run --user --scope --quiet -p MemoryMax=2G nice -n 19 timeout 120 firefox --headless --no-remote --profile $$PWD/out/firefox --window-size=1440,900 --screenshot $$PWD/out/shots/$(SHOT).png "$(if $(filter http%,$(PAGE)),$(PAGE),file://$$PWD/$(PAGE))" >/dev/null 2>&1; test -s out/shots/$(SHOT).png; }'
+	mkdir -p out/shots
+	rsync -q -e '$(AMBROSIA_RSH)' $(HOST):work/ambrosia/out/shots/$(SHOT).png out/shots/
+	@echo out/shots/$(SHOT).png
 
 clean:
 	rm -rf dist out

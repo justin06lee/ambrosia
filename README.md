@@ -37,6 +37,7 @@ make                       # test, build every theme and the review site, instal
 bun run review             # the design review site at http://localhost:4747
 make remote-build          # the build gate on tenet, the Arch build box (Mac stays light)
 make review-remote         # the review site served from tenet, tunnelled to localhost:4747
+make shot-remote           # the mock desktop photographed in headless Firefox on tenet, into out/shots/
 open preview/index.html    # the mock desktop on its own (xdg-open on Linux)
 ```
 
