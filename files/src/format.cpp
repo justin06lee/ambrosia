@@ -4,6 +4,7 @@
 #include <QHash>
 #include <QLocale>
 #include <QMimeDatabase>
+#include <QRegularExpression>
 
 QString Format::size(qint64 bytes)
 {
@@ -35,7 +36,7 @@ QString Format::size(qint64 bytes)
     return text + QLatin1Char(' ') + QLatin1String(units[unit]);
 }
 
-QString Format::date(qint64 secs)
+QString Format::date(qint64 secs, int level)
 {
     if (secs <= 0)
         return QStringLiteral("--");
@@ -43,11 +44,18 @@ QString Format::date(qint64 secs)
     const QDate today = QDate::currentDate();
     const QLocale locale;
     const QString time = locale.toString(when.time(), QLocale::ShortFormat);
-    if (when.date() == today)
-        return QStringLiteral("Today at %1").arg(time);
-    if (when.date() == today.addDays(-1))
-        return QStringLiteral("Yesterday at %1").arg(time);
-    return QStringLiteral("%1 at %2").arg(locale.toString(when.date(), QStringLiteral("MMM d, yyyy")), time);
+    const QString day = when.date() == today ? QStringLiteral("Today")
+        : when.date() == today.addDays(-1)    ? QStringLiteral("Yesterday")
+        : level == 0                          ? locale.toString(when.date(), QStringLiteral("MMM d, yyyy"))
+                                              : locale.toString(when.date(), QStringLiteral("M/d/yy"));
+    switch (level) {
+    case 0:
+        return QStringLiteral("%1 at %2").arg(day, time);
+    case 1:
+        return QStringLiteral("%1, %2").arg(day, time);
+    default:
+        return when.date() == today ? time : day;
+    }
 }
 
 namespace {
@@ -62,9 +70,10 @@ const QHash<QString, QString> &finderKinds()
         {QStringLiteral("text/markdown"), QStringLiteral("Markdown Document")},
         {QStringLiteral("text/html"), QStringLiteral("HTML text")},
         {QStringLiteral("text/csv"), QStringLiteral("comma-separated values")},
-        {QStringLiteral("application/json"), QStringLiteral("JSON")},
+        {QStringLiteral("application/json"), QStringLiteral("JSON File")},
         {QStringLiteral("application/xml"), QStringLiteral("XML text")},
         {QStringLiteral("application/x-shellscript"), QStringLiteral("Shell Script")},
+        {QStringLiteral("text/x-makefile"), QStringLiteral("Makefile")},
         {QStringLiteral("text/x-python3"), QStringLiteral("Python Script")},
         {QStringLiteral("text/x-python"), QStringLiteral("Python Script")},
         {QStringLiteral("text/x-c++src"), QStringLiteral("C++ Source")},
@@ -121,6 +130,18 @@ QString Format::kind(const QString &name, bool dir)
     if (!comment.isEmpty())
         comment[0] = comment[0].toUpper();
     return comment.isEmpty() ? QStringLiteral("Document") : comment;
+}
+
+QString Format::shortKind(const QString &kind)
+{
+    // "Plain Text" is "Text"; an acronym's document, archive, image, audio
+    // or movie is the acronym ("PDF", "ZIP", "PNG"). "JSON File", "HTML
+    // text" and "Markdown Document" have no shorter name.
+    if (kind == QLatin1String("Plain Text"))
+        return QStringLiteral("Text");
+    static const QRegularExpression acronym(QStringLiteral("^([A-Z0-9][A-Z0-9-]*) (Document|archive|image|audio|movie)$"));
+    const auto m = acronym.match(kind);
+    return m.hasMatch() ? m.captured(1) : kind;
 }
 
 QString Format::icon(const QString &, bool dir)

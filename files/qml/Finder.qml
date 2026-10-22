@@ -54,6 +54,7 @@ QtObject {
     readonly property real rowInsetRight: 10.5
     readonly property int nameText: 47        // from the list's left edge
     readonly property int disclosureX: 18
+    readonly property int indent: 15          // each level of an open folder
     readonly property int rowRadius: 6
     readonly property int listIcon: 16
     readonly property int dateColumn: 180

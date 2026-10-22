@@ -168,11 +168,59 @@ Window {
             }
             if (!win.shownOnce) {
                 win.shownOnce = true;
+                if (win.first) {
+                    win.pendingExpand = App.expand;
+                    win.expandPending();
+                    if (App.select !== "")
+                        win.select(indexOf(App.select), false, false);
+                }
                 App.shown(win, loadMs, firstMs);
             }
         }
     }
     property bool shownOnce: false
+
+    // --expand: opens the given folders in place as their rows appear.
+    property var pendingExpand: []
+    function expandPending() {
+        const base = folder.url.toString().replace(/\/+$/, "");
+        const left = [];
+        for (const path of pendingExpand) {
+            let row = -1;
+            for (let i = 0; i < folder.count && row < 0; ++i)
+                if (decodeURIComponent(folder.urlAt(i).toString()) === decodeURIComponent(base + "/" + path))
+                    row = i;
+            if (row >= 0)
+                folder.setExpanded(row, true, false);
+            else
+                left.push(path);
+        }
+        pendingExpand = left;
+    }
+
+    // Rows coming and going above the selection (a folder opening in place)
+    // move it with its items.
+    function shiftRows(first, count) {
+        const move = (row) => row >= first ? (count < 0 && row < first - count ? -1 : row + count) : row;
+        const next = {};
+        for (const key of Object.keys(selected)) {
+            const row = move(Number(key));
+            if (row >= 0)
+                next[row] = true;
+        }
+        selected = next;
+        current = current < 0 ? -1 : move(current);
+        anchor = anchor < 0 ? -1 : move(anchor);
+    }
+    Connections {
+        target: folder
+        function onRowsInserted(parent, first, last) {
+            win.shiftRows(first, last - first + 1);
+            if (win.pendingExpand.length > 0)
+                Qt.callLater(win.expandPending);
+        }
+        function onRowsRemoved(parent, first, last) { win.shiftRows(first, -(last - first + 1)); }
+    }
 
     onVisibleChanged: if (visible) App.decorate(win, Finder.windowRadius)
     Component.onCompleted: if (visible) App.decorate(win, Finder.windowRadius)
@@ -184,6 +232,8 @@ Window {
         color: Finder.content
         border.width: 0.5
         border.color: Theme.dark ? "#33ffffff" : "#26000000"
+
+        Keys.onPressed: (event) => win.keyPressed(event)
 
         // The window moves by its toolbar's empty space.
         DragHandler {
@@ -274,70 +324,71 @@ Window {
     property string typed: ""
     Timer { id: typeReset; interval: 1000; onTriggered: win.typed = "" }
 
-    Item {
-        focus: true
-        Keys.onPressed: (event) => {
-            const ctrl = event.modifiers & Qt.ControlModifier;
-            const shift = event.modifiers & Qt.ShiftModifier;
-            const columns = win.view === "icon" ? Math.max(1, Math.floor((main.width - Finder.iconLeft) / Finder.iconCell)) : 1;
-            switch (event.key) {
-            case Qt.Key_Down:
-                if (ctrl) win.openSelection();
-                else win.select(win.current < 0 ? 0 : Math.min(folder.count - 1, win.current + columns), shift, false);
+    // On the frame, the focused pane's keys come here unless it took them.
+    function keyPressed(event) {
+        const ctrl = event.modifiers & Qt.ControlModifier;
+        const shift = event.modifiers & Qt.ShiftModifier;
+        const columns = win.view === "icon" ? Math.max(1, Math.floor((main.width - Finder.iconLeft) / Finder.iconCell)) : 1;
+        switch (event.key) {
+        case Qt.Key_Down:
+            if (ctrl) win.openSelection();
+            else win.select(win.current < 0 ? 0 : Math.min(folder.count - 1, win.current + columns), shift, false);
+            break;
+        case Qt.Key_Up:
+            if (ctrl) win.act("up", win.up);
+            else win.select(win.current < 0 ? folder.count - 1 : Math.max(0, win.current - columns), shift, false);
+            break;
+        case Qt.Key_Right:
+            if (win.view === "icon") win.select(Math.min(folder.count - 1, win.current + 1), shift, false);
+            else if (win.current >= 0) folder.setExpanded(win.current, true, event.modifiers & Qt.AltModifier);
+            break;
+        case Qt.Key_Left:
+            if (win.view === "icon") win.select(Math.max(0, win.current - 1), shift, false);
+            else if (win.current >= 0 && folder.isExpanded(win.current)) folder.setExpanded(win.current, false, event.modifiers & Qt.AltModifier);
+            else if (folder.parentRow(win.current) >= 0) win.select(folder.parentRow(win.current), false, false);
+            break;
+        case Qt.Key_BracketLeft:
+            if (ctrl) win.act("back", win.back);
+            break;
+        case Qt.Key_BracketRight:
+            if (ctrl) win.act("forward", win.forward);
+            break;
+        case Qt.Key_1:
+            if (ctrl) win.act("icons", () => win.view = "icon");
+            break;
+        case Qt.Key_2:
+            if (ctrl) win.act("list", () => win.view = "list");
+            break;
+        case Qt.Key_O:
+            if (ctrl) win.act("open", win.openSelection);
+            break;
+        case Qt.Key_N:
+            if (ctrl && !shift) win.act("new", () => App.openWindow(win.url));
+            break;
+        case Qt.Key_W:
+            if (ctrl) win.act("close", win.close);
+            break;
+        case Qt.Key_A:
+            if (ctrl) win.act("all", win.selectAll);
+            break;
+        case Qt.Key_Period:
+        case Qt.Key_Greater:
+            if (ctrl && shift) win.act("hidden", () => folder.showHidden = !folder.showHidden);
+            break;
+        case Qt.Key_Escape:
+            win.clearSelection();
+            break;
+        default:
+            // Type-select: typing a name's start selects it.
+            if (!ctrl && event.text.length === 1 && event.text >= " ") {
+                win.typed += event.text;
+                typeReset.restart();
+                const row = folder.match(win.typed, 0);
+                if (row >= 0) win.select(row, false, false);
                 break;
-            case Qt.Key_Up:
-                if (ctrl) win.act("up", win.up);
-                else win.select(win.current < 0 ? folder.count - 1 : Math.max(0, win.current - columns), shift, false);
-                break;
-            case Qt.Key_Right:
-                if (win.view === "icon") win.select(Math.min(folder.count - 1, win.current + 1), shift, false);
-                break;
-            case Qt.Key_Left:
-                if (win.view === "icon") win.select(Math.max(0, win.current - 1), shift, false);
-                break;
-            case Qt.Key_BracketLeft:
-                if (ctrl) win.act("back", win.back);
-                break;
-            case Qt.Key_BracketRight:
-                if (ctrl) win.act("forward", win.forward);
-                break;
-            case Qt.Key_1:
-                if (ctrl) win.act("icons", () => win.view = "icon");
-                break;
-            case Qt.Key_2:
-                if (ctrl) win.act("list", () => win.view = "list");
-                break;
-            case Qt.Key_O:
-                if (ctrl) win.act("open", win.openSelection);
-                break;
-            case Qt.Key_N:
-                if (ctrl && !shift) win.act("new", () => App.openWindow(win.url));
-                break;
-            case Qt.Key_W:
-                if (ctrl) win.act("close", win.close);
-                break;
-            case Qt.Key_A:
-                if (ctrl) win.act("all", win.selectAll);
-                break;
-            case Qt.Key_Period:
-            case Qt.Key_Greater:
-                if (ctrl && shift) win.act("hidden", () => folder.showHidden = !folder.showHidden);
-                break;
-            case Qt.Key_Escape:
-                win.clearSelection();
-                break;
-            default:
-                // Type-select: typing a name's start selects it.
-                if (!ctrl && event.text.length === 1 && event.text >= " ") {
-                    win.typed += event.text;
-                    typeReset.restart();
-                    const row = folder.match(win.typed, 0);
-                    if (row >= 0) win.select(row, false, false);
-                    break;
-                }
-                return;
             }
-            event.accepted = true;
+            return;
         }
+        event.accepted = true;
     }
 }

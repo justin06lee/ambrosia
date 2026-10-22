@@ -17,6 +17,16 @@ FocusScope {
 
     function positionAt(row) { list.positionViewAtIndex(row, ListView.Contain); }
 
+    // A narrow date column takes a shorter date, as Finder's does.
+    readonly property real dateWidth: Finder.dateColumn - 12
+    Label { id: dateProbe0; visible: false; text: "Sep 28, 2026 at 10:59 PM" }
+    Label { id: dateProbe1; visible: false; text: "12/28/26, 10:59 PM" }
+    Binding {
+        target: pane.model
+        property: "dateLevel"
+        value: dateProbe0.implicitWidth <= pane.dateWidth ? 0 : dateProbe1.implicitWidth <= pane.dateWidth ? 1 : 2
+    }
+
     // Column headers
     Item {
         id: header
@@ -115,22 +125,34 @@ FocusScope {
         highlightFollowsCurrentItem: false
         keyNavigationEnabled: false
 
+        // Whether a point in a row is on its disclosure triangle.
+        function onTriangle(row, x) {
+            if (row < 0 || !pane.model.isDirAt(row))
+                return false;
+            const depth = list.itemAtIndex(row)?.depth ?? 0;
+            return Math.abs(x - (Finder.disclosureX + depth * Finder.indent)) <= 9;
+        }
+
         // One handler for the whole list: a row's click selects it (with
         // Ctrl or Shift, adds to the selection), a double click opens it,
-        // and a click below the rows clears the selection.
+        // and a click below the rows clears the selection. A click on a
+        // folder's triangle opens it in place (with Option, everything in
+        // it too) and leaves the selection alone.
         TapHandler {
             id: tap
             acceptedModifiers: Qt.KeyboardModifierMask
             onTapped: (point) => {
                 const row = list.indexAt(point.position.x, point.position.y + list.contentY);
-                if (row < 0)
+                if (list.onTriangle(row, point.position.x))
+                    pane.model.setExpanded(row, !pane.model.isExpanded(row), tap.point.modifiers & Qt.AltModifier);
+                else if (row < 0)
                     pane.finder.clearSelection();
                 else
                     pane.finder.click(row, tap.point.modifiers);
             }
             onDoubleTapped: (point) => {
                 const row = list.indexAt(point.position.x, point.position.y + list.contentY);
-                if (row >= 0)
+                if (row >= 0 && !list.onTriangle(row, point.position.x))
                     pane.finder.open(row);
             }
         }
@@ -154,6 +176,9 @@ FocusScope {
             required property string dateText
             required property string sizeText
             required property string kind
+            required property string kindShort
+            required property int depth
+            required property bool expanded
             required property bool isDir
             required property string badge
             readonly property bool selected: pane.finder.selected[index] === true
@@ -172,22 +197,29 @@ FocusScope {
             readonly property color ink: selected && pane.finder.active ? Theme.accent.fg : Theme.color.label.primary
             readonly property color softInk: selected && pane.finder.active ? Theme.accent.fg : Theme.color.label.secondary
 
+            readonly property real indent: depth * Finder.indent
+
             Glyph {
                 visible: rowItem.isDir
-                x: Finder.disclosureX - width / 2
+                x: Finder.disclosureX + rowItem.indent - width / 2
                 anchors.verticalCenter: parent.verticalCenter
                 name: "disclosure"
                 size: 14
                 color: rowItem.softInk
+                rotation: rowItem.expanded ? 90 : 0
+                Behavior on rotation {
+                    enabled: !list.moving
+                    NumberAnimation { duration: Theme.fade.base; easing.type: Easing.OutCubic }
+                }
             }
             FileIcon {
-                x: Finder.nameText - 21
+                x: Finder.nameText - 21 + rowItem.indent
                 anchors.verticalCenter: parent.verticalCenter
                 size: Finder.listIcon
                 kind: rowItem.isDir ? "folder" : "document"
             }
             Label {
-                x: Finder.nameText
+                x: Finder.nameText + rowItem.indent
                 width: pane.dateX - x - 8
                 anchors.verticalCenter: parent.verticalCenter
                 text: rowItem.name
@@ -210,13 +242,16 @@ FocusScope {
                 text: rowItem.sizeText
                 color: rowItem.softInk
             }
+            // Finder cuts a kind in the middle, after trying its short name.
             Label {
+                id: kindLabel
                 x: pane.kindX + 8
                 width: Finder.kindColumn - 12
                 anchors.verticalCenter: parent.verticalCenter
-                text: rowItem.kind
+                text: kindFull.width > width ? rowItem.kindShort : rowItem.kind
                 elide: Text.ElideMiddle
                 color: rowItem.softInk
+                TextMetrics { id: kindFull; font: kindLabel.font; text: rowItem.kind }
             }
         }
     }

@@ -23,6 +23,7 @@
 #include <numeric>
 #include <functional>
 #include <thread>
+#include <utility>
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -369,6 +370,45 @@ std::shared_ptr<Listing> listLocal(const QString &path, bool showHidden, const Q
     return l;
 }
 
+// Lists a folder through KIO; `done` gets it, unsorted, on the GUI thread.
+KJob *listWithKio(QObject *context, const QUrl &base, bool showHidden, const std::function<void(std::shared_ptr<Listing>)> &done)
+{
+    auto listing = std::make_shared<Listing>();
+    auto *job = KIO::listDir(base, KIO::HideProgressInfo);
+    QObject::connect(job, &KIO::ListJob::entries, context, [listing, base, showHidden](KIO::Job *, const KIO::UDSEntryList &list) {
+        for (const KIO::UDSEntry &u : list) {
+            const QString name = u.stringValue(KIO::UDSEntry::UDS_NAME);
+            if (name.isEmpty() || name == QLatin1String(".") || name == QLatin1String(".."))
+                continue;
+            QString display = u.stringValue(KIO::UDSEntry::UDS_DISPLAY_NAME);
+            if (display.isEmpty())
+                display = name;
+            const bool hidden = display.startsWith(QLatin1Char('.'));
+            if (hidden && !showHidden)
+                continue;
+            const QByteArray n = name.toUtf8(), d = display.toUtf8();
+            Entry e;
+            e.name = addString(*listing, n.constData(), n.size());
+            e.display = addString(*listing, d.constData(), d.size());
+            e.flags = (u.isDir() ? FolderModel::Dir : 0) | (hidden ? FolderModel::Hidden : 0);
+            e.size = u.isDir() ? -1 : u.numberValue(KIO::UDSEntry::UDS_SIZE, -1);
+            e.mtime = u.numberValue(KIO::UDSEntry::UDS_MODIFICATION_TIME, 0);
+            const QString target = u.stringValue(KIO::UDSEntry::UDS_URL);
+            QUrl url = target.isEmpty() ? base : QUrl(target);
+            if (target.isEmpty())
+                url.setPath(base.path() + (base.path().endsWith(QLatin1Char('/')) ? QString() : QStringLiteral("/")) + name);
+            listing->entries.push_back(e);
+            listing->urls.push_back(url);
+        }
+    });
+    QObject::connect(job, &KJob::result, context, [job, listing, done] {
+        if (job->error() && job->error() != KJob::KilledJobError)
+            listing->error = job->errorString();
+        done(listing);
+    });
+    return job;
+}
+
 }
 
 FolderModel::FolderModel(QObject *parent)
@@ -381,8 +421,35 @@ FolderModel::FolderModel(QObject *parent)
     // settle.
     m_reload->setSingleShot(true);
     m_reload->setInterval(150);
-    connect(m_reload, &QTimer::timeout, this, &FolderModel::load);
-    connect(m_watcher, &QFileSystemWatcher::directoryChanged, m_reload, qOverload<>(&QTimer::start));
+    connect(m_reload, &QTimer::timeout, this, [this] {
+        if (std::exchange(m_rootChanged, false))
+            load();
+    });
+    connect(m_reload, &QTimer::timeout, this, [this] {
+        const auto paths = std::exchange(m_changedPaths, {});
+        for (const QString &path : paths)
+            for (Node *node : std::as_const(m_nodes))
+                if (node->open && node->listing && node->url.isLocalFile() && node->url.toLocalFile() == path)
+                    loadNode(node);
+    });
+    connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, &FolderModel::changed);
+}
+
+void FolderModel::changed(const QString &path)
+{
+    if (m_url.isLocalFile() && path == m_url.toLocalFile())
+        m_rootChanged = true;
+    else
+        m_changedPaths.insert(path);
+    m_reload->start();
+}
+
+void FolderModel::watch(const QString &path, bool on)
+{
+    if (on)
+        m_watcher->addPath(path);
+    else
+        m_watcher->removePath(path);
 }
 
 FolderModel::~FolderModel()
@@ -399,6 +466,17 @@ void FolderModel::setUrl(const QUrl &url)
         return;
     m_url = clean;
     Q_EMIT urlChanged();
+    // Another folder: nothing in it is open yet.
+    if (m_outline || !m_children.empty()) {
+        beginResetModel();
+        m_children.clear();
+        m_nodes.clear();
+        m_rows.clear();
+        m_outline = false;
+        endResetModel();
+        Q_EMIT countChanged();
+    }
+    m_changedPaths.clear();
     if (!m_watcher->directories().isEmpty())
         m_watcher->removePaths(m_watcher->directories());
     if (m_url.isLocalFile())
@@ -458,43 +536,10 @@ void FolderModel::listRemote()
 {
     if (m_job)
         m_job->kill();
-    auto listing = std::make_shared<Listing>();
-    auto *job = KIO::listDir(m_url, KIO::HideProgressInfo);
-    m_job = job;
-    const QUrl base = m_url;
-    const bool showHidden = m_showHidden;
-    connect(job, &KIO::ListJob::entries, this, [listing, base, showHidden](KIO::Job *, const KIO::UDSEntryList &list) {
-        for (const KIO::UDSEntry &u : list) {
-            const QString name = u.stringValue(KIO::UDSEntry::UDS_NAME);
-            if (name.isEmpty() || name == QLatin1String(".") || name == QLatin1String(".."))
-                continue;
-            QString display = u.stringValue(KIO::UDSEntry::UDS_DISPLAY_NAME);
-            if (display.isEmpty())
-                display = name;
-            const bool hidden = display.startsWith(QLatin1Char('.'));
-            if (hidden && !showHidden)
-                continue;
-            const QByteArray n = name.toUtf8(), d = display.toUtf8();
-            Entry e;
-            e.name = addString(*listing, n.constData(), n.size());
-            e.display = addString(*listing, d.constData(), d.size());
-            e.flags = (u.isDir() ? FolderModel::Dir : 0) | (hidden ? FolderModel::Hidden : 0);
-            e.size = u.isDir() ? -1 : u.numberValue(KIO::UDSEntry::UDS_SIZE, -1);
-            e.mtime = u.numberValue(KIO::UDSEntry::UDS_MODIFICATION_TIME, 0);
-            const QString target = u.stringValue(KIO::UDSEntry::UDS_URL);
-            QUrl url = target.isEmpty() ? base : QUrl(target);
-            if (target.isEmpty())
-                url.setPath(base.path() + (base.path().endsWith(QLatin1Char('/')) ? QString() : QStringLiteral("/")) + name);
-            listing->entries.push_back(e);
-            listing->urls.push_back(url);
-        }
-    });
     const quint64 generation = m_generation;
-    connect(job, &KJob::result, this, [this, job, listing, generation] {
-        if (m_job == job)
+    m_job = listWithKio(this, m_url, m_showHidden, [this, generation](std::shared_ptr<Listing> listing) {
+        if (generation == m_generation)
             m_job = nullptr;
-        if (job->error() && job->error() != KJob::KilledJobError)
-            listing->error = job->errorString();
         QPointer<FolderModel> self(this);
         const QString column = m_sortColumn;
         const bool ascending = m_ascending;
@@ -516,14 +561,24 @@ void FolderModel::resort()
     m_clock.start();
     QPointer<FolderModel> self(this);
     auto copy = std::make_shared<Listing>(*m_listing);
+    std::vector<std::pair<quint64, std::shared_ptr<Listing>>> open;
+    for (Node *node : std::as_const(m_nodes))
+        if (node->listing)
+            open.emplace_back(node->id, std::make_shared<Listing>(*node->listing));
     const QString column = m_sortColumn;
     const bool ascending = m_ascending;
-    QThreadPool::globalInstance()->start([self, copy, generation, column, ascending] {
+    QThreadPool::globalInstance()->start([self, copy, open, generation, column, ascending] {
         sortListing(*copy, column, ascending);
+        for (const auto &[id, listing] : open)
+            sortListing(*listing, column, ascending);
         QMetaObject::invokeMethod(
-            qApp, [self, copy, generation] {
-                if (self)
-                    self->apply(copy, generation, false);
+            qApp, [self, copy, open, generation] {
+                if (!self || generation != self->m_generation)
+                    return;
+                for (const auto &[id, listing] : open)
+                    if (Node *node = self->m_nodes.value(id); node && node->listing)
+                        node->listing = listing;
+                self->apply(copy, generation, false);
             },
             Qt::QueuedConnection);
     });
@@ -536,6 +591,7 @@ void FolderModel::apply(std::shared_ptr<Listing> listing, quint64 generation, bo
     const int before = rowCount();
     beginResetModel();
     m_listing = std::move(listing);
+    rebuildRows();
     endResetModel();
     if (partial || m_firstMs == 0)
         m_firstMs = m_clock.nsecsElapsed() / 1e6;
@@ -557,7 +613,9 @@ void FolderModel::apply(std::shared_ptr<Listing> listing, quint64 generation, bo
 
 int FolderModel::rowCount(const QModelIndex &parent) const
 {
-    return parent.isValid() ? 0 : int(m_listing->entries.size());
+    if (parent.isValid())
+        return 0;
+    return int(m_outline ? m_rows.size() : m_listing->entries.size());
 }
 
 QHash<int, QByteArray> FolderModel::roleNames() const
@@ -573,6 +631,9 @@ QHash<int, QByteArray> FolderModel::roleNames() const
         {KindRole, "kind"},
         {IconRole, "icon"},
         {BadgeRole, "badge"},
+        {KindShortRole, "kindShort"},
+        {DepthRole, "depth"},
+        {ExpandedRole, "expanded"},
     };
 }
 
@@ -580,12 +641,13 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid() || index.row() >= rowCount())
         return {};
-    const Entry &e = m_listing->entries[index.row()];
+    const Row r = rowAt(index.row());
+    const Entry &e = entryOf(r);
     const bool dir = e.flags & Dir;
     switch (role) {
     case NameRole:
     case Qt::DisplayRole:
-        return QString::fromUtf8(str(e.display));
+        return displayOf(r);
     case UrlRole:
         return urlAt(index.row());
     case IsDirRole:
@@ -597,50 +659,68 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     case SizeTextRole:
         return dir ? QStringLiteral("--") : Format::size(e.size);
     case DateTextRole:
-        return Format::date(e.mtime);
-    case KindRole: {
-        const QString name = QString::fromUtf8(str(e.display));
+        return Format::date(e.mtime, m_dateLevel);
+    case KindRole:
+    case KindShortRole: {
+        const QString name = displayOf(r);
         const QString ext = dir ? QString() : name.section(QLatin1Char('.'), -1).toLower();
         auto it = m_kinds.find(ext);
         if (it == m_kinds.end())
             it = m_kinds.insert(ext, Format::kind(name, dir));
-        return *it;
+        return role == KindRole ? *it : Format::shortKind(*it);
     }
     case IconRole:
         return Format::icon(QString(), dir);
     case BadgeRole:
-        return Format::badge(QString::fromUtf8(str(e.display)), dir);
+        return Format::badge(displayOf(r), dir);
+    case DepthRole:
+        return int(r.depth);
+    case ExpandedRole:
+        return isExpanded(index.row());
     }
     return {};
+}
+
+const char *FolderModel::nameOf(const Row &r) const
+{
+    const Listing &l = listingOf(r.node);
+    return l.strings.data() + l.entries[r.index].name;
+}
+
+QString FolderModel::displayOf(const Row &r) const
+{
+    const Listing &l = listingOf(r.node);
+    return QString::fromUtf8(l.strings.data() + l.entries[r.index].display);
 }
 
 QUrl FolderModel::urlAt(int row) const
 {
     if (row < 0 || row >= rowCount())
         return {};
-    if (!m_listing->urls.empty())
-        return m_listing->urls[row];
-    QUrl url = m_url;
+    const Row r = rowAt(row);
+    const Listing &l = listingOf(r.node);
+    if (!l.urls.empty())
+        return l.urls[r.index];
+    QUrl url = r.node ? r.node->url : m_url;
     const QString path = url.path();
-    url.setPath(path + (path.endsWith(QLatin1Char('/')) ? QString() : QStringLiteral("/")) + QString::fromUtf8(str(m_listing->entries[row].name)));
+    url.setPath(path + (path.endsWith(QLatin1Char('/')) ? QString() : QStringLiteral("/")) + QString::fromUtf8(nameOf(r)));
     return url;
 }
 
 QString FolderModel::nameAt(int row) const
 {
-    return row >= 0 && row < rowCount() ? QString::fromUtf8(str(m_listing->entries[row].display)) : QString();
+    return row >= 0 && row < rowCount() ? displayOf(rowAt(row)) : QString();
 }
 
 bool FolderModel::isDirAt(int row) const
 {
-    return row >= 0 && row < rowCount() && (m_listing->entries[row].flags & Dir);
+    return row >= 0 && row < rowCount() && (entryOf(rowAt(row)).flags & Dir);
 }
 
 int FolderModel::indexOf(const QString &name) const
 {
-    const QByteArray n = name.toUtf8();
     for (int i = 0; i < rowCount(); ++i)
-        if (n == str(m_listing->entries[i].display))
+        if (rowAt(i).depth == 0 && displayOf(rowAt(i)) == name)
             return i;
     return -1;
 }
@@ -652,10 +732,288 @@ int FolderModel::match(const QString &prefix, int from) const
         return -1;
     for (int k = 0; k < n; ++k) {
         const int i = (from + k) % n;
-        if (QString::fromUtf8(str(m_listing->entries[i].display)).startsWith(prefix, Qt::CaseInsensitive))
+        if (displayOf(rowAt(i)).startsWith(prefix, Qt::CaseInsensitive))
             return i;
     }
     return -1;
+}
+
+void FolderModel::setDateLevel(int level)
+{
+    if (level == m_dateLevel)
+        return;
+    m_dateLevel = level;
+    Q_EMIT dateLevelChanged();
+    if (rowCount() > 0)
+        Q_EMIT dataChanged(index(0), index(rowCount() - 1), {DateTextRole});
+}
+
+// The outline
+
+void FolderModel::appendRows(const Node *node, quint32 depth, std::vector<Row> &rows) const
+{
+    const Listing &l = listingOf(node);
+    const Children &children = childrenOf(node);
+    for (quint32 i = 0; i < l.entries.size(); ++i) {
+        rows.push_back({node, i, depth});
+        if (children.empty() || !(l.entries[i].flags & Dir))
+            continue;
+        const auto it = children.find(l.strings.data() + l.entries[i].name);
+        if (it != children.end() && it->second->open && it->second->listing)
+            appendRows(it->second.get(), depth + 1, rows);
+    }
+}
+
+// The rows again, after the folder itself was reread or resorted.
+void FolderModel::rebuildRows()
+{
+    m_rows.clear();
+    m_outline = false;
+    bool open = false;
+    for (const auto &[name, node] : m_children)
+        open = open || (node->open && node->listing);
+    if (!open)
+        return;
+    appendRows(nullptr, 0, m_rows);
+    m_outline = m_rows.size() != m_listing->entries.size();
+    if (!m_outline)
+        m_rows.clear();
+}
+
+// The row of the folder a node lists, or -1 when it isn't showing.
+int FolderModel::rowOfNode(const Node *node) const
+{
+    const int n = rowCount();
+    for (int i = 0; i < n; ++i) {
+        const Row r = rowAt(i);
+        if (r.node == node->parent && (entryOf(r).flags & Dir) && node->name == nameOf(r))
+            return i;
+    }
+    return -1;
+}
+
+// One past the last row inside the folder at `row`.
+int FolderModel::subtreeEnd(int row) const
+{
+    const quint32 depth = rowAt(row).depth;
+    int end = row + 1;
+    while (end < rowCount() && rowAt(end).depth > depth)
+        ++end;
+    return end;
+}
+
+bool FolderModel::isExpanded(int row) const
+{
+    if (row < 0 || row >= rowCount())
+        return false;
+    const Row r = rowAt(row);
+    if (!(entryOf(r).flags & Dir))
+        return false;
+    const Children &children = childrenOf(r.node);
+    const auto it = children.find(nameOf(r));
+    return it != children.end() && it->second->open;
+}
+
+int FolderModel::parentRow(int row) const
+{
+    if (row < 0 || row >= rowCount() || rowAt(row).depth == 0)
+        return -1;
+    const quint32 depth = rowAt(row).depth;
+    for (int i = row - 1; i >= 0; --i)
+        if (rowAt(i).depth < depth)
+            return i;
+    return -1;
+}
+
+void FolderModel::setExpanded(int row, bool expanded, bool all)
+{
+    if (!isDirAt(row))
+        return;
+    const Row r = rowAt(row);
+    Children &children = childrenOf(r.node);
+    const std::string name = nameOf(r);
+    auto it = children.find(name);
+    if (expanded) {
+        if (it == children.end()) {
+            auto node = std::make_unique<Node>();
+            node->parent = const_cast<Node *>(r.node);
+            node->name = name;
+            node->url = urlAt(row);
+            node->id = ++m_nextNode;
+            m_nodes.insert(node->id, node.get());
+            it = children.emplace(name, std::move(node)).first;
+        }
+        Node *node = it->second.get();
+        if (all)
+            node->openAll = true;
+        if (node->open) {
+            if (all && node->listing)
+                openAllIn(node);
+            return;
+        }
+        node->open = true;
+        Q_EMIT dataChanged(index(row), index(row), {ExpandedRole});
+        loadNode(node);
+        return;
+    }
+    if (it == children.end() || !it->second->open)
+        return;
+    Node *node = it->second.get();
+    hideNode(node);
+    if (all) {
+        // Option-click forgets what was open inside, as Finder does.
+        forget(node);
+        children.erase(it);
+    } else {
+        node->open = false;
+        closeListings(node);
+    }
+    Q_EMIT dataChanged(index(row), index(row), {ExpandedRole});
+}
+
+void FolderModel::loadNode(Node *node)
+{
+    const quint64 id = node->id, generation = ++node->generation;
+    const QString column = m_sortColumn;
+    const bool ascending = m_ascending;
+    if (!node->url.isLocalFile()) {
+        listWithKio(this, node->url, m_showHidden, [this, id, generation, column, ascending](std::shared_ptr<Listing> listing) {
+            sortListing(*listing, column, ascending);
+            nodeLoaded(id, generation, listing, column, ascending);
+        });
+        return;
+    }
+    QPointer<FolderModel> self(this);
+    const QString path = node->url.toLocalFile();
+    const bool hidden = m_showHidden;
+    QThreadPool::globalInstance()->start([self, id, generation, path, column, ascending, hidden] {
+        auto listing = listLocal(path, hidden, column, ascending, [](std::shared_ptr<Listing>) {});
+        QMetaObject::invokeMethod(
+            qApp, [self, id, generation, listing, column, ascending] {
+                if (self)
+                    self->nodeLoaded(id, generation, listing, column, ascending);
+            },
+            Qt::QueuedConnection);
+    });
+}
+
+void FolderModel::nodeLoaded(quint64 id, quint64 generation, std::shared_ptr<Listing> listing, const QString &column, bool ascending)
+{
+    Node *node = m_nodes.value(id);
+    if (!node || node->generation != generation || !node->open)
+        return;
+    if (column != m_sortColumn || ascending != m_ascending)
+        sortListing(*listing, m_sortColumn, m_ascending); // the order changed while it was read
+    hideNode(node); // a reread replaces the rows it showed
+    if (!node->listing && node->url.isLocalFile())
+        watch(node->url.toLocalFile(), true);
+    node->listing = std::move(listing);
+    showNode(node);
+    if (node->openAll)
+        openAllIn(node);
+    for (auto &[name, child] : node->children)
+        if (child->open && !child->listing)
+            loadNode(child.get());
+}
+
+// Inserts a node's rows (and those of the open folders in it) under its row.
+void FolderModel::showNode(Node *node)
+{
+    const int at = rowOfNode(node);
+    if (at < 0)
+        return;
+    std::vector<Row> rows;
+    appendRows(node, rowAt(at).depth + 1, rows);
+    if (rows.empty())
+        return;
+    if (!m_outline) {
+        // Nothing else is open: the same rows as before, as an outline.
+        m_rows.reserve(m_listing->entries.size() + rows.size());
+        for (quint32 i = 0; i < m_listing->entries.size(); ++i)
+            m_rows.push_back({nullptr, i, 0});
+        m_outline = true;
+    }
+    beginInsertRows({}, at + 1, at + int(rows.size()));
+    m_rows.insert(m_rows.begin() + at + 1, rows.begin(), rows.end());
+    endInsertRows();
+    Q_EMIT countChanged();
+}
+
+// Takes a node's rows out from under its row.
+void FolderModel::hideNode(Node *node)
+{
+    if (!node->listing)
+        return;
+    const int at = rowOfNode(node);
+    if (at < 0)
+        return;
+    const int end = subtreeEnd(at);
+    if (end == at + 1)
+        return;
+    beginRemoveRows({}, at + 1, end - 1);
+    m_rows.erase(m_rows.begin() + at + 1, m_rows.begin() + end);
+    endRemoveRows();
+    if (m_rows.size() == m_listing->entries.size()) {
+        m_rows.clear();
+        m_outline = false;
+    }
+    Q_EMIT countChanged();
+}
+
+// Opens every folder in an open node, and every folder in those as they come.
+void FolderModel::openAllIn(Node *node)
+{
+    const Listing &l = *node->listing;
+    for (quint32 i = 0; i < l.entries.size(); ++i) {
+        if (!(l.entries[i].flags & Dir))
+            continue;
+        const std::string name = l.strings.data() + l.entries[i].name;
+        auto it = node->children.find(name);
+        if (it == node->children.end()) {
+            auto child = std::make_unique<Node>();
+            child->parent = node;
+            child->name = name;
+            if (!l.urls.empty()) {
+                child->url = l.urls[i];
+            } else {
+                child->url = node->url;
+                child->url.setPath(node->url.path() + QLatin1Char('/') + QString::fromUtf8(name.c_str()));
+            }
+            child->id = ++m_nextNode;
+            m_nodes.insert(child->id, child.get());
+            it = node->children.emplace(name, std::move(child)).first;
+        }
+        Node *child = it->second.get();
+        child->openAll = true;
+        if (!child->open) {
+            child->open = true;
+            loadNode(child);
+        } else if (child->listing) {
+            openAllIn(child);
+        }
+    }
+    if (rowCount() > 0)
+        Q_EMIT dataChanged(index(0), index(rowCount() - 1), {ExpandedRole});
+}
+
+// A closed folder keeps which folders in it were open, not their contents.
+void FolderModel::closeListings(Node *node)
+{
+    if (node->listing && node->url.isLocalFile())
+        watch(node->url.toLocalFile(), false);
+    node->listing.reset();
+    node->openAll = false;
+    ++node->generation;
+    for (auto &[name, child] : node->children)
+        closeListings(child.get());
+}
+
+void FolderModel::forget(Node *node)
+{
+    closeListings(node);
+    m_nodes.remove(node->id);
+    for (auto &[name, child] : node->children)
+        forget(child.get());
 }
 
 void FolderModel::setSortColumn(const QString &column)

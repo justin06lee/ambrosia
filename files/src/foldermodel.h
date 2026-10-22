@@ -2,11 +2,14 @@
 
 #include <QAbstractListModel>
 #include <QElapsedTimer>
+#include <QHash>
+#include <QSet>
 #include <QUrl>
 #include <QtQml/qqmlregistration.h>
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 class QFileSystemWatcher;
@@ -18,6 +21,11 @@ class KJob;
 // small first buffer, then 1 MiB ones), then statx for every entry, in
 // parallel for big folders. Everything else (trash:/, recentlyused:/, smb://)
 // is listed through KIO. Nothing touches the filesystem on the GUI thread.
+//
+// Folders opened in place by their disclosure triangles hang under their
+// rows as a tree of nodes; while any is open the model's rows are an
+// outline (m_rows) of the folder and the open nodes, each row with its
+// depth. Opening and closing one inserts and removes just its rows.
 class FolderModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -34,6 +42,9 @@ class FolderModel : public QAbstractListModel
     Q_PROPERTY(double loadMs READ loadMs NOTIFY loaded)
     // ... and to having its first rows (sooner than loadMs in big folders).
     Q_PROPERTY(double firstMs READ firstMs NOTIFY loaded)
+    // How much of a date the list's column has room for: 0 "Yesterday at
+    // 3:30 PM", 1 "Yesterday, 3:30 PM", 2 "Yesterday" (or "3:30 PM" today).
+    Q_PROPERTY(int dateLevel READ dateLevel WRITE setDateLevel NOTIFY dateLevelChanged)
 
 public:
     enum Role {
@@ -47,6 +58,9 @@ public:
         KindRole,
         IconRole,
         BadgeRole,
+        KindShortRole,
+        DepthRole,
+        ExpandedRole,
     };
     Q_ENUM(Role)
 
@@ -87,6 +101,8 @@ public:
     void setShowHidden(bool show);
     double loadMs() const { return m_loadMs; }
     double firstMs() const { return m_firstMs; }
+    int dateLevel() const { return m_dateLevel; }
+    void setDateLevel(int level);
 
     Q_INVOKABLE QUrl urlAt(int row) const;
     Q_INVOKABLE QString nameAt(int row) const;
@@ -96,6 +112,12 @@ public:
     // starts with prefix, ignoring case; -1 if none.
     Q_INVOKABLE int match(const QString &prefix, int from = 0) const;
     Q_INVOKABLE void reload();
+    // The outline: whether a folder's row is open, opening or closing it
+    // (with all, every folder under it too, as Option-click does), and the
+    // row of the folder a row sits in (-1 at the top level).
+    Q_INVOKABLE bool isExpanded(int row) const;
+    Q_INVOKABLE void setExpanded(int row, bool expanded, bool all = false);
+    Q_INVOKABLE int parentRow(int row) const;
 
 Q_SIGNALS:
     void urlChanged();
@@ -104,8 +126,48 @@ Q_SIGNALS:
     void sortChanged();
     void showHiddenChanged();
     void loaded();
+    void dateLevelChanged();
 
 private:
+    struct Node {
+        Node *parent = nullptr; // null for a folder in the top level
+        std::string name;
+        QUrl url;
+        std::shared_ptr<const Listing> listing; // null until read, and while closed
+        bool open = false;
+        bool openAll = false; // opens every folder inside as it's read
+        quint64 id = 0;
+        quint64 generation = 0;
+        std::unordered_map<std::string, std::unique_ptr<Node>> children;
+    };
+    struct Row {
+        const Node *node; // null for the top level
+        quint32 index;
+        quint32 depth;
+    };
+    using Children = std::unordered_map<std::string, std::unique_ptr<Node>>;
+
+    Row rowAt(int row) const { return m_outline ? m_rows[row] : Row{nullptr, quint32(row), 0}; }
+    const Listing &listingOf(const Node *node) const { return node ? *node->listing : *m_listing; }
+    const Entry &entryOf(const Row &r) const { return listingOf(r.node).entries[r.index]; }
+    const char *nameOf(const Row &r) const;
+    QString displayOf(const Row &r) const;
+    Children &childrenOf(const Node *node) { return node ? const_cast<Node *>(node)->children : m_children; }
+    const Children &childrenOf(const Node *node) const { return node ? node->children : m_children; }
+    void appendRows(const Node *node, quint32 depth, std::vector<Row> &rows) const;
+    void rebuildRows();
+    int rowOfNode(const Node *node) const;
+    int subtreeEnd(int row) const;
+    void loadNode(Node *node);
+    void nodeLoaded(quint64 id, quint64 generation, std::shared_ptr<Listing> listing, const QString &column, bool ascending);
+    void showNode(Node *node);
+    void hideNode(Node *node);
+    void openAllIn(Node *node);
+    void closeListings(Node *node);
+    void forget(Node *node);
+    void watch(const QString &path, bool on);
+    void changed(const QString &path);
+
     void load();
     void listRemote();
     void resort();
@@ -124,6 +186,14 @@ private:
     QElapsedTimer m_clock;
     QFileSystemWatcher *m_watcher = nullptr;
     QTimer *m_reload = nullptr;
+    bool m_rootChanged = false;
+    QSet<QString> m_changedPaths; // open folders written to since the last reread
+    int m_dateLevel = 0;
+    Children m_children; // the top level's folders that have been opened
+    QHash<quint64, Node *> m_nodes;
+    quint64 m_nextNode = 0;
+    std::vector<Row> m_rows;
+    bool m_outline = false;
     KJob *m_job = nullptr;
     mutable QHash<QString, QString> m_kinds; // extension -> kind, GUI thread
 };

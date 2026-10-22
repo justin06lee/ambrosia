@@ -22,6 +22,8 @@ class App : public QObject
     Q_PROPERTY(bool dark READ dark NOTIFY appearanceChanged)
     Q_PROPERTY(QColor accent READ accent NOTIFY appearanceChanged)
     Q_PROPERTY(QString view READ view CONSTANT)
+    Q_PROPERTY(QStringList expand READ expand CONSTANT)
+    Q_PROPERTY(QString select READ select CONSTANT)
 
 public:
     struct Options {
@@ -30,6 +32,8 @@ public:
         QString view;       // the first window's view
         QSize size;         // the first window's size
         bool bench = false; // print how long the first folder took, then quit
+        QStringList expand; // folders (paths in the first folder) to open in place, for grabs
+        QString select;     // the item to select in the first folder, for grabs
     };
 
     App(QQmlEngine *engine, const Options &options);
@@ -38,6 +42,8 @@ public:
     bool dark() const;
     QColor accent() const;
     QString view() const { return m_options.view; }
+    QStringList expand() const { return m_options.expand; }
+    QString select() const { return m_options.select; }
 
     Q_INVOKABLE void openWindow(const QUrl &url);
     Q_INVOKABLE void openFile(const QUrl &url);
