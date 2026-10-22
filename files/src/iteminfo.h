@@ -33,6 +33,10 @@ class ItemInfo : public QObject
     Q_PROPERTY(QUrl fileUrl READ fileUrl NOTIFY changed)
     // A picture's size in pixels, as it shows (turned as its camera says).
     Q_PROPERTY(QSize pictureSize READ pictureSize NOTIFY changed)
+    // What Finder's preview lists beside its dates (a picture's Dimensions
+    // and Resolution, a PDF's pages …): [{label, value, more}], the rows
+    // with more shown only after Show More.
+    Q_PROPERTY(QVariantList details READ details NOTIFY changed)
     // A text file's start, up to 128 KB of it.
     Q_PROPERTY(QString text READ text NOTIFY changed)
     // "tenet ▸ var ▸ tmp": the folder it is in, from the computer down.
@@ -76,6 +80,7 @@ public:
     QString preview() const { return m_preview; }
     QUrl fileUrl() const { return m_fileUrl; }
     QSize pictureSize() const { return m_pictureSize; }
+    QVariantList details() const { return m_details; }
     QString text() const { return m_text; }
     QString where() const { return m_where; }
     QString created() const { return m_created; }
@@ -117,7 +122,7 @@ private:
     QSize m_pictureSize;
     QString m_created, m_modified, m_modifiedSeconds, m_opened;
     QString m_appName, m_appIcon, m_comment, m_access;
-    QVariantList m_permissions;
+    QVariantList m_permissions, m_details;
     QStringList m_tags;
     bool m_isDir = false;
     qint64 m_bytes = -1; // its size; a folder's contents', once counted

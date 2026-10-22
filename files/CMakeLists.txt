@@ -31,6 +31,7 @@ qt_add_qml_module(ambrosia-files
         src/index.h src/index.cpp
         src/searchbench.cpp
         src/iteminfo.h src/iteminfo.cpp
+        src/metadata.h src/metadata.cpp
         src/format.h src/format.cpp
         src/places.h src/places.cpp
         src/sortkey.h src/sortkey.cpp
@@ -60,6 +61,9 @@ qt_add_qml_module(ambrosia-files
         qml/ColumnPane.qml
         qml/GalleryPane.qml
         qml/PreviewPane.qml
+        qml/PreviewDetails.qml
+        qml/QuickActions.qml
+        qml/TagField.qml
         qml/Thumbnail.qml
         qml/PathBar.qml
         qml/FileIcon.qml

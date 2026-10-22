@@ -36,6 +36,13 @@ var glyphs = {
         stroke: "M3.5 4.8v6.3a1.6 1.6 0 0 0 .47 1.13l8.3 8.3a1.6 1.6 0 0 0 2.26 0l5.7-5.7a1.6 1.6 0 0 0 0-2.26l-8.3-8.3a1.6 1.6 0 0 0-1.13-.47H4.8a1.3 1.3 0 0 0-1.3 1.3z",
         fill: circle(8, 8, 1.4),
     },
+    // The preview's quick actions: Rotate Left, Markup and More….
+    rotateLeft: { stroke: rect(4.5, 10, 11, 10, 1.8) + "M19.5 15v-3a5.5 5.5 0 0 0-5.5-5.5h-3.5M13 4l-2.5 2.5L13 9" },
+    markup: { stroke: circle(12, 12, 8.75) + "M8.8 16.8l1.3-5.3L12 6.8l1.9 4.7 1.3 5.3M12 11.6v1.6" },
+    moreCircle: {
+        stroke: circle(12, 12, 8.75),
+        fill: circle(8.2, 12, 1.15) + circle(12, 12, 1.15) + circle(15.8, 12, 1.15),
+    },
     more: { fill: circle(5, 12, 1.7) + circle(12, 12, 1.7) + circle(19, 12, 1.7) },
     search: { stroke: circle(10.5, 10.5, 6.5) + "M15.3 15.3L20.5 20.5", width: 1.9 },
     recents: { stroke: circle(12, 12, 8.75) + "M12 7v5.2l3.4 2.1" },

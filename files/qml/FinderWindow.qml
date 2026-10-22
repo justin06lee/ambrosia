@@ -25,6 +25,8 @@ Window {
     // view's last column for a file. The pane hides when the window is too
     // narrow for it.
     property bool showPreview: true
+    // The preview's Information with Show More open, for every item after.
+    property bool previewMore: false
     readonly property bool previewShown: view === "gallery" && showPreview
         && main.width - Finder.previewPane >= Finder.previewPaneMinContent
 

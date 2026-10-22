@@ -105,6 +105,30 @@ QtObject {
     readonly property int previewPaneRowBase: 175
     readonly property int previewPaneRow: 23
     readonly property int previewPaneValueRight: 11 // the values' right, from the window's right
+    // The preview's Information (the gallery's pane and the columns' last),
+    // from the Information heading's baseline: the first row's baseline,
+    // each row's height (its rule 7 below its baseline), the Tags heading's
+    // baseline below the last row's, and the Tags field below that.
+    readonly property int previewRowFirst: 22
+    readonly property int previewTagsGap: 33
+    readonly property real previewFieldTop: 8.5
+    readonly property int previewField: 32
+    // The columns' preview: a slot for the picture or page, from the window's
+    // top, 3/5 of the height left above the quick actions but no taller than
+    // a page; the name's baseline 42 below it, the kind's 20 below that and
+    // Information's 24 lower. Narrowed to fit the window, as Finder's.
+    readonly property int previewSlotTop: 61
+    readonly property real previewSlotShare: 0.6
+    readonly property real previewSlotAspect: 1.32
+    readonly property int previewNameGap: 42
+    readonly property int previewKindGap: 20
+    readonly property int previewInfoGap: 24
+    readonly property int previewColumnMin: 200
+    // The quick actions under a preview, in its last 70 points: buttons 76
+    // apart, centred, each a glyph and its name.
+    readonly property int quickActionPitch: 76
+    readonly property real quickActionGlyph: 23.5 // its middle, from the foot's top
+    readonly property real quickActionBase: 51.5
 
     readonly property int pathBar: 28
 
@@ -165,7 +189,8 @@ QtObject {
     readonly property color lightInactive: dark ? "#4a4a46" : "#dcdcdc"
     readonly property color selectionInactive: dark ? "#46463f" : "#dcdcdc"
     readonly property color gallerySelected: dark ? "#5b5b58" : "#bdbdbd"
-    readonly property color previewPaneFill: dark ? "#181815" : "#f4f4f4"
+    readonly property color previewPaneFill: dark ? "#181815" : "#f8f8f8"
+    readonly property color previewLink: dark ? "#5a9af7" : "#2a66d3" // Show More
     readonly property color previewPaneRule: dark ? "#232323" : "#e6e6e6"
     readonly property color lookFill: dark ? "#080808" : "#d5d5d5"
     readonly property color lookRim: dark ? "#2a2a2a" : "#f0f0f0"
