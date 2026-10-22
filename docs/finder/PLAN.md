@@ -638,6 +638,31 @@ other kinds in r187, 2026-10-22):
   one stay icons in both. Files that aren't the user's own get their
   access time set, since O_NOATIME needs ownership.
 
+**The preview, as Finder's** (midna's parity gaps from the step-1 review;
+`qml/ColumnPane.qml`'s PreviewColumn, `qml/PreviewPane.qml`,
+`qml/PreviewDetails.qml`, `qml/QuickActions.qml`, `src/metadata.cpp`).
+- **Columns:** the file large in a slot 61 pt from the top, 3/5 of the
+  height above the quick actions but no taller than a page (1.32 × its
+  width): a picture fitted with rounded corners, a page ruled, a text
+  file's start in a monospaced page that fills it. Then the name and kind
+  left-aligned (the name's baseline 42 below the slot), Information, Tags
+  and, in the last 70 pt, Rotate Left, Markup and More… (a PDF: Markup and
+  More…; anything else: More…), disabled until they do something. The last
+  column takes the room left in the window when that is a little less than
+  its width, as Finder's 240-point one does beside two 245s.
+- **Gallery:** the same Information (no Last opened), Tags with Add Tags…
+  on the window's color, and the quick actions in the foot.
+- **Information:** Created and Modified as Finder's preview writes them
+  ("Today, 2:12 PM"), then from the file's header: a picture's Dimensions
+  and Resolution (EXIF's, else JFIF's or PNG's, else 72×72); behind Show
+  More (kept open for the window) its taken date, color space, ICC profile
+  (or sRGB by EXIF's ColorSpace), camera make and model, aperture value,
+  exposure time and focal length; a PDF's version, pages, security and the
+  software that wrote it (its first and last 64 KB only).
+- **Icon view:** thumbnails fit 9/10 of the icon as Finder's (measured at
+  64 pt: 57.5 pt), corners 6 pt of 64 for pictures and 8.5 for pages, and a
+  text page's type smaller and nearer its edges.
+
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).
 
