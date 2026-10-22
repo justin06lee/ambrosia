@@ -310,9 +310,9 @@ tenet's next sanctioned upgrade).
 | # | Scenario | Files target | Dolphin now | Nautilus now | Floor (measured) |
 |---|---|---|---|---|---|
 | 1 | New window with the home listed (process resident) | ≤ 100 ms | TBM | TBM | — |
-| 2 | Cold launch to a listed window | ≤ 400 ms | TBM | TBM | — |
+| 2 | Cold launch to a listed window | ≤ 400 ms | 348 ms (50 files, whole window) | TBM | — |
 | 3 | 100k-file folder: first rows painted | **≤ 30 ms** | TBM | TBM | 0.13 ms first batch |
-| 4 | 100k-file folder: complete, sorted by name | **≤ 150 ms** | TBM (KIO listing alone 276 ms) | TBM (GIO with its attributes alone 1.5 s) | 14 ms names, 62 ms with statx |
+| 4 | 100k-file folder: complete, sorted by name | **≤ 150 ms** | 2,151 ms whole window (KIO listing alone 276 ms) | TBM (GIO with its attributes alone 1.5 s) | 14 ms names, 62 ms with statx |
 | 5 | 1M-file folder: first rows / complete | ≤ 250 ms (was ≤ 50) / ≤ 1 s | TBM (KIO alone 2.6 s; bug 306290) | TBM (GIO names alone 3.0 s) | 138 ms / 676 ms |
 | 6 | Type-select or filter in the 100k folder | ≤ 4 ms a keystroke | TBM | TBM | — |
 | 7 | Filename search over the home (238k entries) | **≤ 10 ms** a keystroke | TBM (Baloo: 0.9 ms query, 142 ms per call, 21k files indexed) | TBM | scan 4 to 6 ms; walk 45 to 175 ms |
@@ -321,7 +321,7 @@ tenet's next sanctioned upgrade).
 | 10 | First uncached thumbnail, 24 MP JPEG | **≤ 20 ms** with EXIF, ≤ 80 ms without | TBM (EXIF path 3 to 5 ms) | TBM | 66 ms at 1/8 |
 | 11 | Quick Look, 24 MP JPEG, to first frame | ≤ 100 ms | n/a | TBM (Sushi) | — |
 | 12 | Scrolling a 100k list or icon view at 4K | no frame over 16.7 ms | TBM | TBM | — |
-| 13 | Memory with the 100k folder open | ≤ 120 MB RSS | TBM | TBM | — |
+| 13 | Memory with the 100k folder open | ≤ 120 MB RSS | 224 MB (software GL) | TBM | — |
 | 14 | Index: load at login / a change reflected | ≤ 100 ms / ≤ 1 s | — | — | — |
 
 Slice 1 as measured by `files/bench/run.sh` (warm): #3 40 ms, #4 64 ms, #5
@@ -329,6 +329,26 @@ Slice 1 as measured by `files/bench/run.sh` (warm): #3 40 ms, #4 64 ms, #5
 the GUI thread still building the first window. #5's first-rows target was
 50 ms; reading the 1M names alone takes 138 ms, so no sorted first screen can
 come sooner, and the target is now 250 ms.
+
+Whole windows, timed from outside by `files/bench/gui.sh` (2026-10-21, r127
+plus the probe's accessible name): from exec until the window reports the
+folder's count over AT-SPI, on a headless KWin at 2x with Mesa's software GL,
+warm cache, median of five after a warm-up run. Dolphin is timed the same way
+by its status bar.
+
+| Folder | Files, list | Files, icons | Dolphin | RSS: Files / Dolphin |
+|---|---|---|---|---|
+| 50 files | 137 ms | 130 ms | 348 ms | 231 / 120 MB |
+| 100k files | 157 ms | 141 ms | 2,151 ms | 241 / 224 MB |
+
+So #2 holds with room to spare, and the 100k window is complete 14x sooner
+than Dolphin's. #4's whole-window 157 ms is 7 ms over the 150 ms target; most of
+it is starting the app, which #2 counts too. #13 misses: Files sits near 235 MB
+whatever the folder size, which points at the Qt Quick scene graph on software
+GL rather than the model; it is to be re-measured on the GPU in the real
+session before it counts. The 1M run was stopped by the strain watchdog at a
+load of 14, while other jobs were running on tenet (memory peaked at 831 MB of
+the run's 4 GB cap), so #5 is still to be measured whole.
 
 Cold-cache numbers matter on tenet's HDD (rg went from 22 ms to 30 s).
 Measuring them means dropping caches system-wide, which is only done when

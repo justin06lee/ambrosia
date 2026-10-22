@@ -134,26 +134,34 @@ package repo below), and they carry `shell/` and `session/` as they are.
   (2026-10-07).
   - Until the restore brings makima back, reach it over plain SSH:
     `ssh -i ~/.ssh/id_ed25519_justin -o IdentitiesOnly=yes root@192.168.1.172`
-    (Wi-Fi, DHCP; the address may change). `AMBROSIA_RSH=ssh tools/remote.sh`
-    syncs over SSH. After the restore: `makima possess tenet '<cmd>' < /dev/null`.
-  - The checkout lives at `/home/justin06lee/ambrosia`.
+    (Wi-Fi, DHCP; the address may change); `justin06lee@` the same for
+    user work. The repo's tools default to that over SSH.
+  - **Its checkout is a real git clone** (since 2026-10-21):
+    `~/work/ambrosia` (`/home/justin06lee/work/ambrosia`), cloned from the
+    bare repo `~/git/ambrosia.git`, which the Mac pushes to over SSH (no
+    GitHub credentials on tenet). Build output, the ISO and the VM live in its
+    `out/`. The old rsynced `~/ambrosia` is no longer used.
 
 ## How the work runs
 
-- **Mac:** `make build` is the build gate (tests, generator, review site); it
-  must pass after the last change. `bun run review` serves the review site on
-  :4747. `open preview/index.html` opens the preview
+- **The Mac (8 GB) only edits, runs git and signs packages; heavy work runs
+  on tenet.** `make remote-build` runs the build gate (tests, generator,
+  review site) on tenet, capped; it must pass after the last change.
+  `make review-remote` serves the review site from tenet through an SSH
+  tunnel on localhost:4747. `open preview/index.html` opens the preview
   (`?theme=dark&accent=honey&open=cc|view-menu`; D and A switch theme and
   accent).
-- **tenet, from the Mac:** `tools/remote.sh justin06lee@tenet <cmd>` rsyncs
-  the checkout over makima and runs `<cmd>` in it.
+- **tenet, from the Mac:** `tools/remote.sh justin06lee@192.168.1.172 <cmd>`
+  pushes HEAD to tenet's bare repo, checks it out in `~/work/ambrosia`, lays
+  any uncommitted changes over it (rsync, without `.git`, `.ruri` and `out/`),
+  and runs `<cmd>` there. Put heavy commands under the cap (below).
   - `make package` (user) builds the ambrosia packages into `out/pkg/`;
     `make quickshell` rebuilds Quickshell. Install with
     `pacman -U out/pkg/*.pkg.tar.zst` as root.
-  - `make iso` as root (`makima possess tenet 'cd /home/justin06lee/ambrosia && make iso'`)
+  - `make iso` as root, in `/home/justin06lee/work/ambrosia`
     builds `out/iso/ambrosia-*.iso` (~15 minutes; the pacman cache makes
     rebuilds faster). Cap it like every build on tenet:
-    `systemd-run --unit=ambrosia-iso -p MemoryMax=6G -p Nice=19 -p IOSchedulingClass=idle -p WorkingDirectory=/home/justin06lee/ambrosia make iso`.
+    `systemd-run --unit=ambrosia-iso -p MemoryMax=6G -p Nice=19 -p IOSchedulingClass=idle -p WorkingDirectory=/home/justin06lee/work/ambrosia make iso`.
   - **Testing the shell in the live session** (2026-10-13 loop): rsync
     `shell/` onto `/usr/share/ambrosia/shell/` and
     `systemctl --user -M justin06lee@ restart ambrosia-shell`; photograph
@@ -178,10 +186,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
     alone (a 9p share, and a command line systemd-boot reads from SMBIOS),
     which runs `pacman -Syu` and installs from the repo, and prints its
     report. Publish packages newer than the image first, so it upgrades.
-- **Publishing packages, from the Mac:** `make publish`, or while makima is
-  down
-  `AMBROSIA_RSH="ssh -i $HOME/.ssh/id_ed25519_justin -o IdentitiesOnly=yes" tools/publish-repo.sh justin06lee@192.168.1.172`.
-  It syncs the checkout to tenet and builds there (`make package`, plus
+- **Publishing packages, from the Mac:** `make publish` (or
+  `tools/publish-repo.sh [user@host]`). It syncs to tenet's checkout with
+  tools/remote.sh and builds there (`make package`, plus
   `make quickshell` when the release lacks the version in
   `packaging/quickshell/PKGBUILD` and tenet's `out/pkg` doesn't have it yet),
   signs on the Mac, uploads, and drops the versions it replaced. **Builds on
