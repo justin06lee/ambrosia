@@ -13,6 +13,10 @@ Window {
     property url url: startUrl
     property string view: "list"
     property bool first: false
+    // The Columns view's first column. Going somewhere (the sidebar, Back,
+    // the path bar) starts the columns there; moving through them doesn't.
+    property url columnRoot: startUrl
+    onViewChanged: if (view === "column") columnRoot = url
 
     // Back and forward, as Finder keeps them per window.
     property var history: [startUrl]
@@ -26,6 +30,13 @@ Window {
     property int current: -1
     property int anchor: -1
     readonly property int selectedCount: Object.keys(selected).length
+    // The selection's items by URL, for views showing other models' rows.
+    readonly property var selectedSet: {
+        const set = {};
+        for (const row of Object.keys(selected))
+            set[folder.urlAt(Number(row)).toString()] = true;
+        return set;
+    }
     readonly property bool hasSelection: selectedCount > 0
     // Where New Folder, Paste and renaming work: folders on this computer.
     readonly property bool local: url.toString().startsWith("file:")
@@ -94,9 +105,14 @@ Window {
         const cut = s.lastIndexOf("/");
         if (cut < 0 || s.endsWith(":") || s === "file://")
             return;
-        go(cut <= 7 && s.startsWith("file://") ? "file:///" : s.slice(0, cut));
         // Coming up out of a folder selects it, as Finder does.
-        reselect = s.slice(cut + 1);
+        reselect = decodeURIComponent(s.slice(cut + 1));
+        go(cut <= 7 && s.startsWith("file://") ? "file:///" : s.slice(0, cut));
+    }
+    function parentOf(target) {
+        const s = target.toString().replace(/\/+$/, "");
+        const cut = s.lastIndexOf("/");
+        return cut <= 7 && s.startsWith("file://") ? "file:///" : s.slice(0, cut);
     }
     property string reselect: ""
     function show_(target, from) {
@@ -105,7 +121,45 @@ Window {
         pending = null;
         if (from !== "" && from.toString().startsWith(target.toString()))
             reselect = decodeURIComponent(from.toString().slice(target.toString().replace(/\/+$/, "").length + 1)).split("/")[0];
+        columnRoot = target;
         url = target;
+    }
+    // The Columns view: the window moves to a folder one of its columns
+    // shows, and selects item there (or, with first, its first item; or
+    // nothing). The columns stay, and so does the place in the history.
+    property bool selectFirst: false
+    function browse(target, item, first) {
+        const next = typeof target === "string" ? Qt.url(target) : target;
+        selectFirst = first === true;
+        if (next.toString() !== url.toString()) {
+            clearSelection();
+            editing = "";
+            pending = null;
+            const h = history.slice();
+            h[historyIndex] = next;
+            history = h;
+            url = next;
+        }
+        if (item)
+            selectWhenShown([item], false);
+        else if (!selectFirst)
+            clearSelection();
+        else if (!folder.loading && folder.count > 0)
+            firstShown();
+    }
+    function firstShown() {
+        selectFirst = false;
+        if (folder.count > 0)
+            select(0, false, false);
+    }
+    // Into the folder selected, or out to the one around this one.
+    function columnInto() {
+        if (selectedCount === 1 && current >= 0 && folder.isDirAt(current))
+            browse(folder.urlAt(current), null, true);
+    }
+    function columnOut() {
+        if (url.toString().replace(/\/+$/, "") !== columnRoot.toString().replace(/\/+$/, ""))
+            browse(parentOf(url), url);
     }
 
     // Go menu places, by the sidebar's place for them.
@@ -150,7 +204,9 @@ Window {
     }
     function open(row) {
         const target = folder.urlAt(row);
-        if (folder.isDirAt(row))
+        if (folder.isDirAt(row) && view === "column")
+            browse(target, null, true);
+        else if (folder.isDirAt(row))
             go(target);
         else
             App.openFile(target);
@@ -329,6 +385,8 @@ Window {
                     win.select(row, false, false);
             }
             win.selectPending();
+            if (win.selectFirst && !win.hasSelection)
+                win.firstShown();
             if (!win.shownOnce) {
                 win.shownOnce = true;
                 if (win.first) {
@@ -462,7 +520,11 @@ Window {
                 anchors.fill: parent
                 anchors.bottomMargin: Finder.pathBar
                 focus: true
-                sourceComponent: win.view === "icon" ? iconPane : listPane
+                sourceComponent: win.view === "icon" ? iconPane : win.view === "column" ? columnPane : listPane
+            }
+            Component {
+                id: columnPane
+                ColumnPane { finder: win; focus: true }
             }
             Component {
                 id: listPane
@@ -545,11 +607,13 @@ Window {
             else win.select(win.current < 0 ? folder.count - 1 : Math.max(0, win.current - columns), shift, false);
             break;
         case Qt.Key_Right:
-            if (win.view === "icon") win.select(Math.min(folder.count - 1, win.current + 1), shift, false);
+            if (win.view === "column") win.columnInto();
+            else if (win.view === "icon") win.select(Math.min(folder.count - 1, win.current + 1), shift, false);
             else if (win.current >= 0) folder.setExpanded(win.current, true, event.modifiers & Qt.AltModifier);
             break;
         case Qt.Key_Left:
-            if (win.view === "icon") win.select(Math.max(0, win.current - 1), shift, false);
+            if (win.view === "column") win.columnOut();
+            else if (win.view === "icon") win.select(Math.max(0, win.current - 1), shift, false);
             else if (win.current >= 0 && folder.isExpanded(win.current)) folder.setExpanded(win.current, false, event.modifiers & Qt.AltModifier);
             else if (folder.parentRow(win.current) >= 0) win.select(folder.parentRow(win.current), false, false);
             break;
@@ -564,6 +628,9 @@ Window {
             break;
         case Qt.Key_2:
             if (ctrl) win.act("list", () => win.view = "list");
+            break;
+        case Qt.Key_3:
+            if (ctrl) win.act("columns", () => win.view = "column");
             break;
         case Qt.Key_O:
             if (ctrl && shift) win.act("documents", () => win.goPlace("documents"));

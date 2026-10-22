@@ -42,6 +42,7 @@ qt_add_qml_module(ambrosia-files
         qml/TrafficLights.qml
         qml/ListPane.qml
         qml/IconPane.qml
+        qml/ColumnPane.qml
         qml/PathBar.qml
         qml/FileIcon.qml
         qml/Glyph.qml
