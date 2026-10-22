@@ -11,6 +11,12 @@ QString size(qint64 bytes);
 // shorter for a narrow column, as Finder does: level 1 "Yesterday, 5:52 PM",
 // "10/3/26, 9:30 AM"; level 2 "Yesterday", "10/3/26", and today just the time.
 QString date(qint64 secsSinceEpoch, int level = 0);
+// Get Info's dates: "Monday, October 19, 2026 at 9:12 AM".
+QString longDate(qint64 secsSinceEpoch);
+// Quick Look's: "Sep 28, 2026 at 8:47:00 AM".
+QString secondsDate(qint64 secsSinceEpoch);
+// Get Info's exact sizes: "524,288 bytes", "422 bytes", "Zero bytes".
+QString bytes(qint64 bytes);
 // "Folder", "PDF Document", "Plain Text", ... from the name's extension.
 QString kind(const QString &name, bool dir);
 // What Finder writes for a kind when its column is too narrow: "Text",

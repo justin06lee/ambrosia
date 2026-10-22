@@ -64,7 +64,7 @@ Window {
     // inactive. The count clears whenever the window has the keyboard again.
     // (--active draws the first window active, for grabs.)
     property int menusOpen: 0
-    readonly property bool looksActive: active || menusOpen > 0 || (first && App.active)
+    readonly property bool looksActive: active || menusOpen > 0 || (quickLook.item?.active ?? false) || (first && App.active)
     onActiveChanged: if (active) menusOpen = 0
     readonly property var window: win
 
@@ -77,23 +77,7 @@ Window {
     flags: Qt.Window | Qt.FramelessWindowHint
     title: folder.name
 
-    Binding { target: Theme; property: "dark"; value: App.dark }
-    Binding {
-        // The system accent, as the nearest of Ambrosia's accents.
-        target: Theme
-        property: "accentName"
-        when: App.accent.valid
-        value: {
-            const want = App.accent;
-            let best = "blue", distance = 1e9;
-            for (const name of ["blue", "purple", "pink", "red", "orange", "honey", "green", "graphite"]) {
-                const c = Theme.lightColors.accents[name].bg;
-                const d = (c.r - want.r) ** 2 + (c.g - want.g) ** 2 + (c.b - want.b) ** 2;
-                if (d < distance) { distance = d; best = name; }
-            }
-            return best;
-        }
-    }
+    readonly property Appearance appearance: Appearance {}
 
     function go(target) {
         const next = typeof target === "string" ? Qt.url(target) : target;
@@ -373,12 +357,52 @@ Window {
             return Qt.MoveAction;
         }
         const copy = (App.modifiers() & Qt.AltModifier) || !FileOps.dropMoves(urls, dir);
+        // Items dropped in the folder they're in stay where they are.
+        if (!copy) {
+            const into = dir.toString().replace(/\/+$/, "");
+            urls = urls.filter(u => parentOf(u).replace(/\/+$/, "") !== into);
+            if (urls.length === 0)
+                return Qt.IgnoreAction;
+        }
         const here = dir.toString() === url.toString();
         run(copy ? FileOps.copy(urls, dir) : FileOps.move(urls, dir), { select: here });
         return copy ? Qt.CopyAction : Qt.MoveAction;
     }
 
     MenuBar { finder: win }
+
+    // Quick Look (Space, ⌘Y): its panel shows the item selected while it's
+    // open, and closes when nothing is.
+    property bool lookOpen: false
+    function toggleLook() {
+        if (lookOpen)
+            closeLook();
+        else if (hasSelection)
+            lookOpen = true;
+    }
+    function closeLook() {
+        if (!lookOpen)
+            return;
+        lookOpen = false;
+        win.requestActivate();
+    }
+    onHasSelectionChanged: if (!hasSelection) Qt.callLater(() => { if (!win.hasSelection) win.lookOpen = false; })
+    Loader {
+        id: quickLook
+        active: win.lookOpen
+        sourceComponent: Component {
+            QuickLook {
+                finder: win
+                transientParent: win
+                onClosing: win.lookOpen = false
+            }
+        }
+    }
+    // Get Info (⌘I): a window for each item selected, or for this folder.
+    function getInfo() {
+        for (const target of hasSelection ? selectedUrls() : [url])
+            App.openInfo(target);
+    }
 
     // Runs a command once per key press: the menu bar's shortcut and the
     // window's key handler can both see the same press.
@@ -730,6 +754,18 @@ Window {
         case Qt.Key_W:
             if (ctrl) win.act("close", win.close);
             break;
+        case Qt.Key_Space:
+            if (ctrl) return;
+            win.act("look", win.toggleLook);
+            break;
+        case Qt.Key_Y:
+            if (ctrl) win.act("look", win.toggleLook);
+            else return;
+            break;
+        case Qt.Key_I:
+            if (ctrl) win.act("info", win.getInfo);
+            else return;
+            break;
         case Qt.Key_A:
             if (ctrl) win.act("all", win.selectAll);
             break;
@@ -738,7 +774,8 @@ Window {
             if (ctrl && shift) win.act("hidden", () => folder.showHidden = !folder.showHidden);
             break;
         case Qt.Key_Escape:
-            if (win.view !== "gallery") win.clearSelection();
+            if (win.lookOpen) win.closeLook();
+            else if (win.view !== "gallery") win.clearSelection();
             break;
         default:
             // Type-select: typing a name's start selects it.

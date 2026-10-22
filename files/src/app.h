@@ -2,6 +2,7 @@
 
 #include <QColor>
 #include <QObject>
+#include <QPointer>
 #include <QQuickWindow>
 #include <QSize>
 #include <QUrl>
@@ -54,6 +55,8 @@ public:
 
     Q_INVOKABLE void openWindow(const QUrl &url);
     Q_INVOKABLE void openFile(const QUrl &url);
+    // Get Info (⌘I): the item's Info window, brought forward if it's open.
+    Q_INVOKABLE void openInfo(const QUrl &url);
     // The keys held now (Qt.AltModifier ...), for what a drop does.
     Q_INVOKABLE int modifiers() const;
     // Gives a frameless Files window KWin's shadow, for its corner radius.
@@ -75,5 +78,6 @@ private:
     QQmlEngine *m_engine;
     Options m_options;
     bool m_first = true;
+    QList<QPointer<QQuickWindow>> m_infos;
     static App *s_instance;
 };

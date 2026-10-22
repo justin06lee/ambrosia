@@ -9,6 +9,7 @@ endif()
 
 find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControls2 DBus Concurrent Svg)
 find_package(KF6KIO REQUIRED)
+find_package(KF6Service REQUIRED)
 find_package(KF6WindowSystem REQUIRED)
 qt_standard_project_setup(REQUIRES 6.8)
 
@@ -24,11 +25,16 @@ qt_add_qml_module(ambrosia-files
         src/app.h src/app.cpp
         src/fileops.h src/fileops.cpp
         src/foldermodel.h src/foldermodel.cpp
+        src/iteminfo.h src/iteminfo.cpp
         src/format.h src/format.cpp
         src/places.h src/places.cpp
         src/sortkey.h src/sortkey.cpp
     QML_FILES
         qml/FinderWindow.qml
+        qml/Appearance.qml
+        qml/QuickLook.qml
+        qml/InfoWindow.qml
+        qml/InfoSection.qml
         qml/MenuBar.qml
         qml/Finder.qml
         qml/Sidebar.qml
@@ -60,7 +66,7 @@ target_include_directories(ambrosia-files PRIVATE src)
 
 target_link_libraries(ambrosia-files PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Concurrent Qt6::Svg
-    KF6::KIOGui KF6::KIOWidgets KF6::WindowSystem
+    KF6::KIOGui KF6::KIOWidgets KF6::Service KF6::WindowSystem
 )
 
 include(GNUInstallDirs)

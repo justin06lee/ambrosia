@@ -72,6 +72,27 @@ void App::openWindow(const QUrl &url)
     m_first = false;
 }
 
+void App::openInfo(const QUrl &url)
+{
+    m_infos.removeAll(nullptr);
+    for (const QPointer<QQuickWindow> &window : std::as_const(m_infos)) {
+        if (window->property("url").toUrl() == url) {
+            window->raise();
+            window->requestActivate();
+            return;
+        }
+    }
+    QQmlComponent component(m_engine, QStringLiteral("Files"), QStringLiteral("InfoWindow"));
+    QObject *object = component.createWithInitialProperties({{QStringLiteral("startUrl"), url}});
+    if (!object) {
+        qWarning().noquote() << component.errorString();
+        return;
+    }
+    auto *window = qobject_cast<QQuickWindow *>(object);
+    connect(window, &QQuickWindow::closing, window, &QObject::deleteLater);
+    m_infos << window;
+}
+
 void App::openFile(const QUrl &url)
 {
     auto *job = new KIO::OpenUrlJob(url);
