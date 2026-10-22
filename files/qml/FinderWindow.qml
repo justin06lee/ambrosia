@@ -130,7 +130,9 @@ Window {
     property bool selectFirst: false
     function browse(target, item, first) {
         const next = typeof target === "string" ? Qt.url(target) : target;
-        selectFirst = first === true;
+        // The folder can show (and select its first item) inside the move.
+        const wantFirst = first === true;
+        selectFirst = wantFirst;
         if (next.toString() !== url.toString()) {
             clearSelection();
             editing = "";
@@ -142,9 +144,9 @@ Window {
         }
         if (item)
             selectWhenShown([item], false);
-        else if (!selectFirst)
+        else if (!wantFirst)
             clearSelection();
-        else if (!folder.loading && folder.count > 0)
+        else if (selectFirst && !folder.loading && folder.count > 0)
             firstShown();
     }
     function firstShown() {

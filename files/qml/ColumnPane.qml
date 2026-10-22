@@ -234,6 +234,10 @@ FocusScope {
             boundsBehavior: Flickable.StopAtBounds
             acceptedButtons: Qt.NoButton
             keyNavigationEnabled: false
+            // No current item: a view gives its current item the keyboard
+            // whenever its rows change, which would close a name being edited.
+            currentIndex: -1
+            highlightFollowsCurrentItem: false
 
             function rowAt(point) { return indexAt(point.x, point.y + contentY); }
             function onName(row, x) {
