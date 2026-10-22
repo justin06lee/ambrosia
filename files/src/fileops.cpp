@@ -127,9 +127,21 @@ FileOps::FileOps(QObject *parent)
     }
     connect(undo, &FileUndoManager::undoAvailable, this, &FileOps::undoChanged);
     connect(undo, &FileUndoManager::undoTextChanged, this, &FileOps::undoChanged);
-    connect(undo, &FileUndoManager::redoAvailable, this, &FileOps::undoChanged);
+    // A new command empties KIO's redo stack, and ours with it.
+    connect(undo, &FileUndoManager::redoAvailable, this, [this](bool available) {
+        if (!available)
+            m_redoLabels.clear();
+        Q_EMIT undoChanged();
+    });
     connect(undo, &FileUndoManager::redoTextChanged, this, &FileOps::undoChanged);
-    connect(undo, &FileUndoManager::undoJobFinished, this, [] { undoUi->ask = true; });
+    // A redone command comes back under a new serial number: its label follows.
+    connect(undo, &FileUndoManager::undoJobFinished, this, [this, undo] {
+        undoUi->ask = true;
+        if (!m_redone.isEmpty() && undo->isUndoAvailable())
+            m_labels.insert(undo->currentCommandSerialNumber(), m_redone);
+        m_redone.clear();
+        Q_EMIT undoChanged();
+    });
     connect(QGuiApplication::clipboard(), &QClipboard::dataChanged, this, &FileOps::clipboardChanged);
 }
 
@@ -154,7 +166,12 @@ bool FileOps::canRedo() const
 QString FileOps::redoText() const
 {
     FileUndoManager *undo = FileUndoManager::self();
-    return undo->isRedoAvailable() ? QStringLiteral("Redo ") + finderWords(undo->redoText()) : QStringLiteral("Redo");
+    if (!undo->isRedoAvailable())
+        return QStringLiteral("Redo");
+    const QString kio = finderWords(undo->redoText());
+    if (!m_redoLabels.isEmpty() && m_redoLabels.last().kio == kio)
+        return QStringLiteral("Redo ") + m_redoLabels.last().label;
+    return QStringLiteral("Redo ") + kio;
 }
 
 int FileOps::clipboardCount() const
@@ -340,11 +357,19 @@ void FileOps::undo()
     FileUndoManager *undo = FileUndoManager::self();
     if (!undo->isUndoAvailable())
         return;
-    undoUi->ask = m_labels.value(undo->currentCommandSerialNumber()) != QLatin1String("New Folder");
+    const QString kio = finderWords(undo->undoText());
+    const QString label = m_labels.value(undo->currentCommandSerialNumber(), kio);
+    undoUi->ask = label != QLatin1String("New Folder");
+    m_redoLabels.append({kio, label});
     undo->undo();
 }
 
 void FileOps::redo()
 {
-    FileUndoManager::self()->redo();
+    FileUndoManager *undo = FileUndoManager::self();
+    if (!undo->isRedoAvailable())
+        return;
+    if (!m_redoLabels.isEmpty() && m_redoLabels.last().kio == finderWords(undo->redoText()))
+        m_redone = m_redoLabels.takeLast().label;
+    undo->redo();
 }
