@@ -86,7 +86,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
   `./restore.sh` brings it back (makima, services, home) whenever the user
   wants. The restore leaves our quickshell and ambrosia-* packages alone.
   Since 2026-10-20 its pacman.conf lists `[ambrosia]` first (the old one is
-  `/etc/pacman.conf.before-ambrosia`), and it runs the r127 packages with our
+  `/etc/pacman.conf.before-ambrosia`), and it runs the r148 packages with our
   Quickshell, installed with `pacman -U`. It hasn't synced since 2026-10-16
   (no `-Syu` while a GPU training job ran), so its next `pacman -Syu` fetches
   the hosted repo. gpg prints `release_dotlock: lockfile error` when its
@@ -200,7 +200,13 @@ package repo below), and they carry `shell/` and `session/` as they are.
   tenet are capped** (`systemd-run --user --scope -p MemoryMax=6G nice -n 19
   ionice -c3` with two jobs): tenet has no swap and runs other projects'
   services (mira's gateway), and an uncapped Quickshell build (ninja's 18
-  jobs) starved it on 2026-10-21. **The signing key** (ed25519, fingerprint
+  jobs) starved it on 2026-10-21. Its disk is one hard drive: when other
+  work saturates it (`/proc/pressure/io` above ~50%), the idle-class build
+  waits, so run `make publish` with room to finish (it took 2 hours on
+  2026-10-21). If its Mac side dies, makepkg on tenet dies too; stop its
+  `run-*.scope` there if it lingers and rerun: with a clean tree, a run whose
+  build had finished picks the packages up from tenet's `out/pkg`.
+  **The signing key** (ed25519, fingerprint
   `2DB46FDF911241FC9406002BCF43580DA0F59EB8`, no passphrase) lives only in
   `~/.config/ambrosia/gnupg` on the Mac, backed up with its revocation
   certificate in `/Volumes/T7/Backups/ambrosia-signing/`. Without it, installed
