@@ -21,8 +21,16 @@ Platform.MenuBar {
         Platform.MenuItem { text: "Open"; shortcut: "Ctrl+O"; enabled: bar.finder.hasSelection; onTriggered: bar.finder.act("open", bar.finder.openSelection) }
         Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+W"; onTriggered: bar.finder.act("close", bar.finder.close) }
         Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Get Info"; shortcut: "Ctrl+I"; onTriggered: bar.finder.act("info", bar.finder.getInfo) }
         Platform.MenuItem { text: "Rename"; enabled: bar.finder.selectedCount === 1 && bar.finder.local; onTriggered: bar.finder.act("rename", bar.finder.renameSelection) }
         Platform.MenuItem { text: "Duplicate"; shortcut: "Ctrl+D"; enabled: bar.finder.hasSelection && bar.finder.local; onTriggered: bar.finder.act("duplicate", bar.finder.duplicate) }
+        Platform.MenuItem {
+            text: bar.finder.selectedCount === 1 ? "Quick Look “" + bar.finder.model.nameAt(bar.finder.shownRow) + "”"
+                : bar.finder.selectedCount > 1 ? "Quick Look " + bar.finder.selectedCount + " Items" : "Quick Look"
+            shortcut: "Ctrl+Y"
+            enabled: bar.finder.hasSelection
+            onTriggered: bar.finder.act("look", bar.finder.toggleLook)
+        }
         Platform.MenuSeparator {}
         // In the Trash, the same key puts items back where they came from.
         Platform.MenuItem {

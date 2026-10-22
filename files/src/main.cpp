@@ -7,8 +7,27 @@
 #include <QDir>
 #include <QIcon>
 #include <QQmlApplicationEngine>
+#include <QQuickImageProvider>
 #include <QSettings>
 #include <QStandardPaths>
+
+// Theme icons for QML, as image://icon/NAME (the app that opens a file).
+class IconProvider : public QQuickImageProvider
+{
+public:
+    IconProvider()
+        : QQuickImageProvider(QQuickImageProvider::Pixmap)
+    {
+    }
+    QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requested) override
+    {
+        const QIcon icon = id.startsWith(QLatin1Char('/')) ? QIcon(id) : QIcon::fromTheme(id);
+        const QPixmap pixmap = icon.pixmap(requested.isValid() ? requested : QSize(32, 32));
+        if (size)
+            *size = pixmap.size();
+        return pixmap;
+    }
+};
 
 int main(int argc, char *argv[])
 {
@@ -80,6 +99,7 @@ int main(int argc, char *argv[])
         app.setQuitOnLastWindowClosed(false);
 
     QQmlApplicationEngine engine;
+    engine.addImageProvider(QStringLiteral("icon"), new IconProvider);
     App files(&engine, options);
     if (!oneShot)
         bus.registerObject(QStringLiteral("/org/ambrosia/files"), &files, QDBusConnection::ExportScriptableSlots);

@@ -14,7 +14,9 @@ Item {
     readonly property var times: finder.shownRow >= 0 && finder.selected ? finder.model.timesAt(finder.shownRow) : ({})
     readonly property var dates: [["Created", times.created], ["Modified", times.modified], ["Last opened", times.opened]]
         .filter(d => d[1] !== undefined)
-    readonly property bool renaming: one && finder.renaming && finder.editing.toString() === (info.url ?? "").toString()
+    // Only while the pane shows: hidden, its field would take the keyboard
+    // from the view's own and close it.
+    readonly property bool renaming: finder.previewShown && one && finder.renaming && finder.editing.toString() === (info.url ?? "").toString()
 
     QtObject {
         id: nameStyle

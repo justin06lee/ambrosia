@@ -58,6 +58,41 @@ QString Format::date(qint64 secs, int level)
     }
 }
 
+QString Format::longDate(qint64 secs)
+{
+    if (secs <= 0)
+        return QStringLiteral("--");
+    const QDateTime when = QDateTime::fromSecsSinceEpoch(secs);
+    const QLocale locale;
+    return QStringLiteral("%1 at %2").arg(locale.toString(when.date(), QStringLiteral("dddd, MMMM d, yyyy")),
+                                          locale.toString(when.time(), QLocale::ShortFormat));
+}
+
+QString Format::secondsDate(qint64 secs)
+{
+    if (secs <= 0)
+        return QStringLiteral("--");
+    const QDateTime when = QDateTime::fromSecsSinceEpoch(secs);
+    const QLocale locale;
+    // The locale's long time without its time zone ("h:mm:ss AP t").
+    static const QRegularExpression zone(QStringLiteral("\\s*t+\\s*"));
+    QString time = locale.timeFormat(QLocale::LongFormat);
+    time.replace(zone, QStringLiteral(" "));
+    return QStringLiteral("%1 at %2").arg(locale.toString(when.date(), QStringLiteral("MMM d, yyyy")),
+                                          locale.toString(when.time(), time.trimmed()));
+}
+
+QString Format::bytes(qint64 bytes)
+{
+    if (bytes < 0)
+        return QStringLiteral("--");
+    if (bytes == 0)
+        return QStringLiteral("Zero bytes");
+    if (bytes == 1)
+        return QStringLiteral("1 byte");
+    return QStringLiteral("%1 bytes").arg(QLocale().toString(bytes));
+}
+
 namespace {
 
 // Finder's names for the kinds people meet most; others take

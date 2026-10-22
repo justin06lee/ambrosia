@@ -108,6 +108,11 @@ QtObject {
 
     readonly property int pathBar: 28
 
+    // Quick Look's panel and the Info window
+    readonly property int lookRadius: 16
+    readonly property int infoRadius: 16
+    readonly property int infoWidth: 400
+
     // Window colors, light and dark
     readonly property color content: dark ? "#282824" : "#ffffff"
     readonly property color sidebar: dark ? "#191915" : "#f8f8f8"
@@ -122,4 +127,12 @@ QtObject {
     readonly property color gallerySelected: dark ? "#5b5b58" : "#bdbdbd"
     readonly property color previewPaneFill: dark ? "#181815" : "#f4f4f4"
     readonly property color previewPaneRule: dark ? "#232323" : "#e6e6e6"
+    readonly property color lookFill: dark ? "#080808" : "#d5d5d5"
+    readonly property color lookRim: dark ? "#2a2a2a" : "#f0f0f0"
+    readonly property color lookControl: dark ? "#818181" : "#595959"
+    readonly property color lookButton: dark ? "#232323" : "#c2c2c2"
+    readonly property color lookButtonText: dark ? "#e9e9e9" : "#3b3b3b"
+    readonly property color lookPage: dark ? "#1e1e1e" : "#ffffff"
+    readonly property color infoRule: dark ? "#3c3d39" : "#e6e6e6"
+    readonly property color infoPage: dark ? "#1e1e1e" : "#ffffff"
 }
