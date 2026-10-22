@@ -462,6 +462,42 @@ this Mac's Finder:
   fairly with Finder's active references. Without it, the Columns view's
   earlier report blamed a difference on the code that was really the grab's.
 
+**Slice 5, Quick Look and Get Info** (r165; Space or ⌘Y, ⌘I;
+`qml/QuickLook.qml`, `qml/InfoWindow.qml`, `src/iteminfo.cpp`), measured from
+this Mac's Finder (references in `out/parity/files/ref/look/`):
+- **Quick Look:** a panel over its window that follows the selection (the
+  arrows move it). A picture shows at one point a pixel, fitted to the
+  screen, with a 5-point frame and a 38-point title bar. Text shows in an
+  816 × 849 page, monospace 11 on 13. Anything else, folders included,
+  shows in a 576 × 328 panel: a 256-point icon, then the name, the size
+  ("524 KB, 1 item") and "Last modified" to the second. Close and full
+  screen circles sit at the left, the name beside them, and "Open with
+  <app>" at the right opens it. Space, Esc or ⌘Y closes it. Its window
+  keeps the active look meanwhile.
+- **Get Info:** a 400-point window for each item selected (or for the
+  folder), brought forward if it's already open. At the top are the
+  item's name, size and modified date. Then come Finder's sections, each
+  opened and closed by its title: General (kind, "524,288 bytes (524 KB
+  on disk) for 1 item" counted off the main thread, Where, Created,
+  Modified), More Info, Name & Extension, Comments, Open with, Preview
+  (a picture, text on a letter-shaped page, or the icon) and Sharing &
+  Permissions. Each section starts open or closed as Finder's does. The
+  window grows as sections open.
+- **Name & Extension renames through FileOps,** so ⌘Z undoes it. The
+  window follows its item through any rename (its own, an undo, another
+  window's) by the item's inode.
+- **Comments are kept in `user.xdg.comment`,** where Dolphin keeps them.
+- **Previews don't count as opening:** text, pictures' sizes and folder
+  counts are read with O_NOATIME, so Last opened (the access time) stays
+  put.
+- **Not yet:** Tags, the Locked and Stationery checkboxes, Hide extension,
+  share buttons, Uncompress, choosing another app in Open with, and
+  previews of PDFs, audio and video.
+- **Fixed on the way:** since r159, Return renamed nothing in the list and
+  column views. The gallery's hidden preview pane opened a second name
+  field, which took the keyboard and closed the first. Also, items dropped
+  in the folder they're already in no longer start a move.
+
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).
 
@@ -514,7 +550,7 @@ pair:
    and dark.
 4. Icon, column and gallery views.
 5. File operations, undo and drag and drop, including onto the Dock's Trash.
-6. Quick Look, Get Info and tags.
+6. Quick Look and Get Info (slice 5), then tags.
 7. The index and search.
 8. Thumbnails.
 9. Packaging and the Dock switch, done by their owners (below). Then tenet,
