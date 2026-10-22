@@ -118,6 +118,9 @@ public:
     // Type-select: the first row, from `from` on and wrapping, whose name
     // starts with prefix, ignoring case; -1 if none.
     Q_INVOKABLE int match(const QString &prefix, int from = 0) const;
+    // A row's roles by name (name, kind, sizeText, dateText, …), for the
+    // Columns view's preview of one file.
+    Q_INVOKABLE QVariantMap infoAt(int row) const;
     Q_INVOKABLE void reload();
     // The outline: whether a folder's row is open, opening or closing it
     // (with all, every folder under it too, as Option-click does), and the
@@ -184,6 +187,8 @@ private:
     void resort();
     void apply(std::shared_ptr<Listing> listing, quint64 generation, bool partial);
     void reapply(std::shared_ptr<Listing> listing, quint64 generation, const std::shared_ptr<const Listing> &before, const std::vector<qint32> &from);
+    // Offers the listing to other models opening the same folder.
+    void share();
     const char *str(quint32 offset) const { return m_listing->strings.data() + offset; }
 
     QUrl m_url;

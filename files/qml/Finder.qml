@@ -67,6 +67,19 @@ QtObject {
     readonly property int iconTop: 55
     readonly property int iconLeft: 9
 
+    // The column view
+    readonly property int columnWidth: 245
+    readonly property int columnMin: 120
+    readonly property int columnTop: 52      // the dividers' top, under the toolbar
+    readonly property int columnRowsTop: 58
+    readonly property int columnRow: 24
+    readonly property real columnInset: 10.5 // a selection's, either side
+    readonly property int columnIcon: 18
+    readonly property int columnIconX: 16
+    readonly property int columnText: 40
+    readonly property int columnChevron: 20  // the chevron's right, from the column's right
+    readonly property int previewIcon: 128
+
     readonly property int pathBar: 28
 
     // Window colors, light and dark

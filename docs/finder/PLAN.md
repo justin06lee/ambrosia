@@ -362,8 +362,8 @@ Slice 1, a Finder window that browses folders (sidebar, toolbar, list and
 icon views, path bar, menus in the menu bar), merged in 59e9610 and ships as
 `ambrosia-files` from r103. Slice 2 is file operations and drag and drop;
 with it, Shell and Session moved the Dock pin and the default for folders
-from Dolphin to Files (d0dd093), and Dolphin stays installed. Slice 3 is the
-Columns view.
+from Dolphin to Files (d0dd093), and Dolphin stays installed; it shipped
+in r148. Slice 3 is the Columns view.
 
 **Slice 2, file operations** (`FileOps` in `src/fileops.cpp`, all through
 KIO and recorded in KIO's undo manager):
@@ -398,6 +398,31 @@ KIO and recorded in KIO's undo manager):
   `sidebar=flush` in `~/.config/ambrosia/files.conf`.
 - Not yet: a progress view for long copies (jobs run with KIO's progress
   hidden), and spring-loaded folders.
+
+**Slice 3, the Columns view** (⌘3; `qml/ColumnPane.qml`), measured from
+this Mac's Finder:
+
+- **Layout:** 245-point columns with 24-point rows, 18-point icons and
+  names at 40 points. The selection is a pill inset 10.5 points. Folders
+  carry a chevron.
+- **What it shows:** the folders from the columns' root down to the
+  window's folder, each greying the item that leads on. After them comes
+  the one item selected: a folder's contents, or a preview of a file (its
+  icon, name, kind and size, and date modified).
+- **The window's folder is the focused column,** so keys, the selection,
+  type-select, rename, New Folder, drag and drop, Undo and Redo work there
+  as in the other views.
+- **Moving between columns:** a click in any column moves the window there.
+  → goes into the selected folder and selects its first item; ← goes back
+  out. Moving between columns doesn't add to Back. Going somewhere else
+  (the sidebar, Back, ⌘↑, the path bar) starts the columns afresh.
+- **Each column reads its own folder.** FolderModel shares complete
+  listings by folder and order, so the window's model takes a column's
+  listing at once as it moves in, and re-reads it in the background.
+- **Resizing:** dragging a divider sizes its column; with Option, every
+  column.
+- **Not yet:** Finder's full preview pane (Quick Look, More…) and
+  remembered column widths.
 
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).

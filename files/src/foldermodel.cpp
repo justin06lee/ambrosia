@@ -47,6 +47,20 @@ struct Dirent64 {
 
 using Listing = FolderModel::Listing;
 
+// The listings models show now, by folder and order: a model opening a folder
+// another one has open (the Columns view's next column, as the window moves
+// into it) shows it at once. Listings never change once made.
+using OpenListings = QHash<QString, std::weak_ptr<const Listing>>;
+OpenListings &openListings()
+{
+    static OpenListings listings;
+    return listings;
+}
+QString listingKey(const QUrl &url, const QString &column, bool ascending, bool hidden)
+{
+    return url.toString() + QLatin1Char('\n') + column + QLatin1Char(ascending ? '+' : '-') + QLatin1Char(hidden ? 'h' : ' ');
+}
+
 // FILES_TRACE=1 prints how long each stage of a listing takes.
 const bool trace = std::getenv("FILES_TRACE") != nullptr;
 void stage(QElapsedTimer &clock, const char *what)
@@ -565,6 +579,19 @@ void FolderModel::reload()
 
 void FolderModel::load(bool reread)
 {
+    if (m_url.isEmpty())
+        return;
+    // A folder another model has open shows at once, and is read again
+    // behind it in case it changed since.
+    if (!reread) {
+        const auto open = openListings().value(listingKey(m_url, m_sortColumn, m_ascending, m_showHidden)).lock();
+        if (open && open != m_listing) {
+            m_clock.start();
+            m_firstMs = 0;
+            apply(std::const_pointer_cast<Listing>(open), ++m_generation, false);
+            reread = true;
+        }
+    }
     // A change while the folder is still coming in starts it over.
     reread = reread && !m_loading;
     const quint64 generation = ++m_generation;
@@ -641,6 +668,12 @@ void FolderModel::listRemote(bool reread)
 
 void FolderModel::resort()
 {
+    // Nothing read yet (a view setting the order before the folder): read it
+    // in the new order, dropping any read in the old one.
+    if (!m_listing) {
+        load();
+        return;
+    }
     const quint64 generation = ++m_generation;
     m_clock.start();
     QPointer<FolderModel> self(this);
@@ -684,6 +717,7 @@ void FolderModel::apply(std::shared_ptr<Listing> listing, quint64 generation, bo
         return;
     }
     m_loadMs = m_clock.nsecsElapsed() / 1e6;
+    share();
     if (trace)
         std::fprintf(stderr, "files: applied  %7.2f ms after the request\n", m_loadMs);
     if (m_loading) {
@@ -707,7 +741,30 @@ void FolderModel::reapply(std::shared_ptr<Listing> listing, quint64 generation, 
         return;
     }
     replace(nullptr, std::move(listing), from);
+    share();
     Q_EMIT loaded();
+}
+
+void FolderModel::share()
+{
+    if (!m_listing || !m_listing->error.isEmpty())
+        return;
+    OpenListings &open = openListings();
+    if (open.size() > 64)
+        open.removeIf([](OpenListings::iterator it) { return it.value().expired(); });
+    open.insert(listingKey(m_url, m_sortColumn, m_ascending, m_showHidden), m_listing);
+}
+
+QVariantMap FolderModel::infoAt(int row) const
+{
+    QVariantMap info;
+    if (row < 0 || row >= rowCount())
+        return info;
+    const QModelIndex at = index(row);
+    const QHash<int, QByteArray> roles = roleNames();
+    for (auto it = roles.begin(); it != roles.end(); ++it)
+        info.insert(QString::fromLatin1(it.value()), data(at, it.key()));
+    return info;
 }
 
 int FolderModel::rowCount(const QModelIndex &parent) const

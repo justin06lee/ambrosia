@@ -70,8 +70,8 @@ Platform.MenuBar {
         title: "View"
         Platform.MenuItem { text: "as Icons"; shortcut: "Ctrl+1"; checkable: true; checked: bar.finder.view === "icon"; onTriggered: bar.finder.act("icons", () => bar.finder.view = "icon") }
         Platform.MenuItem { text: "as List"; shortcut: "Ctrl+2"; checkable: true; checked: bar.finder.view === "list"; onTriggered: bar.finder.act("list", () => bar.finder.view = "list") }
-        // Column and gallery views come in a later slice.
-        Platform.MenuItem { text: "as Columns"; shortcut: "Ctrl+3"; enabled: false }
+        Platform.MenuItem { text: "as Columns"; shortcut: "Ctrl+3"; checkable: true; checked: bar.finder.view === "column"; onTriggered: bar.finder.act("columns", () => bar.finder.view = "column") }
+        // The gallery view comes in a later slice.
         Platform.MenuItem { text: "as Gallery"; shortcut: "Ctrl+4"; enabled: false }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: bar.finder.model.showHidden ? "Hide Hidden Files" : "Show Hidden Files"; shortcut: "Ctrl+Shift+."; onTriggered: bar.finder.act("hidden", () => bar.finder.model.showHidden = !bar.finder.model.showHidden) }
