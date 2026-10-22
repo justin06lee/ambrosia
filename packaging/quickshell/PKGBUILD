@@ -3,7 +3,7 @@
 # menu at a given DBus service and path, so the menu bar can show the focused
 # app's own menus (the address comes from KDE's task manager model). It also
 # gives DBusMenuItem the `shortcut` the app publishes, for the menus' shortcut
-# column.
+# column, and calls the app's AboutToShow each time one of its menus opens.
 #
 # Ours must win over Arch's quickshell, or an update undoes the patch:
 # [ambrosia] comes first in pacman.conf (pacman takes a package from the first
@@ -19,7 +19,7 @@
 pkgname=quickshell
 # The pinned commit's `git describe --long --tags`, as 0.3.2.rN.gHASH.
 pkgver=0.3.2.r0.g4f508be
-pkgrel=2
+pkgrel=3
 pkgdesc='Flexible toolkit for making desktop shells with QtQuick'
 arch=(x86_64 aarch64)
 url="https://git.outfoxxed.me/$pkgname/$pkgname"
@@ -56,7 +56,7 @@ _commit=4f508be500dea6e5732cc3d50382a0048b17e7b1 # v0.3.2
 source=("git+$url.git#commit=$_commit"
         dbusmenu-source.patch)
 sha256sums=('SKIP'
-            '20a0f5af66ac5f8e6790ab148271b3ceb7449f7e855ce907bc911da5ce29414e')
+            '900d559297ced8ee350f877ccf843504c7740197e8fbc70769155379fccfe5e8')
 
 prepare() {
 	cd "$pkgname"

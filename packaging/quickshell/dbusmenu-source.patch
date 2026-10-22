@@ -1,5 +1,5 @@
 diff --git a/src/dbus/dbusmenu/dbusmenu.cpp b/src/dbus/dbusmenu/dbusmenu.cpp
-index cbc6f63..8e50622 100644
+index cbc6f63..c476793 100644
 --- a/src/dbus/dbusmenu/dbusmenu.cpp
 +++ b/src/dbus/dbusmenu/dbusmenu.cpp
 @@ -4,6 +4,7 @@
@@ -10,7 +10,21 @@ index cbc6f63..8e50622 100644
  #include <qdbusconnection.h>
  #include <qdbusextratypes.h>
  #include <qdbusmetatype.h>
-@@ -119,6 +120,7 @@ void DBusMenuItem::updateProperties(const QVariantMap& properties, const QString
+@@ -46,7 +47,12 @@ DBusMenuItem::DBusMenuItem(qint32 id, DBusMenu* menu, DBusMenuItem* parentMenu)
+ 	QObject::connect(this->menu, &DBusMenu::iconThemePathChanged, this, &DBusMenuItem::iconChanged);
+ }
+ 
+-void DBusMenuItem::sendOpened() const { this->menu->sendEvent(this->id, "opened"); }
++void DBusMenuItem::sendOpened() const {
++	this->menu->sendEvent(this->id, "opened");
++	// Apps learn a menu is about to show from AboutToShow, not from the "opened" event (Qt
++	// ignores it), so ask on every open, as libdbusmenu-qt does, and take any update it makes.
++	this->menu->prepareToShow(this->id, -1);
++}
+ void DBusMenuItem::sendClosed() const { this->menu->sendEvent(this->id, "closed"); }
+ void DBusMenuItem::sendTriggered() const { this->menu->sendEvent(this->id, "clicked"); }
+ 
+@@ -119,6 +125,7 @@ void DBusMenuItem::updateProperties(const QVariantMap& properties, const QString
  	auto originalButtonType = this->mButtonType;
  	auto originalToggleState = this->mCheckState;
  	auto originalDisplayChildren = this->displayChildren;
@@ -18,7 +32,7 @@ index cbc6f63..8e50622 100644
  
  	auto label = properties.value("label");
  	if (label.canConvert<QString>()) {
-@@ -234,6 +236,17 @@ void DBusMenuItem::updateProperties(const QVariantMap& properties, const QString
+@@ -234,6 +241,17 @@ void DBusMenuItem::updateProperties(const QVariantMap& properties, const QString
  		this->displayChildren = false;
  	}
  
@@ -36,7 +50,7 @@ index cbc6f63..8e50622 100644
  	if (this->mText != originalText) emit this->textChanged();
  	//if (this->mnemonic != originalMnemonic) emit this->labelChanged();
  	if (this->mEnabled != originalEnabled) emit this->enabledChanged();
-@@ -243,6 +256,7 @@ void DBusMenuItem::updateProperties(const QVariantMap& properties, const QString
+@@ -243,6 +261,7 @@ void DBusMenuItem::updateProperties(const QVariantMap& properties, const QString
  	if (this->mCheckState != originalToggleState) emit this->checkStateChanged();
  	if (this->mSeparator != originalIsSeparator) emit this->isSeparatorChanged();
  	if (this->displayChildren != originalDisplayChildren) emit this->hasChildrenChanged();
@@ -44,7 +58,7 @@ index cbc6f63..8e50622 100644
  
  	if (this->iconName != originalIconName || imageChanged) {
  		emit this->iconChanged();
-@@ -565,6 +579,24 @@ void DBusMenuHandle::onMenuPathChanged() {
+@@ -565,6 +584,24 @@ void DBusMenuHandle::onMenuPathChanged() {
  
  QsMenuEntry* DBusMenuHandle::menu() { return this->loaded ? &this->mMenu->rootItem : nullptr; }
  
