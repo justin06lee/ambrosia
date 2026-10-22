@@ -363,7 +363,8 @@ icon views, path bar, menus in the menu bar), merged in 59e9610 and ships as
 `ambrosia-files` from r103. Slice 2 is file operations and drag and drop;
 with it, Shell and Session moved the Dock pin and the default for folders
 from Dolphin to Files (d0dd093), and Dolphin stays installed; it shipped
-in r148. Slice 3 is the Columns view.
+in r148. Slice 3, the Columns view, shipped in r152; slice 4 is the
+Gallery view, shipped in r159.
 
 **Slice 2, file operations** (`FileOps` in `src/fileops.cpp`, all through
 KIO and recorded in KIO's undo manager):
@@ -433,6 +434,33 @@ this Mac's Finder:
 - **Every launch is a window in that one process:** the Dock, a folder
   opened anywhere, `ambrosia-files <dir>`.
 - **So the Dock's Trash always trashes through Files,** and ⌘Z undoes it.
+
+**Slice 4, the Gallery view** (r159; ⌘4; `qml/GalleryPane.qml`,
+`qml/PreviewPane.qml`), measured from this Mac's Finder:
+- **Layout:** the item selected, large (an icon 0.8 of the space under the
+  toolbar), over a filmstrip of 59-point cells with 48-point thumbnails. The
+  selection sits on a grey rounded square. Pictures Qt reads (PNG, JPEG,
+  WebP, GIF, BMP, TIFF, SVG) show as themselves, at the size shown;
+  everything else shows as its icon.
+- **The preview pane:** 240 points on the window's right, on Finder's grey,
+  under the toolbar. It shows the item's icon, name, kind and size, and
+  Created, Modified and Last opened (`FolderModel.timesAt`). With several
+  selected it says "N items". View > Show Preview (⇧⌘P) hides it; the same
+  item hides the Columns view's preview column. The pane hides by itself
+  when the window is too narrow for it.
+- **Always an item:** the first in a folder just shown; when the item shown
+  is trashed or moved, the one now in its place.
+- **Keys and the mouse:** arrows and type-select move through the
+  filmstrip. A click selects (with ⇧ or ⌘, adds), and a double-click opens,
+  in the filmstrip or on the large item. Return renames in the pane (under
+  the large item when the pane is hidden). Drags start from either; drops
+  on a folder in the filmstrip go into it, anywhere else into the folder.
+  New Folder, Trash, Undo and Redo work as in the other views.
+- **Not yet:** thumbnails of documents (slice 8), Tags and More… in the
+  pane, folder sizes, and the selected item in the path bar.
+- `--active` draws the first window active, so headless grabs compare
+  fairly with Finder's active references. Without it, the Columns view's
+  earlier report blamed a difference on the code that was really the grab's.
 
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).
