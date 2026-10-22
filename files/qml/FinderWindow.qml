@@ -818,6 +818,17 @@ Window {
         const ctrl = event.modifiers & (Qt.ControlModifier | Qt.MetaModifier);
         const shift = event.modifiers & Qt.ShiftModifier;
         const alt = event.modifiers & Qt.AltModifier;
+        // Type-select: typing a name's start selects it, letters that are
+        // shortcuts with Command included (Space stays Quick Look's).
+        if (!ctrl && event.text.length === 1 && event.text > " " && event.text !== "\x7f") {
+            win.typed += event.text;
+            typeReset.restart();
+            const row = folder.match(win.typed, 0);
+            if (row >= 0)
+                win.select(row, false, false);
+            event.accepted = true;
+            return;
+        }
         const columns = win.view === "icon" ? Math.max(1, Math.floor((main.width - Finder.iconLeft) / Finder.iconCell)) : 1;
         switch (event.key) {
         case Qt.Key_Down:
@@ -931,14 +942,6 @@ Window {
             else if (win.view !== "gallery") win.clearSelection();
             break;
         default:
-            // Type-select: typing a name's start selects it.
-            if (!ctrl && event.text.length === 1 && event.text >= " ") {
-                win.typed += event.text;
-                typeReset.restart();
-                const row = folder.match(win.typed, 0);
-                if (row >= 0) win.select(row, false, false);
-                break;
-            }
             return;
         }
         event.accepted = true;
