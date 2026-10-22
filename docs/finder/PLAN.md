@@ -315,14 +315,14 @@ tenet's next sanctioned upgrade).
 | 4 | 100k-file folder: complete, sorted by name | **≤ 150 ms** | 2,151 ms whole window (KIO listing alone 276 ms) | TBM (GIO with its attributes alone 1.5 s) | 14 ms names, 62 ms with statx |
 | 5 | 1M-file folder: first rows / complete | ≤ 250 ms (was ≤ 50) / ≤ 1 s | TBM (KIO alone 2.6 s; bug 306290) | TBM (GIO names alone 3.0 s) | 138 ms / 676 ms |
 | 6 | Type-select or filter in the 100k folder | ≤ 4 ms a keystroke | TBM | TBM | — |
-| 7 | Filename search over the home (238k entries) | **≤ 10 ms** a keystroke | TBM (Baloo: 0.9 ms query, 142 ms per call, 21k files indexed) | TBM | scan 4 to 6 ms; walk 45 to 175 ms |
-| 8 | Content search: first hit | ≤ 100 ms, streaming | TBM | TBM | rg 22 to 46 ms on 345 MB |
+| 7 | Filename search over the home (238k entries; 810k visible by slice 7) | **≤ 10 ms** a keystroke | TBM (Baloo: 0.9 ms query, 142 ms per call, 21k files indexed) | TBM | scan 4 to 6 ms; walk 45 to 175 ms; **slice 7: query 1.0 to 6.4 ms, keystroke to rows 2 to 13 ms** |
+| 8 | Content search: first hit | ≤ 100 ms, streaming | TBM | TBM | rg 22 to 46 ms on 345 MB; **slice 7: 4 ms in ~/ambrosia, 5.3 s over the whole home (cold HDD)** |
 | 9 | A screenful (about 40) of cached thumbnails | ≤ 50 ms | TBM | TBM | — |
 | 10 | First uncached thumbnail, 24 MP JPEG | **≤ 20 ms** with EXIF, ≤ 80 ms without | TBM (EXIF path 3 to 5 ms) | TBM | 66 ms at 1/8 |
 | 11 | Quick Look, 24 MP JPEG, to first frame | ≤ 100 ms | n/a | TBM (Sushi) | — |
 | 12 | Scrolling a 100k list or icon view at 4K | no frame over 16.7 ms | TBM | TBM | — |
 | 13 | Memory with the 100k folder open | ≤ 120 MB RSS | 224 MB (software GL) | TBM | — |
-| 14 | Index: load at login / a change reflected | ≤ 100 ms / ≤ 1 s | — | — | — |
+| 14 | Index: load at login / a change reflected | ≤ 100 ms / ≤ 1 s | — | — | **slice 7: snapshot 33 to 36 ms (checked in 0.2 s after) / 0.3 ms in the index, 0.26 s in a window** |
 
 Slice 1 as measured by `files/bench/run.sh` (warm): #3 40 ms, #4 64 ms, #5
 232 ms / 513 ms. #3 misses by 10 ms: about 25 ms is the worker, the rest is
@@ -498,7 +498,7 @@ this Mac's Finder (references in `out/parity/files/ref/look/`):
   field, which took the keyboard and closed the first. Also, items dropped
   in the folder they're already in no longer start a move.
 
-**Slice 6, Tags** (merged bb99812, to be published; `src/tags.cpp`,
+**Slice 6, Tags** (merged bb99812, published as r170; `src/tags.cpp`,
 `qml/TagDots.qml`), measured from this Mac's Finder (references in
 `out/parity/files/ref/tags/`):
 - **Where they live:** an item's tags are its `user.xdg.tags` attribute
@@ -519,6 +519,53 @@ this Mac's Finder (references in `out/parity/files/ref/look/`):
 - **Not yet:** a click on a sidebar tag (it needs the index, step 7), the
   context menu (Files has none yet), undo for tags, the tag colour editor,
   and the Tags row in the gallery's preview pane.
+
+**Slice 7, the index and search** (merged c375c1c; `src/index.cpp`,
+`qml/SearchField.qml`, `qml/ScopeBar.qml`, `qml/PopupMenu.qml`), against
+this Mac's Finder (references in `out/parity/files/ref/search/`):
+- **The index:** every visible name under the home, held by the resident
+  process. Hidden items and hidden folders are left out, as Spotlight
+  leaves them out, and the walk stays on the home's filesystem. Rows are
+  parallel arrays: the folded name (lower case, no accents) in one arena,
+  the original only where folding changed it, the folder, flags and a tag
+  set. A parallel breadth-first walk reads the folders with getdents64 and
+  the tags with getxattrat. Each folder gets its inotify watch before it is
+  read. Events add, take away, rename (a new row that takes over the
+  folder's children and watch) and retag; an overflow reads it all again.
+  The snapshot in `~/.cache/ambrosia/files/index` is loaded at the next
+  start, then checked folder by folder (updatedb's rule).
+- **A query** is one pass over the arena: the longest word's first and last
+  bytes are compared 32 places at a time (AVX2), and the other words are
+  checked in the names found. The best 10,000 are kept: words that start a
+  name or a word in it first, then shallower rows. Scopes outside the index
+  (another drive, a hidden folder) are walked once and kept for 30 s.
+- **The field:** ⌘F, File > Find or the search button opens Finder's field
+  at the toolbar's right, and the toolbar closes up as Finder's does: the
+  views behind one button, Tags behind ». While typing, the suggestions
+  are Name Contains (names only) and Contains (contents); one chosen
+  becomes a NAME or CONTENTS token, which ⌫ takes away. Esc or the clear
+  button ends the search, back to the folder; Back and Forward keep the
+  search as one place.
+- **The scope bar:** "Search: Home “Folder”" and "Kind is Any", where Kind
+  uses an in-window pop-up menu with Finder's kinds.
+- **Results** are a `search:` place in the folder model. Rows come straight
+  from the index and their sizes and dates a pass later. Contents stream
+  from rg (`--files-with-matches`, nice 15, idle I/O, 250 ms after typing
+  stops) in a folder's scope, or anywhere for Contains. Over the whole home
+  rg is too heavy for tenet's disk (5.3 s to a first file, I/O pressure 81%).
+- **A sidebar tag** lists what has it, from the index.
+- **Measured** (`ambrosia-files --bench-search`, Justin's home on tenet,
+  warm): 809,919 items in 71,265 folders (2.04M with hidden ones). A query
+  takes 1.0 to 6.4 ms, 1.5 ms for a whole word; a keystroke to rows takes
+  2 to 13 ms. The walk takes 0.37 s warm (3.8 s the first time). The
+  snapshot is 38 MB, loads in 33 to 36 ms and is checked in 0.2 s. A
+  change reaches the index in 0.3 ms and a search window in 0.26 s. The
+  arrays take 40 MB.
+- **Not yet:** search results keep the list's columns (Finder's are Name,
+  Kind, Date Last Opened); there is no Save (smart folders aren't v1), no
+  + or − criteria rows, no token menu, and no D-Bus Search for the shell's
+  Spotlight. Tags changed while Files isn't running show only once their
+  folder is read again.
 
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).
