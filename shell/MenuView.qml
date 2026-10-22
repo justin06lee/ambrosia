@@ -6,7 +6,8 @@ import Ambrosia
 // objects
 //   { text, shortcut, enabled, checked, separator, submenu: [...], action }
 // or as `handle`, an app's own menu (QsMenuHandle), whose entries carry
-// text, enabled, isSeparator, checkState, hasChildren and triggered().
+// text, enabled, isSeparator, checkState, hasChildren, shortcut (our
+// Quickshell build's DBusMenuItem) and triggered().
 Item {
     id: menu
 
@@ -23,6 +24,28 @@ Item {
     implicitHeight: rows.implicitHeight + 2 * padding
     width: implicitWidth
     height: implicitHeight
+
+    // A shortcut as a Mac menu shows it. Ours come as text; an app's as its
+    // DBusMenu key names, a list per key of the sequence, modifiers first
+    // ([["Control", "Shift", "S"]]): modifiers as ⌃⌥⇧⌘ in that order, then
+    // the key, arrows and editing keys as their symbols.
+    readonly property var modifierGlyphs: ({ Control: "⌃", Alt: "⌥", Shift: "⇧", Super: "⌘", Meta: "⌘" })
+    readonly property var keyGlyphs: ({
+        Up: "↑", Down: "↓", Left: "←", Right: "→", Return: "↩", Enter: "⌤", Tab: "⇥", Backtab: "⇤",
+        Backspace: "⌫", Del: "⌦", Delete: "⌦", Esc: "⎋", Escape: "⎋", PgUp: "⇞", PgDown: "⇟",
+        Home: "↖", End: "↘", plus: "+", minus: "-"
+    })
+    function shortcutText(shortcut) {
+        if (!shortcut || typeof shortcut === "string") return shortcut ?? "";
+        const keys = [];
+        for (let i = 0; i < shortcut.length; i++) {
+            const names = Array.from(shortcut[i]);
+            const mods = ["⌃", "⌥", "⇧", "⌘"].filter(glyph => names.some(name => modifierGlyphs[name] === glyph));
+            const key = names.filter(name => !(name in modifierGlyphs) && name !== "Num").pop() ?? "";
+            keys.push(mods.join("") + (keyGlyphs[key] ?? (key.length === 1 ? key.toUpperCase() : key)));
+        }
+        return keys.join(" ");
+    }
 
     // Keyboard: the Overlay forwards keys to the innermost menu.
     function move(step) {
@@ -188,7 +211,7 @@ Item {
             id: shortcut
             visible: !row.separator && text !== ""
             anchors { right: parent.right; rightMargin: Theme.space.s3; verticalCenter: parent.verticalCenter }
-            text: row.modelData.shortcut ?? ""
+            text: menu.shortcutText(row.modelData.shortcut)
             color: row.highlighted ? Theme.accent.fg : Theme.color.label.tertiary
             opacity: row.highlighted ? 0.8 : 1
         }
