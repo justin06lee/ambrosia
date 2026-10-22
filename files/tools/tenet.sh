@@ -4,7 +4,8 @@
 #   files/tools/tenet.sh build
 #   files/tools/tenet.sh grab NAME [ambrosia-files args...]   -> out/parity/files/ours/NAME.png
 #   files/tools/tenet.sh sh 'command'
-# Everything runs at low priority; the build lives in /root/ambrosia-files.
+# Everything runs at low priority; the build lives in /root/ambrosia-files,
+# fixtures in /var/tmp/ambrosia-files (tenet's /tmp is held in RAM).
 # Builds are held to 6 GB in a scope of their own with two jobs: tenet has
 # no swap and hosts other people's services, which an uncapped build starves.
 set -eu
@@ -27,12 +28,12 @@ grab)
     name=$2
     shift 2
     mkdir -p "$out"
-    remote "mkdir -p $dir/shots && { [ -d /tmp/ambrosia-files/Tour ] || sh $dir/src/bench/fixture.sh ui /tmp/ambrosia-files/Tour; }
-        printf '%s\n' 'cd $dir && QT_QPA_PLATFORM=wayland QT_FORCE_STDERR_LOGGING=1 LANG=en_US.UTF-8 build/ambrosia-files --grab $dir/shots/$name.png --size 920x580 $*' > /tmp/files-grab.sh
+    remote "mkdir -p $dir/shots && { [ -d /var/tmp/ambrosia-files/Tour ] || sh $dir/src/bench/fixture.sh ui /var/tmp/ambrosia-files/Tour; }
+        printf '%s\n' 'cd $dir && QT_QPA_PLATFORM=wayland QT_FORCE_STDERR_LOGGING=1 LANG=en_US.UTF-8 build/ambrosia-files --grab $dir/shots/$name.png --size 920x580 $*' > $dir/files-grab.sh
         XDG_RUNTIME_DIR=/run/user/0 KWIN_COMPOSE=Q LIBGL_ALWAYS_SOFTWARE=1 __GLX_VENDOR_LIBRARY_NAME=mesa \
         __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json timeout 60 nice -n 19 \
         dbus-run-session -- kwin_wayland --virtual --width 1470 --height 956 --scale 2 --socket files-grab \
-        --no-lockscreen --no-global-shortcuts --exit-with-session 'sh /tmp/files-grab.sh' 2>&1 \
+        --no-lockscreen --no-global-shortcuts --exit-with-session 'sh $dir/files-grab.sh' 2>&1 \
         | grep -E 'qrc:|Files:|rror' | grep -v -E 'kwin_|libinput|xkb' | head -20"
     scp -q -o BatchMode=yes "$host:$dir/shots/$name.png" "$out/$name.png"
     echo "$out/$name.png"
