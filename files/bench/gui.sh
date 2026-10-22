@@ -38,6 +38,9 @@ if [ "${1:-}" = --inside ]; then
             printf '%-5s %-13s listed, best/median ms: %s   RSS best/median MB: %s   failed runs: %s\n' \
                 "$size" "$name" "$listed" "$rss" "$failed" >>"$results"
         done
+        # The whole scope's peak so far: what decides whether 1m may run.
+        peak=$(cat "/sys/fs/cgroup$(sed -n 's/^0:://p' /proc/self/cgroup)/memory.peak")
+        echo "after $size: scope memory peak $((peak / 1048576)) MB of 4096" >>"$results"
     done
     exit 0
 fi
@@ -57,7 +60,7 @@ config=$(mktemp -d)
 # folder of their own, so nobody's are touched. KWin composites with OpenGL
 # (Mesa's software one): with QPainter it crashes when an app asks for an
 # activation token, as normal launches do.
-systemd-run --scope --quiet --collect -p MemoryMax=4G -p MemorySwapMax=0 -p RuntimeMaxSec=1800 \
+systemd-run --scope --unit=files-probe --quiet --collect -p MemoryMax=4G -p MemorySwapMax=0 -p RuntimeMaxSec=1800 \
     env XDG_CONFIG_HOME="$config" XDG_RUNTIME_DIR="/run/user/$(id -u)" KWIN_COMPOSE=O LIBGL_ALWAYS_SOFTWARE=1 \
     __GLX_VENDOR_LIBRARY_NAME=mesa __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/50_mesa.json \
     QT_QPA_PLATFORM=wayland LANG=en_US.UTF-8 nice -n 19 ionice -c3 \
