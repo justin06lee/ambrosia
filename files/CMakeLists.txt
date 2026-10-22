@@ -25,6 +25,8 @@ qt_add_qml_module(ambrosia-files
         src/app.h src/app.cpp
         src/fileops.h src/fileops.cpp
         src/foldermodel.h src/foldermodel.cpp
+        src/index.h src/index.cpp
+        src/searchbench.cpp
         src/iteminfo.h src/iteminfo.cpp
         src/format.h src/format.cpp
         src/places.h src/places.cpp
@@ -56,6 +58,10 @@ qt_add_qml_module(ambrosia-files
         qml/PathBar.qml
         qml/FileIcon.qml
         qml/TagDots.qml
+        qml/SearchField.qml
+        qml/ScopeBar.qml
+        qml/PopupMenu.qml
+        qml/PopupButton.qml
         qml/Glyph.qml
         qml/glyphs.js
     RESOURCES

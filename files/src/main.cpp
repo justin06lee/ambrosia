@@ -1,4 +1,5 @@
 #include "app.h"
+#include "index.h"
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -14,6 +15,8 @@
 #include <QSvgRenderer>
 #include <QSettings>
 #include <QStandardPaths>
+
+int benchSearch(const QStringList &queries); // searchbench.cpp
 
 // Theme icons for QML, as image://icon/NAME (the app that opens a file).
 class IconProvider : public QQuickImageProvider
@@ -110,10 +113,15 @@ int main(int argc, char *argv[])
     const QCommandLineOption select(QStringLiteral("select"), QStringLiteral("The item to select in the first folder (for grabs)."), QStringLiteral("name"));
     const QCommandLineOption active(QStringLiteral("active"), QStringLiteral("Draw the first window as the active one (for grabs, where no window has the keyboard)."));
     const QCommandLineOption sidebar(QStringLiteral("sidebar"), QStringLiteral("The sidebar: floating (the default) or flush."), QStringLiteral("style"));
-    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, active, sidebar});
+    const QCommandLineOption benchSearchOption(QStringLiteral("bench-search"),
+                                               QStringLiteral("Time the index and these searches (comma-separated), with no window, then quit."),
+                                               QStringLiteral("queries"));
+    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, active, sidebar, benchSearchOption});
     parser.addPositionalArgument(QStringLiteral("urls"), QStringLiteral("Folders to open."), QStringLiteral("[urls...]"));
     parser.process(app);
 
+    if (parser.isSet(benchSearchOption))
+        return benchSearch(parser.value(benchSearchOption).split(QLatin1Char(','), Qt::SkipEmptyParts));
     QStringList urls;
     for (const QString &arg : parser.positionalArguments())
         urls << QUrl::fromUserInput(arg, QDir::currentPath(), QUrl::AssumeLocalFile).toString();
@@ -162,5 +170,9 @@ int main(int argc, char *argv[])
         bus.registerObject(QStringLiteral("/org/ambrosia/files"), &files, QDBusConnection::ExportScriptableSlots);
     if (!quiet)
         files.Open(urls);
+    // The index behind search, warm from the start (a one-shot run starts
+    // it only if it searches).
+    if (!oneShot)
+        Index::instance()->start();
     return app.exec();
 }

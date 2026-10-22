@@ -47,7 +47,15 @@ QVariantList Places::sections() const
     locations << item(QDir(home).dirName(), QUrl::fromLocalFile(home), QStringLiteral("home"))
               << item(computer(), QUrl::fromLocalFile(QStringLiteral("/")), QStringLiteral("drive"))
               << item(QStringLiteral("Trash"), QUrl(QStringLiteral("trash:/")), QStringLiteral("trash"));
-    const QVariantList tags = Tags::instance()->all();
+    // A tag lists what has it: a search for it.
+    QVariantList tags;
+    for (const QVariant &tag : Tags::instance()->all()) {
+        QVariantMap map = tag.toMap();
+        QUrl url(QStringLiteral("search:"));
+        url.setQuery(QStringLiteral("tag=") + QString::fromLatin1(QUrl::toPercentEncoding(map.value(QStringLiteral("name")).toString())));
+        map.insert(QStringLiteral("url"), url);
+        tags << map;
+    }
     return {
         section(QString(), {item(QStringLiteral("Recents"), QUrl(QStringLiteral("recentlyused:/files")), QStringLiteral("recents"))}),
         section(QStringLiteral("Favorites"), favorites),

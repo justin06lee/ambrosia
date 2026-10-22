@@ -108,6 +108,24 @@ QtObject {
 
     readonly property int pathBar: 28
 
+    // Search: the toolbar's field (Finder's search button opened), its
+    // suggestions, the token a suggestion makes, and the scope bar's two
+    // rows under the toolbar ("Search: This Mac “Folder”", "Kind is Any")
+    readonly property int searchField: 240
+    readonly property int searchRing: 3
+    readonly property int searchGlyphX: 16    // the magnifier's center, from the field's left
+    readonly property int searchTextX: 32
+    readonly property int searchClearX: 20    // the clear button's center, from the field's right
+    readonly property int searchClear: 14
+    readonly property int suggestHeight: 117
+    readonly property int tokenHeight: 14
+    readonly property int scopeTop: 52        // under the toolbar
+    readonly property int scopeRow: 32
+    readonly property int scopeX: 7           // from the content's left
+    readonly property int scopePill: 20
+    readonly property int popupButton: 21
+    readonly property int menuRow: 22
+
     // Quick Look's panel and the Info window
     readonly property int lookRadius: 16
     readonly property int infoRadius: 16
@@ -157,4 +175,15 @@ QtObject {
     readonly property color lookPage: dark ? "#1e1e1e" : "#ffffff"
     readonly property color infoRule: dark ? "#3c3d39" : "#e6e6e6"
     readonly property color infoPage: dark ? "#1e1e1e" : "#ffffff"
+    readonly property color searchFill: dark ? "#141414" : "#ffffff"
+    readonly property color suggestFill: dark ? "#5a5a58" : "#e2e2df"
+    readonly property color suggestRule: dark ? "#737371" : "#d2d2d2"
+    readonly property color tokenMode: dark ? "#6e6e6e" : "#b9b9b9"
+    readonly property color tokenText: dark ? "#4b4b4b" : "#dedede"
+    readonly property color clearFill: dark ? "#9b9b9b" : "#a6a6a6"
+    readonly property color scopePillFill: dark ? "#5a5a5a" : "#dadada"
+    readonly property color popupFill: dark ? "#3b3b39" : "#e6e6e6"
+    readonly property color menu: dark ? "#262624" : "#f2f2f2"
+    readonly property color menuRim: dark ? "#4e4e4c" : "#d3d3d3"
+    readonly property color menuRule: dark ? "#3f3f3d" : "#dadada"
 }

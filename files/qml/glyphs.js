@@ -50,4 +50,7 @@ var glyphs = {
     sortUp: { stroke: "M7.5 14l4.5-4.5 4.5 4.5", width: 1.6 },
     sortDown: { stroke: "M7.5 10l4.5 4.5 4.5-4.5", width: 1.6 },
     pathSeparator: { stroke: "M10 8l4 4-4 4", width: 1.6 },
+    check: { stroke: "M5.5 12.5l4.2 4.2L18.5 7.5", width: 2.2 },
+    chevronUpDown: { stroke: "M8.5 9.5L12 6l3.5 3.5M8.5 14.5L12 18l3.5-3.5", width: 2 },
+    overflow: { stroke: "M6.5 6.5l5.5 5.5-5.5 5.5M12.5 6.5l5.5 5.5-5.5 5.5", width: 2 },
 };
