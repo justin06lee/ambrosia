@@ -50,7 +50,8 @@ Sizes are logical pixels. GTK and KDE take points, so the generator converts
 **Rendering** (shipped as a fontconfig fragment): grayscale antialiasing, slight
 hinting, no LCD filter, embedded bitmaps off, and FreeType stem darkening on.
 Stem darkening is the main reason Mac text looks fuller than Linux text at the
-same size.
+same size. Qt's synthetic bold is off in the session: it would thicken Inter
+Variable's real Bold again, as the variable file reports a Regular weight.
 
 ## Space
 

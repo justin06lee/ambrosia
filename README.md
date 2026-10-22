@@ -110,7 +110,7 @@ an accent or a label color is identical in GTK, KDE and the shell.
 | `dist/kde/Ambrosia{Light,Dark}.colors` | Qt and KDE apps |
 | `dist/qml/Ambrosia/Theme.qml` | the shell (`import Ambrosia`, then `Theme.color…`) |
 | `dist/fontconfig/50-ambrosia.conf` | Inter and JetBrains Mono as system fonts, grayscale AA, slight hinting |
-| `dist/environment.d/50-ambrosia-fonts.conf` | FreeType stem darkening, for fuller text |
+| `dist/environment.d/50-ambrosia-fonts.conf` | FreeType stem darkening, for fuller text; no synthetic bold in Qt |
 | `dist/web/tokens.css` | the preview and any web surface |
 | `dist/tokens.json` | everything resolved, for compositor effects and scripts |
 
