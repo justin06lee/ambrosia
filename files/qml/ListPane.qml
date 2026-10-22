@@ -11,14 +11,40 @@ FocusScope {
     readonly property var model: finder.model
     readonly property real stripeLeft: Finder.rowInsetLeft
     readonly property real stripeRight: width - Finder.rowInsetRight
-    readonly property real kindX: stripeRight - Finder.kindColumn
-    readonly property real sizeX: kindX - Finder.sizeColumn
-    readonly property real dateX: sizeX - Finder.dateColumn
+    // Column widths, as the header's dividers set them; Name takes the rest.
+    property real dateW: Finder.dateColumn
+    property real sizeW: Finder.sizeColumn
+    property real kindW: Finder.kindColumn
+    readonly property real kindX: stripeRight - kindW
+    readonly property real sizeX: kindX - sizeW
+    readonly property real dateX: sizeX - dateW
+
+    // A divider trades width between the columns either side of it; the
+    // first one, between Name and Date Modified, takes it from Name.
+    readonly property var minWidth: ({ name: 120, date: 82, size: 56, kind: 70 })
+    property var resizeFrom: ({})
+    function startResize() { resizeFrom = { date: dateW, size: sizeW, kind: kindW }; }
+    function resize(divider, dx) {
+        const from = resizeFrom, min = minWidth;
+        const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+        if (divider === 1) {
+            const room = stripeRight - from.kind - from.size - Finder.nameText - min.name;
+            dateW = clamp(from.date - dx, min.date, Math.max(min.date, room));
+        } else if (divider === 2) {
+            const d = clamp(dx, min.date - from.date, from.size - min.size);
+            dateW = from.date + d;
+            sizeW = from.size - d;
+        } else {
+            const d = clamp(dx, min.size - from.size, from.kind - min.kind);
+            sizeW = from.size + d;
+            kindW = from.kind - d;
+        }
+    }
 
     function positionAt(row) { list.positionViewAtIndex(row, ListView.Contain); }
 
     // A narrow date column takes a shorter date, as Finder's does.
-    readonly property real dateWidth: Finder.dateColumn - 12
+    readonly property real dateWidth: dateW - 12
     Label { id: dateProbe0; visible: false; text: "Sep 28, 2026 at 10:59 PM" }
     Label { id: dateProbe1; visible: false; text: "12/28/26, 10:59 PM" }
     Binding {
@@ -36,25 +62,29 @@ FocusScope {
 
         Repeater {
             model: [
-                { column: "name", title: "Name", x: Finder.nameText, end: pane.dateX },
-                { column: "date", title: "Date Modified", x: pane.dateX + 8, end: pane.sizeX },
-                { column: "size", title: "Size", x: pane.sizeX + 7.5, end: pane.kindX },
-                { column: "kind", title: "Kind", x: pane.kindX + 8, end: pane.stripeRight },
+                { column: "name", title: "Name" },
+                { column: "date", title: "Date Modified" },
+                { column: "size", title: "Size" },
+                { column: "kind", title: "Kind" },
             ]
             Item {
                 id: column
                 required property var modelData
                 required property int index
                 readonly property bool sorted: pane.model.sortColumn === modelData.column
-                x: index === 0 ? 0 : modelData.x - 8
-                width: modelData.end - x
+                readonly property real textX: [Finder.nameText, pane.dateX + 8, pane.sizeX + 7.5, pane.kindX + 8][index]
+                readonly property real end: [pane.dateX, pane.sizeX, pane.kindX, pane.stripeRight][index]
+                x: index === 0 ? 0 : textX - 8
+                width: end - x
                 height: header.height
 
                 Label {
-                    x: column.modelData.x - column.x
+                    x: column.textX - column.x
+                    width: column.width - x - (column.sorted ? 20 : 4)
                     anchors.verticalCenter: parent.verticalCenter
                     text: column.modelData.title
                     style: Theme.text.caption
+                    elide: Text.ElideRight
                     font.weight: column.sorted ? 700 : 400
                     color: column.sorted ? Theme.color.label.primary : Theme.color.label.secondary
                 }
@@ -75,11 +105,28 @@ FocusScope {
                     color: Finder.separator
                 }
                 TapHandler {
-                    onTapped: {
+                    onTapped: (point) => {
+                        if (column.index > 0 && point.position.x < 5)
+                            return; // the divider
                         if (column.sorted)
                             pane.model.ascending = !pane.model.ascending;
                         else
                             pane.model.sortColumn = column.modelData.column;
+                    }
+                }
+                // The divider on the column's left: drag to resize.
+                Item {
+                    visible: column.index > 0
+                    x: -4
+                    width: 9
+                    height: parent.height
+                    HoverHandler { cursorShape: Qt.SizeHorCursor }
+                    DragHandler {
+                        target: null
+                        yAxis.enabled: false
+                        cursorShape: Qt.SizeHorCursor
+                        onActiveChanged: if (active) pane.startResize()
+                        onTranslationChanged: if (active) pane.resize(column.index, translation.x)
                     }
                 }
             }
@@ -228,7 +275,7 @@ FocusScope {
             }
             Label {
                 x: pane.dateX + 8
-                width: Finder.dateColumn - 12
+                width: pane.dateW - 12
                 anchors.verticalCenter: parent.verticalCenter
                 text: rowItem.dateText
                 elide: Text.ElideRight
@@ -236,7 +283,7 @@ FocusScope {
             }
             Label {
                 x: pane.sizeX
-                width: Finder.sizeColumn - 4.5
+                width: pane.sizeW - 4.5
                 anchors.verticalCenter: parent.verticalCenter
                 horizontalAlignment: Text.AlignRight
                 text: rowItem.sizeText
@@ -246,7 +293,7 @@ FocusScope {
             Label {
                 id: kindLabel
                 x: pane.kindX + 8
-                width: Finder.kindColumn - 12
+                width: pane.kindW - 12
                 anchors.verticalCenter: parent.verticalCenter
                 text: kindFull.width > width ? rowItem.kindShort : rowItem.kind
                 elide: Text.ElideMiddle
