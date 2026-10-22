@@ -62,6 +62,12 @@ FocusScope {
         Qt.callLater(reveal);
     }
 
+    // A file's preview, the last column, takes the room left in the window
+    // (as Finder's does) when that is a little less than its own width.
+    function previewWidth(start, w) {
+        return Math.max(Math.min(w, Finder.previewColumnMin), Math.min(w, strip.width - start));
+    }
+
     // The focused column and the one after it in view, scrolling as little
     // as it takes.
     function reveal() {
@@ -72,7 +78,7 @@ FocusScope {
             x += columns.get(i).w;
         let end = 0;
         for (let i = 0; i < columns.count; ++i)
-            end += columns.get(i).w;
+            end += columns.get(i).preview ? previewWidth(end, columns.get(i).w) : columns.get(i).w;
         let to = strip.contentX;
         if (end - to > strip.width)
             to = end - strip.width;
@@ -146,7 +152,7 @@ FocusScope {
                         required property string url
                         required property bool preview
                         required property real w
-                        width: w
+                        width: preview ? pane.previewWidth(x, w) : w
                         height: lane.height
                         function positionAt(target) { loader.item?.positionAt?.(target); }
 
@@ -496,70 +502,166 @@ FocusScope {
     }
 
     // The one file selected: its icon, name, kind and size, and dates.
+    // The one file selected, as Finder previews it: its picture, page or
+    // text large in a slot above its name and kind, then its Information
+    // and Tags (scrolling when they don't fit), and the quick actions at the
+    // foot.
     component PreviewColumn: Item {
         id: preview
         required property var owner
         anchors.fill: parent
-        readonly property var info: owner.finder.current >= 0 && owner.finder.selectedCount === 1 ? owner.model.infoAt(owner.finder.current) : ({})
+        readonly property bool one: owner.finder.current >= 0 && owner.finder.selectedCount === 1
+        readonly property var info: one ? owner.model.infoAt(owner.finder.current) : ({})
+        readonly property var times: one ? owner.model.timesAt(owner.finder.current) : ({})
+        readonly property bool picture: fileInfo.preview === "image"
+        readonly property bool text: fileInfo.preview === "text"
+        // A document's page (a PDF, an SVG, an office file) is ruled at its
+        // edge; a picture's corners are rounded.
+        readonly property bool page: !picture || /\.(pdf|svgz?)$/i.test(info.name ?? "")
 
-        Column {
-            x: 16
-            y: Finder.columnRowsTop + 22
-            width: parent.width - 32
-            spacing: 6
+        readonly property real foot: height - Finder.previewPaneFoot
+        readonly property real slotWidth: width - Finder.previewPaneTextX - Finder.previewPaneValueRight
+        readonly property real slotHeight: Math.min(Finder.previewSlotShare * (foot - Finder.previewSlotTop), Finder.previewSlotAspect * slotWidth)
+        readonly property real nameBase: Finder.previewSlotTop + slotHeight + Finder.previewNameGap
 
-            // A thumbnail as wide as the column, as Finder shows it; an icon
-            // at its preview size.
-            Thumbnail {
-                id: big
-                width: parent.width
-                height: big.shown ? Math.min(width, width / big.aspect) : Finder.previewIcon
-                box: width
-                iconSize: Finder.previewIcon
-                url: preview.info.url ?? ""
-                source: preview.info.thumb ?? ""
-                isDir: preview.info.isDir ?? false
-                badge: preview.info.badge ?? ""
+        ItemInfo {
+            id: fileInfo
+            url: preview.info.url ?? ""
+        }
+        QtObject {
+            id: nameStyle
+            readonly property int size: 16
+            readonly property int weight: 600
+            readonly property real tracking: 0
+        }
+
+        Flickable {
+            id: scroller
+            width: parent.width
+            height: preview.foot
+            contentWidth: width
+            contentHeight: Math.max(height, details.implicitHeight)
+            interactive: contentHeight > height
+            boundsBehavior: Flickable.StopAtBounds
+            clip: true
+
+            Item {
+                id: slot
+                x: Finder.previewPaneTextX
+                y: Finder.previewSlotTop
+                width: preview.slotWidth
+                height: preview.slotHeight
+
+                // A text file's start, set in a page that fills the slot.
+                Rectangle {
+                    visible: preview.text
+                    anchors.fill: parent
+                    radius: 6
+                    color: Finder.infoPage
+                    border.width: 1
+                    border.color: Finder.infoRule
+                    clip: true
+                    Text {
+                        x: 9
+                        y: 4
+                        width: parent.width - 22
+                        height: parent.height - 8
+                        text: preview.text ? fileInfo.text.slice(0, 4000) : ""
+                        textFormat: Text.PlainText
+                        wrapMode: Text.Wrap
+                        clip: true
+                        font.family: "monospace"
+                        font.pixelSize: 11
+                        lineHeightMode: Text.FixedHeight
+                        lineHeight: 13
+                        color: Theme.color.label.primary
+                        renderType: Text.NativeRendering
+                    }
+                }
+                // Anything else: its thumbnail fitted to the slot (a page
+                // ruled at its edge), or its icon until there is one.
+                Thumbnail {
+                    id: big
+                    visible: !preview.text
+                    readonly property real fitWidth: Math.min(slot.width, slot.height * aspect)
+                    anchors.centerIn: parent
+                    width: shown ? fitWidth : Finder.previewIcon
+                    height: shown ? fitWidth / aspect : Finder.previewIcon
+                    box: Math.max(slot.width, slot.height)
+                    iconSize: Finder.previewIcon
+                    url: preview.info.url ?? ""
+                    source: preview.info.thumb ?? ""
+                    isDir: preview.info.isDir ?? false
+                    badge: preview.info.badge ?? ""
+                }
+                // A picture's corners rounded in the column's color; a
+                // page's edge ruled.
+                Rectangle {
+                    visible: big.visible && big.shown
+                    x: big.x - border.width
+                    y: big.y - border.width
+                    width: big.width + 2 * border.width
+                    height: big.height + 2 * border.width
+                    radius: (preview.page ? 3 : 5) + border.width
+                    color: "transparent"
+                    border.width: 4
+                    border.color: Finder.content
+                }
+                Rectangle {
+                    visible: big.visible && big.shown && preview.page
+                    x: big.x
+                    y: big.y
+                    width: big.width
+                    height: big.height
+                    radius: 3
+                    color: "transparent"
+                    border.width: 1
+                    border.color: Finder.infoRule
+                }
             }
-            Item { width: 1; height: 8 }
+
             Label {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
+                x: Finder.previewPaneTextX
+                y: preview.nameBase - baselineOffset
+                width: preview.slotWidth
+                style: nameStyle
                 text: preview.info.name ?? ""
-                wrapMode: Text.WrapAnywhere
-                maximumLineCount: 3
                 elide: Text.ElideMiddle
-                font.weight: 700
             }
             Label {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: [preview.info.kind, preview.info.sizeText].filter(s => s && s !== "--").join(" – ")
+                x: Finder.previewPaneTextX
+                y: preview.nameBase + Finder.previewKindGap - baselineOffset
+                width: preview.slotWidth
+                font.pixelSize: 14
+                text: [preview.info.kind, preview.info.sizeText].filter(s => s && s !== "--").join(" - ")
                 elide: Text.ElideRight
                 color: Theme.color.label.secondary
             }
-            Item { width: 1; height: 10 }
-            Label {
-                text: "Information"
-                style: Theme.text.caption
-                font.weight: 700
-                color: Theme.color.label.secondary
+            PreviewDetails {
+                id: details
+                width: scroller.width
+                finder: preview.owner.finder
+                item: fileInfo
+                infoBase: preview.nameBase + Finder.previewKindGap + Finder.previewInfoGap
+                textX: Finder.previewPaneTextX
+                valueRight: Finder.previewPaneValueRight + 1
+                rule: Finder.infoRule
+                dates: [["Created", preview.times.created], ["Modified", preview.times.modified]]
             }
-            Rectangle { width: parent.width; height: 1; color: Finder.separator }
-            Item {
-                width: parent.width
-                height: Finder.columnRow
-                Label {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: "Modified"
-                    color: Theme.color.label.secondary
-                }
-                Label {
-                    anchors.right: parent.right
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: preview.info.dateText ?? ""
-                }
-            }
+        }
+
+        // The quick actions, ruled off from what scrolls above them.
+        Rectangle {
+            y: preview.foot - 0.5
+            width: parent.width
+            height: 1
+            color: Finder.infoRule
+        }
+        QuickActions {
+            y: preview.foot
+            width: parent.width
+            name: preview.info.name ?? ""
+            picture: preview.picture
         }
     }
 }

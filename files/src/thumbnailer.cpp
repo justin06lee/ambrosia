@@ -233,6 +233,18 @@ Exif readExif(const QByteArray &head)
     return exif;
 }
 
+// Whether Finder frames its thumbnail as a document's page (text, PDF,
+// SVG, an office document), with rounder corners than a picture's.
+bool isPage(const QString &path)
+{
+    const QString name = path.section(QLatin1Char('/'), -1);
+    const Kind kind = kindOf(name);
+    if (kind == Kind::Text || kind == Kind::Office)
+        return true;
+    const QString ext = QFileInfo(name).suffix().toLower();
+    return ext == u"pdf" || ext == u"svg" || ext == u"svgz";
+}
+
 // A text file's first lines on a white, letter-shaped page, box pixels
 // tall, monospaced as Finder sets them: drawn at least 256 tall and scaled
 // down, so lines that are too small to read still sit as gray as Finder's.
@@ -247,12 +259,12 @@ QImage textPage(QFile &file, int box)
     QPainter painter(&page);
     painter.setRenderHint(QPainter::TextAntialiasing);
     QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
-    font.setPixelSize(std::max(4, height / 44));
+    font.setPixelSize(std::max(4, height / 58));
     painter.setFont(font);
     painter.setPen(QColor(0x1d, 0x1d, 0x1f));
-    const qreal margin = width * 0.1;
-    painter.setClipRect(QRectF(margin, margin, width - 2 * margin, height - 2 * margin));
-    painter.drawText(QRectF(margin, margin, width - 2 * margin, height * 2), Qt::TextWordWrap | Qt::AlignLeft | Qt::AlignTop,
+    const qreal margin = width * 0.065, top = height * 0.055;
+    painter.setClipRect(QRectF(margin, top, width - 2 * margin, height - 2 * top));
+    painter.drawText(QRectF(margin, top, width - 2 * margin, height * 2), Qt::TextWordWrap | Qt::AlignLeft | Qt::AlignTop,
                      QString::fromUtf8(head).replace(QLatin1Char('\t'), QLatin1String("    ")));
     painter.end();
     return fit(page, box);
@@ -332,17 +344,17 @@ void blurAlpha(QImage &image, int r)
     }
 }
 
-// Finder's thumbnail as an icon, box pixels square: fitted into 7/8 of it,
-// its corners rounded (4 pt of 64), a lighter hairline inside its edge and
-// a soft shadow under it. Art with clear corners (an alpha channel) keeps
-// its own shape, unframed.
-QImage framed(const QImage &image, int box)
+// Finder's thumbnail as an icon, box pixels square: fitted into 9/10 of it,
+// its corners rounded (6 pt of 64 for a picture, 8.5 for a page), a lighter
+// hairline inside its edge and a soft shadow under it. Art with clear
+// corners (an alpha channel) keeps its own shape, unframed.
+QImage framed(const QImage &image, int box, bool page = false)
 {
     QImage out(box, box, QImage::Format_ARGB32_Premultiplied);
     out.fill(Qt::transparent);
     if (image.isNull())
         return out;
-    const int inner = box * 7 / 8;
+    const int inner = box * 9 / 10;
     const QSize size = image.width() > inner || image.height() > inner ? image.size().scaled(inner, inner, Qt::KeepAspectRatio) : image.size();
     const QImage content = image.size() == size ? image : image.scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
     const QRectF rect((box - size.width()) / 2, (box - size.height()) / 2, size.width(), size.height());
@@ -358,7 +370,7 @@ QImage framed(const QImage &image, int box)
         painter.drawImage(rect.topLeft(), content);
         return out;
     }
-    const qreal radius = std::min(box / 16.0, std::min(rect.width(), rect.height()) / 4);
+    const qreal radius = std::min(box * (page ? 17 : 12) / 128.0, std::min(rect.width(), rect.height()) / 4);
     // The shadow: the shape a point lower, blurred, at a quarter black.
     QImage shadow(box, box, QImage::Format_ARGB32_Premultiplied);
     shadow.fill(Qt::transparent);
@@ -652,7 +664,7 @@ private:
         return true;
     }
 
-    static QImage deliver(const Job &job, const QImage &image) { return job.tile ? framed(image, job.box) : image; }
+    static QImage deliver(const Job &job, const QImage &image) { return job.tile ? framed(image, job.box, isPage(job.path)) : image; }
 
     static void store(QImage image, const QString &dir, const QString &name, const QString &uri, qint64 mtime, qint64 size)
     {

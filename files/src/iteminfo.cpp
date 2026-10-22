@@ -1,4 +1,5 @@
 #include "iteminfo.h"
+#include "metadata.h"
 #include "format.h"
 #include "tags.h"
 #include "thumbnailer.h"
@@ -152,6 +153,7 @@ void ItemInfo::read(bool recount)
     m_preview = QStringLiteral("generic");
     m_text.clear();
     m_pictureSize = QSize();
+    m_details.clear();
 
     const QString path = localPath(m_url);
     m_fileUrl = path.isEmpty() ? QUrl() : QUrl::fromLocalFile(path);
@@ -208,6 +210,11 @@ void ItemInfo::read(bool recount)
                 m_pictureSize.transpose();
             if (m_pictureSize.isValid())
                 m_preview = QStringLiteral("image");
+        }
+        if (readable && (m_pictureSize.isValid() || mime.name() == u"application/pdf")) {
+            for (const Metadata::Row &row : Metadata::read(file, m_name, m_pictureSize))
+                m_details.append(QVariantMap{{QStringLiteral("label"), row.label}, {QStringLiteral("value"), row.value},
+                                             {QStringLiteral("more"), row.more}});
         } else if (readable && mime.inherits(QStringLiteral("text/plain"))) {
             m_preview = QStringLiteral("text");
             file.seek(0);

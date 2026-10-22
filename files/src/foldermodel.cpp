@@ -1093,16 +1093,16 @@ QVariantMap FolderModel::timesAt(int row) const
     QVariantMap times;
     if (row < 0 || row >= rowCount())
         return times;
-    times.insert(QStringLiteral("modified"), Format::date(data(index(row), DateRole).toLongLong()));
+    times.insert(QStringLiteral("modified"), Format::date(data(index(row), DateRole).toLongLong(), 1));
     const QUrl url = urlAt(row);
     if (!url.isLocalFile())
         return times;
     const QFileInfo file(url.toLocalFile());
     const QDateTime created = file.birthTime(), opened = file.lastRead();
     if (created.isValid())
-        times.insert(QStringLiteral("created"), Format::date(created.toSecsSinceEpoch()));
+        times.insert(QStringLiteral("created"), Format::date(created.toSecsSinceEpoch(), 1));
     if (opened.isValid())
-        times.insert(QStringLiteral("opened"), Format::date(opened.toSecsSinceEpoch()));
+        times.insert(QStringLiteral("opened"), Format::date(opened.toSecsSinceEpoch(), 1));
     return times;
 }
 

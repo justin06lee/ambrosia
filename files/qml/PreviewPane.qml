@@ -2,8 +2,10 @@ import QtQuick
 import Ambrosia
 
 // The preview pane on the right of the gallery view (View > Show Preview,
-// ⇧⌘P): the item selected, its name, kind and size, then its dates under
-// Information. Placed on Finder's measurements, from the window's top.
+// ⇧⌘P): the item selected, its name, kind and size, then its Information
+// (dates, a picture's Dimensions and Resolution, Show More) and Tags, and
+// the quick actions at the foot. Placed on Finder's measurements, from the
+// window's top.
 Item {
     id: preview
 
@@ -12,8 +14,7 @@ Item {
     readonly property bool one: finder.selectedCount === 1
     // Read again whenever the selection is set again, as after a rename.
     readonly property var times: finder.shownRow >= 0 && finder.selected ? finder.model.timesAt(finder.shownRow) : ({})
-    readonly property var dates: [["Created", times.created], ["Modified", times.modified], ["Last opened", times.opened]]
-        .filter(d => d[1] !== undefined)
+    readonly property var dates: [["Created", times.created], ["Modified", times.modified]]
     // Only while the pane shows: hidden, its field would take the keyboard
     // from the view's own and close it.
     readonly property bool renaming: finder.previewShown && one && finder.renaming && finder.editing.toString() === (info.url ?? "").toString()
@@ -24,11 +25,9 @@ Item {
         readonly property int weight: 600
         readonly property real tracking: 0
     }
-    QtObject {
-        id: headStyle
-        readonly property int size: 14
-        readonly property int weight: 600
-        readonly property real tracking: 0
+    ItemInfo {
+        id: fileInfo
+        url: preview.one ? preview.info.url ?? "" : ""
     }
 
     // The pane's grey, square but for the window's corner; below it, under
@@ -86,51 +85,26 @@ Item {
             y: Finder.previewPaneKindBase - baselineOffset
             width: preview.width - x - 12
             font.pixelSize: 14
-            text: [preview.info.kind, preview.info.sizeText].filter(s => s && s !== "--").join(" – ")
+            text: [preview.info.kind, preview.info.sizeText].filter(s => s && s !== "--").join(" - ")
             elide: Text.ElideRight
             color: Theme.color.label.secondary
         }
 
-        Label {
+        PreviewDetails {
             visible: preview.one
-            x: Finder.previewPaneTextX
-            y: Finder.previewPaneInfoBase - baselineOffset
-            style: headStyle
-            text: "Information"
+            width: parent.width
+            finder: preview.finder
+            item: fileInfo
+            infoBase: Finder.previewPaneInfoBase
+            dates: preview.dates
+            fieldFill: Finder.content
         }
-        Repeater {
-            model: preview.one ? preview.dates : []
-            Item {
-                id: date
-                required property int index
-                required property var modelData
-                readonly property real base: Finder.previewPaneRowBase + index * Finder.previewPaneRow
-                anchors.fill: parent
-
-                Label {
-                    x: Finder.previewPaneTextX
-                    y: date.base - baselineOffset
-                    style: Theme.text.callout
-                    font.weight: 500
-                    text: date.modelData[0]
-                    color: Theme.color.label.secondary
-                }
-                Label {
-                    x: preview.width - Finder.previewPaneValueRight - width
-                    y: date.base - baselineOffset
-                    style: Theme.text.callout
-                    font.weight: 600
-                    text: date.modelData[1]
-                }
-                Rectangle {
-                    visible: date.index < preview.dates.length - 1
-                    x: Finder.previewPaneTextX
-                    y: date.base + Math.round(Finder.previewPaneRow / 3)
-                    width: preview.width - 2 * Finder.previewPaneTextX
-                    height: 1
-                    color: Finder.previewPaneRule
-                }
-            }
+        QuickActions {
+            visible: preview.one
+            y: parent.height - Finder.previewPaneFoot
+            width: parent.width
+            name: preview.info.name ?? ""
+            picture: fileInfo.preview === "image"
         }
     }
 }
