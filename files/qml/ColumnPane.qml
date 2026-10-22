@@ -320,6 +320,7 @@ FocusScope {
                 required property string badge
                 required property url url
                 required property var tags
+                required property string thumb
                 readonly property string key: owner.clean(url)
                 // Selected in the focused column; leading on in an earlier one.
                 readonly property bool chosen: col.focused ? owner.finder.selectedSet[url.toString()] === true : key === col.lead
@@ -347,6 +348,7 @@ FocusScope {
                     size: Finder.columnIcon
                     kind: rowItem.isDir ? "folder" : "document"
                     badge: rowItem.badge
+                    thumb: rowItem.thumb
                     tint: rowItem.isDir && rowItem.tags.length > 0 ? rowItem.tags[0] : ""
                 }
                 // Its tags, before the chevron.
@@ -440,6 +442,7 @@ FocusScope {
                 size: Finder.previewIcon
                 kind: preview.info.isDir ? "folder" : "document"
                 badge: preview.info.badge ?? ""
+                thumb: preview.info.thumb ?? ""
             }
             Item { width: 1; height: 8 }
             Label {

@@ -32,6 +32,8 @@ qt_add_qml_module(ambrosia-files
         src/places.h src/places.cpp
         src/sortkey.h src/sortkey.cpp
         src/tags.h src/tags.cpp
+        src/thumbnailer.h src/thumbnailer.cpp
+        src/thumbbench.cpp
     QML_FILES
         qml/FinderWindow.qml
         qml/Appearance.qml

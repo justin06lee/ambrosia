@@ -80,6 +80,7 @@ public:
         DepthRole,
         ExpandedRole,
         TagsRole, // the colors of its tags, read when asked for
+        ThumbRole, // its thumbnail's image source, or ""
     };
     Q_ENUM(Role)
 

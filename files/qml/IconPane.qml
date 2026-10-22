@@ -106,6 +106,7 @@ FocusScope {
             required property string badge
             required property url url
             required property var tags
+            required property string thumb
             readonly property bool selected: pane.finder.selected[index] === true || pane.dropCell === index
             readonly property bool renaming: pane.finder.renaming && pane.finder.editing.toString() === url.toString()
             function onName(x, y) {
@@ -133,6 +134,7 @@ FocusScope {
                 size: Finder.iconSize
                 kind: cell.isDir ? "folder" : "document"
                 badge: cell.badge
+                thumb: cell.thumb
                 tint: cell.isDir && cell.tags.length > 0 ? cell.tags[0] : ""
             }
             // Its tags, before its name (the name moves over for them).

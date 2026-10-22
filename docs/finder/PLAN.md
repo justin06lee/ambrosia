@@ -317,8 +317,8 @@ tenet's next sanctioned upgrade).
 | 6 | Type-select or filter in the 100k folder | ≤ 4 ms a keystroke | TBM | TBM | — |
 | 7 | Filename search over the home (238k entries; 810k visible by slice 7) | **≤ 10 ms** a keystroke | TBM (Baloo: 0.9 ms query, 142 ms per call, 21k files indexed) | TBM | scan 4 to 6 ms; walk 45 to 175 ms; **slice 7: query 1.0 to 6.4 ms, keystroke to rows 2 to 13 ms** |
 | 8 | Content search: first hit | ≤ 100 ms, streaming | TBM | TBM | rg 22 to 46 ms on 345 MB; **slice 7: 4 ms in ~/ambrosia, 5.3 s over the whole home (cold HDD)** |
-| 9 | A screenful (about 40) of cached thumbnails | ≤ 50 ms | TBM | TBM | — |
-| 10 | First uncached thumbnail, 24 MP JPEG | **≤ 20 ms** with EXIF, ≤ 80 ms without | TBM (EXIF path 3 to 5 ms) | TBM | 66 ms at 1/8 |
+| 9 | A screenful (about 40) of cached thumbnails | ≤ 50 ms; **measured 6.8 ms** (cache in memory), 26 ms (cache read cold from tenet's spinning disk) | TBM | TBM | — |
+| 10 | First uncached thumbnail, 24 MP JPEG | **≤ 20 ms** with EXIF, ≤ 80 ms without; **measured 0.6 to 0.9 ms** with EXIF, 71 ms without (file in the page cache); cold from the disk 25 to 320 ms and 117 to 134 ms, as busy as the disk is | TBM (EXIF path 3 to 5 ms) | TBM | 66 ms at 1/8 |
 | 11 | Quick Look, 24 MP JPEG, to first frame | ≤ 100 ms | n/a | TBM (Sushi) | — |
 | 12 | Scrolling a 100k list or icon view at 4K | no frame over 16.7 ms | TBM | TBM | — |
 | 13 | Memory with the 100k folder open | ≤ 120 MB RSS | 224 MB (software GL) | TBM | — |
@@ -566,6 +566,38 @@ this Mac's Finder (references in `out/parity/files/ref/search/`):
   + or − criteria rows, no token menu, and no D-Bus Search for the shell's
   Spotlight. Tags changed while Files isn't running show only once their
   folder is read again.
+
+**Slice 8, thumbnails** (`src/thumbnailer.cpp`, `qml/FileIcon.qml`,
+`qml/Thumbnail.qml`; tested on tenet, not yet published):
+- **Where they show:** the icon, list and column views (the column
+  preview included), the gallery's filmstrip and large view, the preview
+  pane and the Info window. Each shows its item's art until the thumbnail
+  arrives, fitted to the icon's square with a hairline edge.
+- **What gets one,** decided by the name alone (no I/O): every picture
+  Qt's readers know (JPEG, PNG, GIF, WebP, TIFF, HEIF, AVIF, JXL, SVG, PDF's
+  first page through Qt's PDF reader, and so on) and plain text, drawn as a
+  letter-shaped page of its first lines. Folders keep their icons.
+- **How:** an async image provider, `image://thumb/MTIME/PATH`. It looks
+  in the freedesktop cache first (`~/.cache/thumbnails`, this size or a
+  bigger one, with `Thumb::MTime` checked), so thumbnails Dolphin made are
+  used too. Otherwise it makes one: a JPEG's EXIF thumbnail when it is big
+  enough and the photo's shape, else Qt's reader at the scaled size (an
+  eighth of the DCT for JPEG). Files are read with O_NOATIME. A picture
+  made at a cache size is written back, renamed into place without a sync.
+- **Gentle on the disk:** two threads, nice 10 and idle I/O. The newest
+  view's requests come first, in their order, so after a scroll the rows
+  on screen win. A request whose item has scrolled away is dropped. Cached
+  thumbnails always show, but making new ones waits while
+  `/proc/pressure/io` reads above 30% (avg10) and resumes below 15%
+  (`FILES_THUMB_PAUSE`, `FILES_THUMB_RESUME`). A cold folder of 111 12 MP
+  photos took about 4 s and raised the pressure to 22% at most; with the
+  bar at 10% the pool paused and resumed twice and still made them all.
+- **Measured** (`ambrosia-files --bench-thumbs`, fixtures from
+  `bench/thumbfix.sh`): see targets 9 and 10.
+- **Not yet:** video, fonts, office documents and audio covers
+  (`KIO::PreviewJob`; tenet has no ffmpegthumbs). No Finder side-by-sides
+  or clips yet. Files that aren't the user's own get their access time
+  set, since O_NOATIME needs ownership.
 
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).

@@ -175,6 +175,7 @@ Window {
                         width: 32
                         height: 32
                         url: info.fileUrl
+                        source: info.thumb
                         isDir: info.isDir
                         badge: info.badge
                         tint: info.tint
@@ -400,7 +401,7 @@ Window {
                             x: 16.5
                             width: parent.width - 33
                             height: info.pictureSize.width > 0 ? Math.min(480, Math.round(width * info.pictureSize.height / info.pictureSize.width)) : 0
-                            source: visible ? info.fileUrl : ""
+                            source: visible ? (info.thumb !== "" ? info.thumb : info.fileUrl) : ""
                             asynchronous: true
                             fillMode: Image.PreserveAspectFit
                             sourceSize: Qt.size(Math.ceil(width * Screen.devicePixelRatio), Math.ceil(height * Screen.devicePixelRatio))

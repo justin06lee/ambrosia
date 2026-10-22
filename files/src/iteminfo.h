@@ -55,6 +55,8 @@ class ItemInfo : public QObject
     Q_PROPERTY(QStringList tags READ tags NOTIFY changed)
     // A folder's first colored tag's color, which its icon takes.
     Q_PROPERTY(QString tint READ tint NOTIFY changed)
+    // Its thumbnail's image source, or "".
+    Q_PROPERTY(QString thumb READ thumb NOTIFY changed)
     // "You can read and write"; then [{name, privilege}] for the owner, the
     // group and everyone.
     Q_PROPERTY(QString access READ access NOTIFY changed)
@@ -88,6 +90,7 @@ public:
     QString comment() const { return m_comment; }
     QStringList tags() const { return m_tags; }
     QString tint() const { return m_isDir ? Tags::instance()->colorsOf(m_tags).value(0) : QString(); }
+    QString thumb() const;
     void setComment(const QString &comment);
     QString access() const { return m_access; }
     QVariantList permissions() const { return m_permissions; }

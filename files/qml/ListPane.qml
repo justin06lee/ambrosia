@@ -275,6 +275,7 @@ FocusScope {
             required property string badge
             required property url url
             required property var tags
+            required property string thumb
             readonly property bool selected: pane.finder.selected[index] === true || pane.dropRow === index
             readonly property bool renaming: pane.finder.renaming && pane.finder.editing.toString() === url.toString()
             readonly property real nameStart: nameLabel.x
@@ -314,6 +315,7 @@ FocusScope {
                 anchors.verticalCenter: parent.verticalCenter
                 size: Finder.listIcon
                 kind: rowItem.isDir ? "folder" : "document"
+                thumb: rowItem.thumb
                 tint: rowItem.isDir && rowItem.tags.length > 0 ? rowItem.tags[0] : ""
             }
             // Its tags, at the end of the Name column.
