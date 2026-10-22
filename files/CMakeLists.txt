@@ -22,6 +22,7 @@ qt_add_qml_module(ambrosia-files
     VERSION 1.0
     SOURCES
         src/app.h src/app.cpp
+        src/fileops.h src/fileops.cpp
         src/foldermodel.h src/foldermodel.cpp
         src/format.h src/format.cpp
         src/places.h src/places.cpp
@@ -31,6 +32,9 @@ qt_add_qml_module(ambrosia-files
         qml/MenuBar.qml
         qml/Finder.qml
         qml/Sidebar.qml
+        qml/SidebarFlush.qml
+        qml/SidebarList.qml
+        qml/RenameField.qml
         qml/Toolbar.qml
         qml/Capsule.qml
         qml/ToolButton.qml
@@ -52,7 +56,7 @@ target_include_directories(ambrosia-files PRIVATE src)
 
 target_link_libraries(ambrosia-files PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Concurrent Qt6::Svg
-    KF6::KIOGui KF6::WindowSystem
+    KF6::KIOGui KF6::KIOWidgets KF6::WindowSystem
 )
 
 include(GNUInstallDirs)

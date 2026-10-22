@@ -5,9 +5,11 @@
 
 #include <KIO/ListJob>
 #include <KIO/UDSEntry>
+#include <kdirnotify.h>
 
 #include <QCollator>
 #include <QCoreApplication>
+#include <QDBusConnection>
 #include <QFile>
 #include <QFileSystemWatcher>
 #include <QPointer>
@@ -22,7 +24,10 @@
 #include <cstring>
 #include <numeric>
 #include <functional>
+#include <optional>
+#include <string_view>
 #include <thread>
+#include <unordered_set>
 #include <utility>
 
 #include <fcntl.h>
@@ -335,6 +340,42 @@ void sortListing(Listing &l, const QString &column, bool ascending)
     permute(l, order);
 }
 
+// How a reread of a folder lines up with the listing before it: for each new
+// entry, the old entry it continues, or -1 when it's new or the sort moved
+// it. What stays is the longest run of entries in the same order in both
+// (patience sorting), so a view takes out and puts in only the rest.
+std::vector<qint32> matchListings(const Listing &before, const Listing &after)
+{
+    std::unordered_map<std::string_view, quint32> old;
+    old.reserve(before.entries.size());
+    for (quint32 i = 0; i < before.entries.size(); ++i)
+        old.emplace(before.strings.data() + before.entries[i].name, i);
+    std::vector<qint32> from(after.entries.size(), -1);
+    for (quint32 i = 0; i < after.entries.size(); ++i) {
+        const Entry &e = after.entries[i];
+        const auto it = old.find(after.strings.data() + e.name);
+        if (it != old.end() && (before.entries[it->second].flags & FolderModel::Dir) == (e.flags & FolderModel::Dir))
+            from[i] = qint32(it->second);
+    }
+    std::vector<quint32> tails; // the new entry ending the best run of each length
+    std::vector<qint32> prev(from.size(), -1);
+    for (quint32 i = 0; i < from.size(); ++i) {
+        if (from[i] < 0)
+            continue;
+        const auto at = std::lower_bound(tails.begin(), tails.end(), from[i], [&](quint32 t, qint32 v) { return from[t] < v; });
+        if (at != tails.begin())
+            prev[i] = qint32(*(at - 1));
+        if (at == tails.end())
+            tails.push_back(i);
+        else
+            *at = i;
+    }
+    std::vector<qint32> kept(from.size(), -1);
+    for (qint32 i = tails.empty() ? -1 : qint32(tails.back()); i >= 0; i = prev[i])
+        kept[i] = from[i];
+    return kept;
+}
+
 // A local folder, sorted. A big one sorted by name shows its first
 // screenful (`first`) before every entry is stat'ed and sorted.
 std::shared_ptr<Listing> listLocal(const QString &path, bool showHidden, const QString &column, bool ascending,
@@ -423,7 +464,7 @@ FolderModel::FolderModel(QObject *parent)
     m_reload->setInterval(150);
     connect(m_reload, &QTimer::timeout, this, [this] {
         if (std::exchange(m_rootChanged, false))
-            load();
+            load(true);
     });
     connect(m_reload, &QTimer::timeout, this, [this] {
         const auto paths = std::exchange(m_changedPaths, {});
@@ -433,6 +474,27 @@ FolderModel::FolderModel(QObject *parent)
                     loadNode(node);
     });
     connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, &FolderModel::changed);
+    // KIO says when it changes what it lists (the Trash, as files go in and
+    // come back out); inotify covers local folders.
+    auto *notify = new OrgKdeKDirNotifyInterface(QString(), QString(), QDBusConnection::sessionBus(), this);
+    connect(notify, &OrgKdeKDirNotifyInterface::FilesAdded, this, [this](const QString &dir) { notified({dir}, false); });
+    connect(notify, &OrgKdeKDirNotifyInterface::FilesRemoved, this, [this](const QStringList &files) { notified(files, true); });
+    connect(notify, &OrgKdeKDirNotifyInterface::FileRenamed, this, [this](const QString &from, const QString &to) { notified({from, to}, true); });
+}
+
+void FolderModel::notified(const QStringList &urls, bool parents)
+{
+    if (m_url.isLocalFile())
+        return;
+    for (const QString &url : urls) {
+        QUrl dir(url);
+        dir = dir.adjusted(parents ? QUrl::RemoveFilename | QUrl::StripTrailingSlash : QUrl::StripTrailingSlash);
+        if (dir.adjusted(QUrl::StripTrailingSlash | QUrl::NormalizePathSegments) == m_url) {
+            m_rootChanged = true;
+            m_reload->start();
+            return;
+        }
+    }
 }
 
 void FolderModel::changed(const QString &path)
@@ -498,27 +560,43 @@ QString FolderModel::name() const
 
 void FolderModel::reload()
 {
-    load();
+    load(true);
 }
 
-void FolderModel::load()
+void FolderModel::load(bool reread)
 {
+    // A change while the folder is still coming in starts it over.
+    reread = reread && !m_loading;
     const quint64 generation = ++m_generation;
-    m_clock.start();
-    m_firstMs = 0;
-    if (!m_loading) {
-        m_loading = true;
-        Q_EMIT loadingChanged();
+    if (!reread) {
+        m_clock.start();
+        m_firstMs = 0;
+        if (!m_loading) {
+            m_loading = true;
+            Q_EMIT loadingChanged();
+        }
     }
     if (!m_url.isLocalFile()) {
-        listRemote();
+        listRemote(reread);
         return;
     }
     QPointer<FolderModel> self(this);
     const QString path = m_url.toLocalFile();
     const QString column = m_sortColumn;
     const bool ascending = m_ascending, hidden = m_showHidden;
-    QThreadPool::globalInstance()->start([self, generation, path, column, ascending, hidden] {
+    const std::shared_ptr<const Listing> before = reread ? m_listing : nullptr;
+    QThreadPool::globalInstance()->start([self, generation, path, column, ascending, hidden, before] {
+        if (before) {
+            auto listing = listLocal(path, hidden, column, ascending, [](std::shared_ptr<Listing>) {});
+            auto from = matchListings(*before, *listing);
+            QMetaObject::invokeMethod(
+                qApp, [self, listing, generation, before, from] {
+                    if (self)
+                        self->reapply(listing, generation, before, from);
+                },
+                Qt::QueuedConnection);
+            return;
+        }
         auto deliver = [self, generation](std::shared_ptr<Listing> listing, bool partial) {
             QMetaObject::invokeMethod(
                 qApp, [self, listing, generation, partial] {
@@ -532,22 +610,28 @@ void FolderModel::load()
     });
 }
 
-void FolderModel::listRemote()
+void FolderModel::listRemote(bool reread)
 {
     if (m_job)
         m_job->kill();
     const quint64 generation = m_generation;
-    m_job = listWithKio(this, m_url, m_showHidden, [this, generation](std::shared_ptr<Listing> listing) {
+    const std::shared_ptr<const Listing> before = reread ? m_listing : nullptr;
+    m_job = listWithKio(this, m_url, m_showHidden, [this, generation, before](std::shared_ptr<Listing> listing) {
         if (generation == m_generation)
             m_job = nullptr;
         QPointer<FolderModel> self(this);
         const QString column = m_sortColumn;
         const bool ascending = m_ascending;
-        QThreadPool::globalInstance()->start([self, listing, generation, column, ascending] {
+        QThreadPool::globalInstance()->start([self, listing, generation, column, ascending, before] {
             sortListing(*listing, column, ascending);
+            const auto from = before ? matchListings(*before, *listing) : std::vector<qint32>();
             QMetaObject::invokeMethod(
-                qApp, [self, listing, generation] {
-                    if (self)
+                qApp, [self, listing, generation, before, from] {
+                    if (!self)
+                        return;
+                    if (before)
+                        self->reapply(listing, generation, before, from);
+                    else
                         self->apply(listing, generation, false);
                 },
                 Qt::QueuedConnection);
@@ -608,6 +692,21 @@ void FolderModel::apply(std::shared_ptr<Listing> listing, quint64 generation, bo
     }
     if (before != rowCount())
         Q_EMIT countChanged();
+    Q_EMIT loaded();
+}
+
+// A reread of the folder: lined up with what it showed, unless something
+// else (a resort, an error) came between.
+void FolderModel::reapply(std::shared_ptr<Listing> listing, quint64 generation, const std::shared_ptr<const Listing> &before,
+                          const std::vector<qint32> &from)
+{
+    if (generation != m_generation)
+        return;
+    if (before != m_listing || !listing->error.isEmpty() || !before->error.isEmpty()) {
+        apply(std::move(listing), generation, false);
+        return;
+    }
+    replace(nullptr, std::move(listing), from);
     Q_EMIT loaded();
 }
 
@@ -723,6 +822,43 @@ int FolderModel::indexOf(const QString &name) const
         if (rowAt(i).depth == 0 && displayOf(rowAt(i)) == name)
             return i;
     return -1;
+}
+
+QList<int> FolderModel::rowsOf(const QList<QUrl> &urls) const
+{
+    QList<int> rows(urls.size(), -1);
+    // Each one by its name and the folder it's in: this one, or one open in it.
+    std::vector<std::string> names;
+    std::vector<std::optional<const Node *>> folders;
+    names.reserve(urls.size());
+    for (const QUrl &url : urls) {
+        const QUrl dir = url.adjusted(QUrl::RemoveFilename | QUrl::StripTrailingSlash | QUrl::NormalizePathSegments);
+        std::optional<const Node *> folder;
+        if (dir == m_url) {
+            folder = nullptr;
+        } else {
+            for (const Node *node : std::as_const(m_nodes))
+                if (node->listing && node->url.adjusted(QUrl::StripTrailingSlash | QUrl::NormalizePathSegments) == dir)
+                    folder = node;
+        }
+        folders.push_back(folder);
+        names.push_back(url.fileName().toStdString());
+    }
+    std::unordered_multimap<std::string_view, int> wanted;
+    for (int i = 0; i < int(names.size()); ++i)
+        if (folders[i])
+            wanted.emplace(names[i], i);
+    if (wanted.empty())
+        return rows;
+    const int n = rowCount();
+    for (int row = 0; row < n; ++row) {
+        const Row r = rowAt(row);
+        const auto [first, last] = wanted.equal_range(nameOf(r));
+        for (auto it = first; it != last; ++it)
+            if (folders[it->second] == r.node)
+                rows[it->second] = row;
+    }
+    return rows;
 }
 
 int FolderModel::match(const QString &prefix, int from) const
@@ -904,11 +1040,17 @@ void FolderModel::nodeLoaded(quint64 id, quint64 generation, std::shared_ptr<Lis
         return;
     if (column != m_sortColumn || ascending != m_ascending)
         sortListing(*listing, m_sortColumn, m_ascending); // the order changed while it was read
-    hideNode(node); // a reread replaces the rows it showed
-    if (!node->listing && node->url.isLocalFile())
-        watch(node->url.toLocalFile(), true);
-    node->listing = std::move(listing);
-    showNode(node);
+    if (node->listing && rowOfNode(node) >= 0) {
+        // A reread of a folder that's showing: lined up with its rows.
+        const auto from = matchListings(*node->listing, *listing);
+        replace(node, std::move(listing), from);
+    } else {
+        hideNode(node);
+        if (!node->listing && node->url.isLocalFile())
+            watch(node->url.toLocalFile(), true);
+        node->listing = std::move(listing);
+        showNode(node);
+    }
     if (node->openAll)
         openAllIn(node);
     for (auto &[name, child] : node->children)
@@ -958,6 +1100,138 @@ void FolderModel::hideNode(Node *node)
         m_outline = false;
     }
     Q_EMIT countChanged();
+}
+
+// A reread of a folder that's showing (null: this one; else one open in
+// place) replaces its listing in the rows: entries that went are taken out
+// with whatever is open under them, new ones are put in, and the rest stay
+// where they are with their new sizes and dates. `from` is matchListings'
+// answer. Changes in many places reset the model instead, since each run
+// moves every row after it.
+void FolderModel::replace(Node *node, std::shared_ptr<const Listing> next, const std::vector<qint32> &from)
+{
+    const std::shared_ptr<const Listing> prev = node ? node->listing : m_listing; // alive until the rows are moved
+    auto setListing = [&] {
+        if (node)
+            node->listing = next;
+        else
+            m_listing = next;
+    };
+    const int count = rowCount();
+    const int row = node ? rowOfNode(node) : -1;
+    if (node && row < 0) {
+        setListing();
+        dropGone(node);
+        return;
+    }
+    std::vector<qint32> to(prev->entries.size(), -1);
+    for (size_t i = 0; i < from.size(); ++i)
+        if (from[i] >= 0)
+            to[from[i]] = qint32(i);
+    int runs = 0;
+    for (size_t i = 0; i < to.size(); ++i)
+        runs += to[i] < 0 && (i == 0 || to[i - 1] >= 0);
+    for (size_t i = 0; i < from.size(); ++i)
+        runs += from[i] < 0 && (i == 0 || from[i - 1] >= 0);
+    if (runs > 64) {
+        beginResetModel();
+        setListing();
+        dropGone(node);
+        rebuildRows();
+        endResetModel();
+        if (count != rowCount())
+            Q_EMIT countChanged();
+        return;
+    }
+    if (!m_outline) {
+        m_rows.reserve(m_listing->entries.size());
+        for (quint32 i = 0; i < m_listing->entries.size(); ++i)
+            m_rows.push_back({nullptr, i, 0});
+        m_outline = true;
+    }
+    const int at = row + 1; // the folder's first row
+    const quint32 depth = node ? m_rows[row].depth + 1 : 0;
+    const int end = node ? subtreeEnd(row) : int(m_rows.size());
+
+    // Out, from the last run back, so the rows before each stay put.
+    std::vector<std::pair<int, int>> gone;
+    for (int p = at; p < end;) {
+        const int q = subtreeEnd(p);
+        if (to[m_rows[p].index] < 0) {
+            if (!gone.empty() && gone.back().second == p)
+                gone.back().second = q;
+            else
+                gone.emplace_back(p, q);
+        }
+        p = q;
+    }
+    for (auto it = gone.rbegin(); it != gone.rend(); ++it) {
+        beginRemoveRows({}, it->first, it->second - 1);
+        m_rows.erase(m_rows.begin() + it->first, m_rows.begin() + it->second);
+        endRemoveRows();
+    }
+    // The rows that stay take their entries' places in the new listing.
+    setListing();
+    const int stay = node ? subtreeEnd(row) : int(m_rows.size());
+    for (int p = at; p < stay; ++p)
+        if (m_rows[p].node == node)
+            m_rows[p].index = quint32(to[m_rows[p].index]);
+    dropGone(node);
+
+    // In: each run of new entries at its place, with whatever is open in a
+    // folder the sort moved.
+    const Children &children = childrenOf(node);
+    int p = at;
+    for (size_t i = 0; i < from.size();) {
+        if (from[i] >= 0) {
+            p = subtreeEnd(p);
+            ++i;
+            continue;
+        }
+        std::vector<Row> rows;
+        for (; i < from.size() && from[i] < 0; ++i) {
+            rows.push_back({node, quint32(i), depth});
+            const Entry &e = next->entries[i];
+            if (children.empty() || !(e.flags & Dir))
+                continue;
+            const auto it = children.find(next->strings.data() + e.name);
+            if (it != children.end() && it->second->open && it->second->listing)
+                appendRows(it->second.get(), depth + 1, rows);
+        }
+        beginInsertRows({}, p, p + int(rows.size()) - 1);
+        m_rows.insert(m_rows.begin() + p, rows.begin(), rows.end());
+        endInsertRows();
+        p += int(rows.size());
+    }
+    if (m_rows.size() == m_listing->entries.size()) {
+        m_rows.clear();
+        m_outline = false;
+    }
+    if (rowCount() > 0)
+        Q_EMIT dataChanged(index(0), index(rowCount() - 1));
+    if (count != rowCount())
+        Q_EMIT countChanged();
+}
+
+// Forgets the folders opened in a folder that it no longer has.
+void FolderModel::dropGone(Node *node)
+{
+    Children &children = childrenOf(node);
+    if (children.empty())
+        return;
+    const Listing &l = listingOf(node);
+    std::unordered_set<std::string_view> dirs;
+    for (const Entry &e : l.entries)
+        if (e.flags & Dir)
+            dirs.insert(l.strings.data() + e.name);
+    for (auto it = children.begin(); it != children.end();) {
+        if (dirs.count(it->first)) {
+            ++it;
+            continue;
+        }
+        forget(it->second.get());
+        it = children.erase(it);
+    }
 }
 
 // Opens every folder in an open node, and every folder in those as they come.

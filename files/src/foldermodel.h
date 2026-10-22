@@ -26,6 +26,11 @@ class KJob;
 // rows as a tree of nodes; while any is open the model's rows are an
 // outline (m_rows) of the folder and the open nodes, each row with its
 // depth. Opening and closing one inserts and removes just its rows.
+//
+// A folder that changes (inotify for local folders, KDirNotify for the rest)
+// is reread and lined up with what it showed: rows that went are taken
+// out, new ones put in, and the rest stay put, so a view keeps its place and
+// a window its selection while files are copied, renamed and trashed.
 class FolderModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -108,6 +113,8 @@ public:
     Q_INVOKABLE QString nameAt(int row) const;
     Q_INVOKABLE bool isDirAt(int row) const;
     Q_INVOKABLE int indexOf(const QString &name) const;
+    // The rows showing these items, in the same order (-1 for one that isn't).
+    Q_INVOKABLE QList<int> rowsOf(const QList<QUrl> &urls) const;
     // Type-select: the first row, from `from` on and wrapping, whose name
     // starts with prefix, ignoring case; -1 if none.
     Q_INVOKABLE int match(const QString &prefix, int from = 0) const;
@@ -167,11 +174,16 @@ private:
     void forget(Node *node);
     void watch(const QString &path, bool on);
     void changed(const QString &path);
+    void notified(const QStringList &urls, bool parents);
+    void replace(Node *node, std::shared_ptr<const Listing> next, const std::vector<qint32> &from);
+    void dropGone(Node *node);
 
-    void load();
-    void listRemote();
+    // reread: the folder changed; line the new listing up with the old.
+    void load(bool reread = false);
+    void listRemote(bool reread);
     void resort();
     void apply(std::shared_ptr<Listing> listing, quint64 generation, bool partial);
+    void reapply(std::shared_ptr<Listing> listing, quint64 generation, const std::shared_ptr<const Listing> &before, const std::vector<qint32> &from);
     const char *str(quint32 offset) const { return m_listing->strings.data() + offset; }
 
     QUrl m_url;
