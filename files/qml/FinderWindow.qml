@@ -684,10 +684,12 @@ Window {
 
         // The sidebar: the floating inset glass panel (macOS 26's Finder)
         // or, with --sidebar flush, the flush one along the window's edge, a
-        // stub for now. Both take the window and fill this space.
+        // stub for now. Both take the window and fill this space, over
+        // what scrolls under them.
         Loader {
             id: sidebar
             readonly property bool flush: App.sidebar === "flush"
+            z: 1
             x: flush ? 0 : Finder.sidebarInset
             y: x
             width: flush ? Finder.sidebarInset + Finder.sidebarWidth : Finder.sidebarWidth
@@ -728,7 +730,7 @@ Window {
             }
             Component {
                 id: columnPane
-                ColumnPane { finder: win; focus: true }
+                ColumnPane { finder: win; focus: true; sidebarEdge: main.x }
             }
             Component {
                 id: listPane
