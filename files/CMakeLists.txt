@@ -11,6 +11,9 @@ find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControl
 find_package(KF6KIO REQUIRED)
 find_package(KF6Service REQUIRED)
 find_package(KF6WindowSystem REQUIRED)
+find_package(KF6Archive REQUIRED)
+find_package(taglib 2 REQUIRED CONFIG)
+find_package(Freetype REQUIRED)
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(ambrosia-files
@@ -33,6 +36,7 @@ qt_add_qml_module(ambrosia-files
         src/sortkey.h src/sortkey.cpp
         src/tags.h src/tags.cpp
         src/thumbnailer.h src/thumbnailer.cpp
+        src/previews.h src/previews.cpp
         src/thumbbench.cpp
     QML_FILES
         qml/FinderWindow.qml
@@ -70,13 +74,14 @@ qt_add_qml_module(ambrosia-files
         art/folder.svg
         art/document.svg
         art/document-small.svg
+        art/audio.svg
 )
 
 target_include_directories(ambrosia-files PRIVATE src)
 
 target_link_libraries(ambrosia-files PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Concurrent Qt6::Svg
-    KF6::KIOGui KF6::KIOWidgets KF6::Service KF6::WindowSystem
+    KF6::KIOGui KF6::KIOWidgets KF6::Service KF6::WindowSystem KF6::Archive TagLib::tag Freetype::Freetype
 )
 
 include(GNUInstallDirs)

@@ -318,7 +318,7 @@ tenet's next sanctioned upgrade).
 | 7 | Filename search over the home (238k entries; 810k visible by slice 7) | **≤ 10 ms** a keystroke | TBM (Baloo: 0.9 ms query, 142 ms per call, 21k files indexed) | TBM | scan 4 to 6 ms; walk 45 to 175 ms; **slice 7: query 1.0 to 6.4 ms, keystroke to rows 2 to 13 ms** |
 | 8 | Content search: first hit | ≤ 100 ms, streaming | TBM | TBM | rg 22 to 46 ms on 345 MB; **slice 7: 4 ms in ~/ambrosia, 5.3 s over the whole home (cold HDD)** |
 | 9 | A screenful (about 40) of cached thumbnails | ≤ 50 ms; **measured 6.8 ms** (cache in memory), 26 ms (cache read cold from tenet's spinning disk) | TBM | TBM | — |
-| 10 | First uncached thumbnail, 24 MP JPEG | **≤ 20 ms** with EXIF, ≤ 80 ms without; **measured 0.6 to 0.9 ms** with EXIF, 71 ms without (file in the page cache); cold from the disk 25 to 320 ms and 117 to 134 ms, as busy as the disk is | TBM (EXIF path 3 to 5 ms) | TBM | 66 ms at 1/8 |
+| 10 | First uncached thumbnail, 24 MP JPEG (other kinds: slice 8) | **≤ 20 ms** with EXIF, ≤ 80 ms without; **measured 0.6 to 0.9 ms** with EXIF, 71 ms without (file in the page cache); cold from the disk 25 to 320 ms and 117 to 134 ms, as busy as the disk is | TBM (EXIF path 3 to 5 ms) | TBM | 66 ms at 1/8 |
 | 11 | Quick Look, 24 MP JPEG, to first frame | ≤ 100 ms | n/a | TBM (Sushi) | — |
 | 12 | Scrolling a 100k list or icon view at 4K | no frame over 16.7 ms | TBM | TBM | — |
 | 13 | Memory with the 100k folder open | ≤ 120 MB RSS | 224 MB (software GL) | TBM | — |
@@ -567,16 +567,37 @@ this Mac's Finder (references in `out/parity/files/ref/search/`):
   Spotlight. Tags changed while Files isn't running show only once their
   folder is read again.
 
-**Slice 8, thumbnails** (`src/thumbnailer.cpp`, `qml/FileIcon.qml`,
-`qml/Thumbnail.qml`; tested on tenet, not yet published):
+**Slice 8, thumbnails** (`src/thumbnailer.cpp`, `src/previews.cpp`,
+`qml/FileIcon.qml`, `qml/Thumbnail.qml`; pictures and text in r179, the
+other kinds tested on tenet, not yet published):
 - **Where they show:** the icon, list and column views (the column
   preview included), the gallery's filmstrip and large view, the preview
   pane and the Info window. Each shows its item's art until the thumbnail
-  arrives, fitted to the icon's square with a hairline edge.
+  arrives. At icon sizes it is framed as Finder frames them (the
+  provider's `/tile`): fitted into 7/8 of the square, corners rounded
+  4 pt of 64, a lighter hairline inside the edge, a soft shadow a point
+  down. The column preview is as wide as its column.
 - **What gets one,** decided by the name alone (no I/O): every picture
   Qt's readers know (JPEG, PNG, GIF, WebP, TIFF, HEIF, AVIF, JXL, SVG, PDF's
-  first page through Qt's PDF reader, and so on) and plain text, drawn as a
-  letter-shaped page of its first lines. Folders keep their icons.
+  first page through Qt's PDF reader, and so on); plain text, drawn as a
+  letter-shaped page of its first lines in a monospaced font; videos;
+  fonts; songs; and office documents. Folders keep their icons.
+- **The other kinds, as Finder draws them:** a video's frame from a second
+  in, the most typical of the next 24 (Finder's isn't a dark first frame),
+  by ffmpeg reading our quiet file handle on its stdin (`fd:`), so its
+  access time stays. A font's tile: "Aa" in black on white in its Regular
+  (a variable font's named instance nearest weight 400, through FreeType),
+  85% of the tile's width, with guide lines at its x-height and baseline,
+  as tall as its capitals make it. A song's embedded cover (TagLib: ID3,
+  MP4, FLAC, Ogg, WAV), else Finder's gray audio tile (`art/audio.svg`,
+  shown from the start: the source says `/audio`). An office document's
+  saved preview (OpenDocument's `Thumbnails/thumbnail.png`, Office's
+  `docProps/thumbnail.*`), else its first page drawn from its XML: Word's
+  paragraphs in their sizes, weights, colors and spacing on its page size;
+  Excel's first sheet as Quick Look shows it (the cells across the page,
+  no gridlines, bold where the cells are); PowerPoint's first slide with
+  its background, shapes, pictures and text, placeholders placed by the
+  layout and master, colors from the theme.
 - **How:** an async image provider, `image://thumb/MTIME/PATH`. It looks
   in the freedesktop cache first (`~/.cache/thumbnails`, this size or a
   bigger one, with `Thumb::MTime` checked), so thumbnails Dolphin made are
@@ -593,11 +614,17 @@ this Mac's Finder (references in `out/parity/files/ref/search/`):
   photos took about 4 s and raised the pressure to 22% at most; with the
   bar at 10% the pool paused and resumed twice and still made them all.
 - **Measured** (`ambrosia-files --bench-thumbs`, fixtures from
-  `bench/thumbfix.sh`): see targets 9 and 10.
-- **Not yet:** video, fonts, office documents and audio covers
-  (`KIO::PreviewJob`; tenet has no ffmpegthumbs). No Finder side-by-sides
-  or clips yet. Files that aren't the user's own get their access time
-  set, since O_NOATIME needs ownership.
+  `bench/thumbfix.sh`): see targets 9 and 10. The other kinds, made
+  directly, warm, at 128 px, against targets set for them: a video's frame
+  104 to 129 ms (≤ 250 ms: ffmpeg's start, seek and decode), a font tile
+  0.6 to 0.8 ms (≤ 30 ms), a Word, Excel or PowerPoint page 0.7 to 1.2 ms
+  (≤ 60 ms), a saved preview 0.7 ms (≤ 15 ms), a song's cover 1.8 to
+  9.4 ms (≤ 20 ms); framed from the cache, 0.31 to 0.38 ms each (≤ 2 ms).
+- **Differences from Finder:** we show a FLAC's cover, which Finder
+  doesn't. Finder draws an .odt's page itself where we show the saved
+  preview, which LibreOffice always writes; .ods and .odp files without
+  one stay icons in both. Files that aren't the user's own get their
+  access time set, since O_NOATIME needs ownership.
 
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).

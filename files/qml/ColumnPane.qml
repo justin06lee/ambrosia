@@ -437,12 +437,18 @@ FocusScope {
             width: parent.width - 32
             spacing: 6
 
-            FileIcon {
-                anchors.horizontalCenter: parent.horizontalCenter
-                size: Finder.previewIcon
-                kind: preview.info.isDir ? "folder" : "document"
+            // A thumbnail as wide as the column, as Finder shows it; an icon
+            // at its preview size.
+            Thumbnail {
+                id: big
+                width: parent.width
+                height: big.shown ? Math.min(width, width / big.aspect) : Finder.previewIcon
+                box: width
+                iconSize: Finder.previewIcon
+                url: preview.info.url ?? ""
+                source: preview.info.thumb ?? ""
+                isDir: preview.info.isDir ?? false
                 badge: preview.info.badge ?? ""
-                thumb: preview.info.thumb ?? ""
             }
             Item { width: 1; height: 8 }
             Label {

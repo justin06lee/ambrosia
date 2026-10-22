@@ -6,11 +6,16 @@
 //        (DIR/jpeg-exif) and without (DIR/jpeg-plain), the file cold (out
 //        of the page cache) and warm, for a 64-pt icon at 2x (128 px)
 //   #9:  a screenful, 40 cached thumbnails (DIR/many) through the provider
+//   kinds: each of DIR/Kinds (videos, fonts, office documents, songs) made
+//        directly, its file warm, by the way it was made; then all through
+//        the provider, framed as icons, into the cache and again from it
 #include "thumbnailer.h"
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QElapsedTimer>
+#include <QFileInfo>
+#include <QMap>
 #include <QSemaphore>
 #include <QStandardPaths>
 
@@ -59,14 +64,14 @@ QStringList files(const QString &dir)
 
 // Asks the provider for each path at box pixels, all at once, and waits
 // for every one: the time to the last.
-double round(Thumbnailer &provider, const QStringList &paths, int box)
+double round(Thumbnailer &provider, const QStringList &paths, int box, const QString &suffix = {})
 {
     QSemaphore done;
     std::vector<QQuickImageResponse *> responses;
     QElapsedTimer clock;
     clock.start();
     for (const QString &path : paths) {
-        const QString id = QStringLiteral("1/") + QString::fromLatin1(QUrl::toPercentEncoding(path));
+        const QString id = QStringLiteral("1/") + QString::fromLatin1(QUrl::toPercentEncoding(path)) + suffix;
         QQuickImageResponse *response = provider.requestImageResponse(id, QSize(box, box));
         QObject::connect(response, &QQuickImageResponse::finished, response, [&done] { done.release(); }, Qt::DirectConnection);
         responses.push_back(response);
@@ -136,6 +141,36 @@ int benchThumbs(const QString &dir)
             cold.push_back(round(provider, screen, 128));
         }
         std::printf("#9  40 cached: median %.1f ms (cache in memory), %.1f ms (cache on disk, cold)\n", median(warm), median(cold));
+    }
+    // The kinds of step 2, made directly (the median of 3, the file warm).
+    const QStringList kinds = files(dir + QStringLiteral("/Kinds"));
+    if (!kinds.isEmpty()) {
+        QMap<QString, std::vector<double>> byHow;
+        for (const QString &path : kinds) {
+            std::vector<double> runs;
+            QString how;
+            QImage image;
+            for (int i = 0; i < 3; ++i) {
+                QElapsedTimer clock;
+                clock.start();
+                image = Thumbnailer::make(path, 128, &how);
+                runs.push_back(clock.nsecsElapsed() / 1e6);
+            }
+            const double ms = median(runs);
+            std::printf("    %-28s %-7s %6.1f ms  %s\n", qPrintable(QFileInfo(path).fileName()), qPrintable(how), ms,
+                        image.isNull() ? "none (its icon)" : qPrintable(QStringLiteral("%1x%2").arg(image.width()).arg(image.height())));
+            if (!image.isNull())
+                byHow[how].push_back(ms);
+        }
+        for (auto it = byHow.cbegin(); it != byHow.cend(); ++it)
+            std::printf("kinds %-7s %zu made: median %.1f ms, max %.1f ms\n", qPrintable(it.key()), it->size(), median(*it),
+                        *std::max_element(it->begin(), it->end()));
+        const double made = round(provider, kinds, 128, QStringLiteral("/tile"));
+        std::vector<double> cached;
+        for (int i = 0; i < 5; ++i)
+            cached.push_back(round(provider, kinds, 128, QStringLiteral("/tile")));
+        std::printf("kinds via the provider, framed: %lld into the cache in %.0f ms; then cached, %.2f ms each (median of 5 rounds)\n",
+                    qint64(kinds.size()), made, median(cached) / kinds.size());
     }
     std::printf("I/O pressure at the end %.1f%%\n", pressure());
     return 0;
