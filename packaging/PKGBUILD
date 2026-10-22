@@ -114,7 +114,7 @@ package_ambrosia-files() {
   pkgdesc="Files, Ambrosia's Finder"
   # kio-extras: recentlyused:/ for Recents. ambrosia-theme: the Ambrosia QML
   # Theme module and the org.ambrosia.files icon. The QML and art are in the binary.
-  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kio kio-extras kservice kwindowsystem inter-font)
+  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kio kio-extras kservice kwindowsystem inter-font ripgrep)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-files"
 }
 
