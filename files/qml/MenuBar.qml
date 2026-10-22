@@ -25,7 +25,7 @@ Platform.MenuBar {
         Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+W"; onTriggered: bar.finder.act("close", bar.finder.close) }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: "Get Info"; shortcut: "Ctrl+I"; onTriggered: bar.finder.act("info", bar.finder.getInfo) }
-        Platform.MenuItem { text: "Rename"; enabled: bar.finder.selectedCount === 1 && bar.finder.local; onTriggered: bar.finder.act("rename", bar.finder.renameSelection) }
+        Platform.MenuItem { text: "Rename"; enabled: bar.finder.selectedCount === 1 && bar.finder.localItems; onTriggered: bar.finder.act("rename", bar.finder.renameSelection) }
         Platform.MenuItem { text: "Duplicate"; shortcut: "Ctrl+D"; enabled: bar.finder.hasSelection && bar.finder.local; onTriggered: bar.finder.act("duplicate", bar.finder.duplicate) }
         Platform.MenuItem {
             text: bar.finder.selectedCount === 1 ? "Quick Look “" + bar.finder.model.nameAt(bar.finder.shownRow) + "”"
@@ -50,7 +50,7 @@ Platform.MenuBar {
             id: tagsMenu
             property var common: []
             title: "Tags"
-            enabled: bar.finder.hasSelection && bar.finder.local
+            enabled: bar.finder.hasSelection && bar.finder.localItems
             onAboutToShow: common = Tags.common(bar.finder.selectedUrls())
             Instantiator {
                 model: Tags.all
@@ -65,6 +65,8 @@ Platform.MenuBar {
                 onObjectRemoved: (index, object) => tagsMenu.removeItem(object)
             }
         }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Find"; shortcut: "Ctrl+F"; onTriggered: bar.finder.act("find", bar.finder.openSearch) }
     }
     Platform.Menu {
         onAboutToShow: bar.finder.menusOpen += 1

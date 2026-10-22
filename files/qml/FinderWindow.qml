@@ -56,6 +56,141 @@ Window {
     // Where New Folder, Paste and renaming work: folders on this computer.
     readonly property bool local: url.toString().startsWith("file:")
     readonly property bool inTrash: url.toString().startsWith("trash:")
+    // Items on this computer, in a folder or found by a search.
+    readonly property bool localItems: local || searching
+
+    // Search (⌘F, the toolbar's field): what's typed, the token a
+    // suggestion made of it, where it looks and the Kind criterion. While
+    // there's something to look for the window shows a search: URL, in one
+    // place in the history, just after the folder it started in; with
+    // nothing typed it shows that folder again.
+    property bool searchOpen: false
+    property string searchText: ""
+    property var searchToken: null // {mode: "name" or "content", text}
+    property string searchScope: "home"
+    property string searchKind: "any"
+    property url searchFolder: startUrl
+    readonly property bool searching: url.toString().startsWith("search:")
+    readonly property bool tagShown: url.toString().startsWith("search:?tag=")
+    readonly property bool scopeBarShown: searching && !tagShown
+    property bool keepSearch: false
+    function openSearch() {
+        if (!searchOpen) {
+            if (!scopeBarShown)
+                searchFolder = local ? url : Places.sections[placeAt.home[0]].items[placeAt.home[1]].url;
+            searchOpen = true;
+        }
+        toolbar.focusSearch();
+    }
+    function searchTarget() {
+        const words = ((searchToken ? searchToken.text + " " : "") + searchText).trim();
+        if (words === "")
+            return "";
+        let target = "search:?q=" + encodeURIComponent(words);
+        if (searchScope === "folder" && searchFolder.toString().startsWith("file:"))
+            target += "&in=" + encodeURIComponent(searchFolder.toString());
+        if (searchToken)
+            target += "&mode=" + searchToken.mode;
+        if (searchKind !== "any")
+            target += "&kind=" + searchKind;
+        return target;
+    }
+    function backToFolder() {
+        keepSearch = true;
+        if (canGoBack && history[historyIndex - 1].toString() === searchFolder.toString())
+            back();
+        else
+            replaceWith(searchFolder);
+        keepSearch = false;
+    }
+    function updateSearch() {
+        const target = searchTarget();
+        if (target === "") {
+            if (scopeBarShown)
+                backToFolder();
+        } else if (scopeBarShown) {
+            replaceWith(Qt.url(target));
+        } else {
+            keepSearch = true;
+            go(target);
+            keepSearch = false;
+        }
+    }
+    // Shows target in this place in the history.
+    function replaceWith(target) {
+        if (target.toString() === url.toString())
+            return;
+        clearSelection();
+        editing = "";
+        pending = null;
+        const h = history.slice();
+        h[historyIndex] = target;
+        history = h;
+        columnRoot = target;
+        galleryAt = 0;
+        url = target;
+    }
+    function typeSearch(text) {
+        searchText = text;
+        updateSearch();
+    }
+    function chooseSearchToken(mode) {
+        searchToken = { mode: mode, text: searchText.trim() };
+        searchText = "";
+        updateSearch();
+    }
+    function removeSearchToken() {
+        searchToken = null;
+        updateSearch();
+    }
+    function setSearchScope(scope) {
+        searchScope = scope;
+        updateSearch();
+    }
+    function setSearchKind(kind) {
+        searchKind = kind;
+        updateSearch();
+    }
+    function closeSearch() {
+        const shown = scopeBarShown;
+        searchOpen = false;
+        searchText = "";
+        searchToken = null;
+        searchKind = "any";
+        if (shown)
+            backToFolder();
+        focusResults();
+    }
+    function focusResults() {
+        pane.forceActiveFocus();
+    }
+    // Going back or forward to a search puts it back in the field; going
+    // anywhere else ends the search.
+    function searchShown(target) {
+        if (keepSearch)
+            return;
+        const s = target.toString();
+        if (s.startsWith("search:") && !s.startsWith("search:?tag=")) {
+            const params = {};
+            for (const part of s.slice(s.indexOf("?") + 1).split("&")) {
+                const eq = part.indexOf("=");
+                if (eq > 0)
+                    params[part.slice(0, eq)] = decodeURIComponent(part.slice(eq + 1));
+            }
+            searchOpen = true;
+            searchToken = params.mode ? { mode: params.mode, text: params.q ?? "" } : null;
+            searchText = params.mode ? "" : (params.q ?? "");
+            searchScope = params["in"] ? "folder" : "home";
+            if (params["in"])
+                searchFolder = Qt.url(params["in"]);
+            searchKind = params.kind ?? "any";
+        } else {
+            searchOpen = false;
+            searchText = "";
+            searchToken = null;
+            searchKind = "any";
+        }
+    }
 
     readonly property alias model: folder
 
@@ -116,6 +251,7 @@ Window {
     }
     property string reselect: ""
     function show_(target, from) {
+        searchShown(target);
         clearSelection();
         editing = "";
         pending = null;
@@ -578,8 +714,13 @@ Window {
                 anchors.fill: parent
                 anchors.bottomMargin: Finder.pathBar
                 anchors.rightMargin: win.previewShown ? Finder.previewPane : 0
+                // The scope bar's rows push the view down (its top stays
+                // under the toolbar's glass otherwise).
+                anchors.topMargin: win.scopeBarShown ? 2 * Finder.scopeRow : 0
                 focus: true
-                sourceComponent: ({ icon: iconPane, column: columnPane, gallery: galleryPane })[win.view] ?? listPane
+                // Search results have no columns: the list instead, as in Finder.
+                sourceComponent: win.searching && win.view === "column" ? listPane
+                    : ({ icon: iconPane, column: columnPane, gallery: galleryPane })[win.view] ?? listPane
             }
             Component {
                 id: galleryPane
@@ -606,7 +747,15 @@ Window {
                 finder: win
             }
 
+            ScopeBar {
+                visible: win.scopeBarShown
+                y: Finder.scopeTop
+                width: parent.width - (win.previewShown ? Finder.previewPane : 0)
+                finder: win
+            }
+
             Toolbar {
+                id: toolbar
                 x: Finder.toolbarGap
                 width: parent.width - x
                 finder: win
@@ -715,6 +864,7 @@ Window {
             break;
         case Qt.Key_F:
             if (ctrl && shift) win.act("recents", () => win.goPlace("recents"));
+            else if (ctrl) win.act("find", win.openSearch);
             break;
         case Qt.Key_D:
             if (ctrl && shift) win.act("desktop", () => win.goPlace("desktop"));
@@ -775,6 +925,7 @@ Window {
             break;
         case Qt.Key_Escape:
             if (win.lookOpen) win.closeLook();
+            else if (win.searchOpen && (!win.hasSelection || win.view === "gallery")) win.closeSearch();
             else if (win.view !== "gallery") win.clearSelection();
             break;
         default:

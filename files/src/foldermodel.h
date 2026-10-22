@@ -10,9 +10,11 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 class QFileSystemWatcher;
+class QProcess;
 class QTimer;
 class KJob;
 
@@ -31,6 +33,12 @@ class KJob;
 // is reread and lined up with what it showed: rows that went are taken
 // out, new ones put in, and the rest stay put, so a view keeps its place and
 // a window its selection while files are copied, renamed and trashed.
+//
+// A search is a place too: search:?q=TEXT[&in=FOLDER][&mode=name|content]
+// [&kind=KIND], or search:?tag=NAME for a sidebar tag. Names come from the
+// index at once; contents stream in from rg, run in a folder's scope (the
+// whole home only when asked, mode=content: rg reads every file); both are
+// read again when the index sees a change.
 class FolderModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -50,6 +58,11 @@ class FolderModel : public QAbstractListModel
     // How much of a date the list's column has room for: 0 "Yesterday at
     // 3:30 PM", 1 "Yesterday, 3:30 PM", 2 "Yesterday" (or "3:30 PM" today).
     Q_PROPERTY(int dateLevel READ dateLevel WRITE setDateLevel NOTIFY dateLevelChanged)
+    Q_PROPERTY(bool searching READ searching NOTIFY urlChanged)
+    // rg is still looking through contents.
+    Q_PROPERTY(bool searchingContents READ searchingContents NOTIFY searchingContentsChanged)
+    // How long the index took for the last search's names.
+    Q_PROPERTY(double searchMs READ searchMs NOTIFY loaded)
 
 public:
     enum Role {
@@ -77,12 +90,13 @@ public:
         qint64 size = -1;
         qint64 mtime = 0;
     };
-    enum Flag : quint8 { Dir = 1, Symlink = 2, Hidden = 4 };
+    enum Flag : quint8 { Dir = 1, Symlink = 2, Hidden = 4, Missing = 8 };
 
     struct Listing {
         std::string strings;
         std::vector<Entry> entries;
         std::vector<QUrl> urls; // KIO listings only, parallel to entries
+        bool paths = false;     // search results: each entry's name is its whole path
         QString error;
     };
 
@@ -109,6 +123,9 @@ public:
     double firstMs() const { return m_firstMs; }
     int dateLevel() const { return m_dateLevel; }
     void setDateLevel(int level);
+    bool searching() const { return m_url.scheme() == QLatin1String("search"); }
+    bool searchingContents() const { return m_rg != nullptr; }
+    double searchMs() const { return m_searchMs; }
 
     Q_INVOKABLE QUrl urlAt(int row) const;
     Q_INVOKABLE QString nameAt(int row) const;
@@ -141,6 +158,7 @@ Q_SIGNALS:
     void showHiddenChanged();
     void loaded();
     void dateLevelChanged();
+    void searchingContentsChanged();
 
 private:
     struct Node {
@@ -188,6 +206,11 @@ private:
     // reread: the folder changed; line the new listing up with the old.
     void load(bool reread = false);
     void listRemote(bool reread);
+    void listSearch(bool reread);
+    void statResults(quint64 generation);
+    void searchContents(const QString &text, const QString &dir);
+    void startContents();
+    void stopContents();
     void resort();
     void apply(std::shared_ptr<Listing> listing, quint64 generation, bool partial);
     void reapply(std::shared_ptr<Listing> listing, quint64 generation, const std::shared_ptr<const Listing> &before, const std::vector<qint32> &from);
@@ -217,4 +240,12 @@ private:
     bool m_outline = false;
     KJob *m_job = nullptr;
     mutable QHash<QString, QString> m_kinds; // extension -> kind, GUI thread
+    // Content search: rg's run, and the files it found so far.
+    QProcess *m_rg = nullptr;
+    QTimer *m_rgLater = nullptr; // rg starts once typing pauses
+    QString m_rgFor, m_rgText, m_rgDir;
+    QByteArray m_rgRest;
+    std::vector<std::string> m_contentHits;
+    std::unordered_set<std::string> m_contentSeen;
+    double m_searchMs = 0;
 };

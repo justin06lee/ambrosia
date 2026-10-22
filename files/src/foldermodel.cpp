@@ -1,6 +1,7 @@
 #include "foldermodel.h"
 
 #include "format.h"
+#include "index.h"
 #include "sortkey.h"
 #include "tags.h"
 
@@ -11,12 +12,17 @@
 #include <QCollator>
 #include <QCoreApplication>
 #include <QDBusConnection>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
+#include <QMimeDatabase>
 #include <QPointer>
+#include <QProcess>
+#include <QRegularExpression>
 #include <QThreadPool>
 #include <QTimer>
+#include <QUrlQuery>
 
 #include <QElapsedTimer>
 
@@ -33,6 +39,7 @@
 #include <utility>
 
 #include <fcntl.h>
+#include <sys/resource.h>
 #include <sys/stat.h>
 #include <sys/syscall.h>
 #include <unistd.h>
@@ -106,6 +113,7 @@ void statRange(int dirfd, Listing &l, size_t begin, size_t end)
         const char *name = l.strings.data() + e.name;
         if (statx(dirfd, name, AT_SYMLINK_NOFOLLOW | AT_STATX_DONT_SYNC, mask, &sx) != 0)
             continue;
+        e.flags &= ~FolderModel::Missing;
         if (S_ISLNK(sx.stx_mode)) {
             // A link shows as what it points to, as Finder shows aliases.
             e.flags |= FolderModel::Symlink;
@@ -466,6 +474,111 @@ KJob *listWithKio(QObject *context, const QUrl &base, bool showHidden, const std
     return job;
 }
 
+// What a search: URL asks for.
+struct Search {
+    Index::Query query;
+    QString text, mode, kind;
+};
+
+Search parseSearch(const QUrl &url)
+{
+    const QUrlQuery items(url);
+    Search s;
+    s.text = items.queryItemValue(QStringLiteral("q"), QUrl::FullyDecoded).trimmed();
+    static const QRegularExpression space(QStringLiteral("\\s+"));
+    s.query.words = s.text.split(space, Qt::SkipEmptyParts);
+    s.query.tag = items.queryItemValue(QStringLiteral("tag"), QUrl::FullyDecoded);
+    const QUrl in(items.queryItemValue(QStringLiteral("in"), QUrl::FullyDecoded));
+    if (in.isLocalFile())
+        s.query.scope = in.toLocalFile();
+    s.mode = items.queryItemValue(QStringLiteral("mode"));
+    s.kind = items.queryItemValue(QStringLiteral("kind"));
+    return s;
+}
+
+// Finder's Kind criterion, judged from the name as Finder's kinds are.
+bool ofKind(const QString &kind, const QString &name, bool dir)
+{
+    if (kind.isEmpty() || kind == QLatin1String("any"))
+        return true;
+    if (kind == QLatin1String("folder"))
+        return dir;
+    if (dir)
+        return false;
+    static const QMimeDatabase mimes;
+    const QMimeType type = mimes.mimeTypeForFile(name, QMimeDatabase::MatchExtension);
+    const QString mime = type.name();
+    static const QStringList archives = {
+        QStringLiteral("application/zip"), QStringLiteral("application/x-tar"), QStringLiteral("application/gzip"),
+        QStringLiteral("application/x-compressed-tar"), QStringLiteral("application/x-7z-compressed"), QStringLiteral("application/x-xz"),
+        QStringLiteral("application/x-xz-compressed-tar"), QStringLiteral("application/x-bzip2"), QStringLiteral("application/x-bzip2-compressed-tar"),
+        QStringLiteral("application/zstd"), QStringLiteral("application/x-zstd-compressed-tar"), QStringLiteral("application/vnd.rar"),
+        QStringLiteral("application/x-rar"), QStringLiteral("application/x-archive"),
+    };
+    if (kind == QLatin1String("image"))
+        return mime.startsWith(QLatin1String("image/"));
+    if (kind == QLatin1String("movie"))
+        return mime.startsWith(QLatin1String("video/"));
+    if (kind == QLatin1String("music"))
+        return mime.startsWith(QLatin1String("audio/"));
+    if (kind == QLatin1String("pdf"))
+        return mime == QLatin1String("application/pdf");
+    if (kind == QLatin1String("text"))
+        return type.inherits(QStringLiteral("text/plain"));
+    if (kind == QLatin1String("archive"))
+        return archives.contains(mime);
+    if (kind == QLatin1String("application"))
+        return mime == QLatin1String("application/x-desktop") || mime == QLatin1String("application/vnd.appimage")
+            || mime == QLatin1String("application/x-executable");
+    if (kind == QLatin1String("presentation"))
+        return mime.contains(QLatin1String("presentation")) || mime.contains(QLatin1String("powerpoint"));
+    if (kind == QLatin1String("document"))
+        return type.inherits(QStringLiteral("text/plain")) || mime == QLatin1String("application/pdf")
+            || mime.startsWith(QLatin1String("application/vnd.")) || mime == QLatin1String("application/msword")
+            || mime == QLatin1String("application/rtf");
+    return true;
+}
+
+// Stats a search listing's items, leaving out the ones gone since.
+// Returns whether any went.
+bool statPaths(Listing &l)
+{
+    for (Entry &e : l.entries)
+        e.flags |= FolderModel::Missing;
+    statAll(AT_FDCWD, l);
+    const auto gone = std::remove_if(l.entries.begin(), l.entries.end(), [](const Entry &e) { return e.flags & FolderModel::Missing; });
+    const bool any = gone != l.entries.end();
+    l.entries.erase(gone, l.entries.end());
+    return any;
+}
+
+// Search results as a listing, each named by its path's last part. The
+// index knows which are folders, so they show before they're stat'ed
+// (stat: now, when the order needs sizes or dates).
+std::shared_ptr<Listing> listPaths(const std::vector<std::string> &paths, const std::vector<bool> &dirs, const QString &kind, bool stat)
+{
+    auto l = std::make_shared<Listing>();
+    l->paths = true;
+    l->entries.reserve(paths.size());
+    l->strings.reserve(paths.size() * 64);
+    for (size_t i = 0; i < paths.size(); ++i) {
+        const std::string &p = paths[i];
+        const size_t slash = p.rfind('/');
+        const size_t base = slash == std::string::npos ? 0 : slash + 1;
+        const bool dir = i < dirs.size() && dirs[i];
+        if (!ofKind(kind, QString::fromUtf8(p.data() + base, qsizetype(p.size() - base)), dir))
+            continue;
+        Entry e;
+        e.name = addString(*l, p.data(), p.size());
+        e.display = addString(*l, p.data() + base, p.size() - base);
+        e.flags = dir ? FolderModel::Dir : 0;
+        l->entries.push_back(e);
+    }
+    if (stat)
+        statPaths(*l);
+    return l;
+}
+
 }
 
 FolderModel::FolderModel(QObject *parent)
@@ -501,6 +614,14 @@ FolderModel::FolderModel(QObject *parent)
                     loadNode(node);
     });
     connect(m_watcher, &QFileSystemWatcher::directoryChanged, this, &FolderModel::changed);
+    // A search reads its names again when the index changes.
+    connect(Index::instance(), &Index::changed, this, [this] {
+        if (searching() && !m_loading) {
+            m_rootChanged = true;
+            if (!m_reload->isActive())
+                m_reload->start();
+        }
+    });
     // KIO says when it changes what it lists (the Trash, as files go in and
     // come back out); inotify covers local folders.
     auto *notify = new OrgKdeKDirNotifyInterface(QString(), QString(), QDBusConnection::sessionBus(), this);
@@ -546,6 +667,7 @@ FolderModel::~FolderModel()
     ++m_generation;
     if (m_job)
         m_job->kill();
+    stopContents();
 }
 
 void FolderModel::setUrl(const QUrl &url)
@@ -566,6 +688,8 @@ void FolderModel::setUrl(const QUrl &url)
         Q_EMIT countChanged();
     }
     m_changedPaths.clear();
+    if (!searching())
+        stopContents();
     if (!m_watcher->directories().isEmpty())
         m_watcher->removePaths(m_watcher->directories());
     if (m_url.isLocalFile())
@@ -575,6 +699,12 @@ void FolderModel::setUrl(const QUrl &url)
 
 QString FolderModel::name() const
 {
+    if (searching()) {
+        const Search s = parseSearch(m_url);
+        if (!s.query.tag.isEmpty())
+            return s.query.tag;
+        return QStringLiteral("Searching “%1”").arg(s.query.scope.isEmpty() ? QStringLiteral("Home") : QFileInfo(s.query.scope).fileName());
+    }
     if (m_url.isLocalFile() && m_url.path() == QLatin1String("/"))
         return QSysInfo::machineHostName();
     if (m_url.scheme() == QLatin1String("trash"))
@@ -615,6 +745,10 @@ void FolderModel::load(bool reread)
             m_loading = true;
             Q_EMIT loadingChanged();
         }
+    }
+    if (searching()) {
+        listSearch(reread);
+        return;
     }
     if (!m_url.isLocalFile()) {
         listRemote(reread);
@@ -677,6 +811,175 @@ void FolderModel::listRemote(bool reread)
                 Qt::QueuedConnection);
         });
     });
+}
+
+void FolderModel::listSearch(bool reread)
+{
+    const Search spec = parseSearch(m_url);
+    // Contents in a folder, or anywhere when asked for: on tenet's disk rg
+    // over the whole home takes seconds to its first file.
+    const QString home = Index::instance()->root();
+    const bool inFolder = !spec.query.scope.isEmpty() && QDir::cleanPath(spec.query.scope) != home;
+    if (spec.query.tag.isEmpty() && (spec.mode == QLatin1String("content") || (spec.mode.isEmpty() && inFolder)))
+        searchContents(spec.text, inFolder ? spec.query.scope : home);
+    else
+        stopContents();
+    const bool names = spec.mode != QLatin1String("content");
+    const quint64 generation = m_generation;
+    const std::shared_ptr<const Listing> before = reread ? m_listing : nullptr;
+    QPointer<FolderModel> self(this);
+    const QString column = m_sortColumn;
+    const bool ascending = m_ascending;
+    const std::vector<std::string> contents = m_contentHits;
+    // In name order the rows show first and their sizes and dates follow.
+    const bool later = column == QLatin1String("name");
+    QThreadPool::globalInstance()->start([self, spec, names, contents, generation, before, column, ascending, later] {
+        Index::Result found;
+        if (names && (!spec.query.words.isEmpty() || !spec.query.tag.isEmpty()))
+            found = Index::instance()->find(spec.query);
+        std::vector<std::string> paths = std::move(found.paths);
+        std::vector<bool> dirs = std::move(found.dirs);
+        if (!contents.empty()) {
+            paths.reserve(paths.size() + contents.size());
+            std::unordered_set<std::string_view> seen(paths.begin(), paths.end());
+            for (const std::string &p : contents)
+                if (!seen.contains(p)) {
+                    paths.push_back(p);
+                    dirs.push_back(false);
+                }
+        }
+        auto listing = listPaths(paths, dirs, spec.kind, !later);
+        sortListing(*listing, column, ascending);
+        const auto from = before ? matchListings(*before, *listing) : std::vector<qint32>();
+        const double ms = found.ms;
+        QMetaObject::invokeMethod(
+            qApp, [self, listing, generation, before, from, ms, later] {
+                if (!self)
+                    return;
+                self->m_searchMs = ms;
+                if (before)
+                    self->reapply(listing, generation, before, from);
+                else
+                    self->apply(listing, generation, false);
+                if (later)
+                    self->statResults(generation);
+            },
+            Qt::QueuedConnection);
+    });
+}
+
+// The second pass of a search in name order: the rows' sizes and dates, in
+// place, the order unchanged (items gone since are taken out).
+void FolderModel::statResults(quint64 generation)
+{
+    if (generation != m_generation || !m_listing || !m_listing->paths)
+        return;
+    QPointer<FolderModel> self(this);
+    const std::shared_ptr<const Listing> shown = m_listing;
+    QThreadPool::globalInstance()->start([self, shown, generation] {
+        auto listing = std::make_shared<Listing>(*shown);
+        const bool gone = statPaths(*listing);
+        const auto from = gone ? matchListings(*shown, *listing) : std::vector<qint32>();
+        QMetaObject::invokeMethod(
+            qApp, [self, listing, shown, generation, gone, from] {
+                if (!self || generation != self->m_generation || self->m_listing != shown)
+                    return;
+                if (gone) {
+                    self->reapply(listing, generation, shown, from);
+                    return;
+                }
+                self->m_listing = listing;
+                self->share();
+                if (const int n = self->rowCount(); n > 0)
+                    Q_EMIT self->dataChanged(self->index(0), self->index(n - 1));
+            },
+            Qt::QueuedConnection);
+    });
+}
+
+// Files whose contents have the text, from rg in the scope, as they come:
+// one run per text and scope, the last one stopped. rg runs niced, with
+// idle I/O, and skips what it skips by default (hidden and ignored files,
+// binaries), as Spotlight leaves hidden files out.
+void FolderModel::searchContents(const QString &text, const QString &dir)
+{
+    const QString key = text + QLatin1Char('\n') + dir;
+    if (key == m_rgFor)
+        return;
+    stopContents();
+    m_rgFor = key;
+    if (text.size() < 2 || dir.isEmpty())
+        return;
+    m_rgText = text;
+    m_rgDir = dir;
+    if (!m_rgLater) {
+        m_rgLater = new QTimer(this);
+        m_rgLater->setSingleShot(true);
+        m_rgLater->setInterval(250);
+        connect(m_rgLater, &QTimer::timeout, this, &FolderModel::startContents);
+    }
+    m_rgLater->start();
+}
+
+void FolderModel::startContents()
+{
+    const QString text = m_rgText, dir = m_rgDir;
+    auto *rg = new QProcess(this);
+    m_rg = rg;
+    rg->setProgram(QStringLiteral("rg"));
+    rg->setArguments({QStringLiteral("--files-with-matches"), QStringLiteral("--null"), QStringLiteral("--fixed-strings"),
+                      QStringLiteral("--ignore-case"), QStringLiteral("--no-messages"), QStringLiteral("--max-filesize"), QStringLiteral("20M"),
+                      QStringLiteral("--threads"), QStringLiteral("4"), QStringLiteral("--"), text, dir});
+    rg->setStandardErrorFile(QProcess::nullDevice());
+    rg->setChildProcessModifier([] {
+        setpriority(PRIO_PROCESS, 0, 15);
+        syscall(SYS_ioprio_set, 1 /* IOPRIO_WHO_PROCESS */, 0, 3 << 13 /* IOPRIO_CLASS_IDLE */);
+    });
+    connect(rg, &QProcess::readyReadStandardOutput, this, [this, rg] {
+        if (rg != m_rg)
+            return;
+        m_rgRest += rg->readAllStandardOutput();
+        qsizetype at = 0;
+        for (qsizetype nul; (nul = m_rgRest.indexOf('\0', at)) >= 0; at = nul + 1) {
+            std::string path(m_rgRest.constData() + at, size_t(nul - at));
+            if (m_contentHits.size() < 2000 && m_contentSeen.insert(path).second)
+                m_contentHits.push_back(std::move(path));
+        }
+        m_rgRest.remove(0, at);
+        if (m_contentHits.size() >= 2000)
+            rg->kill();
+        m_rootChanged = true;
+        if (!m_reload->isActive())
+            m_reload->start();
+    });
+    auto done = [this, rg] {
+        if (rg == m_rg) {
+            m_rg = nullptr;
+            Q_EMIT searchingContentsChanged();
+        }
+        rg->deleteLater();
+    };
+    connect(rg, &QProcess::finished, this, done);
+    connect(rg, &QProcess::errorOccurred, this, [done](QProcess::ProcessError error) {
+        if (error == QProcess::FailedToStart)
+            done(); // no rg: names only
+    });
+    rg->start();
+    Q_EMIT searchingContentsChanged();
+}
+
+void FolderModel::stopContents()
+{
+    m_rgFor.clear();
+    m_rgRest.clear();
+    m_contentHits.clear();
+    m_contentSeen.clear();
+    if (m_rgLater)
+        m_rgLater->stop();
+    if (QProcess *rg = std::exchange(m_rg, nullptr)) {
+        rg->kill(); // finished deletes it
+        Q_EMIT searchingContentsChanged();
+    }
 }
 
 void FolderModel::resort()
@@ -893,6 +1196,8 @@ QUrl FolderModel::urlAt(int row) const
     const Listing &l = listingOf(r.node);
     if (!l.urls.empty())
         return l.urls[r.index];
+    if (l.paths)
+        return QUrl::fromLocalFile(QFile::decodeName(l.strings.data() + l.entries[r.index].name));
     QUrl url = r.node ? r.node->url : m_url;
     const QString path = url.path();
     url.setPath(path + (path.endsWith(QLatin1Char('/')) ? QString() : QStringLiteral("/")) + QString::fromUtf8(nameOf(r)));
@@ -920,6 +1225,22 @@ int FolderModel::indexOf(const QString &name) const
 QList<int> FolderModel::rowsOf(const QList<QUrl> &urls) const
 {
     QList<int> rows(urls.size(), -1);
+    // Search results by their paths.
+    if (m_listing->paths) {
+        std::unordered_multimap<std::string, int> wanted;
+        for (int i = 0; i < urls.size(); ++i)
+            if (urls[i].isLocalFile())
+                wanted.emplace(QFile::encodeName(urls[i].toLocalFile()).toStdString(), i);
+        for (int row = 0; row < rowCount(); ++row) {
+            const Row r = rowAt(row);
+            if (r.node)
+                continue;
+            const auto [first, last] = wanted.equal_range(nameOf(r));
+            for (auto it = first; it != last; ++it)
+                rows[it->second] = row;
+        }
+        return rows;
+    }
     // Each one by its name and the folder it's in: this one, or one open in it.
     std::vector<std::string> names;
     std::vector<std::optional<const Node *>> folders;

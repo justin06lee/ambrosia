@@ -11,9 +11,12 @@ Item {
 
     height: Finder.pathBar
 
-    // [{name, url}] from the root down.
+    // [{name, url}] from the root down: to this folder, or in a search to
+    // the item selected, as Finder's search shows where it is.
     readonly property var crumbs: {
-        const url = finder.url;
+        const url = finder.searching ? (finder.shownRow >= 0 ? finder.model.urlAt(finder.shownRow) : "") : finder.url;
+        if (url.toString() === "")
+            return [];
         if (url.toString().indexOf("file://") !== 0)
             return [{ name: finder.title, url: url }];
         const parts = decodeURIComponent(url.toString().slice(7)).split("/").filter(p => p.length > 0);
@@ -23,6 +26,9 @@ Item {
             path += "/" + part;
             list.push({ name: part, url: "file://" + path });
         }
+        // A search's item itself: opened, not gone into.
+        if (finder.searching && !finder.model.isDirAt(finder.shownRow))
+            list[list.length - 1].item = true;
         return list;
     }
 
@@ -62,14 +68,14 @@ Item {
                     visible: crumb.modelData.root !== true
                     anchors.verticalCenter: parent.verticalCenter
                     size: 14
-                    kind: "folder"
+                    kind: crumb.modelData.item === true ? "document" : "folder"
                 }
                 Label {
                     anchors.verticalCenter: parent.verticalCenter
                     text: crumb.modelData.name
                     style: Theme.text.callout
                     color: drop.containsDrag ? Theme.accent.bg : Theme.color.label.secondary
-                    TapHandler { onTapped: bar.finder.go(crumb.modelData.url) }
+                    TapHandler { onTapped: crumb.modelData.item === true ? bar.finder.openSelection() : bar.finder.go(crumb.modelData.url) }
                     // Each folder takes drops, as Finder's path bar does.
                     DropArea {
                         id: drop
