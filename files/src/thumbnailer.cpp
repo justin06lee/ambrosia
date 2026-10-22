@@ -1,4 +1,5 @@
 #include "thumbnailer.h"
+#include "previews.h"
 
 #include <QCryptographicHash>
 #include <QDir>
@@ -11,6 +12,7 @@
 #include <QMimeDatabase>
 #include <QMutex>
 #include <QPainter>
+#include <QPainterPath>
 #include <QSet>
 #include <QStandardPaths>
 #include <QTemporaryFile>
@@ -94,11 +96,12 @@ bool openQuietly(QFile &file, const QString &path)
     return true;
 }
 
-enum class Kind { None, Picture, Text };
+enum class Kind { None, Picture, Text, Video, Font, Audio, Office };
 
 // What a name's thumbnail would show, by its extension: a picture Qt reads
-// (JPEG, PNG, WebP, HEIF, AVIF, JXL, TIFF, SVG, PDF's first page …) or a
-// page of its text.
+// (JPEG, PNG, WebP, HEIF, AVIF, JXL, TIFF, SVG, PDF's first page …), a
+// page of its text, a frame of a video, a font's "Aa", an audio file's
+// cover, or an office document's first page.
 Kind kindOf(const QString &name)
 {
     static QMutex lock;
@@ -122,6 +125,20 @@ Kind kindOf(const QString &name)
     // A page of text, but not a web page's source.
     if (kind == Kind::None && mime.inherits(QStringLiteral("text/plain")) && !mime.inherits(QStringLiteral("text/html")))
         kind = Kind::Text;
+    const QString type = mime.name();
+    if (kind != Kind::None) {
+    } else if (type.startsWith(QLatin1String("video/")))
+        kind = Kind::Video;
+    else if (type.startsWith(QLatin1String("audio/")) && !type.contains(QLatin1String("mpegurl")) && !type.contains(QLatin1String("scpls")))
+        kind = Kind::Audio;
+    else if (type.startsWith(QLatin1String("font/")) || type == u"application/x-font-ttf" || type == u"application/x-font-otf"
+             || type == u"application/vnd.ms-opentype")
+        kind = Kind::Font;
+    else if (type.startsWith(QLatin1String("application/vnd.openxmlformats-officedocument."))
+             || type.startsWith(QLatin1String("application/vnd.oasis.opendocument."))
+             || type.startsWith(QLatin1String("application/vnd.ms-word.")) || type.startsWith(QLatin1String("application/vnd.ms-excel.sheet."))
+             || type.startsWith(QLatin1String("application/vnd.ms-powerpoint.")))
+        kind = Kind::Office;
     kinds.insert(ext, kind);
     return kind;
 }
@@ -217,8 +234,8 @@ Exif readExif(const QByteArray &head)
 }
 
 // A text file's first lines on a white, letter-shaped page, box pixels
-// tall: drawn at least 256 tall and scaled down, so lines that are too
-// small to read still sit as gray as Finder's.
+// tall, monospaced as Finder sets them: drawn at least 256 tall and scaled
+// down, so lines that are too small to read still sit as gray as Finder's.
 QImage textPage(QFile &file, int box)
 {
     const QByteArray head = file.read(3000);
@@ -229,7 +246,7 @@ QImage textPage(QFile &file, int box)
     page.fill(Qt::white);
     QPainter painter(&page);
     painter.setRenderHint(QPainter::TextAntialiasing);
-    QFont font = QFontDatabase::systemFont(QFontDatabase::GeneralFont);
+    QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     font.setPixelSize(std::max(4, height / 44));
     painter.setFont(font);
     painter.setPen(QColor(0x1d, 0x1d, 0x1f));
@@ -277,6 +294,125 @@ QImage picture(QFile &file, const QString &path, int box, QString *how, bool *sm
     return fit(image, box);
 }
 
+// Three box blurs of r pixels (near enough a Gaussian) of an image's alpha;
+// its color is black.
+void blurAlpha(QImage &image, int r)
+{
+    const int w = image.width(), h = image.height();
+    std::vector<int> a(size_t(w) * h), b(a.size());
+    for (int y = 0; y < h; ++y) {
+        const auto *line = reinterpret_cast<const QRgb *>(image.constScanLine(y));
+        for (int x = 0; x < w; ++x)
+            a[size_t(y) * w + x] = qAlpha(line[x]);
+    }
+    // One pass along rows (step 1) or columns (step w), edges clear.
+    auto pass = [&](const std::vector<int> &from, std::vector<int> &to, int count, int length, int step, int stride) {
+        for (int i = 0; i < count; ++i) {
+            const size_t base = size_t(i) * stride;
+            int sum = 0;
+            for (int j = 0; j <= r && j < length; ++j)
+                sum += from[base + size_t(j) * step];
+            for (int j = 0; j < length; ++j) {
+                to[base + size_t(j) * step] = sum / (2 * r + 1);
+                if (j + r + 1 < length)
+                    sum += from[base + size_t(j + r + 1) * step];
+                if (j - r >= 0)
+                    sum -= from[base + size_t(j - r) * step];
+            }
+        }
+    };
+    for (int i = 0; i < 3; ++i) {
+        pass(a, b, h, w, 1, w);
+        pass(b, a, w, h, w, 1);
+    }
+    for (int y = 0; y < h; ++y) {
+        auto *line = reinterpret_cast<QRgb *>(image.scanLine(y));
+        for (int x = 0; x < w; ++x)
+            line[x] = qRgba(0, 0, 0, a[size_t(y) * w + x]);
+    }
+}
+
+// Finder's thumbnail as an icon, box pixels square: fitted into 7/8 of it,
+// its corners rounded (4 pt of 64), a lighter hairline inside its edge and
+// a soft shadow under it. Art with clear corners (an alpha channel) keeps
+// its own shape, unframed.
+QImage framed(const QImage &image, int box)
+{
+    QImage out(box, box, QImage::Format_ARGB32_Premultiplied);
+    out.fill(Qt::transparent);
+    if (image.isNull())
+        return out;
+    const int inner = box * 7 / 8;
+    const QSize size = image.width() > inner || image.height() > inner ? image.size().scaled(inner, inner, Qt::KeepAspectRatio) : image.size();
+    const QImage content = image.size() == size ? image : image.scaled(size, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+    const QRectF rect((box - size.width()) / 2, (box - size.height()) / 2, size.width(), size.height());
+    QPainter painter(&out);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::SmoothPixmapTransform);
+    bool clear = false;
+    if (content.hasAlphaChannel())
+        for (const QPoint corner : {QPoint(0, 0), QPoint(content.width() - 1, 0), QPoint(0, content.height() - 1),
+                                    QPoint(content.width() - 1, content.height() - 1)})
+            clear = clear || qAlpha(content.pixel(corner)) < 250;
+    if (clear) {
+        painter.drawImage(rect.topLeft(), content);
+        return out;
+    }
+    const qreal radius = std::min(box / 16.0, std::min(rect.width(), rect.height()) / 4);
+    // The shadow: the shape a point lower, blurred, at a quarter black.
+    QImage shadow(box, box, QImage::Format_ARGB32_Premultiplied);
+    shadow.fill(Qt::transparent);
+    {
+        QPainter shade(&shadow);
+        shade.setRenderHint(QPainter::Antialiasing);
+        shade.setPen(Qt::NoPen);
+        shade.setBrush(QColor(0, 0, 0, 72));
+        shade.drawRoundedRect(rect.translated(0, box / 64.0), radius, radius);
+    }
+    blurAlpha(shadow, std::max(1, qRound(box / 48.0)));
+    painter.drawImage(0, 0, shadow);
+    QPainterPath shape;
+    shape.addRoundedRect(rect, radius, radius);
+    painter.setClipPath(shape);
+    painter.drawImage(rect, content);
+    painter.setClipping(false);
+    painter.setPen(QPen(QColor(255, 255, 255, 120), std::max(1.0, box / 96.0)));
+    painter.setBrush(Qt::NoBrush);
+    painter.drawRoundedRect(rect.adjusted(0.5, 0.5, -0.5, -0.5), radius - 0.5, radius - 0.5);
+    return out;
+}
+
+// One thumbnail of a file of the kind given, at most box pixels, made on
+// the calling thread; how says which way, smaller that it isn't worth
+// keeping in the cache (a picture already that small, a page of text).
+QImage makeKind(Kind kind, QFile &file, const QString &path, int box, QString *how, bool *smaller)
+{
+    const QString suffix = QFileInfo(path).suffix().toLower();
+    switch (kind) {
+    case Kind::None:
+        return {};
+    case Kind::Picture:
+        return picture(file, path, box, how, smaller);
+    case Kind::Text:
+        *how = QStringLiteral("text");
+        *smaller = true; // cheap to draw again
+        return textPage(file, box);
+    case Kind::Video:
+        *how = QStringLiteral("video");
+        return Previews::video(file, box);
+    case Kind::Font:
+        *how = QStringLiteral("font");
+        return Previews::font(file, box);
+    case Kind::Audio:
+        *how = QStringLiteral("audio");
+        return Previews::audioCover(file, box);
+    case Kind::Office:
+        *how = QStringLiteral("office");
+        return Previews::office(file, suffix, box, how);
+    }
+    return {};
+}
+
 // The freedesktop sizes, smallest first.
 struct Bucket {
     int px;
@@ -296,6 +432,7 @@ struct Job {
     QString path;
     QString uri; // as the cache names it: file:// fully percent-encoded
     int box = 256;
+    bool tile = false; // framed as Finder's icons (framed())
     quint64 burst = 0; // requests a moment apart: one view's rows
     bool looked = false; // in the cache
     std::atomic<bool> cancelled{false};
@@ -479,7 +616,7 @@ private:
                 QImage cached(cacheRoot() + QLatin1String(b->dir) + QLatin1Char('/') + name, "PNG");
                 if (!cached.isNull() && cached.text(QStringLiteral("Thumb::MTime")).toLongLong() == mtime
                     && cached.text(QStringLiteral("Thumb::URI")) == job.uri) {
-                    finish(job, fit(cached, job.box));
+                    finish(job, deliver(job, fit(cached, job.box)));
                     return true;
                 }
             }
@@ -497,16 +634,8 @@ private:
         bool smaller = false;
         QImage image;
         QFile file;
-        if (openQuietly(file, job.path)) {
-            const QString fileName = job.path.section(QLatin1Char('/'), -1);
-            if (kindOf(fileName) == Kind::Text) {
-                image = textPage(file, px);
-                how = QStringLiteral("text");
-                smaller = true; // cheap to draw again: not kept
-            } else {
-                image = picture(file, job.path, px, &how, &smaller);
-            }
-        }
+        if (openQuietly(file, job.path))
+            image = makeKind(kindOf(job.path.section(QLatin1Char('/'), -1)), file, job.path, px, &how, &smaller);
         if (trace)
             std::fprintf(stderr, "files: thumbnail %-5s %6.1f ms %s\n", qPrintable(how), clock.nsecsElapsed() / 1e6, qPrintable(job.path));
         if (image.isNull()) {
@@ -515,13 +644,15 @@ private:
             finish(job, {});
             return true;
         }
-        finish(job, fit(image, job.box));
+        finish(job, deliver(job, fit(image, job.box)));
         // Kept for every app, as the spec says: not for pictures already
         // that small, nor past the biggest size.
         if (bucket && !smaller)
             store(image, cacheRoot() + QLatin1String(bucket->dir), name, job.uri, mtime, st.st_size);
         return true;
     }
+
+    static QImage deliver(const Job &job, const QImage &image) { return job.tile ? framed(image, job.box) : image; }
 
     static void store(QImage image, const QString &dir, const QString &name, const QString &uri, qint64 mtime, qint64 size)
     {
@@ -579,8 +710,12 @@ Thumbnailer::~Thumbnailer()
 
 QQuickImageResponse *Thumbnailer::requestImageResponse(const QString &id, const QSize &requestedSize)
 {
+    // MTIME/PATH, then what it is shown as: audio (the model's hint for the
+    // icon meanwhile), tile (framed, as Finder's icons).
     auto job = std::make_shared<Job>();
-    job->path = QUrl::fromPercentEncoding(id.section(QLatin1Char('/'), 1).toUtf8());
+    const QStringList parts = id.split(QLatin1Char('/'));
+    job->path = QUrl::fromPercentEncoding(parts.value(1).toUtf8());
+    job->tile = parts.mid(2).contains(QLatin1String("tile"));
     job->uri = QUrl::fromLocalFile(job->path).toString(QUrl::FullyEncoded);
     if (requestedSize.isValid() && !requestedSize.isEmpty())
         job->box = std::max(requestedSize.width(), requestedSize.height());
@@ -591,7 +726,8 @@ QQuickImageResponse *Thumbnailer::requestImageResponse(const QString &id, const 
 
 QString Thumbnailer::source(const QUrl &url, const QString &name, bool isDir, qint64 mtime)
 {
-    if (isDir || mtime <= 0 || kindOf(name) == Kind::None)
+    const Kind kind = isDir || mtime <= 0 ? Kind::None : kindOf(name);
+    if (kind == Kind::None)
         return {};
     QString path;
     if (url.isLocalFile())
@@ -601,7 +737,8 @@ QString Thumbnailer::source(const QUrl &url, const QString &name, bool isDir, qi
         path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QLatin1String("/Trash/files/") + url.path().mid(3);
     else
         return {};
-    return QStringLiteral("image://thumb/") + QString::number(mtime) + QLatin1Char('/') + QString::fromLatin1(QUrl::toPercentEncoding(path));
+    return QStringLiteral("image://thumb/") + QString::number(mtime) + QLatin1Char('/') + QString::fromLatin1(QUrl::toPercentEncoding(path))
+        + (kind == Kind::Audio ? QStringLiteral("/audio") : QString());
 }
 
 QImage Thumbnailer::make(const QString &path, int box, QString *how)
@@ -609,11 +746,15 @@ QImage Thumbnailer::make(const QString &path, int box, QString *how)
     QFile file;
     if (!openQuietly(file, path))
         return {};
-    if (kindOf(path.section(QLatin1Char('/'), -1)) == Kind::Text) {
-        if (how)
-            *how = QStringLiteral("text");
-        return textPage(file, box);
-    }
+    QString made;
     bool smaller = false;
-    return picture(file, path, box, how, &smaller);
+    const QImage image = makeKind(kindOf(path.section(QLatin1Char('/'), -1)), file, path, box, &made, &smaller);
+    if (how)
+        *how = made;
+    return image;
+}
+
+QImage Thumbnailer::frame(const QImage &image, int box)
+{
+    return framed(image, box);
 }

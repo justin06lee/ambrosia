@@ -14,8 +14,12 @@ Item {
     property string badge
     property string tint // a folder's tag color
     property real iconSize: Math.min(width, height)
+    // The square it is made to fit (pixels are this times the screen's).
+    property real box: Math.max(width, height)
 
     readonly property bool shown: image.status === Image.Ready && image.implicitWidth > 1
+    // Its width over its height, once it is made.
+    readonly property real aspect: shown ? image.implicitWidth / image.implicitHeight : 1
 
     Image {
         id: image
@@ -24,7 +28,7 @@ Item {
         source: thumb.source
         fillMode: Image.PreserveAspectFit
         // Made at the size it shows, not the size it is.
-        sourceSize: Qt.size(Math.ceil(width * Screen.devicePixelRatio), Math.ceil(height * Screen.devicePixelRatio))
+        sourceSize: Qt.size(Math.ceil(thumb.box * Screen.devicePixelRatio), Math.ceil(thumb.box * Screen.devicePixelRatio))
         smooth: true
     }
     FileIcon {
@@ -34,5 +38,6 @@ Item {
         kind: thumb.isDir ? "folder" : "document"
         badge: thumb.badge
         tint: thumb.tint
+        audio: thumb.source.endsWith("/audio")
     }
 }

@@ -6,7 +6,8 @@
 #include <QUrl>
 
 // Thumbnails for QML, as image://thumb/MTIME/PATH (the path percent-encoded;
-// the time makes a changed file ask again). They come from the freedesktop
+// the time makes a changed file ask again), with /tile after it for one
+// framed as Finder frames its icons' thumbnails. They come from the freedesktop
 // cache that Dolphin and GTK apps share (~/.cache/thumbnails), or are made
 // on two background threads (nice 10, idle I/O): the newest view's first,
 // dropped once its item scrolls away, and paused while the disk is under
@@ -25,4 +26,7 @@ public:
     // longer side, without the cache (for the benchmark); how says which
     // way it was made.
     static QImage make(const QString &path, int box, QString *how = nullptr);
+    // Finder's frame for a thumbnail shown as an icon (an image://thumb/…/tile
+    // source), on a box-pixel square.
+    static QImage frame(const QImage &image, int box);
 };
