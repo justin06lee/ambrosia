@@ -9,9 +9,3 @@
 - **Stopped:** steps 1–4 and midna's three parity gaps are on master and installed on tenet as r205. The list and icon views running on under the toolbar are committed on `feat/files-under-toolbar` (03f8dd2, pushed, not merged). tenet is locked, nothing of Files' is running, and the parity fixtures are deleted.
 - **Next:** on that branch, check that a drag on the toolbar still moves the window, record the light and dark clips (`/var/tmp/files-rec/under.sh NAME light|dark [BIN]`), merge and have Packaging publish; then step 5, search (This Mac scope, contents search, Name/Kind/Date Last Opened columns; notes in scratch/search/NOTES.md). The Lead still has to decide whether #13 counts RSS or USS.
 - **Traps:** thumbnails stall while tenet's disk is busy (idle-I/O reads, pause above 30% pressure), so run warm.sh before takes; offscreen grabs drop MultiEffect and tenet.sh grab crashes KWin past ~1 s; check `ps` for other agents' windows before recording.
-
-## Files app
-
-- **Stopped:** steps 1–4 and midna's three parity gaps are on master and installed on tenet as r205. The list and icon views running on under the toolbar are committed on `feat/files-under-toolbar` (03f8dd2, pushed, not merged). tenet is locked, nothing of Files' is running, and the parity fixtures are deleted.
-- **Next:** on that branch, check that a drag on the toolbar still moves the window, record the light and dark clips (`/var/tmp/files-rec/under.sh NAME light|dark [BIN]`), merge and have Packaging publish; then step 5, search (This Mac scope, contents search, Name/Kind/Date Last Opened columns; notes in scratch/search/NOTES.md). The Lead still has to decide whether #13 counts RSS or USS.
-- **Traps:** thumbnails stall while tenet's disk is busy (idle-I/O reads, pause above 30% pressure), so run warm.sh before takes; offscreen grabs drop MultiEffect and tenet.sh grab crashes KWin past ~1 s; check `ps` for other agents' windows before recording.
