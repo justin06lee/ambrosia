@@ -321,7 +321,7 @@ tenet's next sanctioned upgrade).
 | 10 | First uncached thumbnail, 24 MP JPEG (other kinds: slice 8) | **≤ 20 ms** with EXIF, ≤ 80 ms without; **measured 0.6 to 0.9 ms** with EXIF, 71 ms without (file in the page cache); cold from the disk 25 to 320 ms and 117 to 134 ms, as busy as the disk is | TBM (EXIF path 3 to 5 ms) | TBM | 66 ms at 1/8 |
 | 11 | Quick Look, 24 MP JPEG, to first frame | ≤ 100 ms | n/a | TBM (Sushi) | — |
 | 12 | Scrolling a 100k list or icon view at 4K | no frame over 16.7 ms | TBM | TBM | — |
-| 13 | Memory with the 100k folder open | ≤ 120 MB RSS | 224 MB (software GL) | TBM | — |
+| 13 | Memory with the 100k folder open | ≤ 120 MB RSS (own memory, USS, proposed: a bare Qt Quick window is 177 MB RSS) | **119 to 123 MB own** (USS; was 148), 269 to 273 MB RSS with Inter Variable (371 MB with Inter.ttc), real session | TBM | — |
 | 14 | Index: load at login / a change reflected | ≤ 100 ms / ≤ 1 s | — | — | **slice 7: snapshot 33 to 36 ms (checked in 0.2 s after) / 0.3 ms in the index, 0.26 s in a window** |
 
 Slice 1 as measured by `files/bench/run.sh` (warm): #3 40 ms, #4 64 ms, #5
@@ -343,10 +343,18 @@ by its status bar.
 
 So #2 holds with room to spare, and the 100k window is complete 14x sooner
 than Dolphin's. #4's whole-window 157 ms is 7 ms over the 150 ms target; most of
-it is starting the app, which #2 counts too. #13 misses: Files sits near 235 MB
-whatever the folder size, which points at the Qt Quick scene graph on software
-GL rather than the model; it is to be re-measured on the GPU in the real
-session before it counts. The 1M run was stopped by the strain watchdog at a
+it is starting the app, which #2 counts too. #13 was re-measured in the real
+session (2026-10-22, `mem.sh` on tenet; the 100k folder in list view): r193
+used 371 MB RSS, of which 148 MB was Files' own (USS). The rest is shared:
+166 MB of libraries (NVIDIA's EGL and Mesa's gallium and LLVM both load, and
+Qt maps Inter.ttc, 13 MB, once per weight and touches all of it, 76 MB of
+RSS; Inter Variable maps 4 MB and looks the same). A bare Qt Quick window
+there is 177 MB RSS and 40 MB own, so RSS can't reach 120 MB, and the target
+is proposed as own memory. Files' own memory was the search index (63 MB),
+the app (33 MB), the 100k folder (11 MB) and that floor (40 MB). Two malloc
+arenas, handing freed memory back after big loads, dropping the index's
+gone rows (11% of them) and an array for its inotify watches bring it to
+119 to 123 MB. The 1M run was stopped by the strain watchdog at a
 load of 14, while other jobs were running on tenet (memory peaked at 831 MB of
 the run's 4 GB cap), so #5 is still to be measured whole.
 
@@ -422,7 +430,7 @@ this Mac's Finder:
   listing at once as it moves in, and re-reads it in the background.
 - **Resizing:** dragging a divider sizes its column; with Option, every
   column.
-- **Under the glass** (f0e887c): the rows run up under the toolbar and
+- **Under the glass** (r193): the rows run up under the toolbar and
   fade out there, Finder's soft edge; columns scrolled away to the left go
   under the floating sidebar and show blurred in the window's margin
   around it. The toolbar's empty space still moves the window.
