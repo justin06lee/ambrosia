@@ -55,6 +55,7 @@ Item {
             url: preview.info.url ?? ""
             isDir: preview.info.isDir ?? false
             badge: preview.info.badge ?? ""
+            tint: preview.info.isDir && preview.info.tags?.length > 0 ? preview.info.tags[0] : ""
         }
         Label {
             id: name

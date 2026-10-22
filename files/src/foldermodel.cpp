@@ -2,6 +2,7 @@
 
 #include "format.h"
 #include "sortkey.h"
+#include "tags.h"
 
 #include <KIO/ListJob>
 #include <KIO/UDSEntry>
@@ -477,6 +478,17 @@ FolderModel::FolderModel(QObject *parent)
     // settle.
     m_reload->setSingleShot(true);
     m_reload->setInterval(150);
+    // Tags live in an attribute no folder watch sees change: Files says so
+    // itself when it tags something.
+    connect(Tags::instance(), &Tags::changed, this, [this](const QList<QUrl> &urls) {
+        for (const int row : rowsOf(urls))
+            if (row >= 0)
+                Q_EMIT dataChanged(index(row), index(row), {TagsRole});
+    });
+    connect(Tags::instance(), &Tags::listChanged, this, [this] {
+        if (rowCount() > 0)
+            Q_EMIT dataChanged(index(0), index(rowCount() - 1), {TagsRole});
+    });
     connect(m_reload, &QTimer::timeout, this, [this] {
         if (std::exchange(m_rootChanged, false))
             load(true);
@@ -809,6 +821,7 @@ QHash<int, QByteArray> FolderModel::roleNames() const
         {KindShortRole, "kindShort"},
         {DepthRole, "depth"},
         {ExpandedRole, "expanded"},
+        {TagsRole, "tags"},
     };
 }
 
@@ -852,6 +865,10 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return int(r.depth);
     case ExpandedRole:
         return isExpanded(index.row());
+    case TagsRole: {
+        const QUrl url = urlAt(index.row());
+        return url.isLocalFile() ? Tags::instance()->colorsOf(Tags::read(url.toLocalFile())) : QStringList();
+    }
     }
     return {};
 }

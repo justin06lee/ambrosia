@@ -11,6 +11,7 @@ Item {
     property url url
     property bool isDir
     property string badge
+    property string tint // a folder's tag color
     property real iconSize: Math.min(width, height)
 
     // The pictures Qt reads itself, by the extension the badge carries.
@@ -34,5 +35,6 @@ Item {
         size: thumb.iconSize
         kind: thumb.isDir ? "folder" : "document"
         badge: thumb.badge
+        tint: thumb.tint
     }
 }

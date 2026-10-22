@@ -31,6 +31,7 @@ FocusScope {
             url: pane.info.url ?? ""
             isDir: pane.info.isDir ?? false
             badge: pane.info.badge ?? ""
+            tint: pane.info.isDir && pane.info.tags?.length > 0 ? pane.info.tags[0] : ""
         }
 
         // Its name while it's being renamed, when the preview pane is hidden
@@ -124,6 +125,7 @@ FocusScope {
             required property bool isDir
             required property string badge
             required property url url
+            required property var tags
 
             width: Finder.galleryCell
             height: strip.height
@@ -143,6 +145,7 @@ FocusScope {
                 url: cell.url
                 isDir: cell.isDir
                 badge: cell.badge
+                tint: cell.isDir && cell.tags.length > 0 ? cell.tags[0] : ""
             }
         }
     }

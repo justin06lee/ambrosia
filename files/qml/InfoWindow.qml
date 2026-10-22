@@ -135,6 +135,7 @@ Window {
                     anchors.verticalCenter: parent.verticalCenter
                     size: 16
                     kind: info.isDir ? "folder" : "document"
+                    tint: info.tint
                 }
                 Label {
                     anchors.verticalCenter: parent.verticalCenter
@@ -164,10 +165,10 @@ Window {
                 id: sections
                 width: parent.width
 
-                // Its icon, name and size, and when it last changed.
+                // Its icon, name and size, when it last changed, and its tags.
                 Item {
                     width: parent.width
-                    height: 85 - win.titleBar
+                    height: 119 - win.titleBar
                     Thumbnail {
                         x: 10
                         y: 38 - win.titleBar
@@ -176,6 +177,7 @@ Window {
                         url: info.fileUrl
                         isDir: info.isDir
                         badge: info.badge
+                        tint: info.tint
                     }
                     Label {
                         x: 48
@@ -201,6 +203,82 @@ Window {
                         text: "Modified: " + info.modified
                         color: Theme.color.label.secondary
                         elide: Text.ElideRight
+                    }
+                    // Its tags, a token each, then a field for another:
+                    // Return adds it (a new tag joins the sidebar), ⌫ in the
+                    // empty field takes the last away.
+                    Rectangle {
+                        x: 4
+                        y: 83 - win.titleBar
+                        width: parent.width - 8
+                        height: 32
+                        color: "transparent"
+                        border.width: 1
+                        border.color: info.tags.length === 0 || tagInput.activeFocus ? Finder.infoRule : "transparent"
+                        TapHandler { onTapped: tagInput.forceActiveFocus() }
+                        Flow {
+                            x: 4
+                            y: info.tags.length > 0 ? 2 : 9
+                            width: parent.width - 8
+                            spacing: 2
+                            Repeater {
+                                model: info.tags
+                                Rectangle {
+                                    id: token
+                                    required property string modelData
+                                    readonly property string color_: Tags.colorOf(modelData)
+                                    width: tokenText.implicitWidth + 9
+                                    height: 14
+                                    radius: 2
+                                    color: Finder.tagToken(color_)
+                                    Label {
+                                        id: tokenText
+                                        anchors.centerIn: parent
+                                        font.pixelSize: 11
+                                        text: token.modelData
+                                        color: Finder.tagTokenText(token.color_)
+                                    }
+                                }
+                            }
+                            TextInput {
+                                id: tagInput
+                                width: Math.max(80, contentWidth + 8)
+                                height: 14
+                                verticalAlignment: TextInput.AlignVCenter
+                                clip: true
+                                readOnly: !info.url.toString().startsWith("file:")
+                                font.family: Theme.uiFont
+                                font.pixelSize: 11
+                                color: Theme.color.label.primary
+                                selectionColor: Theme.accent.bg
+                                selectedTextColor: Theme.accent.fg
+                                renderType: Text.NativeRendering
+                                Keys.onReturnPressed: {
+                                    if (text.trim() !== "")
+                                        Tags.add([info.url], text);
+                                    text = "";
+                                }
+                                Keys.onEnterPressed: Keys.returnPressed(event)
+                                Keys.onEscapePressed: {
+                                    text = "";
+                                    focus = false;
+                                }
+                                Keys.onPressed: (event) => {
+                                    if (event.key === Qt.Key_Backspace && text === "" && info.tags.length > 0) {
+                                        Tags.remove([info.url], info.tags[info.tags.length - 1]);
+                                        event.accepted = true;
+                                    }
+                                }
+                                Label {
+                                    visible: info.tags.length === 0 && tagInput.text === ""
+                                    x: -1
+                                    anchors.verticalCenter: parent.verticalCenter
+                                    font.pixelSize: 13
+                                    text: "Add Tags…"
+                                    color: Theme.color.label.secondary
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -361,6 +439,7 @@ Window {
                             size: 128
                             kind: info.isDir ? "folder" : "document"
                             badge: info.badge
+                            tint: info.tint
                         }
                     }
                 }

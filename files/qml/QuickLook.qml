@@ -219,6 +219,7 @@ Window {
                 size: 256
                 kind: info.isDir ? "folder" : "document"
                 badge: info.badge
+                tint: info.tint
             }
             Label {
                 id: bigName

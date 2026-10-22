@@ -1,13 +1,16 @@
 import QtQuick
 import Ambrosia
 
-// A file's icon from our own art: the folder, or a document page carrying
-// the file's extension as its badge when there is room for it.
+// A file's icon from our own art: the folder (in its tag's color), or a
+// document page carrying the file's extension as its badge when there is
+// room for it.
 Item {
     id: icon
 
     property string kind: "document" // "folder" or "document"
     property string badge
+    // A folder takes its first colored tag's color ("purple"), as in macOS 26.
+    property string tint
     property real size: 16
 
     implicitWidth: size
@@ -15,7 +18,8 @@ Item {
 
     Image {
         anchors.fill: parent
-        source: "qrc:/qt/qml/Files/art/" + (icon.kind === "folder" ? "folder" : icon.size <= 32 ? "document-small" : "document") + ".svg"
+        source: icon.kind === "folder" && icon.tint !== "" ? "image://folder/" + icon.tint
+            : "qrc:/qt/qml/Files/art/" + (icon.kind === "folder" ? "folder" : icon.size <= 32 ? "document-small" : "document") + ".svg"
         sourceSize: Qt.size(icon.size * 2, icon.size * 2)
         smooth: true
         mipmap: true

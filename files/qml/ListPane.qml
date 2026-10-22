@@ -274,6 +274,7 @@ FocusScope {
             required property bool isDir
             required property string badge
             required property url url
+            required property var tags
             readonly property bool selected: pane.finder.selected[index] === true || pane.dropRow === index
             readonly property bool renaming: pane.finder.renaming && pane.finder.editing.toString() === url.toString()
             readonly property real nameStart: nameLabel.x
@@ -313,12 +314,22 @@ FocusScope {
                 anchors.verticalCenter: parent.verticalCenter
                 size: Finder.listIcon
                 kind: rowItem.isDir ? "folder" : "document"
+                tint: rowItem.isDir && rowItem.tags.length > 0 ? rowItem.tags[0] : ""
+            }
+            // Its tags, at the end of the Name column.
+            TagDots {
+                id: dots
+                x: pane.dateX - 8.5 - width
+                anchors.verticalCenter: parent.verticalCenter
+                colors: rowItem.tags
+                ring: rowItem.selected ? (pane.finder.looksActive ? Theme.accent.bg : Finder.selectionInactive)
+                    : rowItem.index % 2 ? Finder.stripe : Finder.content
             }
             Label {
                 id: nameLabel
                 visible: !rowItem.renaming
                 x: Finder.nameText + rowItem.indent
-                width: pane.dateX - x - 8
+                width: pane.dateX - x - 8 - (dots.width > 0 ? dots.width + 8 : 0)
                 anchors.verticalCenter: parent.verticalCenter
                 text: rowItem.name
                 elide: Text.ElideMiddle

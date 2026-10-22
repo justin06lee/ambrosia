@@ -319,6 +319,7 @@ FocusScope {
                 required property bool isDir
                 required property string badge
                 required property url url
+                required property var tags
                 readonly property string key: owner.clean(url)
                 // Selected in the focused column; leading on in an earlier one.
                 readonly property bool chosen: col.focused ? owner.finder.selectedSet[url.toString()] === true : key === col.lead
@@ -346,12 +347,21 @@ FocusScope {
                     size: Finder.columnIcon
                     kind: rowItem.isDir ? "folder" : "document"
                     badge: rowItem.badge
+                    tint: rowItem.isDir && rowItem.tags.length > 0 ? rowItem.tags[0] : ""
+                }
+                // Its tags, before the chevron.
+                TagDots {
+                    id: dots
+                    x: parent.width - Finder.columnChevron - 18 - width
+                    anchors.verticalCenter: parent.verticalCenter
+                    colors: rowItem.tags
+                    ring: rowItem.lit ? Theme.accent.bg : rowItem.chosen ? Finder.selectionInactive : Finder.content
                 }
                 Label {
                     id: nameLabel
                     visible: !rowItem.renaming
                     x: Finder.columnText
-                    width: parent.width - x - Finder.columnChevron - 10
+                    width: parent.width - x - Finder.columnChevron - 10 - (dots.width > 0 ? dots.width + 8 : 0)
                     anchors.verticalCenter: parent.verticalCenter
                     text: rowItem.name
                     elide: Text.ElideMiddle

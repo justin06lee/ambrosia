@@ -29,6 +29,7 @@ qt_add_qml_module(ambrosia-files
         src/format.h src/format.cpp
         src/places.h src/places.cpp
         src/sortkey.h src/sortkey.cpp
+        src/tags.h src/tags.cpp
     QML_FILES
         qml/FinderWindow.qml
         qml/Appearance.qml
@@ -54,6 +55,7 @@ qt_add_qml_module(ambrosia-files
         qml/Thumbnail.qml
         qml/PathBar.qml
         qml/FileIcon.qml
+        qml/TagDots.qml
         qml/Glyph.qml
         qml/glyphs.js
     RESOURCES
