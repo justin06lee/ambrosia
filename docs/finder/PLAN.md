@@ -498,6 +498,28 @@ this Mac's Finder (references in `out/parity/files/ref/look/`):
   field, which took the keyboard and closed the first. Also, items dropped
   in the folder they're already in no longer start a move.
 
+**Slice 6, Tags** (merged bb99812, to be published; `src/tags.cpp`,
+`qml/TagDots.qml`), measured from this Mac's Finder (references in
+`out/parity/files/ref/tags/`):
+- **Where they live:** an item's tags are its `user.xdg.tags` attribute
+  (names separated by commas), as Dolphin and Baloo keep them. Which tags
+  there are, in the sidebar's order, and their colors are kept in
+  `~/.config/ambrosia/files/tags.json`, with Finder's seven first.
+- **Dots:** 10 points, each further tag 5 to the left and in front, ringed
+  in the background's color. They go at the end of the Name column in the
+  list view, before the name in the icon view, and before the chevron in
+  the Columns view. A tag without a color has no dot.
+- **A tagged folder takes its first tag's color,** as in macOS 26. An image
+  provider moves the folder art's blues to the tag's hue.
+- **Setting them:** File > Tags is a submenu of names, because the shell's
+  menus draw no icons. A tag every selected item has is checked; choosing
+  it gives it to all or takes it from all. Get Info shows the tags as
+  tokens under the header: Return adds one (a new tag joins the sidebar),
+  and ⌫ in the empty field removes the last.
+- **Not yet:** a click on a sidebar tag (it needs the index, step 7), the
+  context menu (Files has none yet), undo for tags, the tag colour editor,
+  and the Tags row in the gallery's preview pane.
+
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).
 
@@ -550,7 +572,7 @@ pair:
    and dark.
 4. Icon, column and gallery views.
 5. File operations, undo and drag and drop, including onto the Dock's Trash.
-6. Quick Look and Get Info (slice 5), then tags.
+6. Quick Look and Get Info (slice 5), then tags (slice 6).
 7. The index and search.
 8. Thumbnails.
 9. Packaging and the Dock switch, done by their owners (below). Then tenet,
