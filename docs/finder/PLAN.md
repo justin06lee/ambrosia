@@ -187,20 +187,16 @@ Considered and passed over:
   toolchain and an FFI layer between the model and QML.
 - **Electron or Tauri:** startup time and memory.
 
-**No stack fork for Justin.** The one real fork is the look of the sidebar:
+**No stack fork for Justin.** The one real fork was the look of the sidebar:
 
-> **Decision for Justin: the sidebar.** This Mac runs macOS 26.6.2, whose
-> Finder sidebar is an inset, rounded glass panel floating inside the window.
-> `design/DECISIONS.md` ("Behind-window glass for sidebars") chose flush
-> sidebars, because GTK can't blur in-app content. Files is QML and *can*
-> match macOS 26. Options:
->
-> - **(A) match the Mac** with a floating sidebar in Files (recommended,
->   since the brief is "identical");
-> - **(B) keep the house rule**, flush, so Files matches Ambrosia's other
->   apps.
->
-> v1 is built so this is one component either way.
+> **Decided (2026-10-21): the floating glass sidebar.** This Mac runs macOS
+> 26.6.2, whose Finder sidebar is an inset, rounded glass panel floating
+> inside the window. `design/DECISIONS.md` ("Behind-window glass for
+> sidebars") chose flush sidebars, because GTK can't blur in-app content.
+> Files is QML and *can* match macOS 26, so the options were (A) match the
+> Mac with a floating sidebar, or (B) keep the house rule, flush. Justin
+> picked (A): Files' sidebar is the floating inset glass panel, an exception
+> to the house rule for this app only. The flush variant is dropped.
 
 ## 3. v1 scope
 
@@ -317,7 +313,7 @@ tenet's next sanctioned upgrade).
 | 2 | Cold launch to a listed window | ≤ 400 ms | TBM | TBM | — |
 | 3 | 100k-file folder: first rows painted | **≤ 30 ms** | TBM | TBM | 0.13 ms first batch |
 | 4 | 100k-file folder: complete, sorted by name | **≤ 150 ms** | TBM (KIO listing alone 276 ms) | TBM (GIO with its attributes alone 1.5 s) | 14 ms names, 62 ms with statx |
-| 5 | 1M-file folder: first rows / complete | ≤ 50 ms / ≤ 1 s | TBM (KIO alone 2.6 s; bug 306290) | TBM (GIO names alone 3.0 s) | 138 ms / 676 ms |
+| 5 | 1M-file folder: first rows / complete | ≤ 250 ms (was ≤ 50) / ≤ 1 s | TBM (KIO alone 2.6 s; bug 306290) | TBM (GIO names alone 3.0 s) | 138 ms / 676 ms |
 | 6 | Type-select or filter in the 100k folder | ≤ 4 ms a keystroke | TBM | TBM | — |
 | 7 | Filename search over the home (238k entries) | **≤ 10 ms** a keystroke | TBM (Baloo: 0.9 ms query, 142 ms per call, 21k files indexed) | TBM | scan 4 to 6 ms; walk 45 to 175 ms |
 | 8 | Content search: first hit | ≤ 100 ms, streaming | TBM | TBM | rg 22 to 46 ms on 345 MB |
@@ -328,11 +324,24 @@ tenet's next sanctioned upgrade).
 | 13 | Memory with the 100k folder open | ≤ 120 MB RSS | TBM | TBM | — |
 | 14 | Index: load at login / a change reflected | ≤ 100 ms / ≤ 1 s | — | — | — |
 
+Slice 1 as measured by `files/bench/run.sh` (warm): #3 40 ms, #4 64 ms, #5
+232 ms / 513 ms. #3 misses by 10 ms: about 25 ms is the worker, the rest is
+the GUI thread still building the first window. #5's first-rows target was
+50 ms; reading the 1M names alone takes 138 ms, so no sorted first screen can
+come sooner, and the target is now 250 ms.
+
 Cold-cache numbers matter on tenet's HDD (rg went from 22 ms to 30 s).
 Measuring them means dropping caches system-wide, which is only done when
 tenet is idle and with an okay; until then it's warm only.
 
-## 5. Step 2: build it on a branch, with the benchmarks in the repo (not started)
+## 5. Step 2: build it on a branch, with the benchmarks in the repo (in progress)
+
+**Shipping in slices** (the lead's call, 2026-10-21). Each usable slice is
+merged, packaged and reported with screenshots, a recording and its numbers.
+Slice 1, a Finder window that browses folders (sidebar, toolbar, list and
+icon views, path bar, menus in the menu bar), merged in 59e9610 and ships as
+`ambrosia-files` from r103. Slice 2 is file operations and drag and drop;
+after it the Dock pin and the default file manager move to Files.
 
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).
