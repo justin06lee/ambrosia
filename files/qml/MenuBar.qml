@@ -13,6 +13,8 @@ Platform.MenuBar {
     required property var finder
 
     Platform.Menu {
+        onAboutToShow: bar.finder.menusOpen += 1
+        onAboutToHide: bar.finder.menusOpen = Math.max(0, bar.finder.menusOpen - 1)
         title: "File"
         Platform.MenuItem { text: "New Finder Window"; shortcut: "Ctrl+N"; onTriggered: bar.finder.act("new", () => App.openWindow(bar.finder.url)) }
         Platform.MenuItem { text: "Open"; shortcut: "Ctrl+O"; enabled: bar.finder.hasSelection; onTriggered: bar.finder.act("open", bar.finder.openSelection) }
@@ -20,10 +22,14 @@ Platform.MenuBar {
         Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+W"; onTriggered: bar.finder.act("close", bar.finder.close) }
     }
     Platform.Menu {
+        onAboutToShow: bar.finder.menusOpen += 1
+        onAboutToHide: bar.finder.menusOpen = Math.max(0, bar.finder.menusOpen - 1)
         title: "Edit"
         Platform.MenuItem { text: "Select All"; shortcut: "Ctrl+A"; onTriggered: bar.finder.act("all", bar.finder.selectAll) }
     }
     Platform.Menu {
+        onAboutToShow: bar.finder.menusOpen += 1
+        onAboutToHide: bar.finder.menusOpen = Math.max(0, bar.finder.menusOpen - 1)
         title: "View"
         Platform.MenuItem { text: "as Icons"; shortcut: "Ctrl+1"; checkable: true; checked: bar.finder.view === "icon"; onTriggered: bar.finder.act("icons", () => bar.finder.view = "icon") }
         Platform.MenuItem { text: "as List"; shortcut: "Ctrl+2"; checkable: true; checked: bar.finder.view === "list"; onTriggered: bar.finder.act("list", () => bar.finder.view = "list") }
@@ -34,6 +40,8 @@ Platform.MenuBar {
         Platform.MenuItem { text: bar.finder.model.showHidden ? "Hide Hidden Files" : "Show Hidden Files"; shortcut: "Ctrl+Shift+."; onTriggered: bar.finder.act("hidden", () => bar.finder.model.showHidden = !bar.finder.model.showHidden) }
     }
     Platform.Menu {
+        onAboutToShow: bar.finder.menusOpen += 1
+        onAboutToHide: bar.finder.menusOpen = Math.max(0, bar.finder.menusOpen - 1)
         title: "Go"
         Platform.MenuItem { text: "Back"; shortcut: "Ctrl+["; enabled: bar.finder.canGoBack; onTriggered: bar.finder.act("back", bar.finder.back) }
         Platform.MenuItem { text: "Forward"; shortcut: "Ctrl+]"; enabled: bar.finder.canGoForward; onTriggered: bar.finder.act("forward", bar.finder.forward) }
@@ -48,6 +56,8 @@ Platform.MenuBar {
         Platform.MenuItem { text: "Trash"; onTriggered: bar.finder.act("trash", () => bar.finder.goPlace("trash")) }
     }
     Platform.Menu {
+        onAboutToShow: bar.finder.menusOpen += 1
+        onAboutToHide: bar.finder.menusOpen = Math.max(0, bar.finder.menusOpen - 1)
         title: "Window"
         Platform.MenuItem { text: "Minimize"; onTriggered: bar.finder.showMinimized() }
         Platform.MenuItem { text: "Zoom"; onTriggered: bar.finder.visibility === Window.Maximized ? bar.finder.showNormal() : bar.finder.showMaximized() }

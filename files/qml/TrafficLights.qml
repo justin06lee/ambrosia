@@ -8,7 +8,7 @@ Row {
     id: lights
 
     required property Window window
-    readonly property bool active: window.active
+    readonly property bool active: window.looksActive
 
     spacing: Finder.lightPitch - Finder.lightSize
 

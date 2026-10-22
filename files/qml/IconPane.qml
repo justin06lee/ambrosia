@@ -89,7 +89,7 @@ FocusScope {
                 height: name.paintedHeight + 2
                 radius: 4
                 visible: cell.selected
-                color: pane.finder.active ? Theme.accent.bg : Finder.selectionInactive
+                color: pane.finder.looksActive ? Theme.accent.bg : Finder.selectionInactive
             }
             Label {
                 id: name
@@ -102,7 +102,7 @@ FocusScope {
                 elide: Text.ElideMiddle
                 text: cell.name
                 style: Theme.text.callout
-                color: cell.selected && pane.finder.active ? Theme.accent.fg : Theme.color.label.primary
+                color: cell.selected && pane.finder.looksActive ? Theme.accent.fg : Theme.color.label.primary
             }
         }
     }
