@@ -65,5 +65,13 @@ private:
     void alert(const QString &text, const QString &detail = QString());
 
     QHash<quint64, QString> m_labels; // what Edit > Undo calls each command, by KIO's serial number
+    // What Edit > Redo calls each undone command, last undone last, beside
+    // KIO's own words for it. KIO keeps no serial numbers for redo.
+    struct RedoLabel {
+        QString kio;
+        QString label;
+    };
+    QList<RedoLabel> m_redoLabels;
+    QString m_redone; // the label of the command being redone, until its job finishes
     int m_next = 0;
 };
