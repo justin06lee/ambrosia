@@ -63,7 +63,7 @@ PanelWindow {
     // manager's, as the Mac shows Finder's.
     function appNameMenu() {
         if (Apps.activeName === "") return [
-            { text: "New Window", action: () => Session.launch("org.kde.dolphin") },
+            { text: "New Window", action: () => Session.launch("org.ambrosia.files") },
             { separator: true },
             { text: "Settings…", action: () => Session.settings() },
         ];

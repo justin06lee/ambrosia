@@ -36,8 +36,14 @@ PanelWindow {
     // body is 0.805 of the tile.
     readonly property real tileArt: 1 / 0.805
     readonly property var tileIcons: ["org.ambrosia.files"]
-    // Dolphin stands in for Ambrosia's own Files app until there is one.
-    readonly property var standIns: ({ "org.kde.dolphin": { name: "Files", icon: "org.ambrosia.files" } })
+
+    // Moves files to the trash. While Files runs it does the moving, so Edit >
+    // Undo there can put them back; KIO's own move (kioclient) can't be undone.
+    function trash(urls) {
+        Quickshell.execDetached(["sh", "-c",
+            'busctl --user --auto-start=no call org.ambrosia.files /org/ambrosia/files org.ambrosia.Files Trash as "$#" "$@" >/dev/null 2>&1'
+            + ' || exec kioclient move "$@" trash:/', "sh"].concat(urls));
+    }
 
     // What's in the trash, watched, so the Trash fills and empties with it.
     // The folder is made first, so there's one to watch.
@@ -88,10 +94,9 @@ PanelWindow {
                     required property var model
                     required property int index
                     readonly property var entry: Apps.entryFor(model.AppId, model.AppName)
-                    readonly property var standIn: dock.standIns[entry?.id ?? ""] ?? null
-                    readonly property string iconName: standIn?.icon ?? entry?.icon ?? ""
+                    readonly property string iconName: entry?.icon ?? ""
 
-                    name: standIn?.name ?? (model.AppName || entry?.name || "")
+                    name: model.AppName || entry?.name || ""
                     iconSource: Quickshell.iconPath(iconName, "application-x-executable")
                     art: dock.tileIcons.includes(iconName) ? dock.tileArt : 1
                     running: model.IsWindow === true || (model.ChildCount ?? 0) > 0
@@ -165,7 +170,7 @@ PanelWindow {
                     onDropped: drop => {
                         if (tip.over === trash) tip.over = null;
                         if (!drop.hasUrls) return;
-                        Quickshell.execDetached(["kioclient", "move"].concat(Array.from(drop.urls, url => url.toString()), ["trash:/"]));
+                        dock.trash(Array.from(drop.urls, url => url.toString()));
                         drop.accept(Qt.MoveAction);
                     }
                 }

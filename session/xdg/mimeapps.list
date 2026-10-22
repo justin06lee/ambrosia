@@ -1,0 +1,5 @@
+# The session's default apps, ahead of the system's: folders open in Files,
+# Ambrosia's file manager (Dolphin stays installed). A user's own
+# ~/.config/mimeapps.list still wins.
+[Default Applications]
+inode/directory=org.ambrosia.files.desktop;
