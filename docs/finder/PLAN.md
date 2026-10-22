@@ -569,7 +569,7 @@ this Mac's Finder (references in `out/parity/files/ref/search/`):
 
 **Slice 8, thumbnails** (`src/thumbnailer.cpp`, `src/previews.cpp`,
 `qml/FileIcon.qml`, `qml/Thumbnail.qml`; pictures and text in r179, the
-other kinds tested on tenet, not yet published):
+other kinds in r187, 2026-10-22):
 - **Where they show:** the icon, list and column views (the column
   preview included), the gallery's filmstrip and large view, the preview
   pane and the Info window. Each shows its item's art until the thumbnail
