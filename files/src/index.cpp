@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <deque>
+#include <malloc.h>
 #include <mutex>
 #include <shared_mutex>
 #include <thread>
@@ -646,6 +647,9 @@ void Index::Core::begin()
     }
     if (dirty)
         write();
+    // What loading or walking freed (the snapshot's bytes, grown arrays)
+    // goes back to the system rather than staying in the heap.
+    malloc_trim(0);
     listen();
 }
 

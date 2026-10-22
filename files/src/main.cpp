@@ -17,6 +17,8 @@
 #include <QSettings>
 #include <QStandardPaths>
 
+#include <malloc.h>
+
 int benchSearch(const QStringList &queries); // searchbench.cpp
 int benchThumbs(const QString &dir);          // thumbbench.cpp
 
@@ -92,6 +94,9 @@ public:
 
 int main(int argc, char *argv[])
 {
+    // Two malloc arenas, not one per busy thread (listing, index, thumbnail
+    // and render threads): fewer half-empty heaps held for the session.
+    mallopt(M_ARENA_MAX, 2);
     QApplication app(argc, argv);
     QApplication::setApplicationName(QStringLiteral("ambrosia-files"));
     QApplication::setApplicationDisplayName(QStringLiteral("Files"));

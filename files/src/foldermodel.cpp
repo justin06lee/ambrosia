@@ -31,6 +31,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <malloc.h>
 #include <numeric>
 #include <functional>
 #include <optional>
@@ -1041,6 +1042,9 @@ void FolderModel::apply(std::shared_ptr<Listing> listing, quint64 generation, bo
         m_loading = false;
         Q_EMIT loadingChanged();
     }
+    // A big listing leaves its read buffers free in the heap: hand them back.
+    if (rowCount() > 10000)
+        malloc_trim(0);
     if (before != rowCount())
         Q_EMIT countChanged();
     Q_EMIT loaded();
