@@ -33,7 +33,7 @@ FocusScope {
     readonly property var wanted: {
         const list = chain.map(u => ({ url: u, preview: false }));
         const one = Object.keys(finder.selectedSet);
-        if (one.length === 1 && finder.current >= 0)
+        if (one.length === 1 && finder.current >= 0 && (finder.showPreview || finder.model.isDirAt(finder.current)))
             list.push({ url: clean(one[0]), preview: !finder.model.isDirAt(finder.current) });
         return list;
     }
