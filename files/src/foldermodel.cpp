@@ -1,4 +1,5 @@
 #include "foldermodel.h"
+#include "thumbnailer.h"
 
 #include "format.h"
 #include "index.h"
@@ -1125,6 +1126,7 @@ QHash<int, QByteArray> FolderModel::roleNames() const
         {DepthRole, "depth"},
         {ExpandedRole, "expanded"},
         {TagsRole, "tags"},
+        {ThumbRole, "thumb"},
     };
 }
 
@@ -1172,6 +1174,8 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         const QUrl url = urlAt(index.row());
         return url.isLocalFile() ? Tags::instance()->colorsOf(Tags::read(url.toLocalFile())) : QStringList();
     }
+    case ThumbRole:
+        return Thumbnailer::source(urlAt(index.row()), displayOf(r), dir, e.mtime);
     }
     return {};
 }

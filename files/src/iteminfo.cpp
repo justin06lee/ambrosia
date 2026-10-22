@@ -1,6 +1,7 @@
 #include "iteminfo.h"
 #include "format.h"
 #include "tags.h"
+#include "thumbnailer.h"
 
 #include <KApplicationTrader>
 
@@ -390,4 +391,9 @@ void ItemInfo::setComment(const QString &comment)
     }
     m_comment = comment;
     Q_EMIT changed();
+}
+
+QString ItemInfo::thumb() const
+{
+    return m_fileUrl.isEmpty() ? QString() : Thumbnailer::source(m_fileUrl, m_name, m_isDir, m_mtime / 1000000000);
 }

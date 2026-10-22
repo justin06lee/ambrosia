@@ -53,6 +53,7 @@ Item {
             width: Finder.previewPaneIcon
             height: Finder.previewPaneIcon
             url: preview.info.url ?? ""
+            source: preview.info.thumb ?? ""
             isDir: preview.info.isDir ?? false
             badge: preview.info.badge ?? ""
             tint: preview.info.isDir && preview.info.tags?.length > 0 ? preview.info.tags[0] : ""

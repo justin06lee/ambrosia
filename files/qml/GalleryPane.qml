@@ -29,6 +29,7 @@ FocusScope {
             anchors.margins: 24
             iconSize: Math.min(stage.width, stage.height) * Finder.galleryScale
             url: pane.info.url ?? ""
+            source: pane.info.thumb ?? ""
             isDir: pane.info.isDir ?? false
             badge: pane.info.badge ?? ""
             tint: pane.info.isDir && pane.info.tags?.length > 0 ? pane.info.tags[0] : ""
@@ -126,6 +127,7 @@ FocusScope {
             required property string badge
             required property url url
             required property var tags
+            required property string thumb
 
             width: Finder.galleryCell
             height: strip.height
@@ -143,6 +145,7 @@ FocusScope {
                 width: Finder.galleryThumb
                 height: Finder.galleryThumb
                 url: cell.url
+                source: cell.thumb
                 isDir: cell.isDir
                 badge: cell.badge
                 tint: cell.isDir && cell.tags.length > 0 ? cell.tags[0] : ""

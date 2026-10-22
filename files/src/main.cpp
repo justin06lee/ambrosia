@@ -1,5 +1,6 @@
 #include "app.h"
 #include "index.h"
+#include "thumbnailer.h"
 
 #include <QApplication>
 #include <QCommandLineParser>
@@ -17,6 +18,7 @@
 #include <QStandardPaths>
 
 int benchSearch(const QStringList &queries); // searchbench.cpp
+int benchThumbs(const QString &dir);          // thumbbench.cpp
 
 // Theme icons for QML, as image://icon/NAME (the app that opens a file).
 class IconProvider : public QQuickImageProvider
@@ -116,12 +118,17 @@ int main(int argc, char *argv[])
     const QCommandLineOption benchSearchOption(QStringLiteral("bench-search"),
                                                QStringLiteral("Time the index and these searches (comma-separated), with no window, then quit."),
                                                QStringLiteral("queries"));
-    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, active, sidebar, benchSearchOption});
+    const QCommandLineOption benchThumbsOption(QStringLiteral("bench-thumbs"),
+                                               QStringLiteral("Time thumbnails on thumbfix.sh's fixtures in this folder, with no window, then quit."),
+                                               QStringLiteral("folder"));
+    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, active, sidebar, benchSearchOption, benchThumbsOption});
     parser.addPositionalArgument(QStringLiteral("urls"), QStringLiteral("Folders to open."), QStringLiteral("[urls...]"));
     parser.process(app);
 
     if (parser.isSet(benchSearchOption))
         return benchSearch(parser.value(benchSearchOption).split(QLatin1Char(','), Qt::SkipEmptyParts));
+    if (parser.isSet(benchThumbsOption))
+        return benchThumbs(parser.value(benchThumbsOption));
     QStringList urls;
     for (const QString &arg : parser.positionalArguments())
         urls << QUrl::fromUserInput(arg, QDir::currentPath(), QUrl::AssumeLocalFile).toString();
@@ -165,6 +172,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
     engine.addImageProvider(QStringLiteral("icon"), new IconProvider);
     engine.addImageProvider(QStringLiteral("folder"), new FolderProvider);
+    engine.addImageProvider(QStringLiteral("thumb"), new Thumbnailer);
     App files(&engine, options);
     if (!oneShot)
         bus.registerObject(QStringLiteral("/org/ambrosia/files"), &files, QDBusConnection::ExportScriptableSlots);
