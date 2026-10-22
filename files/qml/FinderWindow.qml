@@ -252,6 +252,11 @@ Window {
 
         Keys.onPressed: (event) => win.keyPressed(event)
 
+        // What Finder's status bar says, for screen readers, and for
+        // files/bench/probe.py, which times every app by when it says it.
+        Accessible.role: Accessible.Pane
+        Accessible.name: folder.loading ? "" : folder.count.toLocaleString(Qt.locale("en_US"), "f", 0) + " items"
+
         // The window moves by its toolbar's empty space.
         DragHandler {
             target: null
