@@ -14,7 +14,7 @@ pkgdesc="A Linux desktop that looks and moves as one thing"
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
-makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kwindowsystem taglib karchive)
+makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kwindowsystem taglib karchive freetype2)
 options=(!debug)
 
 _root="$(realpath "$startdir/..")"
@@ -114,7 +114,7 @@ package_ambrosia-files() {
   pkgdesc="Files, Ambrosia's Finder"
   # kio-extras: recentlyused:/ for Recents. ambrosia-theme: the Ambrosia QML
   # Theme module and the org.ambrosia.files icon. The QML and art are in the binary.
-  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kio kio-extras kservice kwindowsystem inter-font ripgrep ffmpeg taglib karchive)
+  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kio kio-extras kservice kwindowsystem inter-font ripgrep ffmpeg taglib karchive freetype2)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-files"
 }
 
