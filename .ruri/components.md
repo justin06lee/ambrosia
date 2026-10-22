@@ -31,7 +31,7 @@ Reaches into: shell/shell.qml, dist/qml/Ambrosia/Theme.qml, shell/icons.js, shel
 Tags: shell, menu bar, qml, quickshell
 
 ## shell-dock — the dock
-The real Dock in QML: pinned apps (running ones keep their pinned spot) then other running ones from Plasma's task model, running dots, a name tooltip with a point that follows the pointer, right-click New Window / Keep in Dock / Quit. Icons drawn on a whole macOS-style tile (the Trash, Files: tileIcons) show at tileArt = 1/0.805 of the icon size. Dolphin's pin stands in as Files with our Finder-style icon (standIns). Downloads is a glass tile; the Trash is the frosted bin, full while the home trash has anything, takes drops, Open / Empty Trash…. Pins live in Settings.dock.
+The real Dock in QML: pinned apps (running ones keep their pinned spot) then other running ones from Plasma's task model, running dots, a name tooltip with a point that follows the pointer, right-click New Window / Keep in Dock / Quit. Icons drawn on a whole macOS-style tile (the Trash, Files: tileIcons) show at tileArt = 1/0.805 of the icon size. Files (org.ambrosia.files) is pinned first. Downloads is a glass tile; the Trash is the frosted bin, full while the home trash has anything, takes drops (through Files over DBus while it runs, so ⌘Z undoes them), Open / Empty Trash…. Pins live in Settings.dock.
 Its files: shell/Dock.qml, shell/trash-empty.svg, shell/trash-full.svg
 Reaches into: shell/Glass.qml, shell/Overlay.qml, shell/Settings.qml, shell/Apps.qml
 Tags: shell, dock, qml
@@ -65,3 +65,9 @@ Window frames for every app: KWin Aurorae theme generated from the tokens (light
 Its files: tools/gen/targets/aurorae.ts
 Reaches into: session/look-and-feel/org.ambrosia.desktop/contents/defaults, session/startambrosia, shell/Appearance.qml, packaging/PKGBUILD
 Tags: kwin, window, decoration, theme
+
+## files-column-view — the column view
+Files' Finder column browser (⌘3): 245-pt columns from the root down to the window's folder, grey pills on the path, chevrons on folders, then the selected folder's column or a file preview; the window's folder is the focused column, so keys and file operations work there. Column lists keep currentIndex -1 (a current item steals the rename field's focus).
+Its files: files/qml/ColumnPane.qml
+Reaches into: files/qml/FinderWindow.qml, files/qml/Finder.qml, files/qml/RenameField.qml, files/qml/FileIcon.qml, files/src/foldermodel.cpp
+Tags: files, columns, qml, finder

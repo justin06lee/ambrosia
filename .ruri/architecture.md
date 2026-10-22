@@ -36,14 +36,13 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 - site/ — review site: spec content, live specimens, verdict threads, server + static build
 - assets/ — banner SVG, nectar day/night wallpapers, Files app icon (assets/icons/org.ambrosia.files.svg, installed as hicolor org.ambrosia.files)
 - dist/ — generated output: gtk-*, kde/, qml/, fontconfig/, web/, aurorae/, tokens.json (never hand-edit)
-- Makefile — build, test, review, screenshot targets; remote-build, review-remote and shot-remote run on tenet
-- package.json / tsconfig.json — bun+typescript toolchain definition
+- Makefile — build, test, review, screenshot targets; remote-build, review-remote and shot-remote run on tenet; package.json / tsconfig.json — bun+typescript toolchain definition
 - CONTEXT.md — handoff sheet: what stands, what's next, machines (tenet), how to build/test, gotchas
 - shell/ — Quickshell QML shell: menu bar and menus on a grabbing popup (MenuView.qml, Overlay.qml), Spotlight, dock (hand-drawn trash-full/empty.svg, no Apple art), control center, notifications, appearance; watchFiles off when installed under /usr
-- session/ — startambrosia (copies decoration settings into ~/.config/kdedefaults/kwinrc at login), systemd units swapping plasmashell, /etc/xdg/ambrosia defaults (kwinrc, breezerc), look-and-feel defaults, pacman hook ambrosia-shell-restart(.hook) restarting the shell after upgrades
+- session/ — startambrosia (copies decoration settings into ~/.config/kdedefaults/kwinrc at login), systemd units swapping plasmashell, /etc/xdg/ambrosia defaults (kwinrc, breezerc), xdg/mimeapps.list (folders and trash:/ open in Files), look-and-feel defaults, pacman hook ambrosia-shell-restart(.hook) restarting the shell after upgrades
 - packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop, ambrosia-files, and the Quickshell rebuild (DBusMenu shortcut patch; debug packages off)
 - iso/ — archiso profile: live desktop, local [ambrosia] repo, installer scripts
-- files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub), C++20 core with KF6/KIO (foldermodel.cpp, fileops.cpp undoable copy/move/trash with undo/redo labels), benchmarks in files/bench/; installs /usr/bin/ambrosia-files
+- files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub), C++20 core with KF6/KIO (foldermodel.cpp, fileops.cpp undoable copy/move/trash with undo/redo labels; Trash drops exposed over DBus), benchmarks in files/bench/; installs /usr/bin/ambrosia-files
 
 ## How to run it
 
@@ -81,5 +80,5 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 - Super+Space Spotlight; dock keeps pinned order, separate launchers, Mac-style Trash
 - Control center: pure blur glass, modes, sliding notification banners
 - Honey-bowl Ambrosia branding in menu bar, banner, favicon, preview and review site
-- Finder-style file manager: list, folders, menus, undo/redo copy/move/trash/rename, drag-drop
+- Finder-style file manager: undoable ops, Finder undo labels, drag-drop, default folder opener
 - Starter apps: Firefox, Kate, Gwenview, Okular, Ark, Discover

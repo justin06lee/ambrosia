@@ -15,7 +15,7 @@
     "Super+Space Spotlight; dock keeps pinned order, separate launchers, Mac-style Trash",
     "Control center: pure blur glass, modes, sliding notification banners",
     "Honey-bowl Ambrosia branding in menu bar, banner, favicon, preview and review site",
-    "Finder-style file manager: list, folders, menus, undo/redo copy/move/trash/rename, drag-drop",
+    "Finder-style file manager: undoable ops, Finder undo labels, drag-drop, default folder opener",
     "Starter apps: Firefox, Kate, Gwenview, Okular, Ark, Discover"
   ],
   "layers": [
@@ -158,14 +158,13 @@
     "site/ — review site: spec content, live specimens, verdict threads, server + static build",
     "assets/ — banner SVG, nectar day/night wallpapers, Files app icon (assets/icons/org.ambrosia.files.svg, installed as hicolor org.ambrosia.files)",
     "dist/ — generated output: gtk-*, kde/, qml/, fontconfig/, web/, aurorae/, tokens.json (never hand-edit)",
-    "Makefile — build, test, review, screenshot targets; remote-build, review-remote and shot-remote run on tenet",
-    "package.json / tsconfig.json — bun+typescript toolchain definition",
+    "Makefile — build, test, review, screenshot targets; remote-build, review-remote and shot-remote run on tenet; package.json / tsconfig.json — bun+typescript toolchain definition",
     "CONTEXT.md — handoff sheet: what stands, what's next, machines (tenet), how to build/test, gotchas",
     "shell/ — Quickshell QML shell: menu bar and menus on a grabbing popup (MenuView.qml, Overlay.qml), Spotlight, dock (hand-drawn trash-full/empty.svg, no Apple art), control center, notifications, appearance; watchFiles off when installed under /usr",
-    "session/ — startambrosia (copies decoration settings into ~/.config/kdedefaults/kwinrc at login), systemd units swapping plasmashell, /etc/xdg/ambrosia defaults (kwinrc, breezerc), look-and-feel defaults, pacman hook ambrosia-shell-restart(.hook) restarting the shell after upgrades",
+    "session/ — startambrosia (copies decoration settings into ~/.config/kdedefaults/kwinrc at login), systemd units swapping plasmashell, /etc/xdg/ambrosia defaults (kwinrc, breezerc), xdg/mimeapps.list (folders and trash:/ open in Files), look-and-feel defaults, pacman hook ambrosia-shell-restart(.hook) restarting the shell after upgrades",
     "packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop, ambrosia-files, and the Quickshell rebuild (DBusMenu shortcut patch; debug packages off)",
     "iso/ — archiso profile: live desktop, local [ambrosia] repo, installer scripts",
-    "files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub), C++20 core with KF6/KIO (foldermodel.cpp, fileops.cpp undoable copy/move/trash with undo/redo labels), benchmarks in files/bench/; installs /usr/bin/ambrosia-files"
+    "files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub), C++20 core with KF6/KIO (foldermodel.cpp, fileops.cpp undoable copy/move/trash with undo/redo labels; Trash drops exposed over DBus), benchmarks in files/bench/; installs /usr/bin/ambrosia-files"
   ],
   "run": [
     "make — test, build all themes into dist/, install on Linux",
@@ -852,10 +851,11 @@
           ]
         },
         {
-          "name": "KWin defaults (button order, no side borders, hot corner, blur, no popup fade), Breeze's Qt menus, splash off",
+          "name": "KWin defaults (buttons, borders, hot corner, blur, popups), Breeze menus, folders open in Files, no splash",
           "files": [
             "session/xdg/kwinrc",
             "session/xdg/breezerc",
+            "session/xdg/mimeapps.list",
             "session/ksplash.conf"
           ]
         },
@@ -926,7 +926,7 @@
         "shell/Apps.qml — running-app / menu model for app menus and dock",
         "shell/Search.qml — Spotlight search and launch UI",
         "shell/Dock.qml — app dock with running dots, Downloads, live Trash, Files icon and context menu",
-        "assets/icons/org.ambrosia.files.svg — hand-drawn Files icon, the Dock's Files pin until the Files app ships",
+        "assets/icons/org.ambrosia.files.svg — hand-drawn Files icon, used by the Files app and its Dock pin",
         "shell/trash-empty.svg — hand-drawn empty Trash for the dock",
         "shell/trash-full.svg — hand-drawn full Trash for the dock",
         "shell/ControlCenter.qml — quick-settings toggles and sliders",
@@ -958,7 +958,7 @@
         "Theme Targets — imports the generated Ambrosia QML module (/usr/lib/qt6/qml/Ambrosia) and kdeglobals",
         "Packaging and Image — ambrosia-shell installs shell/ to /usr/share/ambrosia/shell and session/ files system-wide, and ships assets/icons/org.ambrosia.files.svg with them",
         "Preview Desktop — the visual reference the QML must match",
-        "Files app (planned) — will take over the Dock's Files pin and icon from assets/icons/org.ambrosia.files.svg"
+        "Files app — pinned in the Dock; Trash drops use its DBus Trash method"
       ]
     },
     "packaging-and-image": {
@@ -1088,11 +1088,11 @@
           "name": "Publish",
           "steps": [
             "make publish (Mac)",
-            "tools/remote.sh pushes HEAD to tenet's bare repo ~/git/ambrosia.git and resets ~/work/ambrosia to it",
-            "capped make package there (+ make quickshell when neither the release nor out/pkg has its version, pkgrel included)",
+            "tools/remote.sh pushes HEAD to tenet's bare repo and resets ~/work/ambrosia to it",
+            "capped make package there (+ make quickshell when neither the release nor out/pkg has its version; skipped when out/pkg has this clean commit's packages)",
             "the release's ambrosia.db, verified, + repo-add on tenet",
             "gpg sign on the Mac",
-            "gh release upload to ambrosia-packages repo (packages first, db last)",
+            "gh release upload (packages first, db last)",
             "delete assets the db no longer lists"
           ]
         },
@@ -1316,6 +1316,13 @@
             "files/tools/screenrec/main.cpp",
             "tools/publish-repo.sh"
           ]
+        },
+        {
+          "name": "The Columns view (⌘3) and moving between columns",
+          "files": [
+            "files/qml/ColumnPane.qml",
+            "files/qml/FinderWindow.qml"
+          ]
         }
       ],
       "flows": [
@@ -1359,13 +1366,12 @@
         }
       ],
       "files": [
-        "docs/finder/PLAN.md — the plan: research, stack, v1 scope, targets with measured numbers, and step 2 shipping in slices (slice 1 in r103)",
+        "docs/finder/PLAN.md — the plan: research, stack, v1 scope, targets with measured numbers, and step 2 shipping in slices (slice 1 r103, slice 2 r148)",
         "assets/icons/org.ambrosia.files.svg — hand-drawn Finder-style app icon, installed by ambrosia-theme",
         "files/qml/MenuBar.qml — Finder's menu tree, with the shortcuts exported to the shell",
         "files/qml/ListPane.qml — list view with user-resizable columns",
         "files/qml/ColumnPane.qml — one column per folder, with the next column showing the selection",
         "files/src/fileops.cpp — KIO-backed move, copy, Trash, rename and new folder, with undo and redo labels",
-        "files/src/fileops.h — the file operation and undo/redo interface",
         "files/src/foldermodel.cpp — folder listing, sorting and diffed re-reads",
         "files/tools/tenet.sh — builds, benchmarks and screenshots the app on tenet under the memory cap; scratch lives in /var/tmp",
         "files/tools/screenrec/main.cpp — the screen recorder behind the demo captures",
@@ -1387,7 +1393,7 @@
       "edges": [
         "Shell and Session — pins org.ambrosia.files in the Dock and makes it the default for folders (merged in d0dd093); the Dock's Trash calls org.ambrosia.Files.Trash(as urls) while Files runs, since kioclient's trash isn't undoable",
         "Shell (menu bar) — draws Files' DBusMenu menus on a grabbing popup, which keeps the Files window active while a menu is open and shows each item's shortcut right-aligned",
-        "Packaging and Image — ships ambrosia-files (r127 on tenet, with Quickshell -3) and the patched Quickshell that carries the DBusMenu shortcut property and calls AboutToShow on every menu open",
+        "Packaging and Image — ships ambrosia-files (r148 on tenet, with Quickshell -3) and the patched Quickshell that carries the DBusMenu shortcut property and calls AboutToShow on every menu open",
         "tenet (ssh root@192.168.1.172) — builds, grabs, benchmarks, recordings and encodes run there through files/tools/tenet.sh; the Mac runs only editing, git and scp of finished results",
         "ambrosia-theme — installs assets/icons/org.ambrosia.files.svg into hicolor as org.ambrosia.files"
       ]

@@ -22,7 +22,7 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - **Session start, env and defaults scope:** session/startambrosia, session/ambrosia.desktop
 - **Swapping plasmashell for the shell:** session/ambrosia-shell.service, session/plasmashell.conf
 - **KWin's grant of its window list to the shell; Super+Space for Search; the ambrosia command:** session/org.ambrosia.shell.desktop, session/org.ambrosia.search.desktop, session/ambrosia
-- **KWin defaults (button order, no side borders, hot corner, blur, no popup fade), Breeze's Qt menus, splash off:** session/xdg/kwinrc, session/xdg/breezerc, session/ksplash.conf
+- **KWin defaults (buttons, borders, hot corner, blur, popups), Breeze menus, folders open in Files, no splash:** session/xdg/kwinrc, session/xdg/breezerc, session/xdg/mimeapps.list, session/ksplash.conf
 - **Session look-and-feel (colors, widget style, traffic-light window frames, splash off; dark mode switches the frame in shell/Appearance.qml):** session/look-and-feel/org.ambrosia.desktop/, session/startambrosia, tools/gen/targets/aurorae.ts
 
 ## How it works
@@ -42,7 +42,7 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - shell/Apps.qml — running-app / menu model for app menus and dock
 - shell/Search.qml — Spotlight search and launch UI
 - shell/Dock.qml — app dock with running dots, Downloads, live Trash, Files icon and context menu
-- assets/icons/org.ambrosia.files.svg — hand-drawn Files icon, the Dock's Files pin until the Files app ships
+- assets/icons/org.ambrosia.files.svg — hand-drawn Files icon, used by the Files app and its Dock pin
 - shell/trash-empty.svg — hand-drawn empty Trash for the dock
 - shell/trash-full.svg — hand-drawn full Trash for the dock
 - shell/ControlCenter.qml — quick-settings toggles and sliders
@@ -76,4 +76,4 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - Theme Targets — imports the generated Ambrosia QML module (/usr/lib/qt6/qml/Ambrosia) and kdeglobals
 - Packaging and Image — ambrosia-shell installs shell/ to /usr/share/ambrosia/shell and session/ files system-wide, and ships assets/icons/org.ambrosia.files.svg with them
 - Preview Desktop — the visual reference the QML must match
-- Files app (planned) — will take over the Dock's Files pin and icon from assets/icons/org.ambrosia.files.svg
+- Files app — pinned in the Dock; Trash drops use its DBus Trash method
