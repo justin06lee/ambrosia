@@ -95,6 +95,16 @@ Window {
         url = target;
     }
 
+    // Go menu places, by the sidebar's place for them.
+    readonly property var placeAt: ({
+        recents: [0, 0], desktop: [1, 0], documents: [1, 1], downloads: [1, 2],
+        home: [2, 0], computer: [2, 1], trash: [2, 2],
+    })
+    function goPlace(name) {
+        const at = placeAt[name];
+        go(Places.sections[at[0]].items[at[1]].url);
+    }
+
     function clearSelection() {
         selected = {};
         current = -1;
@@ -326,8 +336,11 @@ Window {
 
     // On the frame, the focused pane's keys come here unless it took them.
     function keyPressed(event) {
-        const ctrl = event.modifiers & Qt.ControlModifier;
+        // Command is Ctrl (what the Mac-first keyboard gives apps), or
+        // Super itself.
+        const ctrl = event.modifiers & (Qt.ControlModifier | Qt.MetaModifier);
         const shift = event.modifiers & Qt.ShiftModifier;
+        const alt = event.modifiers & Qt.AltModifier;
         const columns = win.view === "icon" ? Math.max(1, Math.floor((main.width - Finder.iconLeft) / Finder.iconCell)) : 1;
         switch (event.key) {
         case Qt.Key_Down:
@@ -360,7 +373,23 @@ Window {
             if (ctrl) win.act("list", () => win.view = "list");
             break;
         case Qt.Key_O:
-            if (ctrl) win.act("open", win.openSelection);
+            if (ctrl && shift) win.act("documents", () => win.goPlace("documents"));
+            else if (ctrl) win.act("open", win.openSelection);
+            break;
+        case Qt.Key_F:
+            if (ctrl && shift) win.act("recents", () => win.goPlace("recents"));
+            break;
+        case Qt.Key_D:
+            if (ctrl && shift) win.act("desktop", () => win.goPlace("desktop"));
+            break;
+        case Qt.Key_L:
+            if (ctrl && alt) win.act("downloads", () => win.goPlace("downloads"));
+            break;
+        case Qt.Key_H:
+            if (ctrl && shift) win.act("home", () => win.goPlace("home"));
+            break;
+        case Qt.Key_C:
+            if (ctrl && shift) win.act("computer", () => win.goPlace("computer"));
             break;
         case Qt.Key_N:
             if (ctrl && !shift) win.act("new", () => App.openWindow(win.url));
