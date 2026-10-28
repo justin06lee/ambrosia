@@ -3,11 +3,13 @@ import Ambrosia
 import Settings
 
 // The toolbar over the content: back and forward in a glass capsule, then
-// the pane's name. Positions are the window's.
+// the pane's name (not while the page's header box shows it). Positions are
+// the window's.
 Item {
     id: toolbar
 
     required property var settings
+    property bool showsTitle: true
 
     height: Look.toolbar
 
@@ -69,5 +71,7 @@ Item {
         text: toolbar.settings.title
         style: Theme.text.title3
         color: toolbar.settings.looksActive ? Theme.color.label.primary : Theme.color.label.tertiary
+        opacity: toolbar.showsTitle ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
     }
 }

@@ -2,8 +2,8 @@ import QtQuick
 import Ambrosia
 import Settings
 
-// A segmented control across its box, 24 tall (Sound's Output | Input):
-// equal segments on a capsule, the one chosen filled in the accent color.
+// A segmented control across its box, 24 tall with 6 corners (Sound's
+// Output | Input): equal segments, the one chosen filled in the accent color.
 Rectangle {
     id: control
 
@@ -13,7 +13,7 @@ Rectangle {
 
     implicitWidth: Look.boxWidth - 2 * Look.boxPadding
     implicitHeight: Look.segmented
-    radius: height / 2
+    radius: Look.segmentedRadius
     color: Look.face
     Accessible.role: Accessible.PageTabList
 
@@ -32,7 +32,7 @@ Rectangle {
 
                 Rectangle {
                     anchors.fill: parent
-                    radius: height / 2
+                    radius: Look.segmentedRadius
                     visible: segment.chosen
                     color: Theme.accent.bg
                 }

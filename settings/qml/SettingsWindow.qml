@@ -148,6 +148,7 @@ Window {
         Toolbar {
             width: parent.width
             settings: win
+            showsTitle: content.item?.showsTitle ?? true
         }
 
         Sidebar {

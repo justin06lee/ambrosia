@@ -10,6 +10,10 @@ Flickable {
 
     required property var settings
     default property alias content: column.data
+    // The header box the pane opens with, if any: while its own title is in
+    // view the toolbar leaves the pane's name out, as System Settings does.
+    property Item header: null
+    readonly property bool showsTitle: !header || contentY > header.y + Look.headerTitleY
 
     contentWidth: width
     contentHeight: column.implicitHeight + Look.margin

@@ -7,8 +7,9 @@ import Settings
 // opening ours or, until we build it, KDE's module.
 Page {
     id: page
+    header: headerBox
 
-    HeaderBox { pane: Panes.find("general") }
+    HeaderBox { id: headerBox; pane: Panes.find("general") }
 
     Repeater {
         model: Panes.general.map(group => group.filter(pane => Panes.available(pane))).filter(group => group.length > 0)
