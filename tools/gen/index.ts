@@ -22,7 +22,9 @@ const files: Record<string, string> = {
   "gtk-3.0/gtk-light.css": gtk3(r, "light"),
   "gtk-3.0/gtk-dark.css": gtk3(r, "dark"),
   ...Object.fromEntries(
-    ["gtk-3.0", "gtk-4.0"].flatMap((dir) => Object.entries(titlebuttonGlyphs()).map(([f, svg]) => [`${dir}/${f}`, svg])),
+    (["gtk-3.0", "gtk-4.0"] as const).flatMap((dir) =>
+      Object.entries(titlebuttonGlyphs(dir)).map(([f, svg]) => [`${dir}/${f}`, svg]),
+    ),
   ),
   "kde/AmbrosiaLight.colors": kde(r, "light"),
   "kde/AmbrosiaDark.colors": kde(r, "dark"),

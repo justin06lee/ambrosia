@@ -87,48 +87,69 @@ function accentPicker(m: ResolvedMode): Record<string, RGBA> {
 
 // Window controls ---------------------------------------------------------------
 
-/** The glyph images titlebuttons show on hover, one file each (GTK calls zoom "maximize"). */
-export const titlebuttonGlyphs = (): Record<string, string> => {
+/** GTK 3 draws a titlebutton's image at its 16px menu-icon size; GTK 4 takes
+ *  -gtk-icon-size, the light's own 14. */
+const GTK3_ICON = 16;
+
+/** The glyph images titlebuttons show on hover, one file each (GTK calls zoom
+ *  "maximize"), in solid black: the image's opacity makes them 50%, since GTK 3
+ *  recolours them as symbolic icons and would drop the SVG's own. GTK 3's are
+ *  16px canvases with the light's 14px box centred, so the glyph isn't scaled. */
+export const titlebuttonGlyphs = (gtk: "gtk-3.0" | "gtk-4.0"): Record<string, string> => {
   const glyphs = windowGlyphPolygons();
   const d = t.size.windowControls.diameter;
+  const canvas = gtk === "gtk-3.0" ? GTK3_ICON : d;
+  const o = -(canvas - d) / 2;
   return Object.fromEntries(
     (["close", "minimize", "maximize"] as const).map((name) => [
       `assets/${name}.svg`,
-      `<svg xmlns="http://www.w3.org/2000/svg" width="${d}" height="${d}" viewBox="0 0 ${d} ${d}">` +
-        `<path d="${svgPath(glyphs[name === "maximize" ? "zoom" : name])}" fill="#000" fill-opacity="${t.windowGlyphs.opacity}"/></svg>\n`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas}" height="${canvas}" viewBox="${o} ${o} ${canvas} ${canvas}">` +
+        `<path d="${svgPath(glyphs[name === "maximize" ? "zoom" : name])}" fill="#000"/></svg>\n`,
     ]),
   );
 };
+
+/** GTK 3's Adwaita headerbar: 46 tall, 6 of padding at each end, and 6
+ *  between its buttons (a widget property CSS can't reach). */
+const GTK3_HEADERBAR = { height: 46, padding: 6, spacing: 6 };
 
 /**
  * Close, minimize and zoom on GTK's own titlebars: 14px circles 9 apart, gray
  * on backdrop, each glyph on hover (GTK 4: all three while the pointer is over
  * any, as on a Mac; GTK 3 hovers buttons one at a time). `group` is GTK 4's
- * node holding the three.
+ * node holding the three. GTK 3 spaces them by margins, less its own spacing,
+ * sets the first as far from the left edge as from the top, as macOS does, and
+ * pulls its 16px image in to the light's 14.
  */
 function titlebuttons(m: ResolvedMode, mode: Mode, buttons: string, group: string | null): string {
   const c = m.windowControls;
   const d = t.size.windowControls.diameter;
+  const gap = t.size.windowControls.gap;
   const rim = mode === "light" ? 0.12 : 0.25;
   const glyphOn = group ? [`${group}:hover ${buttons}`, `${buttons}:hover`] : [`${buttons}:hover`];
   const each = (sel: string[], suffix: string) => sel.map((s) => s + suffix).join(",\n");
+  const bar = GTK3_HEADERBAR;
+  const spacing = group
+    ? `${group} { border-spacing: ${gap}px; }`
+    : `${buttons}:first-child { margin-left: ${Math.round((bar.height - d) / 2 - bar.padding)}px; }\n` +
+      `${buttons} + ${buttons} { margin-left: ${gap - bar.spacing}px; }`;
   return `
 /* Window controls: traffic lights. */
 ${buttons} {
-  min-width: ${d}px; min-height: ${d}px; padding: 0;
-  margin: 0 ${t.size.windowControls.gap / 2}px;
+  min-width: ${d}px; min-height: ${d}px; padding: 0; margin: 0;
   border: none; border-radius: 50%; outline: none;
   background-image: none; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, ${rim});
   -gtk-icon-shadow: none;
 }
-${buttons} image { opacity: 0;${group ? ` -gtk-icon-size: ${d}px;` : ""} min-width: ${d}px; min-height: ${d}px; }
+${spacing}
+${buttons} image { opacity: 0; color: #000;${group ? ` -gtk-icon-size: ${d}px; min-width: ${d}px; min-height: ${d}px;` : ` margin: ${-(GTK3_ICON - d) / 2}px;`} }
 ${buttons}.close { background-color: ${toCss(c.close)}; }
 ${buttons}.minimize { background-color: ${toCss(c.minimize)}; }
 ${buttons}.maximize { background-color: ${toCss(c.zoom)}; }
 ${buttons}:backdrop, ${buttons}:disabled { background-color: ${toCss(c.inactive)}; }
-${each(glyphOn, ".close image")} { opacity: 1; -gtk-icon-source: url("assets/close.svg"); }
-${each(glyphOn, ".minimize image")} { opacity: 1; -gtk-icon-source: url("assets/minimize.svg"); }
-${each(glyphOn, ".maximize image")} { opacity: 1; -gtk-icon-source: url("assets/maximize.svg"); }
+${each(glyphOn, ".close image")} { opacity: ${t.windowGlyphs.opacity}; -gtk-icon-source: url("assets/close.svg"); }
+${each(glyphOn, ".minimize image")} { opacity: ${t.windowGlyphs.opacity}; -gtk-icon-source: url("assets/minimize.svg"); }
+${each(glyphOn, ".maximize image")} { opacity: ${t.windowGlyphs.opacity}; -gtk-icon-source: url("assets/maximize.svg"); }
 ${buttons}:backdrop:hover.close { background-color: ${toCss(c.close)}; }
 ${buttons}:backdrop:hover.minimize { background-color: ${toCss(c.minimize)}; }
 ${buttons}:backdrop:hover.maximize { background-color: ${toCss(c.zoom)}; }

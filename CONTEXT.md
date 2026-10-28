@@ -101,7 +101,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
    `out/parity/` on the Mac. Windows have traffic lights since 2026-10-20;
    since 2026-10-28 they're our own KWin decoration plugin (`decoration/`,
    its sizes and colors from `dist/kdecoration/tokens.h`), with rounded
-   corners all round and all three glyphs on hover, as on a Mac.
+   corners all round and all three glyphs on hover, as on a Mac. The glyphs
+   are macOS 26's shapes, fitted at 2x and kept once in the tokens; the frame,
+   Files and GTK's titlebuttons all draw them. GTK 3's lights match too (14
+   wide, 23 apart); GTK 4's CSS is untested, as tenet has no GTK 4 app. A
+   running KWin keeps the plugin it loaded, so a new frame shows after the
+   next login (test it in a nested `kwin_wayland --wayland-display`).
    The Dock's Trash is Mac-style since 2026-10-21: the current macOS
    frosted bin, redrawn by hand and matched 1:1 against a screenshot (empty
    is the full bin without its paper: no empty screenshot to match), full or empty with the home trash
