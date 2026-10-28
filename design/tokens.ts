@@ -204,15 +204,18 @@ export const windowControls: Record<"close" | "minimize" | "zoom", Pair<string>>
 };
 
 /** The glyphs all three lights show while the pointer is over them, fitted to
- *  macOS 26's at 2x (dark): filled shapes on the light's 14-unit box, black at
- *  `opacity`. Close is an × of two `stroke`-wide bars cut square at its box;
- *  minimize a capsule between two centres; zoom a square split along its
- *  rising diagonal into two triangles, `gap` apart. */
+ *  macOS 26's at 2x (dark and light): filled shapes on the light's 14-unit
+ *  box, black at `opacity`. Close is an × of two `stroke`-wide bars cut square
+ *  at its box; minimize a capsule between two centres; zoom a square split
+ *  along its rising diagonal into two triangles, `gap` apart. A window that
+ *  can't go full screen (System Settings) shows plus on zoom instead: the
+ *  minimize capsule and its upright twin. */
 export const windowGlyphs = {
   opacity: 0.5,
   close: { box: [3.5, 10.5], stroke: 2 },
   minimize: { ends: [4, 10], radius: 1 },
   zoom: { box: [4, 10], gap: 1.4 },
+  plus: { ends: [4, 10], radius: 1 },
 } as const;
 
 // Materials and elevation ---------------------------------------------------
