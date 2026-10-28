@@ -49,7 +49,6 @@ function staticVars(r: Resolved): [string, string][] {
   for (const [sequence, steps] of Object.entries(t.choreography)) {
     for (const [step, ms] of Object.entries(steps)) v.push([`choreo-${kebab(sequence)}-${kebab(step)}`, `${ms}ms`]);
   }
-  for (const [name, c] of Object.entries(r.windowControls)) v.push([`control-${name}`, toCss(c)]);
   return v;
 }
 
@@ -67,6 +66,7 @@ function modeVars(m: ResolvedMode): [string, string][] {
   for (const [k, mat] of Object.entries(m.material)) v.push([`material-${k}-tint`, toCss(mat.tint)]);
   v.push(["glass-rim", toCss(m.glass.rim)], ["glass-edge", toCss(m.glass.edge)]);
   for (const [k, s] of Object.entries(m.shadows)) v.push([`shadow-${kebab(k)}`, cssShadow(s.layers, s.color)]);
+  for (const [name, c] of Object.entries(m.windowControls)) v.push([`control-${name}`, toCss(c)]);
   // Every accent's swatch stays available for pickers, whatever is active.
   for (const [k, a] of Object.entries(m.accents)) v.push([`accent-option-${k}`, toCss(a.bg)]);
   v.push(...accentVars(m.accents[t.accent.default]!));

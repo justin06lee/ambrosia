@@ -17,8 +17,9 @@ test("radii are concentric", () => {
 });
 
 test("every size and gap sits on the 2px grid", () => {
-  // Hairline-scale detail (focus ring, scrollbar thumbs) and capsules are exempt.
-  const { focusRing, scrollbar, ...layout } = t.size;
+  // Hairline-scale detail (focus ring, scrollbar thumbs), capsules and the
+  // window controls (macOS 26's own: 14 across, 23 apart) are exempt.
+  const { focusRing, scrollbar, windowControls, ...layout } = t.size;
   const { capsule, ...radii } = t.radius;
   const numbers = [
     ...Object.values(t.space),

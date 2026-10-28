@@ -9,16 +9,32 @@ export XDG_SESSION_DESKTOP=ambrosia
 # so they apply in this session only. kdeglobals names the session's
 # look-and-feel package, org.ambrosia.desktop.
 export XDG_CONFIG_DIRS="/etc/xdg/ambrosia:${XDG_CONFIG_DIRS:-/etc/xdg}"
+# GSettings defaults for this session only, over the user's own: GTK apps'
+# window controls on the left (/etc/dconf/db/ambrosia.d).
+export DCONF_PROFILE=ambrosia
 
 # The look-and-feel's window decoration, kept current in Plasma's copy of its
 # defaults: Plasma rewrites ~/.config/kdedefaults only when the look-and-feel
 # package's name changes, so users from before a new decoration keep the old.
 lnf=/usr/share/plasma/look-and-feel/org.ambrosia.desktop/contents/defaults
+config=${XDG_CONFIG_HOME:-$HOME/.config}
 for key in library theme; do
   value=$(kreadconfig6 --file "$lnf" --group kwinrc --group org.kde.kdecoration2 --key "$key")
-  [ -n "$value" ] && kwriteconfig6 --file "${XDG_CONFIG_HOME:-$HOME/.config}/kdedefaults/kwinrc" \
-    --group org.kde.kdecoration2 --key "$key" "$value"
+  if [ -n "$value" ]; then
+    kwriteconfig6 --file "$config/kdedefaults/kwinrc" --group org.kde.kdecoration2 --key "$key" "$value"
+  else
+    kwriteconfig6 --file "$config/kdedefaults/kwinrc" --group org.kde.kdecoration2 --key "$key" --delete
+  fi
 done
+# Ambrosia's frame used to be an Aurorae theme the shell wrote into the user's
+# own kwinrc; that copy would outrank the plugin, so it goes. A decoration the
+# user picked stays.
+case "$(kreadconfig6 --file "$config/kwinrc" --group org.kde.kdecoration2 --key theme)" in
+__aurorae__svg__Ambrosia*)
+  for key in library theme; do
+    kwriteconfig6 --file "$config/kwinrc" --group org.kde.kdecoration2 --key "$key" --delete
+  done ;;
+esac
 
 set -a
 . /usr/share/ambrosia/environment.d/50-ambrosia-fonts.conf

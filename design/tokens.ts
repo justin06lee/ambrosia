@@ -79,8 +79,10 @@ export const size = {
   menubar: { height: 28, itemPadding: 10, icon: 16 },
   dock: { icon: 52, padding: 16, gap: 16, margin: 6, indicator: 4, badge: 18 },
   controlCenter: { unit: 60, gap: 12, padding: 14, columns: 4, toggle: 36, track: 6 },
-  titlebar: { height: 40, toolbar: 52 },
-  windowControls: { diameter: 12, gap: 8, inset: 20 },
+  // macOS 26: a titled window's bar is 32, a toolbar 52. The controls sit
+  // centered in either, as far from the left edge as from the top.
+  titlebar: { height: 32, toolbar: 52 },
+  windowControls: { diameter: 14, gap: 9 },
   sidebar: { width: 220, row: 28, rowInset: 10 },
   control: { small: 22, regular: 28, large: 36 },
   row: { compact: 24, regular: 28, large: 44 },
@@ -192,10 +194,12 @@ export const accent = {
   highlight: 0.28,
 };
 
-export const windowControls = {
-  close: "oklch(0.68 0.2 28)",
-  minimize: "oklch(0.83 0.16 82)",
-  zoom: "oklch(0.72 0.19 145)",
+/** Close, minimize and zoom. Dark is macOS 26's own, measured: softer than
+ *  light's. Inactive windows show them in `fill.primary` on the window. */
+export const windowControls: Record<"close" | "minimize" | "zoom", Pair<string>> = {
+  close: { light: "oklch(0.68 0.2 28)", dark: "oklch(0.678 0.166 23.4)" },
+  minimize: { light: "oklch(0.83 0.16 82)", dark: "oklch(0.851 0.152 91.8)" },
+  zoom: { light: "oklch(0.72 0.19 145)", dark: "oklch(0.74 0.159 144)" },
 };
 
 // Materials and elevation ---------------------------------------------------

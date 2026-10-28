@@ -20,18 +20,6 @@ Singleton {
         Settings.accent = name;
         Quickshell.execDetached(["plasma-apply-colorscheme", "--accent-color", Theme.color.accents[name].bg.toString()]);
     }
-    // Window frames follow too, when they're Ambrosia's (one theme a mode);
-    // a decoration the user picked stays.
-    function setFrames(dark) {
-        Quickshell.execDetached(["sh", "-c",
-            'case "$(kreadconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme)" in __aurorae__svg__Ambrosia*) ' +
-            `kwriteconfig6 --file kwinrc --group org.kde.kdecoration2 --key theme __aurorae__svg__Ambrosia${dark ? "Dark" : "Light"} && ` +
-            "dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure;; esac"]);
-    }
-    Connections {
-        target: Settings
-        function onDarkChanged() { appearance.setFrames(Settings.dark); }
-    }
     // On, it stays warm until turned off (KWin's constant mode).
     function setNightLight(on) {
         nightLight = on;

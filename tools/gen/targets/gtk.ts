@@ -2,6 +2,8 @@
 //   gtk-4.0/gtk.css    libadwaita ≥ 1.6 CSS variables, light and dark in one file
 //   gtk-3.0/gtk-*.css  named colors for adw-gtk3 / Adwaita GTK3, one file per mode
 //                      (GTK3 has no prefers-color-scheme, so the active one is copied)
+// Both also draw client-side titlebars' window controls as our traffic lights,
+// with the glyphs Files draws (assets/*.svg beside each CSS file).
 
 import * as t from "../../../design/tokens";
 import type { Mode } from "../../../design/tokens";
@@ -83,6 +85,61 @@ function accentPicker(m: ResolvedMode): Record<string, RGBA> {
   };
 }
 
+// Window controls ---------------------------------------------------------------
+
+/** Files' glyphs on a 14-unit box: close, minimize, zoom. */
+const GLYPHS = {
+  close: "M4 4l6 6M10 4l-6 6",
+  minimize: "M3.5 7h7",
+  maximize: "M4.5 3.5h6v6M9.5 10.5h-6v-6",
+};
+
+/** The glyph images titlebuttons show on hover, one file each. */
+export const titlebuttonGlyphs = (): Record<string, string> =>
+  Object.fromEntries(
+    Object.entries(GLYPHS).map(([name, d]) => [
+      `assets/${name}.svg`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">` +
+        `<path d="${d}" fill="none" stroke="#000" stroke-opacity="0.55" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>\n`,
+    ]),
+  );
+
+/**
+ * Close, minimize and zoom on GTK's own titlebars: 14px circles 9 apart, gray
+ * on backdrop, each glyph on hover (GTK 4: all three while the pointer is over
+ * any, as on a Mac; GTK 3 hovers buttons one at a time). `group` is GTK 4's
+ * node holding the three.
+ */
+function titlebuttons(m: ResolvedMode, mode: Mode, buttons: string, group: string | null): string {
+  const c = m.windowControls;
+  const d = t.size.windowControls.diameter;
+  const rim = mode === "light" ? 0.12 : 0.25;
+  const glyphOn = group ? [`${group}:hover ${buttons}`, `${buttons}:hover`] : [`${buttons}:hover`];
+  const each = (sel: string[], suffix: string) => sel.map((s) => s + suffix).join(",\n");
+  return `
+/* Window controls: traffic lights. */
+${buttons} {
+  min-width: ${d}px; min-height: ${d}px; padding: 0;
+  margin: 0 ${t.size.windowControls.gap / 2}px;
+  border: none; border-radius: 50%; outline: none;
+  background-image: none; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, ${rim});
+  -gtk-icon-shadow: none;
+}
+${buttons} image { opacity: 0;${group ? ` -gtk-icon-size: ${d}px;` : ""} min-width: ${d}px; min-height: ${d}px; }
+${buttons}.close { background-color: ${toCss(c.close)}; }
+${buttons}.minimize { background-color: ${toCss(c.minimize)}; }
+${buttons}.maximize { background-color: ${toCss(c.zoom)}; }
+${buttons}:backdrop, ${buttons}:disabled { background-color: ${toCss(c.inactive)}; }
+${each(glyphOn, ".close image")} { opacity: 1; -gtk-icon-source: url("assets/close.svg"); }
+${each(glyphOn, ".minimize image")} { opacity: 1; -gtk-icon-source: url("assets/minimize.svg"); }
+${each(glyphOn, ".maximize image")} { opacity: 1; -gtk-icon-source: url("assets/maximize.svg"); }
+${buttons}:backdrop:hover.close { background-color: ${toCss(c.close)}; }
+${buttons}:backdrop:hover.minimize { background-color: ${toCss(c.minimize)}; }
+${buttons}:backdrop:hover.maximize { background-color: ${toCss(c.zoom)}; }
+${buttons}:active { box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, ${rim}), inset 0 0 0 ${d}px rgba(0, 0, 0, 0.18); }
+`;
+}
+
 const vars = (entries: Record<string, RGBA>, indent: string) =>
   Object.entries(entries).map(([k, c]) => `${indent}--${k}: ${toCss(c)};`).join("\n");
 
@@ -108,8 +165,15 @@ ${fonts}
 ${vars({ ...roles(dark, "dark"), ...accentPicker(dark) }, "    ")}
   }
 }
+${titlebuttons(light, "light", GTK4_BUTTONS, "windowcontrols")}
+@media (prefers-color-scheme: dark) {
+${titlebuttons(dark, "dark", GTK4_BUTTONS, "windowcontrols")}
+}
 `;
 }
+
+const GTK4_BUTTONS = "windowcontrols > button";
+const GTK3_BUTTONS = "button.titlebutton";
 
 export function gtk3(r: Resolved, mode: Mode): string {
   const m = r.modes[mode];
@@ -131,5 +195,5 @@ export function gtk3(r: Resolved, mode: Mode): string {
     "",
     ...Object.entries(legacy).map(([k, c]) => `@define-color ${k} ${toCss(c)};`),
   ];
-  return `/* ${HEADER} */\n/* ${mode} */\n\n${lines.join("\n")}\n`;
+  return `/* ${HEADER} */\n/* ${mode} */\n\n${lines.join("\n")}\n${titlebuttons(m, mode, GTK3_BUTTONS, null)}`;
 }

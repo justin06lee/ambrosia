@@ -98,8 +98,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
    (2026-10-20, branch `feat/visual-parity`): glass rims and specular ring,
    menus, Dock tiles and tooltip, banner motion, control center spacing,
    KWin's blur, Breeze's frames and menus. Side-by-side screenshots are in
-   `out/parity/` on the Mac. Windows have traffic lights since 2026-10-20
-   (an Aurorae theme generated from the tokens, `tools/gen/targets/aurorae.ts`).
+   `out/parity/` on the Mac. Windows have traffic lights since 2026-10-20;
+   since 2026-10-28 they're our own KWin decoration plugin (`decoration/`,
+   its sizes and colors from `dist/kdecoration/tokens.h`), with rounded
+   corners all round and all three glyphs on hover, as on a Mac.
    The Dock's Trash is Mac-style since 2026-10-21: the current macOS
    frosted bin, redrawn by hand and matched 1:1 against a screenshot (empty
    is the full bin without its paper: no empty screenshot to match), full or empty with the home trash
@@ -107,9 +109,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
    Files has its own Finder-style icon (2026-10-21, `assets/icons/`, hicolor
    `org.ambrosia.files`); until Ambrosia's Files app exists, Dolphin's Dock
    pin shows as Files with it (`standIns` in `shell/Dock.qml`).
-   Still apart from the preview: windows' bottom corners (square: Aurorae
-   can't round the app's own content), the buttons' glyphs (on the hovered
-   button only, not all three as on a Mac), Breeze's menu radius and row height (only our own
+   Still apart from the preview: Breeze's menu radius and row height (only our own
    QStyle could change them), real apps' icons (no Ambrosia icon theme),
    per-surface blur and saturation (KWin has one setting for all), and the
    control center's feathered blur edge (KWin's blur regions are hard-edged).
@@ -262,11 +262,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
   look-and-feel touches (Breeze's `breezerc`) go in `/etc/xdg/ambrosia`; the
   window decoration, which it does set, `startambrosia` copies from the
   look-and-feel into `kdedefaults/kwinrc` at every login.
-- **Aurorae makes the window shadow from what the frame paints in its
-  padding**, and slices `decoration.svg` nine ways at the pieces' own sizes;
-  KSvg only takes a prefix whose `-center` element exists. The frame is
-  painted as embedded PNGs at 1x (soft on HiDPI screens); the buttons are
-  vector. Plasma's task model only puts a pinned app's windows at its
+- **KWin rounds a decorated window's content to the decoration's
+  `setBorderRadius`** (KDecoration3, Plasma 6.3+), so the plugin rounds all
+  four corners; the window shadow is the decoration's own image, painted
+  once per mode and focus (`decoration/src/shadow.cpp`). Plasma's task model only puts a pinned app's windows at its
   launcher (`launchInPlace`) with `separateLaunchers: true`.
 - **Quickshell loads QML from a virtual `qrc:/qs-blackhole` base**, so
   relative URLs and `Qt.resolvedUrl` don't point at files. Build file URLs
