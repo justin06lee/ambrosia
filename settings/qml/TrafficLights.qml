@@ -5,8 +5,8 @@ import Settings
 
 // Close, minimize and zoom, as Files draws them (files/qml/TrafficLights.qml).
 // Gray while the window is inactive; their glyphs show while the pointer is
-// over them. System Settings is as wide as it is, so its zoom is disabled:
-// gray, with no glyph.
+// over them. Settings keeps its width, so zoom fills the screen's height (KWin
+// holds the window to its size limits); `zoomable: false` grays it out.
 Row {
     id: lights
 
