@@ -69,9 +69,11 @@ void Button::paint(QPainter *painter, const QRectF &)
         painter->setBrush(QColor(0, 0, 0, 46));
         painter->drawEllipse(r);
     }
-    // Half a pixel of shade just inside the edge, as Files draws it.
+    // Half a pixel just inside the edge, as Files draws it: a deeper shade of
+    // a lit light, black on an inactive one.
+    const unsigned rim = type() == DecorationButtonType::Close ? t.closeRim : type() == DecorationButtonType::Minimize ? t.minimizeRim : t.zoomRim;
     painter->setBrush(Qt::NoBrush);
-    painter->setPen(QPen(QColor(0, 0, 0, deco->isDark() ? 64 : 31), 0.5));
+    painter->setPen(QPen(lit ? QColor::fromRgba(rim) : QColor(0, 0, 0, deco->isDark() ? 64 : 31), 0.5));
     painter->drawEllipse(r.adjusted(0.25, 0.25, -0.25, -0.25));
 
     if (hovered) {

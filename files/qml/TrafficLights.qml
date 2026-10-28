@@ -16,9 +16,9 @@ Row {
 
     Repeater {
         model: [
-            { color: Theme.windowControls.close, glyph: Theme.windowGlyphs.close, act: () => lights.window.close() },
-            { color: Theme.windowControls.minimize, glyph: Theme.windowGlyphs.minimize, act: () => lights.window.showMinimized() },
-            { color: Theme.windowControls.zoom, glyph: Theme.windowGlyphs.zoom,
+            { color: Theme.windowControls.close, rim: Theme.windowControls.closeRim, glyph: Theme.windowGlyphs.close, act: () => lights.window.close() },
+            { color: Theme.windowControls.minimize, rim: Theme.windowControls.minimizeRim, glyph: Theme.windowGlyphs.minimize, act: () => lights.window.showMinimized() },
+            { color: Theme.windowControls.zoom, rim: Theme.windowControls.zoomRim, glyph: Theme.windowGlyphs.zoom,
               act: () => lights.window.visibility === Window.Maximized ? lights.window.showNormal() : lights.window.showMaximized() },
         ]
 
@@ -28,9 +28,11 @@ Row {
             width: Finder.lightSize
             height: width
             radius: width / 2
-            color: lights.active || hover.hovered ? modelData.color : Finder.lightInactive
+            readonly property bool lit: lights.active || hover.hovered
+            color: lit ? modelData.color : Finder.lightInactive
+            // Half a point inside the edge: a deeper shade while lit, black when not.
             border.width: 0.5
-            border.color: Qt.rgba(0, 0, 0, Theme.dark ? 0.25 : 0.12)
+            border.color: lit ? modelData.rim : Qt.rgba(0, 0, 0, Theme.dark ? 0.25 : 0.12)
 
             Shape {
                 // The tokens' glyph, filled on the light's own box (the KWin frame draws the same).

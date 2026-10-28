@@ -28,6 +28,9 @@ function mode(r: Resolved, name: Mode): string {
     .minimize = ${argb(c.minimize)},
     .zoom = ${argb(c.zoom)},
     .inactive = ${argb(c.inactive)},
+    .closeRim = ${argb(c.closeRim)},
+    .minimizeRim = ${argb(c.minimizeRim)},
+    .zoomRim = ${argb(c.zoomRim)},
     .rim = ${argb(m.glass.rim)},
     .edge = ${argb(m.glass.edge)},
     .shadow = ${shadow("window")},
@@ -58,6 +61,7 @@ struct Shadow {
 struct Mode {
     unsigned window, title, titleInactive;
     unsigned close, minimize, zoom, inactive;
+    unsigned closeRim, minimizeRim, zoomRim;
     unsigned rim, edge;
     Shadow shadow, shadowInactive;
 };
