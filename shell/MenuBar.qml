@@ -38,7 +38,7 @@ PanelWindow {
 
     function ambrosiaMenu() {
         return [
-            { text: "About This Computer", action: () => Session.settings("kcm_about-distro") },
+            { text: "About This Computer", action: () => Session.settings("about") },
             { separator: true },
             { text: "System Settings…", action: () => Session.settings() },
             { separator: true },
@@ -125,7 +125,7 @@ PanelWindow {
             });
         }
         items.push({ separator: true });
-        items.push({ text: "Network Settings…", action: () => Session.settings("kcm_networkmanagement") });
+        items.push({ text: "Network Settings…", action: () => Session.settings("network") });
         return items;
     }
 
@@ -148,7 +148,7 @@ PanelWindow {
         return [
             { text: `Battery: ${Math.round(device.percentage * 100)}%`, enabled: false },
             { separator: true },
-            { text: "Battery Settings…", action: () => Session.settings("kcm_powerdevilprofilesconfig") },
+            { text: "Battery Settings…", action: () => Session.settings("battery") },
         ];
     }
 
@@ -156,7 +156,7 @@ PanelWindow {
         return [
             { text: Qt.formatDateTime(clock.date, "dddd, MMMM d, yyyy"), enabled: false },
             { separator: true },
-            { text: "Date & Time Settings…", action: () => Session.settings("kcm_clock") },
+            { text: "Date & Time Settings…", action: () => Session.settings("datetime") },
         ];
     }
 

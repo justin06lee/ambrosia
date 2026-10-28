@@ -4,14 +4,15 @@
 # ambrosia-decoration the window frame with the traffic lights, a KWin plugin (decoration/)
 # ambrosia-shell   the Quickshell shell and the Ambrosia session on KWin
 # ambrosia-files   Files, Ambrosia's Finder (files/, built with CMake)
+# ambrosia-settings System Settings (settings/, built with CMake)
 # ambrosia-desktop everything a fresh install needs, the ISO installs this
 
 pkgbase=ambrosia
-pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-shell ambrosia-files ambrosia-desktop)
+pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-shell ambrosia-files ambrosia-settings ambrosia-desktop)
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A Linux desktop that looks and moves as one thing"
-# x86_64 for ambrosia-files and ambrosia-decoration; the rest are arch=(any).
+# x86_64 for ambrosia-files, ambrosia-settings and ambrosia-decoration; the rest are arch=(any).
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
@@ -37,6 +38,8 @@ build() {
   cmake --build "$srcdir/build-files"
   cmake -S decoration -B "$srcdir/build-decoration" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-decoration"
+  cmake -S settings -B "$srcdir/build-settings" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build "$srcdir/build-settings"
 }
 
 package_ambrosia-keyring() {
@@ -132,11 +135,22 @@ package_ambrosia-files() {
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-files"
 }
 
+package_ambrosia-settings() {
+  pkgdesc="System Settings, Ambrosia's"
+  # ambrosia-theme: the Ambrosia QML Theme module and the org.ambrosia.settings
+  # icon. kcmutils: kcmshell6, which opens KDE's module for a pane not built
+  # yet. hwdata: pci.ids, for About's graphics. The QML and art are in the binary.
+  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kwindowsystem kcmutils hwdata inter-font)
+  DESTDIR="$pkgdir" cmake --install "$srcdir/build-settings"
+}
+
 package_ambrosia-desktop() {
   pkgdesc="The Ambrosia desktop: the shell plus the system services and apps a new install needs"
   arch=(any)
   depends=(
-    ambrosia-shell ambrosia-keyring ambrosia-files
+    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings
+    # Low Power Mode (Battery), and printing (Printers & Scanners).
+    power-profiles-daemon cups avahi nss-mdns
     sddm xdg-desktop-portal-kde polkit-kde-agent kscreen powerdevil
     networkmanager plasma-nm bluez bluez-utils bluedevil
     pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber plasma-pa

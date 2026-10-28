@@ -43,8 +43,10 @@ x, y, w, h) beside a 2x screenshot of each pane, on the Mac only.
 ## Content
 
 - Scroll area x 223 – 723. Groups ("boxes") are x 243, 460 wide (20 margin),
-  radius about 10, filled a step off the window (white in light, about 5 %
-  white in dark), 10 apart.
+  radius about 10, filled a step off the window, 10 apart: in light the
+  window is white and the boxes #f7f7f7 with #ebebeb hairlines; in dark
+  #272724, #2d2d2b and #373735 (light measured 2026-10-28 in daytime Auto
+  mode, `out/settings/mac/light/`).
 - Inside a box: 10 pt padding; rows separated by a hairline from x 253 to 693.
   Control rows pitch about 38.5 (label 13 pt, centred); navigation rows 42
   plus the hairline, with a 20 pt icon at x 253, the label at x 283 and a
@@ -63,6 +65,12 @@ x, y, w, h) beside a 2x screenshot of each pane, on the Mac only.
     filled with the accent;
   - help button: a 24 pt circle with "?", bottom right, 20 below the last box.
 - Descriptions under a label: 11 pt secondary.
+
+- Pop-ups have no face: the value in plain text, then a 16 × 20 capsule with
+  the up/down chevrons, 4 from the right. Switch knob 20 × 12, 2 in; slider
+  track 6, knob 20 × 16. Faces: #e4e4e4 light, #3d3d3b dark. The window's
+  corner radius is 26, the sidebar panel's 18. The sidebar selection is the
+  accent while the window is key, grey (#464646 dark) when it isn't.
 
 ## Panes not built yet
 
