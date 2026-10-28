@@ -36,7 +36,6 @@ Item {
         x: Look.lightsX - sidebar.inset
         y: Look.lightsY - sidebar.inset
         window: sidebar.settings
-        zoomable: false
     }
 
     SearchField {

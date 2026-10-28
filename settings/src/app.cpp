@@ -4,6 +4,10 @@
 #include <KWindowSystem>
 
 #include <QCoreApplication>
+#include <QDBusConnection>
+#include <QDBusConnectionInterface>
+#include <QDBusInterface>
+#include <QDBusReply>
 #include <QDir>
 #include <QFile>
 #include <QGuiApplication>
@@ -245,6 +249,41 @@ void App::activate(QQuickWindow *window)
     if (window->visibility() == QWindow::Minimized)
         window->showNormal();
     KWindowSystem::activateWindow(window);
+}
+
+void App::zoom(QQuickWindow *window)
+{
+    // xdg-shell maximizes both ways and KWin then ignores the window's fixed
+    // width, so Settings asks KWin itself, through a script, to maximize it
+    // vertically only (or restore it when it already fills the height).
+    static const QString kwin = QStringLiteral("org.kde.KWin");
+    QDBusConnection bus = QDBusConnection::sessionBus();
+    const QString path = QStandardPaths::writableLocation(QStandardPaths::RuntimeLocation) + QStringLiteral("/ambrosia-settings-zoom.js");
+    QFile script(path);
+    if (!bus.interface()->isServiceRegistered(kwin) || !script.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        window->visibility() == QWindow::Maximized ? window->showNormal() : window->showMaximized();
+        return;
+    }
+    script.write(QStringLiteral("for (const w of workspace.windowList()) {\n"
+                                "    if (w.pid !== %1) continue;\n"
+                                "    const area = workspace.clientArea(KWin.MaximizeArea, w), frame = w.frameGeometry;\n"
+                                "    w.setMaximize(Math.round(frame.y) !== Math.round(area.y) || Math.round(frame.height) !== Math.round(area.height), false);\n"
+                                "}\n")
+                     .arg(QCoreApplication::applicationPid())
+                     .toUtf8());
+    script.close();
+    // The last run's script stays loaded until this one replaces it: KWin
+    // reads the file after run() returns.
+    static const QString name = QStringLiteral("ambrosia-settings-zoom");
+    QDBusInterface scripting(kwin, QStringLiteral("/Scripting"), QStringLiteral("org.kde.kwin.Scripting"), bus);
+    scripting.call(QStringLiteral("unloadScript"), name);
+    const QDBusReply<int> id = scripting.call(QStringLiteral("loadScript"), path, name);
+    if (!id.isValid() || id.value() < 0) {
+        qWarning("Settings: KWin didn't load the zoom script");
+        return;
+    }
+    QDBusInterface(kwin, QStringLiteral("/Scripting/Script%1").arg(id.value()), QStringLiteral("org.kde.kwin.Script"), bus)
+        .call(QStringLiteral("run"));
 }
 
 void App::Show(const QString &pane, const QString &token)
