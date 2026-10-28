@@ -6,7 +6,8 @@ import Settings
 // Close, minimize and zoom, as Files draws them (files/qml/TrafficLights.qml).
 // Gray while the window is inactive; their glyphs show while the pointer is
 // over them. Settings keeps its width, so zoom fills the screen's height
-// (App.zoom); `zoomable: false` grays it out.
+// (App.zoom) and shows plus, as System Settings' does; `zoomable: false`
+// grays it out.
 Row {
     id: lights
 
@@ -22,7 +23,7 @@ Row {
         model: [
             { color: Theme.windowControls.close, glyph: Theme.windowGlyphs.close, act: () => lights.window.close() },
             { color: Theme.windowControls.minimize, glyph: Theme.windowGlyphs.minimize, act: () => lights.window.showMinimized() },
-            { color: Theme.windowControls.zoom, glyph: Theme.windowGlyphs.zoom, off: !lights.zoomable,
+            { color: Theme.windowControls.zoom, glyph: Theme.windowGlyphs.plus, off: !lights.zoomable,
               act: () => App.zoom(lights.window) },
         ]
 

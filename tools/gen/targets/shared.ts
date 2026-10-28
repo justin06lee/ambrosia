@@ -20,7 +20,7 @@ export const pt = (px: number) => +(px * 0.75).toFixed(2);
 // The traffic lights' hover glyphs ------------------------------------------------
 
 export type Point = [number, number];
-export type Glyph = "close" | "minimize" | "zoom";
+export type Glyph = "close" | "minimize" | "zoom" | "plus";
 
 /** The hover glyphs as filled polygons on the light's 14-unit box, clockwise,
  *  from `windowGlyphs`. Every toolkit draws these same shapes. */
@@ -39,14 +39,24 @@ export function windowGlyphPolygons(): Record<Glyph, Point[][]> {
 
   // The capsule, across the light's middle: a half circle round each end, eight segments each.
   const mid = size.windowControls.diameter / 2;
-  const [a, b] = g.minimize.ends;
-  const r = g.minimize.radius;
-  const arc = (cx: number, from: number): Point[] =>
+  const arc = (cx: number, cy: number, r: number, from: number): Point[] =>
     Array.from({ length: 9 }, (_, i) => {
       const angle = from + (Math.PI * i) / 8;
-      return [cx + r * Math.cos(angle), mid + r * Math.sin(angle)];
+      return [cx + r * Math.cos(angle), cy + r * Math.sin(angle)];
     });
-  const minimize = [...arc(b, -Math.PI / 2), ...arc(a, Math.PI / 2)];
+  const [a, b] = g.minimize.ends;
+  const r = g.minimize.radius;
+  const minimize = [...arc(b, mid, r, -Math.PI / 2), ...arc(a, mid, r, Math.PI / 2)];
+
+  // The plus: that capsule and its upright twin as one outline, arm by arm from the right.
+  const [pa, pb] = g.plus.ends;
+  const pr = g.plus.radius;
+  const plus: Point[] = [
+    ...arc(pb, mid, pr, -Math.PI / 2), [mid + pr, mid + pr],
+    ...arc(mid, pb, pr, 0), [mid - pr, mid + pr],
+    ...arc(pa, mid, pr, Math.PI / 2), [mid - pr, mid - pr],
+    ...arc(mid, pa, pr, Math.PI), [mid + pr, mid - pr],
+  ];
 
   // Two right triangles in opposite corners; their hypotenuses sit gap/2 either side of the diagonal.
   const [zlo, zhi] = g.zoom.box;
@@ -56,7 +66,7 @@ export function windowGlyphPolygons(): Record<Glyph, Point[][]> {
     [[zhi, zhi], [zhi - leg, zhi], [zhi, zhi - leg]],
   ];
 
-  return { close: round([close]), minimize: round([minimize]), zoom: round(zoom) };
+  return { close: round([close]), minimize: round([minimize]), zoom: round(zoom), plus: round([plus]) };
 }
 
 /** Polygons as SVG path data. */

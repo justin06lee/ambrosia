@@ -41,8 +41,8 @@ x, y, w, h) beside a 2x screenshot of each pane, on the Mac only.
 - The pane's name at x 316, centred in the 52 band, about 15 pt semibold.
   A pane that opens with a header box (General) leaves it out until the
   box's own title has scrolled under the toolbar.
-- The zoom light is live (green while key): it fills the screen's height and
-  keeps the width.
+- The zoom light is live (green while key) and shows a plus on hover, not
+  the full-screen triangles: it fills the screen's height and keeps the width.
 
 ## Content
 
