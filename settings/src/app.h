@@ -58,6 +58,9 @@ public:
     Q_INVOKABLE void shown(QQuickWindow *window);
     // Brings the window forward, with the token a second launch handed over.
     Q_INVOKABLE void activate(QQuickWindow *window);
+    // The zoom light: fills the screen's height at the window's width, or
+    // gives it back its size, as System Settings' zoom does.
+    Q_INVOKABLE void zoom(QQuickWindow *window);
 
 public Q_SLOTS:
     // org.ambrosia.Settings.Show: another launch asks for a pane (empty for
