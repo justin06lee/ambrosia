@@ -6,24 +6,6 @@
 #include <QDBusMessage>
 #include <QIcon>
 #include <QQmlApplicationEngine>
-#include <QQuickImageProvider>
-
-// Theme icons for QML, as image://icon/NAME (Files' IconProvider).
-class IconProvider : public QQuickImageProvider
-{
-public:
-    IconProvider()
-        : QQuickImageProvider(QQuickImageProvider::Pixmap)
-    {
-    }
-    QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requested) override
-    {
-        const QPixmap pixmap = QIcon::fromTheme(id).pixmap(requested.isValid() ? requested : QSize(32, 32));
-        if (size)
-            *size = pixmap.size();
-        return pixmap;
-    }
-};
 
 int main(int argc, char *argv[])
 {
@@ -36,8 +18,6 @@ int main(int argc, char *argv[])
     QApplication::setApplicationVersion(QStringLiteral(SETTINGS_VERSION));
     // The Wayland app id: the Dock and the menu bar know Settings by it.
     QApplication::setDesktopFileName(QStringLiteral("org.ambrosia.settings"));
-    if (QIcon::themeName().isEmpty() || QIcon::themeName() == QLatin1String("hicolor"))
-        QIcon::setThemeName(QStringLiteral("breeze")); // grabs, with no platform theme
     QApplication::setWindowIcon(QIcon::fromTheme(QStringLiteral("org.ambrosia.settings")));
 
     QCommandLineParser parser;
@@ -72,7 +52,6 @@ int main(int argc, char *argv[])
     if (options.grab.isEmpty())
         bus.registerObject(QStringLiteral("/org/ambrosia/settings"), &settings, QDBusConnection::ExportScriptableSlots);
     QQmlApplicationEngine engine;
-    engine.addImageProvider(QStringLiteral("icon"), new IconProvider);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
     engine.loadFromModule(QStringLiteral("Settings"), QStringLiteral("SettingsWindow"));
     return app.exec();
