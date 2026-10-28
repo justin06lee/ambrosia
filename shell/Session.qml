@@ -22,8 +22,10 @@ Singleton {
     function open(url) {
         Quickshell.execDetached(["kioclient", "exec", url]);
     }
-    function settings(module) {
-        run(module ? ["systemsettings", module] : ["systemsettings"]);
+    // System Settings (ambrosia-settings), on one of its panes: general,
+    // about, wifi, network, bluetooth, sound, battery, datetime…
+    function settings(pane) {
+        run(pane ? ["ambrosia-settings", "--pane", pane] : ["ambrosia-settings"]);
     }
 
     function lock() {

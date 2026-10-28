@@ -79,7 +79,7 @@ install -d /mnt/var/lib/sddm
 printf '[Last]\nSession=/usr/share/wayland-sessions/ambrosia.desktop\nUser=%s\n' "$user" >/mnt/var/lib/sddm/state.conf
 arch-chroot /mnt chown -R sddm:sddm /var/lib/sddm
 
-arch-chroot /mnt systemctl enable sddm NetworkManager bluetooth systemd-timesyncd fstrim.timer
+arch-chroot /mnt systemctl enable sddm NetworkManager bluetooth systemd-timesyncd fstrim.timer cups.socket avahi-daemon
 
 step "Making it bootable"
 arch-chroot /mnt bootctl install

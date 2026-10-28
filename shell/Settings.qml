@@ -29,7 +29,7 @@ Singleton {
             id: adapter
             property list<string> dock: [
                 "org.ambrosia.files", "firefox", "org.kde.konsole", "org.kde.kate",
-                "org.kde.gwenview", "org.kde.discover", "systemsettings",
+                "org.kde.gwenview", "org.kde.discover", "org.ambrosia.settings",
             ]
             property bool dark: false
             property string accent: "blue"

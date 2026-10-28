@@ -194,12 +194,13 @@ export const accent = {
   highlight: 0.28,
 };
 
-/** Close, minimize and zoom. Dark is macOS 26's own, measured: softer than
- *  light's. Inactive windows show them in `fill.primary` on the window. */
+/** Close, minimize and zoom: macOS 26's own, measured in both modes (Terminal,
+ *  2026-10-28), which are the same. Inactive windows show them in
+ *  `fill.primary` on the window. */
 export const windowControls: Record<"close" | "minimize" | "zoom", Pair<string>> = {
-  close: { light: "oklch(0.68 0.2 28)", dark: "oklch(0.678 0.166 23.4)" },
-  minimize: { light: "oklch(0.83 0.16 82)", dark: "oklch(0.851 0.152 91.8)" },
-  zoom: { light: "oklch(0.72 0.19 145)", dark: "oklch(0.74 0.159 144)" },
+  close: { light: "oklch(0.678 0.166 23.4)", dark: "oklch(0.678 0.166 23.4)" },
+  minimize: { light: "oklch(0.851 0.152 91.8)", dark: "oklch(0.851 0.152 91.8)" },
+  zoom: { light: "oklch(0.74 0.159 144)", dark: "oklch(0.74 0.159 144)" },
 };
 
 /** The glyphs all three lights show while the pointer is over them, fitted to

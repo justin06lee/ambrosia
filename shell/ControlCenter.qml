@@ -85,7 +85,7 @@ Item {
             onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
             onOpened: {
                 Popups.close();
-                Session.settings("kcm_networkmanagement");
+                Session.settings("wifi");
             }
         }
 
@@ -102,7 +102,7 @@ Item {
             onToggled: adapter.enabled = !adapter.enabled
             onOpened: {
                 Popups.close();
-                Session.settings("kcm_bluetooth");
+                Session.settings("bluetooth");
             }
         }
 
@@ -257,7 +257,7 @@ Item {
             onLowIconClicked: sink.audio.muted = !sink.audio.muted
             onEndClicked: {
                 Popups.close();
-                Session.settings("kcm_pulseaudio");
+                Session.settings("sound");
             }
 
             PwObjectTracker { objects: [sound.sink] }

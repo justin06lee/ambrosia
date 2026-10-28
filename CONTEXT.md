@@ -31,9 +31,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
   - `packaging/PKGBUILD` builds `ambrosia-keyring` (the repo's key and
     address), `ambrosia-theme` (themes, wallpapers, icons), `ambrosia-shell`
     (the QML shell, the session, KDE/KWin defaults), `ambrosia-files` (Files,
-    built with CMake from `files/`; the only x86_64 one) and `ambrosia-desktop`
-    (the meta package: SDDM, portals, NetworkManager, PipeWire, Bluetooth,
-    Konsole, Dolphin, Files, System Settings, GTK skel, os-release).
+    built with CMake from `files/`), `ambrosia-settings` (Settings, from
+    `settings/`; both x86_64) and `ambrosia-desktop` (the meta package: SDDM,
+    portals, NetworkManager, PipeWire, Bluetooth, power-profiles-daemon, CUPS
+    and Avahi, Konsole, Dolphin, Files, Settings, GTK skel, os-release).
   - `packaging/quickshell/PKGBUILD` is our Quickshell build: upstream v0.3.2
     with the DBusMenuSource patch, served from the hosted repo.
   - `session/`: `startambrosia` runs Plasma's session (`startplasma-wayland`)

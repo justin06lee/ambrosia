@@ -28,7 +28,8 @@ focused app's own menus, Search (Super+Space), the Dock, the control center
 and notification banners. Its look still trails the design preview, and
 compositor effects don't exist yet. The first first-party app, Files (a Finder
 look-alike), browses folders in list and icon views; file operations, Quick
-Look and search come next.
+Look and search come next. Settings (System Settings' window and sidebar, with
+General and About) opens KDE's own modules for the panes it hasn't built yet.
 
 ## Quick start
 
@@ -134,6 +135,7 @@ session/       the Ambrosia session: start script, systemd units, KWin and KDE d
 decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens
 files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks (bench/)
                and tools/tenet.sh to build and photograph it on tenet
+settings/      Settings, Ambrosia's System Settings: Qt Quick window, C++ core, art
 docs/finder/   the Files plan: research, stack, v1 scope, performance targets
 docs/settings/ the Settings plan: the panes, their backends, the order of work
 packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild (with our DBusMenuSource patch),
