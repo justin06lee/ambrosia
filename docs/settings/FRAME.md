@@ -39,6 +39,10 @@ x, y, w, h) beside a 2x screenshot of each pane, on the Mac only.
 - Back / forward: a glass capsule at (231, 8), 73 × 36, two 36 × 36 segments
   with chevrons; forward is a menu button in macOS (history).
 - The pane's name at x 316, centred in the 52 band, about 15 pt semibold.
+  A pane that opens with a header box (General) leaves it out until the
+  box's own title has scrolled under the toolbar.
+- The zoom light is live (green while key): it fills the screen's height and
+  keeps the width.
 
 ## Content
 
@@ -61,8 +65,8 @@ x, y, w, h) beside a 2x screenshot of each pane, on the Mac only.
   - pop-up button 24 tall: the value then an up/down chevron capsule;
   - slider: thin track, 20 × 16 white capsule knob, optional tick marks below,
     speaker glyphs at the ends for volume;
-  - segmented control 24 tall across the box (440), the selected segment
-    filled with the accent;
+  - segmented control 24 tall across the box (440), corners 6 (not a
+    capsule), the selected segment filled with the accent;
   - help button: a 24 pt circle with "?", bottom right, 20 below the last box.
 - Descriptions under a label: 11 pt secondary.
 

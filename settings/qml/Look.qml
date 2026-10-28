@@ -93,6 +93,7 @@ QtObject {
     readonly property int sliderTrack: 6
     readonly property int sliderWidth: 200
     readonly property int segmented: 24
+    readonly property int segmentedRadius: 6
     readonly property int help: 24
     readonly property int menuRow: 22
 
