@@ -236,7 +236,10 @@ and the preview is the visual reference. In brief:
 - **Windows:** three 14px controls 23 apart on the left, centered in the bar
   and as far from the left edge as from the top. All three show their glyphs
   while the pointer is over any of them, and they're gray when the window is
-  inactive. The title bar is 32 tall, or 52 with a toolbar (macOS 26).
+  inactive. The glyphs are macOS 26's, fitted to its pixels at 2x: a bold ×,
+  a capsule −, and for zoom a square split on its diagonal into two
+  triangles, all filled in black at 50%. The title bar is 32 tall, or 52 with
+  a toolbar (macOS 26).
 - **Sidebar:** 220 wide, flush to the window edge, behind-window glass that
   rounds its own outer corners (a parent's rounded corners don't reliably clip
   a blurred backdrop). It goes opaque when its window is inactive.

@@ -9,7 +9,7 @@ import * as t from "../../../design/tokens";
 import type { Mode } from "../../../design/tokens";
 import { toCss, type RGBA } from "../color";
 import type { Resolved, ResolvedMode } from "../resolve";
-import { HEADER, fontStack, pt } from "./shared";
+import { HEADER, fontStack, pt, svgPath, windowGlyphPolygons } from "./shared";
 
 const WHITE: RGBA = { r: 255, g: 255, b: 255, a: 1 };
 const DARK_FG: RGBA = { r: 0, g: 0, b: 0, a: 0.8 };
@@ -87,22 +87,18 @@ function accentPicker(m: ResolvedMode): Record<string, RGBA> {
 
 // Window controls ---------------------------------------------------------------
 
-/** Files' glyphs on a 14-unit box: close, minimize, zoom. */
-const GLYPHS = {
-  close: "M4 4l6 6M10 4l-6 6",
-  minimize: "M3.5 7h7",
-  maximize: "M4.5 3.5h6v6M9.5 10.5h-6v-6",
-};
-
-/** The glyph images titlebuttons show on hover, one file each. */
-export const titlebuttonGlyphs = (): Record<string, string> =>
-  Object.fromEntries(
-    Object.entries(GLYPHS).map(([name, d]) => [
+/** The glyph images titlebuttons show on hover, one file each (GTK calls zoom "maximize"). */
+export const titlebuttonGlyphs = (): Record<string, string> => {
+  const glyphs = windowGlyphPolygons();
+  const d = t.size.windowControls.diameter;
+  return Object.fromEntries(
+    (["close", "minimize", "maximize"] as const).map((name) => [
       `assets/${name}.svg`,
-      `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14">` +
-        `<path d="${d}" fill="none" stroke="#000" stroke-opacity="0.55" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>\n`,
+      `<svg xmlns="http://www.w3.org/2000/svg" width="${d}" height="${d}" viewBox="0 0 ${d} ${d}">` +
+        `<path d="${svgPath(glyphs[name === "maximize" ? "zoom" : name])}" fill="#000" fill-opacity="${t.windowGlyphs.opacity}"/></svg>\n`,
     ]),
   );
+};
 
 /**
  * Close, minimize and zoom on GTK's own titlebars: 14px circles 9 apart, gray

@@ -6,7 +6,7 @@ import * as t from "../../../design/tokens";
 import type { Mode } from "../../../design/tokens";
 import type { RGBA } from "../color";
 import type { Resolved } from "../resolve";
-import { HEADER } from "./shared";
+import { HEADER, windowGlyphPolygons, type Point } from "./shared";
 
 /** 0xAARRGGBB, straight alpha, as QColor::fromRgba takes it. */
 const argb = (c: RGBA) =>
@@ -35,7 +35,11 @@ function mode(r: Resolved, name: Mode): string {
 };`;
 }
 
+/** Polygons as a flat run: each one's point count, then its x, y pairs; 0 ends the run. */
+const run = (polys: Point[][]) => [...polys.flatMap((p) => [p.length, ...p.flat()]), 0].join(", ");
+
 export function kdecoration(r: Resolved): string {
+  const glyphs = windowGlyphPolygons();
   return `// ${HEADER}
 #pragma once
 
@@ -62,6 +66,14 @@ inline constexpr double titlebar = ${t.size.titlebar.height};
 inline constexpr double diameter = ${t.size.windowControls.diameter};
 inline constexpr double gap = ${t.size.windowControls.gap};
 inline constexpr double radius = ${t.radius.window};
+
+// The glyphs all three lights show on hover: filled polygons on the light's
+// ${t.size.windowControls.diameter}-unit box, black at glyphOpacity. Each polygon is its point count,
+// then its x, y pairs; 0 ends the list.
+inline constexpr double glyphOpacity = ${t.windowGlyphs.opacity};
+inline constexpr double closeGlyph[] = {${run(glyphs.close)}};
+inline constexpr double minimizeGlyph[] = {${run(glyphs.minimize)}};
+inline constexpr double zoomGlyph[] = {${run(glyphs.zoom)}};
 
 ${mode(r, "light")}
 

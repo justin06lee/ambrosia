@@ -4,7 +4,7 @@
 import * as t from "../../../design/tokens";
 import { toQtHex, type RGBA } from "../color";
 import type { Resolved, ResolvedMode } from "../resolve";
-import { HEADER, slug } from "./shared";
+import { HEADER, slug, svgPath, windowGlyphPolygons } from "./shared";
 
 type Tree = { [key: string]: Tree | RGBA | number | string | unknown[] };
 
@@ -94,6 +94,11 @@ export function qml(r: Resolved): string {
     fade: { ...t.fade, curve: [...t.fadeCurve] },
     choreography: t.choreography as unknown as Tree,
     input: t.input as unknown as Tree,
+    // The lights' hover glyphs: fill each path in black at `opacity`, on the light's 14-unit box.
+    windowGlyphs: {
+      opacity: t.windowGlyphs.opacity,
+      ...Object.fromEntries(Object.entries(windowGlyphPolygons()).map(([k, polys]) => [k, svgPath(polys)])),
+    },
   };
 
   const staticProps = object(statics, 0)

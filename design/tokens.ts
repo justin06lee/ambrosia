@@ -202,6 +202,18 @@ export const windowControls: Record<"close" | "minimize" | "zoom", Pair<string>>
   zoom: { light: "oklch(0.72 0.19 145)", dark: "oklch(0.74 0.159 144)" },
 };
 
+/** The glyphs all three lights show while the pointer is over them, fitted to
+ *  macOS 26's at 2x (dark): filled shapes on the light's 14-unit box, black at
+ *  `opacity`. Close is an × of two `stroke`-wide bars cut square at its box;
+ *  minimize a capsule between two centres; zoom a square split along its
+ *  rising diagonal into two triangles, `gap` apart. */
+export const windowGlyphs = {
+  opacity: 0.5,
+  close: { box: [3.5, 10.5], stroke: 2 },
+  minimize: { ends: [4, 10], radius: 1 },
+  zoom: { box: [4, 10], gap: 1.4 },
+} as const;
+
 // Materials and elevation ---------------------------------------------------
 
 export interface Material {

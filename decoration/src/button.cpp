@@ -5,10 +5,26 @@
 
 #include <QPainter>
 #include <QPainterPath>
+#include <QPolygonF>
 
 namespace Ambrosia {
 
 using namespace KDecoration3;
+
+// A run of polygons from the tokens: each one's point count, then its x, y
+// pairs; 0 ends the run.
+static QPainterPath polygons(const double *run)
+{
+    QPainterPath path;
+    for (int count; (count = int(*run++));) {
+        QPolygonF polygon;
+        for (int i = 0; i < count; ++i, run += 2)
+            polygon << QPointF(run[0], run[1]);
+        path.addPolygon(polygon);
+        path.closeSubpath();
+    }
+    return path;
+}
 
 Button::Button(DecorationButtonType type, Decoration *decoration, QObject *parent)
     : DecorationButton(type, decoration, parent)
@@ -59,25 +75,13 @@ void Button::paint(QPainter *painter, const QRectF &)
     painter->drawEllipse(r.adjusted(0.25, 0.25, -0.25, -0.25));
 
     if (hovered) {
-        // Files' glyphs, drawn on a 14-unit box.
-        QPainterPath glyph;
-        switch (type()) {
-        case DecorationButtonType::Close:
-            glyph.moveTo(4, 4), glyph.lineTo(10, 10);
-            glyph.moveTo(10, 4), glyph.lineTo(4, 10);
-            break;
-        case DecorationButtonType::Minimize:
-            glyph.moveTo(3.5, 7), glyph.lineTo(10.5, 7);
-            break;
-        default:
-            glyph.moveTo(4.5, 3.5), glyph.lineTo(10.5, 3.5), glyph.lineTo(10.5, 9.5);
-            glyph.moveTo(9.5, 10.5), glyph.lineTo(3.5, 10.5), glyph.lineTo(3.5, 4.5);
-            break;
-        }
+        // The tokens' glyph, filled on the light's own box.
+        const double *glyph = type() == DecorationButtonType::Close ? Tokens::closeGlyph
+            : type() == DecorationButtonType::Minimize               ? Tokens::minimizeGlyph
+                                                                     : Tokens::zoomGlyph;
         painter->translate(r.topLeft());
-        painter->scale(r.width() / 14, r.height() / 14);
-        painter->setPen(QPen(QColor(0, 0, 0, 140), 1.3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
-        painter->drawPath(glyph);
+        painter->scale(r.width() / Tokens::diameter, r.height() / Tokens::diameter);
+        painter->fillPath(polygons(glyph), QColor::fromRgbF(0, 0, 0, Tokens::glyphOpacity));
     }
     painter->restore();
 }

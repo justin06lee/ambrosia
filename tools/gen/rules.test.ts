@@ -4,6 +4,7 @@ import * as t from "../../design/tokens";
 import { contrast } from "./color";
 import { flat, resolve } from "./resolve";
 import { qml } from "./targets/qml";
+import { windowGlyphPolygons } from "./targets/shared";
 
 const r = resolve();
 
@@ -51,4 +52,17 @@ test("the QML theme loads: no ECMAScript keywords as property names", () => {
   const names = [...qml(r).matchAll(/readonly property \w+ (\w+):/g)].map((m) => m[1]);
   expect(names.filter((n) => ["switch", "default", "case", "in", "function", "delete"].includes(n!))).toEqual([]);
   expect(names).toContain("switch_");
+});
+
+test("the lights' glyphs sit centred inside the light", () => {
+  const d = t.size.windowControls.diameter;
+  for (const [name, polys] of Object.entries(windowGlyphPolygons())) {
+    const points = polys.flat();
+    const xs = points.map(([x]) => x);
+    const ys = points.map(([, y]) => y);
+    const centre = [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2];
+    expect({ name, centre: centre.map((v) => +v.toFixed(3)) }).toEqual({ name, centre: [d / 2, d / 2] });
+    const reach = Math.max(...points.map(([x, y]) => Math.hypot(x - d / 2, y - d / 2)));
+    expect({ name, inside: reach < d / 2 - 1 }).toEqual({ name, inside: true });
+  }
 });
