@@ -143,10 +143,10 @@ ${buttons} {
 }
 ${spacing}
 ${buttons} image { opacity: 0; color: #000;${group ? ` -gtk-icon-size: ${d}px; min-width: ${d}px; min-height: ${d}px;` : ` margin: ${-(GTK3_ICON - d) / 2}px;`} }
-${buttons}.close { background-color: ${toCss(c.close)}; }
-${buttons}.minimize { background-color: ${toCss(c.minimize)}; }
-${buttons}.maximize { background-color: ${toCss(c.zoom)}; }
-${buttons}:backdrop, ${buttons}:disabled { background-color: ${toCss(c.inactive)}; }
+${buttons}.close { background-color: ${toCss(c.close)}; box-shadow: inset 0 0 0 0.5px ${toCss(c.closeRim)}; }
+${buttons}.minimize { background-color: ${toCss(c.minimize)}; box-shadow: inset 0 0 0 0.5px ${toCss(c.minimizeRim)}; }
+${buttons}.maximize { background-color: ${toCss(c.zoom)}; box-shadow: inset 0 0 0 0.5px ${toCss(c.zoomRim)}; }
+${buttons}:backdrop, ${buttons}:disabled { background-color: ${toCss(c.inactive)}; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, ${rim}); }
 ${each(glyphOn, ".close image")} { opacity: ${t.windowGlyphs.opacity}; -gtk-icon-source: url("assets/close.svg"); }
 ${each(glyphOn, ".minimize image")} { opacity: ${t.windowGlyphs.opacity}; -gtk-icon-source: url("assets/minimize.svg"); }
 ${each(glyphOn, ".maximize image")} { opacity: ${t.windowGlyphs.opacity}; -gtk-icon-source: url("assets/maximize.svg"); }

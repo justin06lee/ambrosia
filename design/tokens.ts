@@ -203,6 +203,15 @@ export const windowControls: Record<"close" | "minimize" | "zoom", Pair<string>>
   zoom: { light: "oklch(0.74 0.159 144)", dark: "oklch(0.74 0.159 144)" },
 };
 
+/** The half point just inside each lit light's edge: a deeper shade of its
+ *  own colour, measured at 2x (System Settings light, Terminal dark). Inactive
+ *  lights keep a ring of black. */
+export const windowControlRims: Record<"close" | "minimize" | "zoom", Pair<string>> = {
+  close: { light: "oklch(0.612 0.211 27.1)", dark: "oklch(0.588 0.21 27.5)" },
+  minimize: { light: "oklch(0.813 0.165 88)", dark: "oklch(0.786 0.16 87.2)" },
+  zoom: { light: "oklch(0.671 0.195 143.2)", dark: "oklch(0.644 0.193 143.1)" },
+};
+
 /** The glyphs all three lights show while the pointer is over them, fitted to
  *  macOS 26's at 2x (dark and light): filled shapes on the light's 14-unit
  *  box, black at `opacity`. Close is an × of two `stroke`-wide bars cut square

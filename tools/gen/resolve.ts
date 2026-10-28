@@ -26,7 +26,7 @@ export interface ResolvedMode extends Resolve<ModeColors> {
   glass: { rim: RGBA; edge: RGBA };
   shadows: Record<string, { layers: ShadowLayer[]; color: RGBA }>;
   /** Close, minimize, zoom, and all three on an inactive window. */
-  windowControls: Record<keyof typeof t.windowControls | "inactive", RGBA>;
+  windowControls: Record<keyof typeof t.windowControls | `${keyof typeof t.windowControls}Rim` | "inactive", RGBA>;
 }
 
 export interface Resolved {
@@ -78,6 +78,9 @@ function resolveMode(mode: Mode): ResolvedMode {
     shadows: mapValues(t.shadow, (s) => ({ layers: s[mode], color: rgba(c.shadow) })),
     windowControls: {
       ...(mapValues(t.windowControls, (p) => rgba(p[mode])) as Record<keyof typeof t.windowControls, RGBA>),
+      closeRim: rgba(t.windowControlRims.close[mode]),
+      minimizeRim: rgba(t.windowControlRims.minimize[mode]),
+      zoomRim: rgba(t.windowControlRims.zoom[mode]),
       inactive: over(rgba(c.fill.primary), { ...rgba(c.bg.window), a: 1 }),
     },
   };
