@@ -104,7 +104,9 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: 0; 
 
 .controls {
   display: flex; gap: var(--amb-size-window-controls-gap);
-  height: var(--amb-size-titlebar-toolbar); align-items: center; padding-left: calc(var(--amb-size-window-controls-inset) - 0px);
+  /* Centered in the bar, as far from the left edge as from the top. */
+  height: var(--amb-size-titlebar-toolbar); align-items: center;
+  padding-left: calc((var(--amb-size-titlebar-toolbar) - var(--amb-size-window-controls-diameter)) / 2);
 }
 .controls i {
   width: var(--amb-size-window-controls-diameter); height: var(--amb-size-window-controls-diameter);
@@ -114,13 +116,13 @@ input { font: inherit; color: inherit; background: none; border: 0; outline: 0; 
 .controls .close { background: var(--amb-control-close); }
 .controls .minimize { background: var(--amb-control-minimize); }
 .controls .zoom { background: var(--amb-control-zoom); }
-.window:not(.active) .controls i { background: var(--amb-fill-primary); }
+.window:not(.active) .controls i { background: var(--amb-control-inactive); }
 
 .titlebar {
   height: var(--amb-size-titlebar-height); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
   background: var(--amb-bg-window); box-shadow: inset 0 -0.5px 0 var(--amb-separator);
 }
-.titlebar .controls { height: auto; }
+.titlebar .controls { height: auto; padding-left: calc((var(--amb-size-titlebar-height) - var(--amb-size-window-controls-diameter)) / 2); }
 .titlebar .title { font: var(--amb-headline); letter-spacing: var(--amb-headline-tracking); }
 .window:not(.active) .title { color: var(--amb-label-tertiary); }
 

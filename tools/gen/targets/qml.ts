@@ -56,6 +56,7 @@ function modeTree(m: ResolvedMode): Tree {
     accents: m.accents as unknown as Tree,
     material: Object.fromEntries(Object.entries(m.material).map(([k, v]) => [k, { tint: v.tint }])),
     glass: m.glass,
+    windowControls: m.windowControls,
     shadow: Object.fromEntries(
       Object.entries(m.shadows).map(([k, s]) => [
         k,
@@ -93,7 +94,6 @@ export function qml(r: Resolved): string {
     fade: { ...t.fade, curve: [...t.fadeCurve] },
     choreography: t.choreography as unknown as Tree,
     input: t.input as unknown as Tree,
-    windowControls: r.windowControls,
   };
 
   const staticProps = object(statics, 0)
@@ -114,6 +114,7 @@ QtObject {
 
     readonly property QtObject color: dark ? darkColors : lightColors
     readonly property QtObject accent: color.accents[accentName] ?? color.accents[${JSON.stringify(t.accent.default)}]
+    readonly property QtObject windowControls: color.windowControls
 
 ${staticProps}
 

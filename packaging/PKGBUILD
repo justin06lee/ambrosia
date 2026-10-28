@@ -1,20 +1,22 @@
 # Builds Ambrosia's packages from this checkout: `make package` on Arch.
 # ambrosia-keyring the key the packages are signed with, and the repo's address
 # ambrosia-theme   the generated themes (Qt/QML, KDE, GTK, fontconfig)
+# ambrosia-decoration the window frame with the traffic lights, a KWin plugin (decoration/)
 # ambrosia-shell   the Quickshell shell and the Ambrosia session on KWin
 # ambrosia-files   Files, Ambrosia's Finder (files/, built with CMake)
 # ambrosia-desktop everything a fresh install needs, the ISO installs this
 
 pkgbase=ambrosia
-pkgname=(ambrosia-keyring ambrosia-theme ambrosia-shell ambrosia-files ambrosia-desktop)
+pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-shell ambrosia-files ambrosia-desktop)
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A Linux desktop that looks and moves as one thing"
-# x86_64 for ambrosia-files; the rest are arch=(any).
+# x86_64 for ambrosia-files and ambrosia-decoration; the rest are arch=(any).
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
-makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kwindowsystem taglib karchive freetype2)
+makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kwindowsystem taglib karchive freetype2
+             kdecoration kcoreaddons)
 options=(!debug)
 
 _root="$(realpath "$startdir/..")"
@@ -33,6 +35,8 @@ build() {
   done
   cmake -S files -B "$srcdir/build-files" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-files"
+  cmake -S decoration -B "$srcdir/build-decoration" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build "$srcdir/build-decoration"
 }
 
 package_ambrosia-keyring() {
@@ -49,18 +53,18 @@ package_ambrosia-keyring() {
 }
 
 package_ambrosia-theme() {
-  pkgdesc="Ambrosia's design tokens as Qt/QML, KDE, GTK and fontconfig themes, and its window frame"
+  pkgdesc="Ambrosia's design tokens as Qt/QML, KDE, GTK and fontconfig themes"
   arch=(any)
   depends=(inter-font ttf-jetbrains-mono)
   cd "$_root/dist"
 
   install -Dm644 qml/Ambrosia/Theme.qml qml/Ambrosia/qmldir -t "$pkgdir/usr/lib/qt6/qml/Ambrosia/"
   install -Dm644 kde/AmbrosiaLight.colors kde/AmbrosiaDark.colors -t "$pkgdir/usr/share/color-schemes/"
-  # The window decoration (Aurorae), light and dark.
-  install -d "$pkgdir/usr/share/aurorae/themes"
-  cp -r aurorae/. "$pkgdir/usr/share/aurorae/themes/"
   install -Dm644 gtk-4.0/gtk.css -t "$pkgdir/usr/share/ambrosia/gtk-4.0/"
   install -Dm644 gtk-3.0/gtk-light.css gtk-3.0/gtk-dark.css -t "$pkgdir/usr/share/ambrosia/gtk-3.0/"
+  # The window controls' glyphs, beside the CSS that draws them.
+  install -Dm644 gtk-4.0/assets/*.svg -t "$pkgdir/usr/share/ambrosia/gtk-4.0/assets/"
+  install -Dm644 gtk-3.0/assets/*.svg -t "$pkgdir/usr/share/ambrosia/gtk-3.0/assets/"
   install -Dm644 environment.d/50-ambrosia-fonts.conf -t "$pkgdir/usr/share/ambrosia/environment.d/"
   install -Dm644 fontconfig/50-ambrosia.conf -t "$pkgdir/usr/share/fontconfig/conf.avail/"
   install -d "$pkgdir/etc/fonts/conf.d"
@@ -72,6 +76,12 @@ package_ambrosia-theme() {
   install -Dm644 "$_root"/assets/icons/*.svg -t "$pkgdir/usr/share/icons/hicolor/scalable/apps/"
 }
 
+package_ambrosia-decoration() {
+  pkgdesc="Ambrosia's window frame for KWin: the traffic lights and a centered title on every window"
+  depends=(kwin kdecoration kcoreaddons qt6-base)
+  DESTDIR="$pkgdir" cmake --install "$srcdir/build-decoration"
+}
+
 package_ambrosia-shell() {
   pkgdesc="The Ambrosia shell (menu bar, dock, control center) and session on KWin"
   arch=(any)
@@ -79,8 +89,8 @@ package_ambrosia-shell() {
   # provides it, so pacman won't swap Arch's in and lose the app menus.
   # kde-cli-tools: kstart and kioclient, which start apps in their own
   # scopes; dbus: dbus-test-tool holds the app menu view's bus name.
-  depends=(ambrosia-theme quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
-           qt6-svg qt6-imageformats upower)
+  depends=(ambrosia-theme ambrosia-decoration quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
+           qt6-svg qt6-imageformats upower dconf)
   backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc etc/xdg/ambrosia/breezerc
           etc/xdg/ambrosia/mimeapps.list)
   cd "$_root"
@@ -108,6 +118,10 @@ package_ambrosia-shell() {
   cp -r session/look-and-feel/. "$pkgdir/usr/share/plasma/look-and-feel/"
   install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/breezerc session/xdg/mimeapps.list \
     -t "$pkgdir/etc/xdg/ambrosia/"
+  # The session's GSettings defaults (DCONF_PROFILE=ambrosia); dconf's own
+  # pacman hook compiles the database.
+  install -Dm644 session/dconf/profile "$pkgdir/etc/dconf/profile/ambrosia"
+  install -Dm644 session/dconf/ambrosia.d/00-window-controls -t "$pkgdir/etc/dconf/db/ambrosia.d/"
 }
 
 package_ambrosia-files() {
@@ -142,6 +156,9 @@ package_ambrosia-desktop() {
   install -Dm644 packaging/os-release/os-release -t "$pkgdir/usr/share/ambrosia/"
   install -Dm644 packaging/os-release/*.hook -t "$pkgdir/usr/share/libalpm/hooks/"
   install -Dm644 assets/icon.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/ambrosia-logo.svg"
+
+  # Firefox takes the system titlebar, so it gets the traffic lights.
+  install -Dm644 packaging/firefox/ambrosia.js -t "$pkgdir/usr/lib/firefox/browser/defaults/preferences/"
 
   # New accounts start with Ambrosia's GTK colors; the CSS follows the package.
   install -d "$pkgdir/etc/skel/.config/gtk-4.0" "$pkgdir/etc/skel/.config/gtk-3.0"

@@ -1,0 +1,16 @@
+{
+    "KPlugin": {
+        "Id": "org.ambrosia.decoration",
+        "Name": "Ambrosia",
+        "Description": "Ambrosia's window frame: traffic lights and a centered title",
+        "Authors": [{ "Name": "Ambrosia" }],
+        "License": "MIT",
+        "Version": "1",
+        "EnabledByDefault": true
+    },
+    "org.kde.kdecoration3": {
+        "blur": false,
+        "kcmodule": false,
+        "recommendedBorderSize": "None"
+    }
+}

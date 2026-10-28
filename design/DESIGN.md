@@ -233,8 +233,10 @@ and the preview is the visual reference. In brief:
   grid float on a light, untinted blur with soft rounded edges. Toggles that
   are on are solid circles. It fades in place (blur first, then the modules)
   rather than springing.
-- **Windows:** three 12px controls on the left, with glyphs on hover and gray
-  when inactive. The title bar is 40 tall, or 52 with a toolbar.
+- **Windows:** three 14px controls 23 apart on the left, centered in the bar
+  and as far from the left edge as from the top. All three show their glyphs
+  while the pointer is over any of them, and they're gray when the window is
+  inactive. The title bar is 32 tall, or 52 with a toolbar (macOS 26).
 - **Sidebar:** 220 wide, flush to the window edge, behind-window glass that
   rounds its own outer corners (a parent's rounded corners don't reliably clip
   a blurred backdrop). It goes opaque when its window is inactive.

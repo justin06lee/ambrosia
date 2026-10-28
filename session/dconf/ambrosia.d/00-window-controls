@@ -1,0 +1,5 @@
+# GTK apps' own titlebars: close, minimize and zoom on the left, as KWin's
+# frame has them. GTK reads this from GSettings, not from KWin; it applies in
+# the Ambrosia session only (startambrosia sets DCONF_PROFILE=ambrosia).
+[org/gnome/desktop/wm/preferences]
+button-layout='close,minimize,maximize:'

@@ -14,8 +14,7 @@ name=default
 cursorTheme=breeze_cursors
 
 [kwinrc][org.kde.kdecoration2]
-library=org.kde.kwin.aurorae
-theme=__aurorae__svg__AmbrosiaLight
+library=org.ambrosia.decoration
 
 [ksplashrc][KSplash]
 Engine=none

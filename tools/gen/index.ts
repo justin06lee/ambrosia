@@ -5,9 +5,9 @@ import { dirname, join } from "node:path";
 import * as t from "../../design/tokens";
 import { toCss } from "./color";
 import { resolve } from "./resolve";
-import { aurorae, auroraeName } from "./targets/aurorae";
 import { fontEnvironment, fontconfig } from "./targets/fontconfig";
-import { gtk3, gtk4 } from "./targets/gtk";
+import { gtk3, gtk4, titlebuttonGlyphs } from "./targets/gtk";
+import { kdecoration } from "./targets/kdecoration";
 import { kde, kdeglobals } from "./targets/kde";
 import { qml, qmldir } from "./targets/qml";
 import { web } from "./targets/web";
@@ -21,16 +21,15 @@ const files: Record<string, string> = {
   "gtk-4.0/gtk.css": gtk4(r),
   "gtk-3.0/gtk-light.css": gtk3(r, "light"),
   "gtk-3.0/gtk-dark.css": gtk3(r, "dark"),
+  ...Object.fromEntries(
+    ["gtk-3.0", "gtk-4.0"].flatMap((dir) => Object.entries(titlebuttonGlyphs()).map(([f, svg]) => [`${dir}/${f}`, svg])),
+  ),
   "kde/AmbrosiaLight.colors": kde(r, "light"),
   "kde/AmbrosiaDark.colors": kde(r, "dark"),
   "kde/kdeglobals": kdeglobals(r),
   "qml/Ambrosia/Theme.qml": qml(r),
   "qml/Ambrosia/qmldir": qmldir,
-  ...Object.fromEntries(
-    (["light", "dark"] as const).flatMap((mode) =>
-      Object.entries(aurorae(r, mode)).map(([file, text]) => [`aurorae/${auroraeName(mode)}/${file}`, text]),
-    ),
-  ),
+  "kdecoration/tokens.h": kdecoration(r),
   "fontconfig/50-ambrosia.conf": fontconfig(),
   "environment.d/50-ambrosia-fonts.conf": fontEnvironment(),
   // Everything resolved, for consumers without a dedicated target (the

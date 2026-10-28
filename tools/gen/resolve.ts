@@ -25,6 +25,8 @@ export interface ResolvedMode extends Resolve<ModeColors> {
   material: Record<keyof typeof t.material, { blur: number; saturate: number; tint: RGBA }>;
   glass: { rim: RGBA; edge: RGBA };
   shadows: Record<string, { layers: ShadowLayer[]; color: RGBA }>;
+  /** Close, minimize, zoom, and all three on an inactive window. */
+  windowControls: Record<keyof typeof t.windowControls | "inactive", RGBA>;
 }
 
 export interface Resolved {
@@ -32,7 +34,6 @@ export interface Resolved {
   springs: Record<keyof typeof t.spring, SolvedSpring>;
   /** The same springs at `exitScale` × response, for things leaving. */
   exits: Record<keyof typeof t.spring, SolvedSpring>;
-  windowControls: Record<keyof typeof t.windowControls, RGBA>;
 }
 
 const mapValues = <T, U>(obj: Record<string, T>, fn: (v: T, k: string) => U) =>
@@ -75,6 +76,10 @@ function resolveMode(mode: Mode): ResolvedMode {
     material: mapValues(t.material, (m) => ({ blur: m.blur, saturate: m.saturate, tint: rgba(m.tint[mode]) })) as ResolvedMode["material"],
     glass: { rim: rgba(t.glass.rim[mode]), edge: rgba(t.glass.edge[mode]) },
     shadows: mapValues(t.shadow, (s) => ({ layers: s[mode], color: rgba(c.shadow) })),
+    windowControls: {
+      ...(mapValues(t.windowControls, (p) => rgba(p[mode])) as Record<keyof typeof t.windowControls, RGBA>),
+      inactive: over(rgba(c.fill.primary), { ...rgba(c.bg.window), a: 1 }),
+    },
   };
 }
 
@@ -83,7 +88,6 @@ export function resolve(): Resolved {
     modes: { light: resolveMode("light"), dark: resolveMode("dark") },
     springs: mapValues(t.spring, solveSpring) as Resolved["springs"],
     exits: mapValues(t.spring, (s) => solveSpring({ ...s, response: s.response * t.exitScale })) as Resolved["exits"],
-    windowControls: mapValues(t.windowControls, rgba) as Resolved["windowControls"],
   };
 }
 

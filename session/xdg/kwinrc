@@ -5,8 +5,8 @@
 ButtonsOnLeft=XIA
 ButtonsOnRight=
 # No borders on the sides or bottom, as on a Mac; KWin keeps an invisible
-# edge to resize by. (The frame itself, Ambrosia's Aurorae theme, comes from
-# the look-and-feel package; see startambrosia.)
+# edge to resize by. (The frame itself, Ambrosia's decoration plugin, comes
+# from the look-and-feel package; see startambrosia.)
 BorderSize=None
 BorderSizeAuto=false
 
