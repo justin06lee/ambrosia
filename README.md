@@ -111,6 +111,7 @@ an accent or a label color is identical in GTK, KDE and the shell.
 | `dist/qml/Ambrosia/Theme.qml` | the shell (`import Ambrosia`, then `Theme.color…`) |
 | `dist/fontconfig/50-ambrosia.conf` | Inter and JetBrains Mono as system fonts, grayscale AA, slight hinting |
 | `dist/environment.d/50-ambrosia-fonts.conf` | FreeType stem darkening, for fuller text; no synthetic bold in Qt |
+| `dist/kdecoration/tokens.h` | the KWin window frame (`decoration/`): traffic lights, title, corners, shadow |
 | `dist/web/tokens.css` | the preview and any web surface |
 | `dist/tokens.json` | everything resolved, for compositor effects and scripts |
 
@@ -129,10 +130,12 @@ tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remot
 shell/         the shell in QML for Quickshell: wallpaper, menu bar and menus, Search,
                Dock, control center, notifications
 session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
-               the `ambrosia` command and the shell's desktop files
+               GTK's button layout (dconf), the `ambrosia` command and the shell's desktop files
+decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens
 files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks (bench/)
                and tools/tenet.sh to build and photograph it on tenet
 docs/finder/   the Files plan: research, stack, v1 scope, performance targets
+docs/settings/ the Settings plan: the panes, their backends, the order of work
 packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild (with our DBusMenuSource patch),
                the repo's public key (keyring/), the os-release that names the system
 iso/           the archiso profile: live desktop, installer (ambrosia-install)
@@ -151,8 +154,9 @@ assets/        banner, icon and the "nectar" day/night wallpapers
    notifications and Search work (first cut); next, matching the preview's
    look, a notification center and the Mac-first keyboard layer (keyd). Built
    and judged on tenet, the Arch desktop, with a Magic Trackpad.
-4. **Compositor**: a KWin effect for glass refraction, window animations on
-   the spring tokens, and window decorations.
+4. **Compositor**: a KWin effect for glass refraction and window animations on
+   the spring tokens. Window frames are done: our own KWin decoration gives
+   every app the traffic lights, and GTK's own titlebars match.
 5. **Toolkits**: a Qt widget style and a full GTK theme beyond colors, an icon
    set and a cursor theme.
 6. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
