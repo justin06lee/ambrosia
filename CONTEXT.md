@@ -87,8 +87,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
   `./restore.sh` brings it back (makima, services, home) whenever the user
   wants. The restore leaves our quickshell and ambrosia-* packages alone.
   Since 2026-10-20 its pacman.conf lists `[ambrosia]` first (the old one is
-  `/etc/pacman.conf.before-ambrosia`), and it runs the r221 packages with our
-  Quickshell, installed with `pacman -U`. It hasn't synced since 2026-10-16
+  `/etc/pacman.conf.before-ambrosia`), and it runs the r233 packages with our
+  Quickshell, installed with `pacman -U`, except `ambrosia-desktop` (r221):
+  r224 on adds power-profiles-daemon, CUPS, Avahi and nss-mdns, which would
+  come from a newer package list than tenet's, a partial upgrade. It hasn't synced since 2026-10-16
   (no `-Syu` while a GPU training job ran), so its next `pacman -Syu` fetches
   the hosted repo. gpg prints `release_dotlock: lockfile error` when its
   keyring is populated, but the key ends up trusted.
