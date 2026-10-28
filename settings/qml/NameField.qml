@@ -16,7 +16,7 @@ TextInput {
     font.family: Theme.uiFont
     font.pixelSize: Theme.text.body.size
     font.letterSpacing: Theme.text.body.tracking
-    color: activeFocus ? Theme.color.label.primary : Theme.color.label.secondary
+    color: Theme.color.label.primary
     selectionColor: Theme.accent.highlight
     selectedTextColor: Theme.color.label.primary
     renderType: Text.NativeRendering

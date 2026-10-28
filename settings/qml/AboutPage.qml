@@ -46,7 +46,7 @@ Page {
         FormRow {
             label: "Name"
             NameField {
-                width: 396
+                width: 360
                 value: About.computerName
                 onCommitted: (text) => About.setComputerName(text)
             }
@@ -71,7 +71,8 @@ Page {
                 width: 32
                 height: 32
                 sourceSize: Qt.size(64, 64)
-                source: "image://icon/ambrosia-logo"
+                // The system's logo, which ambrosia-desktop installs.
+                source: "file:///usr/share/icons/hicolor/scalable/apps/ambrosia-logo.svg"
             }
             Label {
                 x: Look.boxPadding + 42
