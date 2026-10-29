@@ -237,8 +237,9 @@ void App::shown(QQuickWindow *window)
     if (m_options.grab.isEmpty() || m_grabbed)
         return;
     m_grabbed = true;
-    // A few frames later everything (fonts, images) has been drawn.
-    QTimer::singleShot(300, window, [this, window] {
+    // A second later everything has been drawn (fonts, images) and the
+    // services a pane reads (KScreen's configuration) have answered.
+    QTimer::singleShot(1000, window, [this, window] {
         window->grabWindow().save(m_options.grab);
         QGuiApplication::quit();
     });

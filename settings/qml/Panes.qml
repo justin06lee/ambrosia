@@ -34,7 +34,7 @@ QtObject {
               keywords: ["dark", "light", "accent", "theme", "color"] },
             { id: "dock", name: "Desktop & Dock", glyph: "dock", tint: "black",
               keywords: ["dock", "hot corners", "windows", "minimize"] },
-            { id: "displays", name: "Displays", glyph: "displays", tint: "blue", module: "kcm_kscreen",
+            { id: "displays", name: "Displays", glyph: "displays", tint: "blue", page: "displays",
               keywords: ["resolution", "monitor", "scale", "refresh rate", "arrangement", "night shift"] },
             { id: "menubar", name: "Menu Bar", glyph: "menubar", tint: "gray",
               keywords: ["control center", "menu bar", "clock"] },

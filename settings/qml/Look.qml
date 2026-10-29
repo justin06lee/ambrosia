@@ -58,6 +58,7 @@ QtObject {
     // their own.
     readonly property int contentX: 223
     readonly property int margin: 20
+    readonly property int displayBand: 158     // Displays' band, under the toolbar
     readonly property int boxWidth: 460
     readonly property int boxRadius: 10
     readonly property int boxGap: 10
@@ -126,6 +127,11 @@ QtObject {
     readonly property color connected: dark ? "#68ce67" : Theme.color.palette.green // Wi-Fi's dot
     readonly property color notConnected: dark ? "#eb534e" : Theme.color.palette.red // Network's
     readonly property color connecting: Theme.color.palette.yellow
+    // Displays: the band of displays across the top and the rule under it;
+    // a scale tile's window.
+    readonly property color band: dark ? "#282828" : window
+    readonly property color bandRule: dark ? "#3e3e3e" : "#e0e0e0"
+    readonly property color tileWindow: dark ? "#141414" : "#ffffff"
     readonly property color helpFace: dark ? "#373734" : "#ececec"
     readonly property color menu: dark ? "#262624" : "#f2f2f2"
     readonly property color menuRim: dark ? "#4e4e4c" : "#d3d3d3"

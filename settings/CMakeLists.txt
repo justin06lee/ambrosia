@@ -13,6 +13,7 @@ find_package(KF6Config REQUIRED)
 find_package(KF6PulseAudioQt REQUIRED)
 find_package(KF6NetworkManagerQt REQUIRED)
 find_package(KF6BluezQt REQUIRED)
+find_package(KF6Screen REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PULSE REQUIRED IMPORTED_TARGET libpulse)
 qt_standard_project_setup(REQUIRES 6.8)
@@ -32,6 +33,7 @@ qt_add_qml_module(ambrosia-settings
         src/wifi.h src/wifi.cpp
         src/bluetooth.h src/bluetooth.cpp
         src/network.h src/network.cpp
+        src/displays.h src/displays.cpp
     QML_FILES
         qml/SettingsWindow.qml
         qml/MenuBar.qml
@@ -76,6 +78,8 @@ qt_add_qml_module(ambrosia-settings
         qml/DeviceRow.qml
         qml/NetworkPage.qml
         qml/ServiceRow.qml
+        qml/DisplaysPage.qml
+        qml/ScaleTile.qml
     RESOURCES
         art/desktop.svg
         art/laptop.svg
@@ -86,7 +90,7 @@ target_include_directories(ambrosia-settings PRIVATE src)
 
 target_link_libraries(ambrosia-settings PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem
-    KF6::ConfigCore KF6::PulseAudioQt KF6::NetworkManagerQt KF6::BluezQt PkgConfig::PULSE
+    KF6::ConfigCore KF6::PulseAudioQt KF6::NetworkManagerQt KF6::BluezQt KF6::Screen PkgConfig::PULSE
 )
 
 include(GNUInstallDirs)
