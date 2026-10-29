@@ -63,6 +63,17 @@ QString kind(const Device *device)
     return Sound::tr("Built-in");
 }
 
+// A device whose every port is unplugged (a headphone jack's microphone
+// with nothing in it) can't be used, and the server won't take it as the
+// default: System Settings doesn't list such a device, nor do we.
+bool usable(const Device *device)
+{
+    const QList<Port *> ports = device->ports();
+    return ports.isEmpty() || std::any_of(ports.begin(), ports.end(), [](const Port *port) {
+        return port->availability() != Port::Unavailable;
+    });
+}
+
 bool isMonitor(const Source *source)
 {
     return source->pulseProperties().value(QStringLiteral("device.class")).toString() == QLatin1String("monitor");
@@ -172,6 +183,14 @@ void Sound::watch(Device *device, bool isOutput)
     connect(device, &Device::descriptionChanged, this, &Sound::devicesChanged);
     connect(device, &Device::activePortIndexChanged, this, &Sound::devicesChanged);
     connect(device, &Device::defaultChanged, this, &Sound::devicesChanged);
+    // Plugging something into a jack makes its port available.
+    auto watchPorts = [this, device] {
+        for (Port *port : device->ports())
+            connect(port, &Port::availabilityChanged, this, &Sound::devicesChanged, Qt::UniqueConnection);
+        Q_EMIT devicesChanged();
+    };
+    connect(device, &Device::portsChanged, this, watchPorts);
+    watchPorts();
 }
 
 void Sound::watchAlerts(StreamRestore *restore)
@@ -205,8 +224,10 @@ StreamRestore *Sound::alerts() const
 QVariantList Sound::outputs() const
 {
     QVariantList list;
-    for (const Sink *sink : Context::instance()->sinks())
-        list << row(sink);
+    for (const Sink *sink : Context::instance()->sinks()) {
+        if (usable(sink))
+            list << row(sink);
+    }
     return list;
 }
 
@@ -214,7 +235,7 @@ QVariantList Sound::inputs() const
 {
     QVariantList list;
     for (const Source *source : Context::instance()->sources()) {
-        if (!isMonitor(source))
+        if (!isMonitor(source) && usable(source))
             list << row(source);
     }
     return list;
