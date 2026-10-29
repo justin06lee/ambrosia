@@ -93,7 +93,8 @@ Page {
                     }
                     Label {
                         x: (parent.width - width) / 2
-                        y: 55
+                        y: 56
+                        style: Theme.text.caption
                         text: choice.isDefault ? qsTr("Default")
                             : choice.index === 0 ? qsTr("Larger Text")
                             : choice.index === scales.choices.length - 1 ? qsTr("More Space") : ""
@@ -110,6 +111,7 @@ Page {
     Box {
         visible: page.display?.dimmable ?? false
         FormRow {
+            height: 39
             label: qsTr("Brightness")
             firstLine: 16
             Slider {
@@ -126,6 +128,7 @@ Page {
     Box {
         visible: page.display !== null
         FormRow {
+            height: 37
             label: qsTr("Color profile")
             PopUpButton {
                 items: (page.display?.profiles ?? []).map(profile => ({ text: profile.name, value: profile.id }))
@@ -135,6 +138,7 @@ Page {
         }
         FormRow {
             visible: page.display !== null && (!page.display.builtIn || page.display.rates.length > 1)
+            height: 37
             label: qsTr("Refresh rate")
             PopUpButton {
                 items: (page.display?.rates ?? []).map(rate => ({ text: rate.text, value: rate.id }))
@@ -144,6 +148,7 @@ Page {
         }
         FormRow {
             visible: page.display !== null && !page.display.builtIn
+            height: 37
             label: qsTr("Rotation")
             PopUpButton {
                 items: [
