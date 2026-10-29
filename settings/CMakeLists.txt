@@ -31,6 +31,7 @@ qt_add_qml_module(ambrosia-settings
         src/sound.h src/sound.cpp
         src/wifi.h src/wifi.cpp
         src/bluetooth.h src/bluetooth.cpp
+        src/network.h src/network.cpp
     QML_FILES
         qml/SettingsWindow.qml
         qml/MenuBar.qml
@@ -73,6 +74,8 @@ qt_add_qml_module(ambrosia-settings
         qml/WiFiPage.qml
         qml/BluetoothPage.qml
         qml/DeviceRow.qml
+        qml/NetworkPage.qml
+        qml/ServiceRow.qml
     RESOURCES
         art/desktop.svg
         art/laptop.svg

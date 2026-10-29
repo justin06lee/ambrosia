@@ -124,6 +124,8 @@ QtObject {
     readonly property color switchOff: dark ? "#414140" : "#dddddd"
     readonly property color knob: dark ? "#e6e6e6" : "#ffffff"
     readonly property color connected: dark ? "#68ce67" : Theme.color.palette.green // Wi-Fi's dot
+    readonly property color notConnected: dark ? "#eb534e" : Theme.color.palette.red // Network's
+    readonly property color connecting: Theme.color.palette.yellow
     readonly property color helpFace: dark ? "#373734" : "#ececec"
     readonly property color menu: dark ? "#262624" : "#f2f2f2"
     readonly property color menuRim: dark ? "#4e4e4c" : "#d3d3d3"
