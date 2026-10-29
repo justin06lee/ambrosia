@@ -4,7 +4,8 @@ import Ambrosia
 import "glyphs.js" as Glyphs
 
 // A glyph from glyphs.js, drawn as vectors so it is sharp at any scale
-// and takes any color (as the shell's Icon.qml).
+// and takes any color (as the shell's Icon.qml); its `dim` part takes a
+// fifth of it (the unlit dots by the input volume's quiet end).
 Item {
     id: glyph
 
@@ -37,6 +38,12 @@ Item {
             fillColor: glyph.shape.fill ? glyph.color : "transparent"
             fillRule: ShapePath.WindingFill
             PathSvg { path: glyph.shape.fill ?? "" }
+        }
+        ShapePath {
+            strokeColor: "transparent"
+            fillColor: glyph.shape.dim ? Qt.alpha(glyph.color, glyph.color.a * 0.2) : "transparent"
+            fillRule: ShapePath.WindingFill
+            PathSvg { path: glyph.shape.dim ?? "" }
         }
     }
 }

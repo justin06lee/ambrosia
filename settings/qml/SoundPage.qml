@@ -25,6 +25,7 @@ Page {
     Box {
         FormRow {
             label: qsTr("Alert sound")
+            firstLine: Look.popupHeight
             enabled: Sound.themes.length > 0
             Row {
                 spacing: 9
@@ -52,6 +53,7 @@ Page {
         }
         FormRow {
             label: qsTr("Play sound effects through")
+            firstLine: Look.popupHeight
             enabled: Sound.hasAlerts
             PopUpButton {
                 items: [{ text: qsTr("Selected Sound Output Device"), value: "" }]
@@ -62,10 +64,12 @@ Page {
         }
         FormRow {
             label: qsTr("Alert volume")
+            firstLine: Look.sliderKnobHeight
             enabled: Sound.hasAlerts
             Slider {
                 minGlyph: "speaker"
                 maxGlyph: "sound"
+                ticks: 7
                 value: Sound.alertVolume
                 onMoved: (value) => Sound.setAlertVolume(value)
             }
@@ -101,8 +105,9 @@ Page {
         visible: page.side === "output" && Sound.outputs.length > 0
         FormRow {
             label: qsTr("Output volume")
+            firstLine: Look.sliderKnobHeight
             Column {
-                spacing: 8
+                spacing: 6
                 Slider {
                     minGlyph: "speaker"
                     maxGlyph: "sound"
@@ -120,6 +125,7 @@ Page {
         }
         FormRow {
             label: qsTr("Balance")
+            firstLine: Look.sliderKnobHeight
             visible: Sound.hasBalance
             Slider {
                 trackWidth: 242
@@ -135,7 +141,15 @@ Page {
         visible: page.side === "input" && Sound.inputs.length > 0
         FormRow {
             label: qsTr("Input volume")
+            firstLine: Look.sliderKnobHeight
             Slider {
+                minGlyph: "micQuiet"
+                maxGlyph: "mic"
+                minSize: 14
+                maxSize: 14
+                maxGap: 5
+                trackWidth: 201
+                ticks: 7
                 value: Sound.inputVolume
                 onMoved: (value) => Sound.setInputVolume(value)
             }

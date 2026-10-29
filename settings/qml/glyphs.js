@@ -94,6 +94,20 @@ var glyphs = {
         stroke: "M15.3 8.8a4.5 4.5 0 0 1 0 6.4M18 6.2a8.2 8.2 0 0 1 0 11.6",
         width: 1.9,
     },
+    // A microphone with its level beside it, all four dots lit at the loud
+    // end, one at the quiet end (Sound's input volume).
+    mic: {
+        stroke: "M9 9.3v2.6a6.6 6.6 0 0 0 13.2 0V9.3M15.6 18.5v4.1M10.3 22.6h11",
+        fill: rect(11.95, 0.7, 7.3, 15.4, 3.65) + circle(2.6, 5, 1.7) + circle(2.6, 10.5, 1.7) +
+            circle(2.6, 16.1, 1.7) + circle(2.6, 21.8, 1.7),
+        width: 1.7,
+    },
+    micQuiet: {
+        stroke: "M9 9.3v2.6a6.6 6.6 0 0 0 13.2 0V9.3M15.6 18.5v4.1M10.3 22.6h11",
+        fill: rect(11.95, 0.7, 7.3, 15.4, 3.65) + circle(2.6, 21.8, 1.7),
+        dim: circle(2.6, 5, 1.7) + circle(2.6, 10.5, 1.7) + circle(2.6, 16.1, 1.7),
+        width: 1.7,
+    },
     focus: { fill: "M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" },
     lockscreen: { stroke: "M8 10.5V8a4 4 0 0 1 8 0v2.5", fill: rect(5, 10.5, 14, 10, 2.5), width: 2.2 },
     privacy: {
