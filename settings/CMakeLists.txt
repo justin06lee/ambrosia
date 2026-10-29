@@ -11,6 +11,7 @@ find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControl
 find_package(KF6WindowSystem REQUIRED)
 find_package(KF6Config REQUIRED)
 find_package(KF6PulseAudioQt REQUIRED)
+find_package(KF6NetworkManagerQt REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PULSE REQUIRED IMPORTED_TARGET libpulse)
 qt_standard_project_setup(REQUIRES 6.8)
@@ -27,6 +28,7 @@ qt_add_qml_module(ambrosia-settings
         src/app.h src/app.cpp
         src/about.h src/about.cpp
         src/sound.h src/sound.cpp
+        src/wifi.h src/wifi.cpp
     QML_FILES
         qml/SettingsWindow.qml
         qml/MenuBar.qml
@@ -63,6 +65,10 @@ qt_add_qml_module(ambrosia-settings
         qml/CheckBox.qml
         qml/DeviceTable.qml
         qml/LevelMeter.qml
+        qml/Spinner.qml
+        qml/NetworkSignal.qml
+        qml/NetworkRow.qml
+        qml/WiFiPage.qml
     RESOURCES
         art/desktop.svg
         art/laptop.svg
@@ -73,7 +79,7 @@ target_include_directories(ambrosia-settings PRIVATE src)
 
 target_link_libraries(ambrosia-settings PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem
-    KF6::ConfigCore KF6::PulseAudioQt PkgConfig::PULSE
+    KF6::ConfigCore KF6::PulseAudioQt KF6::NetworkManagerQt PkgConfig::PULSE
 )
 
 include(GNUInstallDirs)

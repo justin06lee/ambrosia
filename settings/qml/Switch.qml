@@ -10,10 +10,12 @@ Item {
     id: control
 
     property bool checked
+    // A pane's own switch, by its name at the top (Wi-Fi, Bluetooth): 44 × 20.
+    property bool large: false
     signal toggled()
 
-    implicitWidth: Look.switchWidth
-    implicitHeight: Look.switchHeight
+    implicitWidth: large ? Look.switchLargeWidth : Look.switchWidth
+    implicitHeight: large ? Look.switchLargeHeight : Look.switchHeight
     opacity: enabled ? 1 : 0.45
     activeFocusOnTab: true
     Accessible.role: Accessible.CheckBox
@@ -30,7 +32,7 @@ Item {
     Rectangle {
         y: 2
         x: control.checked ? control.width - width - 2 : 2
-        width: Look.switchKnob
+        width: control.large ? Look.switchLargeKnob : Look.switchKnob
         height: control.height - 4
         radius: height / 2
         color: Look.knob

@@ -147,12 +147,13 @@ Window {
             width: parent.width - x
             height: parent.height - y
             focus: true
-            sourceComponent: ({ general: generalPage, about: aboutPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
+            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
             onLoaded: Qt.callLater(App.shown, win)
         }
         Component { id: generalPage; GeneralPage { settings: win } }
         Component { id: aboutPage; AboutPage { settings: win } }
         Component { id: soundPage; SoundPage { settings: win } }
+        Component { id: wifiPage; WiFiPage { settings: win } }
         Component { id: controlsPage; ControlsPage { settings: win } }
 
         Toolbar {
