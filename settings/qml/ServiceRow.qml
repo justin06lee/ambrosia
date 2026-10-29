@@ -41,14 +41,14 @@ Item {
     Rectangle {
         x: 49
         y: 30.5
-        width: 8.5
-        height: 8.5
-        radius: 4.25
+        width: 8.25
+        height: 8.25
+        radius: 4.125
         color: row.service.state === "connected" ? Look.connected
             : row.service.state === "connecting" ? Look.connecting : Look.notConnected
     }
     Label {
-        x: 62
+        x: 61.5
         y: 28.5
         style: Theme.text.caption
         color: Theme.color.label.secondary
