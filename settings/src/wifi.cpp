@@ -140,20 +140,27 @@ WiFi::WiFi(QObject *parent)
     findDevice();
 }
 
-// The Wi-Fi device: the one in use if there are more (a test radio),
-// else the first.
+// The Wi-Fi device: the one in use if there are more (a second card),
+// else the first; one sharing a hotspot only if there is no other.
 void WiFi::findDevice()
 {
+    const auto rank = [](const WirelessDevice::Ptr &device) {
+        return (device->mode() != WirelessDevice::ApMode ? 2 : 0) + (device->activeConnection() ? 1 : 0);
+    };
     WirelessDevice::Ptr found;
     for (const Device::Ptr &device : networkInterfaces()) {
         if (device->type() != Device::Wifi)
             continue;
-        if (!found || (device->activeConnection() && !found->activeConnection()))
-            found = device.objectCast<WirelessDevice>();
+        const auto wireless = device.objectCast<WirelessDevice>();
+        if (!found || rank(wireless) > rank(found))
+            found = wireless;
     }
-    if (const QByteArray name = qgetenv("AMBROSIA_WIFI_DEVICE"); !name.isEmpty()) {
-        if (const Device::Ptr device = findDeviceByIpFace(QString::fromUtf8(name)); device && device->type() == Device::Wifi)
-            found = device.objectCast<WirelessDevice>();
+    // A test radio, by its interface's name.
+    if (const QString name = qEnvironmentVariable("AMBROSIA_WIFI_DEVICE"); !name.isEmpty()) {
+        for (const Device::Ptr &device : networkInterfaces()) {
+            if (device->type() == Device::Wifi && device->interfaceName() == name)
+                found = device.objectCast<WirelessDevice>();
+        }
     }
     if (found == m_device)
         return;
