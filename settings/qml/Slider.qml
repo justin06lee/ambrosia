@@ -19,13 +19,16 @@ Item {
     property var captions: [] // [under the start, under the end]
     property string minGlyph
     property string maxGlyph
+    // The glyphs' sizes and room, as the Mac's speakers have it (the
+    // microphones are set where they're used).
     property real minSize: 13
+    property real lead: minGlyph !== "" ? 15 : 0 // from the start glyph to the track
     property real maxSize: 17
-    property real maxGap: 6 // from the track to the glyph at its end
+    property real maxGap: 6 // from the track to the end glyph
+    property real endPad: 2 // after the end glyph
     signal moved(real value)
 
-    readonly property real lead: minGlyph !== "" ? 20 : 0
-    implicitWidth: lead + trackWidth + (maxGlyph !== "" ? maxGap + maxSize : 0)
+    implicitWidth: lead + trackWidth + (maxGlyph !== "" ? maxGap + maxSize + endPad : 0)
     implicitHeight: captions.length > 0 ? 31 : ticks > 0 ? Look.sliderKnobHeight + 2 : Look.sliderKnobHeight
     opacity: enabled ? 1 : 0.45
     Accessible.role: Accessible.Slider

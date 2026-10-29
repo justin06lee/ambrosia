@@ -18,7 +18,20 @@ Page {
         return peak <= 0.001 ? 0 : Math.max(0, Math.min(1, 1 + Math.log10(peak) * 20 / 60));
     }
 
-    Component.onCompleted: Sound.monitoring = Qt.binding(() => page.side === "input" && page.visible)
+    // Opened as sound?input or sound?output, that side is shown.
+    function reveal(anchor) {
+        if (anchor === "input" || anchor === "output")
+            side = anchor;
+    }
+    Connections {
+        target: page.settings
+        function onAnchorChanged() { page.reveal(page.settings.anchor); }
+    }
+
+    Component.onCompleted: {
+        reveal(settings.anchor);
+        Sound.monitoring = Qt.binding(() => page.side === "input" && page.visible);
+    }
     Component.onDestruction: Sound.monitoring = false
 
     SectionHeading { first: true; text: qsTr("Sound Effects") }
@@ -67,8 +80,8 @@ Page {
             firstLine: Look.sliderKnobHeight
             enabled: Sound.hasAlerts
             Slider {
-                minGlyph: "speaker"
-                maxGlyph: "sound"
+                minGlyph: "volumeLow"
+                maxGlyph: "volumeHigh"
                 ticks: 7
                 value: Sound.alertVolume
                 onMoved: (value) => Sound.setAlertVolume(value)
@@ -109,8 +122,8 @@ Page {
             Column {
                 spacing: 6
                 Slider {
-                    minGlyph: "speaker"
-                    maxGlyph: "sound"
+                    minGlyph: "volumeLow"
+                    maxGlyph: "volumeHigh"
                     ticks: 7
                     value: Sound.outputVolume
                     onMoved: (value) => Sound.setOutputVolume(value)
@@ -146,8 +159,10 @@ Page {
                 minGlyph: "micQuiet"
                 maxGlyph: "mic"
                 minSize: 14
+                lead: 20
                 maxSize: 14
                 maxGap: 5
+                endPad: 1
                 trackWidth: 201
                 ticks: 7
                 value: Sound.inputVolume
