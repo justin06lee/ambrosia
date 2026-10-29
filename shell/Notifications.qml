@@ -102,8 +102,12 @@ Scope {
                     return (icon ? Quickshell.iconPath(icon, true) : "") || Quickshell.iconPath(entry?.icon ?? "", "dialog-information");
                 }
 
+                // Its actions other than the default one (a click on the banner), as buttons.
+                readonly property var buttons: modelData.actions.filter(a => a.identifier !== "default")
+
                 width: banners.bannerWidth
                 height: Math.max(row.implicitHeight + 2 * Theme.space.s3, 64)
+                    + (buttons.length ? actions.height + Theme.space.s3 : 0)
 
                 function invokeDefault() {
                     const action = modelData.actions.find(a => a.identifier === "default") ?? null;
@@ -111,10 +115,13 @@ Scope {
                     else modelData.dismiss();
                 }
 
-                // Leaves on its own unless urgent; the app may ask for longer.
+                // Leaves on its own unless urgent or the app says it never expires (0: a
+                // pairing request waits for its answer, and expiring it would refuse); the
+                // app may ask for longer. Quickshell gives the timeout in milliseconds.
                 Timer {
-                    running: banner.modelData.urgency !== NotificationUrgency.Critical && !area.containsMouse
-                    interval: banner.modelData.expireTimeout > 0 ? banner.modelData.expireTimeout * 1000 : 5000
+                    running: banner.modelData.urgency !== NotificationUrgency.Critical
+                        && banner.modelData.expireTimeout !== 0 && !area.containsMouse
+                    interval: banner.modelData.expireTimeout > 0 ? banner.modelData.expireTimeout : 5000
                     onTriggered: banner.modelData.expire()
                 }
 
@@ -182,6 +189,25 @@ Scope {
                             maximumLineCount: 3
                             elide: Text.ElideRight
                             textFormat: Text.StyledText
+                        }
+                    }
+                }
+
+                Row {
+                    id: actions
+                    visible: banner.buttons.length > 0
+                    x: Theme.space.s3
+                    y: Math.max(row.implicitHeight + 2 * Theme.space.s3, 64)
+                    width: parent.width - 2 * Theme.space.s3
+                    spacing: Theme.space.s2
+
+                    Repeater {
+                        model: banner.buttons
+                        PushButton {
+                            required property var modelData
+                            width: (actions.width - (banner.buttons.length - 1) * actions.spacing) / banner.buttons.length
+                            text: modelData.text
+                            onClicked: modelData.invoke()
                         }
                     }
                 }
