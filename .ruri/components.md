@@ -136,3 +136,9 @@ Settings' Bluetooth as macOS 26 lays it out, on BlueZ: large switch, discoverabl
 Its files: settings/qml/BluetoothPage.qml, settings/qml/DeviceRow.qml, settings/src/bluetooth.h, settings/src/bluetooth.cpp
 Reaches into: settings/qml/glyphs.js, settings/qml/Switch.qml, settings/qml/Box.qml, settings/qml/Spinner.qml, settings/qml/PushButton.qml, settings/qml/Look.qml, settings/qml/Panes.qml
 Tags: settings, bluetooth, pane, qml
+
+## settings-network — the Network pane
+Settings' Network as macOS 26 lists it, on NetworkManager: services connected first, a VPN row when NetworkManager holds VPN/WireGuard profiles, then Other Services; 52-tall rows with a 26 pt pane icon, 8.25 pt status dot (green, yellow, the Mac's red), caption status and chevron, within 0.5 pt of the Mac at 2x. Wi-Fi opens our pane; the rest open KDE's connection editor until the service page and ⋯ menu are captured. No Firewall row (none shipped).
+Its files: settings/qml/NetworkPage.qml, settings/qml/ServiceRow.qml, settings/src/network.h, settings/src/network.cpp
+Reaches into: settings/qml/PaneIcon.qml, settings/qml/Box.qml, settings/qml/SectionHeading.qml, settings/qml/glyphs.js, settings/qml/Look.qml, settings/qml/Panes.qml
+Tags: settings, network, pane, qml

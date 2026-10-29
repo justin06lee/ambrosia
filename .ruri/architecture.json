@@ -1428,7 +1428,7 @@
       ]
     },
     "settings-app": {
-      "summary": "our System Settings look-alike: Qt 6 QML window on the Ambrosia theme (sidebar in macOS 26 order; General, About, Sound, Wi-Fi and Bluetooth built), C++20 core reading hostnamed, /proc, DRM, pacman, PulseAudio, NetworkManager and BlueZ. Panes not built yet open KDE's own modules via kcmshell6.",
+      "summary": "our System Settings look-alike: Qt 6 QML window on the Ambrosia theme (sidebar in macOS 26 order; General, About, Sound, Wi-Fi, Bluetooth and Network built), C++20 core reading hostnamed, /proc, DRM, pacman, PulseAudio, NetworkManager and BlueZ. Panes not built yet open KDE's own modules via kcmshell6.",
       "map": [
         {
           "name": "the sidebar's panes (which exist, order, glyph, colour, keywords, page or KDE module)",
@@ -1513,6 +1513,14 @@
             "settings/qml/DeviceRow.qml",
             "settings/src/bluetooth.cpp"
           ]
+        },
+        {
+          "name": "Network: the services (connected first, VPN, Other Services) with status dots; a row opens Wi-Fi's pane or KDE's connection editor",
+          "files": [
+            "settings/qml/NetworkPage.qml",
+            "settings/qml/ServiceRow.qml",
+            "settings/src/network.cpp"
+          ]
         }
       ],
       "flows": [
@@ -1548,6 +1556,14 @@
             "Bluetooth singleton (bluetooth.cpp, BluezQt; AMBROSIA_BT_ADAPTER picks a test adapter)",
             "BlueZ; while the page shows, discovery and discoverable are on, put back on quit; Connect pairs first, the code confirmed in KDE's agent's banner (bluedevil",
             "shell Notifications), then trusts and connects"
+          ]
+        },
+        {
+          "name": "Network",
+          "steps": [
+            "NetworkPage",
+            "Network singleton (network.cpp, NetworkManagerQt: managed Ethernet, Wi-Fi, Bluetooth and modem devices; VPN and WireGuard profiles as one VPN row)",
+            "NetworkManager; tunnels run outside NetworkManager (Tailscale) aren't services; no Firewall row (none shipped)"
           ]
         }
       ],
