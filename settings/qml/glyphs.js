@@ -152,6 +152,26 @@ var glyphs = {
     signal1: { dimStroke: wifiArcs(-2), fill: wifiWedge(), width: 3.2 },
     more: { stroke: circle(12, 12, 10.9), fill: circle(7.4, 12, 1.5) + circle(12, 12, 1.5) + circle(16.6, 12, 1.5), width: 1.41 },
     tick: { stroke: "M6.1 12.6l3.45 4.95L17.9 6.45", width: 2.4 },
+    // Bluetooth's: a device, by what it says it is.
+    headphones: { stroke: "M4.8 15V12a7.2 7.2 0 0 1 14.4 0v3", fill: rect(3.2, 13.6, 4.4, 7.4, 1.8) + rect(16.4, 13.6, 4.4, 7.4, 1.8), width: 1.5 },
+    speaker: { stroke: rect(6.3, 2.5, 11.4, 19, 2.6) + circle(12, 14.9, 3.3), fill: circle(12, 7.4, 1.4), width: 1.4 },
+    gamepad: {
+        stroke: "M7.2 7.6h9.6a4.4 4.4 0 0 1 4.3 3.5l1 5.3a2.5 2.5 0 0 1-4.4 2l-2-2.5H8.3l-2 2.5a2.5 2.5 0 0 1-4.4-2l1-5.3a4.4 4.4 0 0 1 4.3-3.5zM7.6 10.3v3.4M5.9 12h3.4",
+        fill: circle(15.8, 11, 1) + circle(17.9, 13, 1),
+        width: 1.4,
+    },
+    keyboard: {
+        stroke: rect(2, 6.5, 20, 11, 2.2),
+        // Five keys, four under them, and the space bar.
+        fill: [0, 1, 2, 3, 4].map(i => rect(4.6 + i * 3.2, 9, 1.8, 1.7, 0.4)).join("") +
+            [0, 1, 2, 3].map(i => rect(6.2 + i * 3.2, 11.6, 1.8, 1.7, 0.4)).join("") + rect(7.4, 14.2, 9.2, 1.7, 0.6),
+        width: 1.4,
+    },
+    mouse: { stroke: "M12 2.8a5.6 5.6 0 0 1 5.6 5.6v7.2a5.6 5.6 0 0 1-11.2 0V8.4A5.6 5.6 0 0 1 12 2.8zM12 6.2v2.6", width: 1.5 },
+    phone: { stroke: rect(6.6, 2, 10.8, 20, 2.6), fill: rect(10, 3.7, 4, 1.3, 0.65), width: 1.4 },
+    computer: { stroke: rect(4.4, 5, 15.2, 10.6, 1.6) + "M1.8 18.6h20.4", width: 1.5 },
+    watch: { stroke: rect(6.6, 6.2, 10.8, 11.6, 3) + "M9 6.2l.6-3.6h4.8L15 6.2M9 17.8l.6 3.6h4.8l.6-3.6", width: 1.4 },
+    device: { stroke: rect(6.6, 2.5, 10.8, 19, 2.6) + "M9.6 9.4l4.8 4.3-2.4 2.1V7.6l2.4 2.1-4.8 4.3", width: 1.3 },
     focus: { fill: "M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" },
     lockscreen: { stroke: "M8 10.5V8a4 4 0 0 1 8 0v2.5", fill: rect(5, 10.5, 14, 10, 2.5), width: 2.2 },
     privacy: {

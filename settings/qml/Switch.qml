@@ -12,6 +12,8 @@ Item {
     property bool checked
     // A pane's own switch, by its name at the top (Wi-Fi, Bluetooth): 44 × 20.
     property bool large: false
+    // Slides when it changes; off while what it shows is still being read.
+    property bool animated: true
     signal toggled()
 
     implicitWidth: large ? Look.switchLargeWidth : Look.switchWidth
@@ -27,7 +29,7 @@ Item {
         anchors.fill: parent
         radius: height / 2
         color: control.checked ? Theme.accent.bg : Look.switchOff
-        Behavior on color { ColorAnimation { duration: Theme.fade.fast } }
+        Behavior on color { enabled: control.animated; ColorAnimation { duration: Theme.fade.fast } }
     }
     Rectangle {
         y: 2
@@ -36,7 +38,7 @@ Item {
         height: control.height - 4
         radius: height / 2
         color: Look.knob
-        Behavior on x { NumberAnimation { duration: Theme.spring.snappy.duration; easing.type: Easing.OutCubic } }
+        Behavior on x { enabled: control.animated; NumberAnimation { duration: Theme.spring.snappy.duration; easing.type: Easing.OutCubic } }
         layer.enabled: true
         layer.effect: MultiEffect {
             shadowEnabled: true
