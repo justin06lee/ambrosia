@@ -94,6 +94,9 @@ var glyphs = {
             "M3.5 12h17M12 3.5c2.4 2.5 3.5 5.5 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.5-3.5-8.5s1.1-6 3.5-8.5z",
         width: 1.8,
     },
+    // Network's services: a wired port, a phone's shared connection.
+    ethernet: { stroke: "M8.2 7.2L3.4 12l4.8 4.8M15.8 7.2l4.8 4.8-4.8 4.8", fill: circle(8.9, 12, 1.25) + circle(12, 12, 1.25) + circle(15.1, 12, 1.25), width: 2 },
+    cellular: { fill: rect(3.5, 15, 3, 5.5, 1) + rect(8.5, 11.5, 3, 9, 1) + rect(13.5, 8, 3, 12.5, 1) + rect(18.5, 4, 3, 16.5, 1) },
     battery: { stroke: rect(2.5, 7.5, 17, 9, 2.5) + "M21.5 10.5v3", fill: rect(4.6, 9.6, 10.5, 4.8, 1), width: 1.8 },
     energy: { fill: "M13.5 2L5 13.6h6.2L10 22l8.5-11.6h-6.2z" },
     general: { fill: gear(12, 12, 9.5, 7.2, 10, 3.2) },

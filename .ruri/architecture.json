@@ -1,9 +1,8 @@
 {
   "description": "Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design authority, one token file, a generator theming every toolkit identically. It ships as Arch packages and an archiso installer image. The design system, preview and review site exist; the distro pipeline (packages, Ambrosia session on KWin, live image, installer) has a first cut; the shell has its menu bar and traffic-light window frames.",
   "features": [
-    "Single OKLCH token file drives every toolkit theme identically",
-    "Generates GTK, KDE, Aurorae, QML, fontconfig, web CSS, JSON from tokens",
-    "Gamut-maps colors to sRGB with contrast-derived accent variants",
+    "Single OKLCH token file generates GTK, KDE, KWin frame, QML, web, JSON; gamut-mapped to sRGB",
+    "Derives contrast-checked accent variants from the token file",
     "Solves response/damping springs into constants and easing curves",
     "Validates contrast, concentric radii, and spacing grid via tests",
     "Browser mock desktop preview and review site render spec with live specimens",
@@ -15,8 +14,9 @@
     "Super+Space Spotlight; dock keeps pinned order, separate launchers, Mac-style Trash",
     "Control center: pure blur glass, modes, sliding notification banners",
     "Honey-bowl Ambrosia branding in menu bar, banner, favicon, preview and review site",
-    "Finder-style file manager: undoable ops, Finder undo labels, drag-drop, default folder opener",
-    "Starter apps: Firefox, Kate, Gwenview, Okular, Ark, Discover"
+    "Finder-style Files: thumbnails, Quick Look, Get Info, Columns with metadata, undo, search",
+    "Colour tags shared with Dolphin/Baloo: dots, tinted folders, menu, sidebar lists",
+    "Settings: System Settings look-alike; real Sound and Wi-Fi panes"
   ],
   "layers": [
     {
@@ -81,7 +81,8 @@
       "paths": [
         "shell/",
         "session/",
-        "tools/shot.sh"
+        "tools/shot.sh",
+        "decoration/"
       ]
     },
     {
@@ -106,7 +107,35 @@
       "paths": [
         "docs/finder/",
         "files/",
-        "files/tools/"
+        "files/tools/",
+        "scratch/ql/shoot.sh",
+        "scratch/ql/wins.js",
+        "scratch/tags/shoot.sh",
+        "scratch/tags/tag.js",
+        "scratch/search/Look/build.sh",
+        "scratch/search/shoot.sh",
+        "scratch/search/shoot2.sh",
+        "scratch/thumbs/shoot.sh",
+        "scratch/thumbs/shootkinds.sh",
+        "scratch/thumbs/tools/prof.py",
+        "scratch/thumbs/tools/span.py",
+        "scratch/parity/shootscroll.sh",
+        "scratch/parity/ink.py",
+        "scratch/parity/shootmore.sh",
+        "scratch/parity/shootpane.sh"
+      ]
+    },
+    {
+      "name": "Settings App",
+      "what": "our System Settings look-alike: Qt 6 QML window on the Ambrosia theme (sidebar in macOS 26 order, General and About), C++20 core reading hostnamed, /proc, DRM and pacman; panes not built yet open KDE's own modules via kcmshell6",
+      "slug": "settings-app",
+      "paths": [
+        "settings/",
+        "docs/settings/",
+        "scratch/settings/dhcp-test.py",
+        "scratch/settings/wifi-sim.sh",
+        "scratch/settings/mac-sheets.sh",
+        "scratch/settings/bt-sim.sh"
       ]
     }
   ],
@@ -117,8 +146,9 @@
         "design/tokens.ts",
         "tools/gen/resolve.ts",
         "tools/gen/targets/*",
-        "dist/ (gtk, kde, aurorae, qml, fontconfig, web, tokens.json)",
-        "tools/install.sh"
+        "dist/ (gtk, kde, kdecoration, qml, fontconfig, web, tokens.json)",
+        "tools/install.sh; dist/kdecoration/tokens.h",
+        "decoration/ (KWin frame plugin, built by the PKGBUILD)"
       ]
     },
     {
@@ -141,7 +171,7 @@
     {
       "name": "Ship it",
       "steps": [
-        "tokens + shell/ + session/ + files/",
+        "tokens + shell/ + session/ + files/ + settings/",
         "packaging/PKGBUILD via make publish (tenet builds from git checkout ~/work/ambrosia, pushed from the Mac)",
         "Mac signs packages and database",
         "GitHub release repo ambrosia-packages (database uploaded last, old versions deleted)",
@@ -152,19 +182,20 @@
   "layout": [
     "design/ — DESIGN.md rules and tokens.ts values, the single source of truth",
     "tools/gen/ — index.ts orchestrator, resolve.ts, color.ts, spring.ts plus tests",
-    "tools/gen/targets/ — gtk.ts, kde.ts, aurorae.ts (traffic-light window frames), qml.ts, fontconfig.ts, web.ts, shared.ts formatters",
+    "tools/gen/targets/ — gtk.ts (incl. GTK titlebuttons), kde.ts, kdecoration.ts, qml.ts, fontconfig.ts, web.ts, shared.ts formatters; decoration/ — our KWin window frame plugin (org.ambrosia.decoration, KDecoration3) built on dist/kdecoration/tokens.h, packaged as ambrosia-decoration",
     "tools/ — install.sh (per-user theme install with .before-ambrosia backups); remote.sh and publish-repo.sh (sync to and build on tenet over SSH; make publish signs and uploads the repo); repo-check.sh (counts our packages)",
     "preview/ — index.html + preview.js mock desktop, styled only from dist/web/tokens.css",
     "site/ — review site: spec content, live specimens, verdict threads, server + static build",
     "assets/ — banner SVG, nectar day/night wallpapers, Files app icon (assets/icons/org.ambrosia.files.svg, installed as hicolor org.ambrosia.files)",
-    "dist/ — generated output: gtk-*, kde/, qml/, fontconfig/, web/, aurorae/, tokens.json (never hand-edit)",
+    "dist/ — generated output: gtk-*, kde/, kdecoration/, qml/, fontconfig/, web/, tokens.json (never hand-edit)",
     "Makefile — build, test, review, screenshot targets; remote-build, review-remote and shot-remote run on tenet; package.json / tsconfig.json — bun+typescript toolchain definition",
     "CONTEXT.md — handoff sheet: what stands, what's next, machines (tenet), how to build/test, gotchas",
     "shell/ — Quickshell QML shell: menu bar and menus on a grabbing popup (MenuView.qml, Overlay.qml), Spotlight, dock (hand-drawn trash-full/empty.svg, no Apple art), control center, notifications, appearance; watchFiles off when installed under /usr",
     "session/ — startambrosia (copies decoration settings into ~/.config/kdedefaults/kwinrc at login), systemd units swapping plasmashell, /etc/xdg/ambrosia defaults (kwinrc, breezerc), xdg/mimeapps.list (folders and trash:/ open in Files), look-and-feel defaults, pacman hook ambrosia-shell-restart(.hook) restarting the shell after upgrades",
-    "packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop, ambrosia-files, and the Quickshell rebuild (DBusMenu shortcut patch; debug packages off)",
+    "packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop, ambrosia-files (depends include ripgrep, ffmpeg, taglib, karchive, freetype2; makedepends include taglib, karchive, freetype2), and the Quickshell rebuild (DBusMenu shortcut patch; debug packages off)",
     "iso/ — archiso profile: live desktop, local [ambrosia] repo, installer scripts",
-    "files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub), C++20 core with KF6/KIO (foldermodel.cpp, fileops.cpp undoable copy/move/trash with undo/redo labels; Trash drops exposed over DBus), benchmarks in files/bench/; installs /usr/bin/ambrosia-files"
+    "files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub, PreviewDetails/QuickActions/TagField.qml), C++20 core with KF6/KIO (foldermodel.cpp with timesAt for pane dates and search listing, fileops.cpp undoable copy/move/trash with undo/redo labels, iteminfo.cpp one item's details followed by inode, metadata.cpp Show More metadata, tags.cpp/tags.h colour tags in the attribute Dolphin and Baloo use, index.cpp/index.h in-memory name index kept current by inotify and saved to ~/.cache/ambrosia/files/index, thumbnailer.cpp/h shared-cache thumbnails paused under I/O pressure, rg content search, Trash drops exposed over DBus), benchmarks in files/bench/ and src/searchbench.cpp; installs /usr/bin/ambrosia-files and the resident user unit files/ambrosia-files.service (--background, started with the Ambrosia session, indexes home on first start)\nColour tags shared with Dolphin/Baloo: dots, tinted folders, menu, sidebar lists; src/previews.cpp/h Finder-style thumbnail sources (video frames, font tiles, office pages, audio covers)",
+    "settings/ — Settings, Ambrosia's System Settings: Qt Quick window (SettingsWindow, Sidebar, pages, controls; every measure in qml/Look.qml), C++ core (src/app.cpp system facts, src/sound.cpp PulseAudio sound via pulseaudio-qt, src/wifi.cpp Wi-Fi page, KDE modules via kcmshell6, vertical zoom through a KWin script; src/about.cpp); docs/settings/ holds the plan and the measured frame"
   ],
   "run": [
     "make — test, build all themes into dist/, install on Linux",
@@ -314,7 +345,7 @@
       ]
     },
     "design-tokens": {
-      "summary": "Single-file source of truth for ambrosia's look and motion, exporting type scale, 4px spacing, radii, OKLCH colors, glass/materials, shadows, and springs. All dist themes are generated from it via tools/gen, so this file is edited instead of generated output. Newcomer must grasp: colors are OKLCH strings for perceptually even lightness and everything is light/dark Mode pairs.",
+      "summary": "Single-file source of truth for ambrosia's look and motion, exporting type scale, 4px spacing, radii, OKLCH colors, glass/materials, shadows, springs, and window-frame metrics. All dist themes are generated from it via tools/gen, so this file is edited instead of generated output. Newcomer must grasp: colors are OKLCH strings for perceptually even lightness and everything is light/dark Mode pairs.",
       "map": [
         {
           "name": "Type scale and fonts",
@@ -347,9 +378,18 @@
           ]
         },
         {
-          "name": "Status and window-control colors",
+          "name": "Status and window-control colors (traffic lights)",
           "files": [
-            "design/tokens.ts"
+            "design/tokens.ts",
+            "design/DESIGN.md"
+          ]
+        },
+        {
+          "name": "Window frame metrics (titlebar, traffic lights)",
+          "files": [
+            "design/tokens.ts",
+            "design/DESIGN.md",
+            "design/DECISIONS.md"
           ]
         },
         {
@@ -388,19 +428,23 @@
       ],
       "flows": [],
       "files": [
-        "design/tokens.ts — the single source of truth: font/type/tracking, space, radius, OKLCH color pairs, glass, shadow, springs",
-        "design/DESIGN.md — reasoning behind the numbers before retuning values"
+        "design/tokens.ts — the single source of truth: font/type/tracking, space, radius, OKLCH color pairs, window frame, glass, shadow, springs",
+        "design/DESIGN.md — reasoning behind the numbers before retuning values",
+        "design/DECISIONS.md — recorded design decisions behind token choices"
       ],
       "rules": [
         "Never hand-edit generated output in dist/; change design/tokens.ts and regenerate.",
         "Keep colors as OKLCH strings (oklch(L C H) or with / A) so generator can convert and gamut-map to sRGB.",
         "Provide both light and dark values via Mode/Pair for mode-dependent tokens.",
         "See DESIGN.md for reasoning behind the numbers before retuning values.",
-        "Menus snap open instantly with no open animation (close fades 120ms); control-center panel is blur-only with no fill, border, or shadow, controls carry their own glass."
+        "Window-control colours (traffic lights, light and dark) are measured from macOS 26; light-mode traffic-light colours match the dark-mode ones on the Mac.",
+        "Traffic-light edges are a thin darker shade of each light's own colour, not grey.",
+        "Menus snap open instantly with no open animation (close fades 120ms); control-center panel is blur-only with no fill, border, or shadow, controls carry their own glass.",
+        "font.ui lists Inter Variable before the static Inter: Qt maps Inter.ttc (13 MB, every cut) once per weight. Weight 700 then needs QT_NO_SYNTHESIZED_BOLD (session font environment), or Qt fakes bold over the variable font's real Bold."
       ],
       "edges": [
         "Generator Core — resolves design/tokens.ts: OKLCH to sRGB, contrast, springs, dist orchestration",
-        "Theme Targets — format the resolved model into GTK, KDE, QML, fontconfig, web output",
+        "Theme Targets — format the resolved model into GTK, KDE, QML, fontconfig, web output; kdecoration target carries window-frame metrics and lights to the KWin decoration plugin",
         "Preview Desktop — styled only from generated dist/web/tokens.css, never this file directly"
       ]
     },
@@ -645,13 +689,22 @@
       ]
     },
     "theme-targets": {
-      "summary": "This layer turns the resolved theme model (Resolved/ResolvedMode from Generator Core) into per-toolkit output files. Each file in tools/gen/targets/ is a pure formatter: roles/colors plus shared helpers. Newcomers must grasp that nothing is resolved here — token truth and color math live upstream; targets only map and serialize.",
+      "summary": "This layer turns the resolved theme model (Resolved/ResolvedMode from Generator Core) into per-toolkit output files. Each file in tools/gen/targets/ is a pure formatter: roles/colors plus shared helpers. Newcomers must grasp that nothing is resolved here; token truth and color math live upstream, and targets only map and serialize.",
       "map": [
         {
           "name": "GTK theme overrides",
           "files": [
             "tools/gen/targets/gtk.ts",
             "tools/gen/targets/shared.ts"
+          ]
+        },
+        {
+          "name": "Traffic lights (window buttons) across KWin, GTK and QML",
+          "files": [
+            "tools/gen/targets/shared.ts",
+            "tools/gen/targets/kdecoration.ts",
+            "tools/gen/targets/gtk.ts",
+            "tools/gen/targets/qml.ts"
           ]
         },
         {
@@ -695,9 +748,9 @@
           ]
         },
         {
-          "name": "KWin window decoration (Aurorae SVG theme: traffic lights, titlebar, window shadow)",
+          "name": "KWin window frame's tokens (titlebar, lights, corner, rim, edge, shadow) as a C++ header for decoration/",
           "files": [
-            "tools/gen/targets/aurorae.ts"
+            "tools/gen/targets/kdecoration.ts"
           ]
         }
       ],
@@ -713,22 +766,28 @@
         }
       ],
       "files": [
-        "tools/gen/targets/shared.ts — shared header, kebab/slug, fontStack, cssShadow, pt helpers",
-        "tools/gen/targets/gtk.ts — libadwaita CSS vars (gtk4) and named colors per mode (gtk3)",
+        "tools/gen/targets/shared.ts — shared header, kebab/slug, fontStack, cssShadow, pt helpers, and the window-button symbol shapes",
+        "tools/gen/targets/gtk.ts — libadwaita CSS vars (gtk4), named colors per mode (gtk3), and GTK's traffic-light sizing and edge",
         "tools/gen/targets/kde.ts — opaque .colors sets, translucency flattened onto background",
         "tools/gen/targets/qml.ts — Ambrosia QML singleton tree with Theme.dark / Theme.accentName switching",
         "tools/gen/targets/web.ts — --amb-* CSS custom properties for preview/web surfaces",
-        "tools/gen/targets/fontconfig.ts — sans-serif/monospace aliases and rasterization defaults",
-        "tools/gen/targets/aurorae.ts — Aurorae theme per mode: rc layout, nine-slice decoration.svg painted as PNGs (window color, rim, edge, box-shadows), vector button SVGs"
+        "tools/gen/targets/fontconfig.ts — sans-serif/monospace aliases, rasterization defaults, and the session's font environment (FreeType stem darkening, QT_NO_SYNTHESIZED_BOLD)",
+        "tools/gen/targets/kdecoration.ts — dist/kdecoration/tokens.h: the frame's sizes, per-mode colors, window-button shapes, light edge and shadow layers for the decoration plugin"
       ],
       "rules": [
         "Do not edit generated output; every file carries HEADER pointing back to design/tokens.ts via tools/gen.",
-        "Do not resolve or derive colors here — use the passed Resolved model and color.ts / resolve.ts helpers.",
+        "Do not resolve or derive colors here; use the passed Resolved model and color.ts / resolve.ts helpers.",
         "KDE output must stay opaque r,g,b: flatten translucent values with flat() onto their background set.",
         "GTK3 has no prefers-color-scheme: emit one file per mode; GTK4 emits light and dark in one file.",
         "Keep QML identifiers safe: slug token keys and prefix leading digits.",
         "QML property names can't be ECMAScript keywords; qml.ts suffixes them with _ (Theme.size.switch_), guarded by a test in tools/gen/rules.test.ts.",
-        "Aurorae makes KWin's window shadow from what decoration.svg paints in its Padding*, slicing it at the pieces' own sizes; KSvg only takes a prefix whose -center element exists, so each button state has both 'x' and 'x-center'. The frame is 1x PNG (soft on HiDPI)."
+        "Window-control colors are per mode (resolved modes[m].windowControls, with inactive = fill.primary on the window); QML exposes them as Theme.windowControls, which follows Theme.dark.",
+        "Window-button symbol shapes (×, −, zoom) are defined once in shared.ts; KWin, GTK and QML draw from that definition, so change them there, not per toolkit.",
+        "Traffic lights must measure the same in every toolkit: 14 pt wide, 23 pt apart, symbols 50% black; a change to one toolkit's sizing needs the others checked against it.",
+        "Traffic-light colours are the same in light and dark mode, as on macOS; do not give light mode its own set.",
+        "The traffic-light edge is a thin darker shade of each light's own colour, not a grey ring; the KWin frame and GTK draw it that way.",
+        "GTK lights move to the left only in sessions started after that setting shipped; a running session keeps the old placement, so check on a fresh login.",
+        "Qt fakes bold for weight ≥700 when the face's OS/2 weight class is under 700. Variable fonts report their default instance (Inter Variable says 400), so their real Bold gets thickened again. fontEnvironment() sets QT_NO_SYNTHESIZED_BOLD=1, which startambrosia sources at login. fontconfig's embolden doesn't reach Qt."
       ],
       "edges": [
         "Design Tokens — reads type, color, font, shadow token definitions as input vocabulary",
@@ -829,6 +888,12 @@
           ]
         },
         {
+          "name": "Window traffic lights (close, minimise, zoom in window frames)",
+          "files": [
+            "decoration/src/button.cpp"
+          ]
+        },
+        {
           "name": "Session start, env and defaults scope",
           "files": [
             "session/startambrosia",
@@ -848,23 +913,6 @@
             "session/org.ambrosia.shell.desktop",
             "session/org.ambrosia.search.desktop",
             "session/ambrosia"
-          ]
-        },
-        {
-          "name": "KWin defaults (buttons, borders, hot corner, blur, popups), Breeze menus, folders open in Files, no splash",
-          "files": [
-            "session/xdg/kwinrc",
-            "session/xdg/breezerc",
-            "session/xdg/mimeapps.list",
-            "session/ksplash.conf"
-          ]
-        },
-        {
-          "name": "Session look-and-feel (colors, widget style, traffic-light window frames, splash off; dark mode switches the frame in shell/Appearance.qml)",
-          "files": [
-            "session/look-and-feel/org.ambrosia.desktop/",
-            "session/startambrosia",
-            "tools/gen/targets/aurorae.ts"
           ]
         }
       ],
@@ -943,6 +991,7 @@
         "Dock and Trash artwork is hand-drawn vector art; never copy or extract Apple's images from Dock.app or any system bundle.",
         "Dock icons, including the Files icon, are our own drawings: never trace Finder.app or any macOS file; the face and shapes must be ours even when the squircle and colours match macOS.",
         "The Dock's Trash is sized against its neighbouring icons by macOS's squircle-to-bin ratio; resize it with them, not on its own.",
+        "Window traffic lights use macOS's colours in both light and dark mode, and each light's edge is a thin darker shade of its own colour, not grey.",
         "KWin gives its window list (org_kde_plasma_window_management) only to programs a desktop file grants, matched by Exec path: org.ambrosia.shell.desktop names /usr/bin/quickshell. No other desktop file may Exec /usr/bin/quickshell (KWin takes the first match), so shortcuts run /usr/bin/ambrosia.",
         "Plasma's appmenu kded only collects apps' menus while org.kde.kappmenuview is on the bus; Apps.qml holds it with dbus-test-tool black-hole. Apps check at startup, so ones started before the shell keep their in-window menus.",
         "A QML file loaded by file:// URL (Loader) gets its own copies of the shell's singletons; pass it values instead (AppMenu.qml).",
@@ -951,21 +1000,21 @@
         "Start apps through kstart (Session.launch/run), never execDetached on the app: it would live in ambrosia-shell.service's cgroup and die when the shell restarts.",
         "Pinned apps' AppId ends in .desktop, running ones' not (use Apps.entryFor). Windows keep their pin's Dock spot only with launchInPlace and separateLaunchers: true.",
         "Glass.qml draws preview/glass.css: top-lit rim (ring: true for the Dock's all-round rim), a 135° specular ring, 0.5px edge, shadow outside only. Use it for any glass surface instead of a plain tinted Rectangle.",
-        "KWin's blur is global: [Effect-blur] BlurStrength and Saturation (integer, 100 = none) in session/xdg/kwinrc apply to every glass surface; the control center's untinted backdrop sets them (6, 100). Reload with /Effects reconfigureEffect blur, not KWin.reconfigure.",
-        "kdedefaults is rewritten only when the look-and-feel's name changes: Breeze settings go in session/xdg/breezerc; startambrosia copies the look-and-feel's decoration into kdedefaults/kwinrc each login."
+        "KWin's blur is global: [Effect-blur] BlurStrength and Saturation (integer, 100 = none) in session/xdg/kwinrc apply to every glass surface; the control center's untinted backdrop sets them (6, 100). Reload with /Effects reconfigureEffect blur, not KWin.reconfigure."
       ],
       "edges": [
         "Theme Targets — imports the generated Ambrosia QML module (/usr/lib/qt6/qml/Ambrosia) and kdeglobals",
         "Packaging and Image — ambrosia-shell installs shell/ to /usr/share/ambrosia/shell and session/ files system-wide, and ships assets/icons/org.ambrosia.files.svg with them",
         "Preview Desktop — the visual reference the QML must match",
-        "Files app — pinned in the Dock; Trash drops use its DBus Trash method"
+        "Files app — pinned in the Dock; Trash drops use its DBus Trash method",
+        "Settings app (ambrosia-settings, settings/) — the menu bar's Settings items and the Dock open it instead of KDE's settings module"
       ]
     },
     "packaging-and-image": {
-      "summary": "Everything that turns the repo into an installable, updatable distro. packaging/PKGBUILD builds ambrosia-keyring, ambrosia-theme, ambrosia-shell and ambrosia-desktop from the checkout; packaging/quickshell rebuilds Quickshell v0.3.2 with a patch so the menu bar can read apps' real menus, including each item's shortcut, and so apps learn when each menu opens. tools/publish-repo.sh (make publish, on the Mac) builds them on tenet, signs them with a key kept on the Mac, and uploads them to the hosted [ambrosia] pacman repo: the rolling repo release of the public github.com/justin06lee/ambrosia-packages. iso/ is an archiso profile (from Arch's releng) whose live system logs into Ambrosia and carries the packages as a local repo for its installer, which puts [ambrosia] first in the installed system's pacman.conf. Built on an Arch host (tenet), tested in a headless QEMU VM.",
+      "summary": "Everything that turns the repo into an installable, updatable distro. packaging/PKGBUILD builds ambrosia-keyring, ambrosia-theme, ambrosia-shell, ambrosia-settings and ambrosia-desktop from the checkout; packaging/quickshell rebuilds Quickshell v0.3.2 with a patch so the menu bar can read apps' real menus, including each item's shortcut, and so apps learn when each menu opens. tools/publish-repo.sh (make publish, on the Mac) builds them on tenet, signs them with a key kept on the Mac, and uploads them to the hosted [ambrosia] pacman repo: the rolling repo release of the public github.com/justin06lee/ambrosia-packages. iso/ is an archiso profile (from Arch's releng) whose live system logs into Ambrosia and carries the packages as a local repo for its installer, which puts [ambrosia] first in the installed system's pacman.conf. Built on an Arch host (tenet), tested in a headless QEMU VM.",
       "map": [
         {
-          "name": "What each package installs and depends on (incl. the Aurorae window frame, ambrosia-shell's upgrade restart hook, and the Files app icon in the hicolor theme)",
+          "name": "What each package installs and depends on (incl. ambrosia-decoration, the KWin window frame plugin built from decoration/; ambrosia-settings and the libraries its Sound, Wi-Fi and Bluetooth panes need, listed in the PKGBUILD; ambrosia-desktop's depends on Settings, power-profiles-daemon, CUPS, Avahi and nss-mdns; ambrosia-shell's upgrade restart hook; the Files icon; ambrosia-files' libraries and runtime tools ripgrep and ffmpeg)",
           "files": [
             "packaging/PKGBUILD",
             "assets/icons/org.ambrosia.files.svg"
@@ -1038,19 +1087,6 @@
             "packaging/keyring/",
             "packaging/ambrosia-keyring.install"
           ]
-        },
-        {
-          "name": "The system's name (os-release, its logo, the hooks that keep it in /etc)",
-          "files": [
-            "packaging/os-release/"
-          ]
-        },
-        {
-          "name": "Testing the hosted repo from a fresh install in the VM",
-          "files": [
-            "tools/repo-test.sh",
-            "tools/repo-check.sh"
-          ]
         }
       ],
       "flows": [
@@ -1107,7 +1143,7 @@
         }
       ],
       "files": [
-        "packaging/PKGBUILD — builds the four ambrosia packages and what each installs",
+        "packaging/PKGBUILD — builds the five ambrosia packages, what each installs, and their depends and makedepends",
         "tools/publish-repo.sh — builds, signs and uploads packages to the hosted repo",
         "iso/packages.x86_64 — what's on the live image",
         "iso/pacman.conf — package sources at build and on the image",
@@ -1121,19 +1157,16 @@
         "Any change to dbusmenu-source.patch must update its checksum and bump pkgrel in packaging/quickshell/PKGBUILD, because make publish only rebuilds Quickshell for a version the release lacks.",
         "The patch must make Quickshell send DBusMenu AboutToShow on every menu open, not only the first: Qt raises a menu's aboutToShow only from that call, so apps tracking open menus miss every later open otherwise.",
         "packaging/PKGBUILD must install ambrosia-shell's pacman restart hook (session/ambrosia-shell-restart.hook); without it, upgraded shell QML waits for the next login to take effect.",
-        "App icons in assets/icons/ reach installed systems only if packaging/PKGBUILD installs them; a hand copy on tenet is replaced by the next package install, so a hand copy alone is not a fix.",
-        "Build and work dirs go under ~/work/ambrosia/out on /home (tenet's / has ~25 GB); makepkg's Quickshell source is out/build/quickshell/src/quickshell. mkarchiso needs root, makepkg refuses it.",
-        "The installer is UEFI-only and needs the internet (pacstrap pulls everything but our packages from Arch mirrors).",
-        "Ship pipewire-jack, not jack2: the two conflict and broke restore/install when both were pulled in.",
-        "tools/vm.sh must not forward host port 2222: makima uses it to reach tenet, so the test VM SSH forward lives on 10022.",
-        "The installer copies live Wi-Fi profiles without interface-name: the live image names the card wlan0 (iwd), the installed system by its predictable name (wlo1).",
-        "GitHub renames release assets with ':' or '~' (to '.'), so no epochs in our package versions; publish-repo.sh refuses such names. Assets can't be symlinks: ambrosia.db and .files are uploaded as real files.",
-        "Hand copies on tenet (shell/, /etc/xdg/ambrosia) go only through pacman -U --overwrite, never -Syu; after an install pacman -Qkk must show 0 altered files and no .pacnew."
+        "Installing an ambrosia-shell package with pacman restarts the shell at once, which cuts into any demo or recording running on the desktop.",
+        "Installing ambrosia-desktop on tenet needs a full system upgrade (pacman -Syu) first: its new depends would pull packages from a list newer than tenet's system and partially upgrade it (Avahi, for one).",
+        "Each package's depends in packaging/PKGBUILD lists every library it links, even when another dependency already pulls it in (ambrosia-files lists kservice for KF6::Service, taglib and karchive for its thumbnailers, and freetype2 for its font tiles).",
+        "Each package's depends in packaging/PKGBUILD lists every external tool it runs at runtime, even when the build host already has it (ambrosia-files lists ripgrep for content search and ffmpeg for video frames)."
       ],
       "edges": [
         "Shell and Session — ambrosia-shell ships shell/ and session/, including the pacman restart hook that session/ shell upgrades trigger; the Dock's Files icon (assets/icons/org.ambrosia.files.svg) is installed by the PKGBUILD; the menu bar's shortcut column reads item shortcuts from our patched Quickshell",
-        "Files app — its active-while-menu-open look depends on the AboutToShow that our patched Quickshell sends on each menu open",
-        "Theme Targets / Generator Core — the PKGBUILD runs bun tools/gen/index.ts and installs dist/ system-wide, including the generated Aurorae window frames",
+        "Settings app — ambrosia-settings is built by packaging/PKGBUILD, which lists the libraries for its Sound pane (pulseaudio-qt, libpulse), its Wi-Fi pane (NetworkManager Qt) and its Bluetooth pane; ambrosia-desktop depends on it",
+        "Files app — its active-while-menu-open look depends on the AboutToShow that our patched Quickshell sends on each menu open; its library dependencies (kservice, taglib, karchive and freetype2 among them) and its runtime tools (ripgrep for content search, ffmpeg for video frames) are listed in packaging/PKGBUILD",
+        "Theme Targets — the PKGBUILD runs the generator, installs dist/ and builds decoration/ (the KWin frame)",
         "tenet (Arch build host) — ssh as justin06lee@192.168.1.172 (root@ for pacman -U); tools/remote.sh pushes HEAD to its bare repo and resets ~/work/ambrosia to it",
         "GitHub — gh on the Mac: the private source remote (justin06lee/ambrosia) and the public package repo's repo release (justin06lee/ambrosia-packages)"
       ]
@@ -1184,10 +1217,10 @@
           ]
         },
         {
-          "name": "Window frame target registration (Aurorae traffic lights)",
+          "name": "Window frame target (KWin decoration traffic lights)",
           "files": [
             "tools/gen/index.ts",
-            "tools/gen/targets/aurorae.ts"
+            "tools/gen/targets/kdecoration.ts"
           ]
         }
       ],
@@ -1197,8 +1230,8 @@
           "steps": [
             "tools/gen/index.ts calls resolve()",
             "resolve.ts parses OKLCH via color.ts and solves springs via spring.ts",
-            "index.ts passes Resolved model to each formatter in tools/gen/targets/ (including aurorae.ts)",
-            "Formatted strings written to dist/ paths (web, gtk, kde, qml, fontconfig, aurorae) plus resolved dump"
+            "index.ts passes Resolved model to each formatter in tools/gen/targets/ (including kdecoration.ts)",
+            "Formatted strings written to dist/ paths (web, gtk, kde, qml, fontconfig, kdecoration) plus resolved dump"
           ]
         },
         {
@@ -1215,7 +1248,8 @@
         "tools/gen/resolve.ts — resolves tokens.ts into per-mode Resolved colors, accents, material, glass, shadows and springs",
         "tools/gen/index.ts — orchestrates generation: resolves once, formats every target, writes dist/",
         "tools/gen/color.ts — OKLCH parsing, OKLCH to sRGB with gamut mapping, compositing, contrast, and output formatters",
-        "tools/gen/spring.ts — solves (response, damping) springs into stiffness/damping, settle duration, and sampled curve"
+        "tools/gen/spring.ts — solves (response, damping) springs into stiffness/damping, settle duration, and sampled curve",
+        "tools/gen/targets/kdecoration.ts — KWin window frame colours and light metrics from the Resolved model"
       ],
       "rules": [
         "Never read design/tokens.ts directly from a target for colors — go through resolve() so derived accents and flattened labels agree everywhere.",
@@ -1224,40 +1258,54 @@
       ],
       "edges": [
         "Design Tokens — sole input: reads design/tokens.ts types and values, never the reverse",
-        "Theme Targets — sole consumer: every formatter takes the Resolved model from resolve(); aurorae.ts builds the window frame from the same model",
+        "Theme Targets — sole consumer: every formatter takes the Resolved model from resolve(); kdecoration.ts builds the window frame from it",
         "Build and Install — runs the generator to produce dist/ before install and test"
       ]
     },
     "files-app": {
-      "summary": "Files, Ambrosia's Finder: a frameless Qt Quick window drawn like macOS 26's Finder (floating sidebar, glass toolbar capsules, list and icon views, path bar, menus exported to the menu bar) over a C++20 core: getdents64 + parallel statx + natural-sort keys on worker threads for local folders, KIO for other URLs. Finder's measurements live in files/qml/Finder.qml; art is ours. Built, benchmarked and photographed on tenet with files/tools/tenet.sh (the Mac runs only editing and git); app id and icon name org.ambrosia.files are one contract with Shell and Session.",
+      "summary": "Files, Ambrosia's Finder: a frameless Qt Quick window drawn like macOS 26's Finder (floating glass sidebar and toolbar, icon, list, column and gallery views, path bar, menus in the menu bar) over a C++20 core: getdents64 + parallel statx + natural-sort keys for local folders, KIO otherwise. Finder's measurements live in files/qml/Finder.qml; art is ours. A resident instance keeps an in-memory filename index of the home for ⌘F, with rg for contents. Built, benchmarked and recorded on tenet with files/tools/tenet.sh; the Mac only edits and runs git.",
       "map": [
         {
-          "name": "App icon and desktop identity",
+          "name": "App icon, desktop identity, the plan and its step tracking, the handoff note",
           "files": [
             "assets/icons/org.ambrosia.files.svg",
-            "docs/finder/PLAN.md"
+            "docs/finder/PLAN.md",
+            "docs/finder/HANDOFF.md"
           ]
         },
         {
-          "name": "Project plan and step tracking",
-          "files": [
-            "docs/finder/PLAN.md"
-          ]
-        },
-        {
-          "name": "The Finder window (sidebar, toolbar, views, path bar, keys, selection)",
+          "name": "The Finder window (sidebar, toolbar, icon and column views, path bar, keys, selection)",
           "files": [
             "files/qml/FinderWindow.qml",
             "files/qml/IconPane.qml",
+            "files/qml/ColumnPane.qml",
             "files/qml/Sidebar.qml",
             "files/qml/Toolbar.qml"
           ]
         },
         {
-          "name": "Column browser view (⌘3, Columns)",
+          "name": "Traffic lights (close, minimise, zoom) on Files' window",
           "files": [
-            "files/qml/FinderWindow.qml",
+            "files/qml/TrafficLights.qml"
+          ]
+        },
+        {
+          "name": "Search (⌘F): the toolbar's field, suggestions and token, the scope bar and Kind pop-up, search: results, sidebar tags",
+          "files": [
+            "files/qml/SearchField.qml",
+            "files/qml/ScopeBar.qml",
+            "files/src/index.cpp",
             "files/src/foldermodel.cpp"
+          ]
+        },
+        {
+          "name": "Gallery view (⌘4), the preview (gallery pane and last column: Information, Show More, Tags, quick actions), thumbnails and their frame",
+          "files": [
+            "files/qml/GalleryPane.qml",
+            "files/qml/PreviewPane.qml",
+            "files/qml/PreviewDetails.qml",
+            "files/qml/QuickActions.qml",
+            "files/qml/FileIcon.qml"
           ]
         },
         {
@@ -1287,9 +1335,12 @@
           ]
         },
         {
-          "name": "Sizes, dates and kinds as Finder writes them",
+          "name": "Sizes, dates, kinds and tags as Finder shows them",
           "files": [
-            "files/src/format.cpp"
+            "files/src/format.cpp",
+            "files/src/tags.cpp",
+            "files/qml/TagDots.qml",
+            "files/qml/TagField.qml"
           ]
         },
         {
@@ -1298,60 +1349,33 @@
             "files/art/",
             "files/qml/glyphs.js"
           ]
-        },
-        {
-          "name": "Benchmarks and fixtures (in-process run.sh; whole-window probe of Files and Dolphin over AT-SPI in a capped headless KWin)",
-          "files": [
-            "files/bench/run.sh",
-            "files/bench/gui.sh",
-            "files/bench/probe.py",
-            "files/bench/fixture.sh",
-            "files/bench/floors/"
-          ]
-        },
-        {
-          "name": "Builds, screenshots, benchmarks and demo recordings on tenet (capped build, headless grab, scratch paths, screenrec)",
-          "files": [
-            "files/tools/tenet.sh",
-            "files/tools/screenrec/main.cpp",
-            "tools/publish-repo.sh"
-          ]
-        },
-        {
-          "name": "The Columns view (⌘3) and moving between columns",
-          "files": [
-            "files/qml/ColumnPane.qml",
-            "files/qml/FinderWindow.qml"
-          ]
         }
       ],
       "flows": [
         {
           "name": "Menu action from the menu bar",
           "steps": [
-            "files/qml/MenuBar.qml exports each menu and item over DBusMenu, with each action's shortcut",
-            "Shell draws the menus on a grabbing popup of the menu bar; KWin keeps Files active, but Qt calls the window inactive because the popup holds the keyboard",
-            "The shell calls AboutToShow on every open (Quickshell -3) and sends Event closed on close; each Platform.Menu counts itself into FinderWindow.menusOpen, so looksActive keeps the lights, title and selection coloured",
-            "Keys (arrows, Return, Esc) reach the popup",
-            "The action runs against the window captured when the menu opened, not the window active at click time"
+            "files/qml/MenuBar.qml exports each menu, item and shortcut over DBusMenu",
+            "the shell draws them on a grabbing popup and calls AboutToShow on every open (Quickshell -3)",
+            "each Platform.Menu counts itself into FinderWindow.menusOpen, so the window keeps looking active",
+            "the action runs against the window captured when the menu opened"
           ]
         },
         {
-          "name": "Icon handoff to the Dock",
+          "name": "Icon and identity",
           "steps": [
             "assets/icons/org.ambrosia.files.svg",
-            "ambrosia-theme installs it to hicolor as org.ambrosia.files",
-            "the desktop file's Icon= and the window use that name",
-            "Shell and Session's Dock pins the app by it"
+            "ambrosia-theme installs it to hicolor",
+            "the desktop id, its Icon= and the window icon are all org.ambrosia.files",
+            "Shell and Session's Dock pins the app by that name"
           ]
         },
         {
           "name": "Build and look on tenet",
           "steps": [
-            "files/tools/tenet.sh build rsyncs the Mac working tree's files/ (uncommitted included) to /root/ambrosia-files/src",
+            "files/tools/tenet.sh build rsyncs the Mac's files/ (uncommitted included) to /root/ambrosia-files/src",
             "capped cmake+ninja in /root/ambrosia-files/build",
-            "tenet.sh grab NAME runs the app in a headless kwin_wayland with Mesa software GL",
-            "out/parity/files/ours/NAME.png beside ref/ (this Mac's Finder)"
+            "offscreen grabs (--grab) or real-session takes with the helpers in /var/tmp/files-rec"
           ]
         },
         {
@@ -1363,39 +1387,189 @@
             "FolderModel diffs the listing against the rows on screen (inserts, removals, moves)",
             "FinderWindow selects the results by URL"
           ]
+        },
+        {
+          "name": "Search",
+          "steps": [
+            "⌘F or the toolbar's button opens SearchField",
+            "a search: URL in one history place",
+            "FolderModel asks Index for names (rows at once, statx a pass later), rg for contents in a folder scope",
+            "Index::changed rereads it"
+          ]
         }
       ],
       "files": [
-        "docs/finder/PLAN.md — the plan: research, stack, v1 scope, targets with measured numbers, and step 2 shipping in slices (slice 1 r103, slice 2 r148)",
-        "assets/icons/org.ambrosia.files.svg — hand-drawn Finder-style app icon, installed by ambrosia-theme",
+        "docs/finder/PLAN.md — the plan: research, stack, scope, measured targets, slices 1–8 and their follow-ups (r103–r205)",
+        "docs/finder/HANDOFF.md — the handoff note for the next session: where Files stands at r205 and the open toolbar branch",
         "files/qml/MenuBar.qml — Finder's menu tree, with the shortcuts exported to the shell",
-        "files/qml/ListPane.qml — list view with user-resizable columns",
-        "files/qml/ColumnPane.qml — one column per folder, with the next column showing the selection",
+        "files/qml/TrafficLights.qml — Files' close, minimise and zoom lights, sized and drawn to match macOS",
         "files/src/fileops.cpp — KIO-backed move, copy, Trash, rename and new folder, with undo and redo labels",
         "files/src/foldermodel.cpp — folder listing, sorting and diffed re-reads",
-        "files/tools/tenet.sh — builds, benchmarks and screenshots the app on tenet under the memory cap; scratch lives in /var/tmp",
-        "files/tools/screenrec/main.cpp — the screen recorder behind the demo captures",
-        "files/bench/gui.sh — whole-window timings of Files and Dolphin (exec to the window reporting the count over AT-SPI), in one systemd scope capped at 4 GB; 50 and 100k by default, 1m on request"
+        "files/tools/tenet.sh — builds, benchmarks and grabs the app on tenet, capped",
+        "files/src/thumbnailer.cpp — image://thumb: freedesktop cache, two idle-I/O threads pausing above 30% I/O pressure, Finder's frame (/tile); previews.cpp makes video frames (ffmpeg on our fd), font tiles (FreeType), covers (TagLib), office pages (KZip)",
+        "files/src/index.cpp — the home's in-memory index: parallel walk, inotify (watches in an array), ~/.cache snapshot checked as updatedb does, gone rows dropped on load and save, AVX2 name scan; --bench-search times it"
       ],
       "rules": [
-        "The desktop id must be org.ambrosia.files, because Shell and Session pin the app by that name.",
-        "The desktop file's Icon= and the window icon must use the same name, org.ambrosia.files.",
         "Import QtQuick.Controls.Basic only as a namespace (as Controls): its Label otherwise shadows files/qml/Label.qml.",
-        "Grab only on the headless KWin with Mesa software GL (files/tools/tenet.sh grab): Qt's offscreen platform falls back to the software scene graph, which drops MultiEffect shadows; tenet's GPU stays untouched.",
-        "Every build and benchmark on tenet runs capped (systemd-run MemoryMax=6G and -j2 for builds, 4G for probes; nice 19, ionice -c3) and stops when tenet is strained: it has no swap and hosts mira's gateway, and an uncapped ninja at 18 jobs once took it down. Watch it from the Mac with awk, not zsh word splitting.",
-        "tenet's /tmp is RAM-backed: keep Files scratch (fixtures, recorder, stills, grab helper) under /var/tmp or /root, never /tmp.",
-        "tenet.sh builds the Mac working tree's files/, uncommitted changes included, so it must not be pointed at a checkout that follows pushed commits.",
-        "Stop a running Files before copying a new build to tenet; otherwise the test runs the old binary.",
+        "Grabs: offscreen (--grab) drops MultiEffect but shows thumbnails, whose frame is baked in; tenet.sh grab keeps MultiEffect but crashes KWin if Files stays past about 1 s (gf6dt). Check glass on the real screen.",
+        "Every tenet build and benchmark runs capped (systemd-run MemoryMax=6G -j2 for builds, 4G for probes; nice 19, ionice -c3) and waits while tenet is strained; an uncapped ninja once took it down.",
+        "Screen takes use tenet's one shared screen: one agent at a time, and lock it after. Keep scratch under /var/tmp or /root; tenet's /tmp is RAM.",
+        "tenet.sh builds the Mac's working tree, uncommitted changes included (never point it at a checkout that follows pushed commits); stop a running Files before copying a new build, or the test runs the old one.",
         "Qt logs go to the journal when stderr isn't a terminal: set QT_FORCE_STDERR_LOGGING=1 to see QML errors over SSH.",
         "Command is Ctrl in Files (what the Mac-first keyd remap hands apps); the window also accepts Super directly; DBusMenu exports Control, which the shell draws as ⌘ (r120). KWin grabs Meta+Up and Meta+Alt+L on tenet.",
-        "Menu actions must act on the window captured when the menu opened; the shell freezes the menu bar's app while a menu is open, so resolving the target at click time sends actions to the wrong window."
+        "The list and icon views' scrolling under the toolbar is unfinished on branch feat/files-under-toolbar (at 03f8dd2), not merged into master; check that branch before redoing the work.",
+        "The traffic lights' size (14 pt, 23 pt apart) and 50% black symbols must match the KWin frame and GTK apps; change the shared shape source, not TrafficLights.qml alone."
       ],
       "edges": [
         "Shell and Session — pins org.ambrosia.files in the Dock and makes it the default for folders (merged in d0dd093); the Dock's Trash calls org.ambrosia.Files.Trash(as urls) while Files runs, since kioclient's trash isn't undoable",
         "Shell (menu bar) — draws Files' DBusMenu menus on a grabbing popup, which keeps the Files window active while a menu is open and shows each item's shortcut right-aligned",
-        "Packaging and Image — ships ambrosia-files (r148 on tenet, with Quickshell -3) and the patched Quickshell that carries the DBusMenu shortcut property and calls AboutToShow on every menu open",
-        "tenet (ssh root@192.168.1.172) — builds, grabs, benchmarks, recordings and encodes run there through files/tools/tenet.sh; the Mac runs only editing, git and scp of finished results",
-        "ambrosia-theme — installs assets/icons/org.ambrosia.files.svg into hicolor as org.ambrosia.files"
+        "Packaging and Image — ships ambrosia-files (depends include ripgrep, ffmpeg, taglib, karchive, freetype2; resident login unit) and the patched Quickshell (DBusMenu shortcuts, AboutToShow on every open)",
+        "Design system — Files' traffic lights are drawn from the shared light and dark shape definitions in design/tokens.ts, generated by tools/gen"
+      ]
+    },
+    "settings-app": {
+      "summary": "our System Settings look-alike: Qt 6 QML window on the Ambrosia theme (sidebar in macOS 26 order; General, About, Sound, Wi-Fi and Bluetooth built), C++20 core reading hostnamed, /proc, DRM, pacman, PulseAudio, NetworkManager and BlueZ. Panes not built yet open KDE's own modules via kcmshell6.",
+      "map": [
+        {
+          "name": "the sidebar's panes (which exist, order, glyph, colour, keywords, page or KDE module)",
+          "files": [
+            "settings/qml/Panes.qml",
+            "settings/qml/Sidebar.qml"
+          ]
+        },
+        {
+          "name": "every size and colour, light and dark, measured from System Settings",
+          "files": [
+            "settings/qml/Look.qml",
+            "docs/settings/FRAME.md"
+          ]
+        },
+        {
+          "name": "the window: lights, toolbar with back/forward, page area",
+          "files": [
+            "settings/qml/SettingsWindow.qml",
+            "settings/qml/Toolbar.qml",
+            "settings/qml/TrafficLights.qml"
+          ]
+        },
+        {
+          "name": "General and About",
+          "files": [
+            "settings/qml/GeneralPage.qml",
+            "settings/qml/AboutPage.qml",
+            "settings/src/about.cpp"
+          ]
+        },
+        {
+          "name": "Sound: output and input devices, volume, mute, balance, alert sound, input level meter",
+          "files": [
+            "settings/qml/SoundPage.qml",
+            "settings/src/sound.cpp",
+            "settings/qml/DeviceTable.qml",
+            "settings/qml/LevelMeter.qml"
+          ]
+        },
+        {
+          "name": "system data and actions (dark/accent, battery/mouse/trackpad present, KDE modules via kcmshell6)",
+          "files": [
+            "settings/src/app.cpp"
+          ]
+        },
+        {
+          "name": "the controls (switch, check box, pop-up, slider, segmented, buttons) and their dev-only test page",
+          "files": [
+            "settings/qml/Switch.qml",
+            "settings/qml/CheckBox.qml",
+            "settings/qml/PopUpButton.qml",
+            "settings/qml/Slider.qml",
+            "settings/qml/Segmented.qml"
+          ]
+        },
+        {
+          "name": "options and single instance",
+          "files": [
+            "settings/src/main.cpp"
+          ]
+        },
+        {
+          "name": "a row's layout (label left, control right; firstLine lays it from the top, as the Mac lays slider and pop-up rows)",
+          "files": [
+            "settings/qml/FormRow.qml"
+          ]
+        },
+        {
+          "name": "Wi-Fi: the switch, the network in use, known and other networks, Connect",
+          "files": [
+            "settings/qml/WiFiPage.qml",
+            "settings/qml/NetworkRow.qml",
+            "settings/qml/NetworkSignal.qml",
+            "settings/src/wifi.cpp"
+          ]
+        },
+        {
+          "name": "Bluetooth: the switch, discoverable note, My Devices, Nearby Devices, Connect/Disconnect on hover",
+          "files": [
+            "settings/qml/BluetoothPage.qml",
+            "settings/qml/DeviceRow.qml",
+            "settings/src/bluetooth.cpp"
+          ]
+        }
+      ],
+      "flows": [
+        {
+          "name": "Open a pane",
+          "steps": [
+            "shell Session.settings(pane)",
+            "kstart ambrosia-settings --pane X (X?anchor opens at a place in it: sound?input)",
+            "a running instance takes it over D-Bus org.ambrosia.settings Show(pane, token)",
+            "SettingsWindow selects the pane, or kcmshell6 opens the KDE module"
+          ]
+        },
+        {
+          "name": "Sound",
+          "steps": [
+            "SoundPage",
+            "Sound singleton (sound.cpp: pulseaudio-qt sinks/sources and stream-restore; KConfig kdeglobals [Sounds] Theme and plasmaparc [General] AudioFeedback, which plasma-pa's kded reads)",
+            "PipeWire's pulse server; the meter's peak stream is open only while the Input side shows"
+          ]
+        },
+        {
+          "name": "Wi-Fi",
+          "steps": [
+            "WiFiPage",
+            "WiFi singleton (wifi.cpp, NetworkManagerQt; the card not sharing a hotspot, or AMBROSIA_WIFI_DEVICE's)",
+            "NetworkManager; a secured join with no password asks the session's secret agent (plasma-nm's kded); a failed join deletes the connection it made"
+          ]
+        },
+        {
+          "name": "Bluetooth",
+          "steps": [
+            "BluetoothPage",
+            "Bluetooth singleton (bluetooth.cpp, BluezQt; AMBROSIA_BT_ADAPTER picks a test adapter)",
+            "BlueZ; while the page shows, discovery and discoverable are on, put back on quit; Connect pairs first, the code confirmed in KDE's agent's banner (bluedevil",
+            "shell Notifications), then trusts and connects"
+          ]
+        }
+      ],
+      "files": [
+        "settings/src/main.cpp — options --pane, --appearance light|dark, --grab, --active (draw as focused, for shots); single instance; sets QT_NO_SYNTHESIZED_BOLD",
+        "settings/src/sound.cpp — PulseAudio devices (any with nothing plugged in left out), volume, mute, balance, alert volume/device, sound theme, feedback, and the input peak meter",
+        "settings/qml/SoundPage.qml — the Sound pane: devices, volume, alert and feedback options",
+        "docs/settings/PLAN.md — the steps and what backend each pane uses; docs/settings/FRAME.md — the window measured from the Mac's System Settings",
+        "settings/src/wifi.cpp — NetworkManager: radio on/off, networks in range by name, join, leave, forget, a saved network's options (auto-join, low data, private address)",
+        "settings/src/bluetooth.cpp — BlueZ: on/off (rfkill soft block, like KDE), paired and nearby devices with kind and battery, discovery while open, pair, connect, disconnect, rename, forget"
+      ],
+      "rules": [
+        "No dead rows: a pane is listed only if it has a page here or an installed KDE module; Apple-only items (serial number, AppleCare, legal lines, startup chime, interface sound effects) are left out, not faked",
+        "Privileged changes go through each service's own polkit (hostnamed, timedated, NetworkManager…), never a root helper of ours",
+        "Zoom is vertical only, like System Settings: App::zoom runs a KWin script (setMaximize(v, false)); xdg-shell's maximize would fill the screen's width",
+        "Pane tests on tenet must never switch off Wi‑Fi, its only network connection; put back any audio or network value a test changed",
+        "pulseaudio-qt has no level monitor, so the input meter opens its own peak-detect stream in sound.cpp"
+      ],
+      "edges": [
+        "theme-targets — import Ambrosia (dist/qml Theme) for type and glyphs",
+        "shell-and-session — MenuBar, ControlCenter and the Dock pin open it through Session.settings(pane)",
+        "packaging-and-image — ambrosia-settings split package in packaging/PKGBUILD; ambrosia-desktop depends on it"
       ]
     }
   },

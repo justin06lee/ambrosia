@@ -18,7 +18,7 @@ QtObject {
               keywords: ["wireless", "network", "internet", "hotspot", "join"] },
             { id: "bluetooth", name: "Bluetooth", glyph: "bluetooth", tint: "blue", page: "bluetooth", device: "bluetooth",
               keywords: ["devices", "pair", "headphones", "wireless"] },
-            { id: "network", name: "Network", glyph: "network", tint: "blue", module: "kcm_networkmanagement",
+            { id: "network", name: "Network", glyph: "network", tint: "blue", page: "network",
               keywords: ["ethernet", "vpn", "dns", "proxy", "ip", "internet"] },
             { id: "battery", name: App.hasBattery ? "Battery" : "Energy", glyph: App.hasBattery ? "battery" : "energy",
               tint: "green", module: "kcm_powerdevilprofilesconfig",
