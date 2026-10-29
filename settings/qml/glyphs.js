@@ -94,6 +94,15 @@ var glyphs = {
             "M3.5 12h17M12 3.5c2.4 2.5 3.5 5.5 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.5-3.5-8.5s1.1-6 3.5-8.5z",
         width: 1.8,
     },
+    // Displays' brightness: a small sun of dots, a large one of rays.
+    sunLow: { fill: circle(12, 12, 4.2) + [0, 1, 2, 3, 4, 5, 6, 7].map(i => circle(12 + 8.2 * Math.cos(i * Math.PI / 4), 12 + 8.2 * Math.sin(i * Math.PI / 4), 1.25)).join("") },
+    sunHigh: {
+        stroke: circle(12, 12, 4.4) + [0, 1, 2, 3, 4, 5, 6, 7].map(i => {
+            const c = Math.cos(i * Math.PI / 4), s = Math.sin(i * Math.PI / 4);
+            return `M${(12 + 7.6 * c).toFixed(2)} ${(12 + 7.6 * s).toFixed(2)}L${(12 + 10.4 * c).toFixed(2)} ${(12 + 10.4 * s).toFixed(2)}`;
+        }).join(""),
+        width: 1.7,
+    },
     // Network's services: a wired port, a phone's shared connection.
     ethernet: { stroke: "M8.2 7.2L3.4 12l4.8 4.8M15.8 7.2l4.8 4.8-4.8 4.8", fill: circle(8.9, 12, 1.25) + circle(12, 12, 1.25) + circle(15.1, 12, 1.25), width: 2 },
     cellular: { fill: rect(3.5, 15, 3, 5.5, 1) + rect(8.5, 11.5, 3, 9, 1) + rect(13.5, 8, 3, 12.5, 1) + rect(18.5, 4, 3, 16.5, 1) },

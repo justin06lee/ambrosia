@@ -17,7 +17,7 @@ arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
 makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kwindowsystem taglib karchive freetype2
-             kdecoration kcoreaddons pulseaudio-qt networkmanager-qt bluez-qt)
+             kdecoration kcoreaddons pulseaudio-qt networkmanager-qt bluez-qt libkscreen)
 options=(!debug)
 
 _root="$(realpath "$startdir/..")"
@@ -141,9 +141,10 @@ package_ambrosia-settings() {
   # icon. kcmutils: kcmshell6, which opens KDE's module for a pane not built
   # yet. hwdata: pci.ids, for About's graphics. networkmanager-qt: Wi-Fi.
   # bluez-qt: Bluetooth; bluedevil's agent asks for pairing codes.
+  # libkscreen: Displays; powerdevil's brightness service dims them.
   # The QML and art are in the binary.
   depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kwindowsystem kconfig kcmutils hwdata inter-font
-           pulseaudio-qt libpulse plasma-pa networkmanager-qt networkmanager bluez-qt bluez bluedevil)
+           pulseaudio-qt libpulse plasma-pa networkmanager-qt networkmanager bluez-qt bluez bluedevil libkscreen powerdevil)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-settings"
 }
 
