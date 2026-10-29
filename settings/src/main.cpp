@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     parser.setApplicationDescription(QStringLiteral("Ambrosia's System Settings"));
     parser.addHelpOption();
     parser.addVersionOption();
-    const QCommandLineOption pane(QStringLiteral("pane"), QStringLiteral("The pane to show: general, about, network, sound…"), QStringLiteral("pane"));
+    const QCommandLineOption pane(QStringLiteral("pane"), QStringLiteral("The pane to show: general, about, network, sound… (sound?input: a place in it)"), QStringLiteral("pane"));
     const QCommandLineOption appearance(QStringLiteral("appearance"), QStringLiteral("Force light or dark."), QStringLiteral("mode"));
     const QCommandLineOption grab(QStringLiteral("grab"), QStringLiteral("Save the window to a PNG once its pane is shown, then quit."), QStringLiteral("file"));
     const QCommandLineOption active(QStringLiteral("active"), QStringLiteral("Draw the window as the active one (for grabs, where no window has the keyboard)."));

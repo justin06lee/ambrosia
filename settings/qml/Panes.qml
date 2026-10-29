@@ -46,7 +46,7 @@ QtObject {
         [
             { id: "notifications", name: "Notifications", glyph: "notifications", tint: "red",
               keywords: ["alerts", "banners", "badges"] },
-            { id: "sound", name: "Sound", glyph: "sound", tint: "pink", module: "kcm_pulseaudio",
+            { id: "sound", name: "Sound", glyph: "sound", tint: "pink", page: "sound",
               keywords: ["volume", "output", "input", "microphone", "speakers", "alert"] },
             { id: "focus", name: "Focus", glyph: "focus", tint: "indigo",
               keywords: ["do not disturb"] },

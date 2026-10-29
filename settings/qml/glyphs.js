@@ -39,6 +39,23 @@ function flower(cx, cy) {
     return d;
 }
 
+// The speaker by a volume slider, 7.45 × 11 points as System Settings
+// draws it: a body 5 tall, its cone flaring to the full height. `k` is
+// units to the point, the speaker's middle `cy` units down.
+function speakerAt(k, cy) {
+    const p = (x, y) => `${+(x * k).toFixed(2)} ${+(cy + y * k).toFixed(2)}`;
+    return `M${p(0.54, -2.5)}L${p(2.75, -2.5)}L${p(5.9, -5.25)}Q${p(7.45, -6.28)} ${p(7.45, -4.68)}` +
+        `L${p(7.45, 4.68)}Q${p(7.45, 6.28)} ${p(5.9, 5.25)}L${p(2.75, 2.5)}L${p(0.54, 2.5)}` +
+        `Q${p(0, 2.5)} ${p(0, 1.96)}L${p(0, -1.96)}Q${p(0, -2.5)} ${p(0.54, -2.5)}Z`;
+}
+
+// Its three waves, a point wide, out to 16 points.
+function wavesAt(k, cy) {
+    const p = (x, y) => `${+(x * k).toFixed(2)} ${+(cy + y * k).toFixed(2)}`;
+    return [[10, 2.3, 11], [12, 4, 14.5], [14.5, 5.5, 17.5]]
+        .map(([x, h, c]) => `M${p(x, -h)}Q${p(c, 0)} ${p(x, h)}`).join("");
+}
+
 var glyphs = {
     // The window's own
     back: { stroke: "M14.5 5L7.5 12l7 7", width: 2 },
@@ -86,11 +103,30 @@ var glyphs = {
     spotlight: { stroke: circle(10.5, 10.5, 6) + "M15 15l5 5", width: 2.4 },
     wallpaper: { fill: flower(12, 12) },
     notifications: { stroke: rect(3.5, 6, 14.5, 14.5, 3.5), fill: circle(18.2, 5.8, 3.1), width: 2 },
-    speaker: { fill: "M5 9.2h3.8L13.5 5v14l-4.7-4.2H5z" },
+    // Play, in a ring (Sound's alert preview).
+    play: { stroke: "M12 2.6a9.4 9.4 0 1 1 0 18.8a9.4 9.4 0 1 1 0-18.8z", width: 1.4, fill: "M10 8.2v7.6l6.2-3.8z" },
+    // The ends of a volume slider: drawn at 13 and 17 points, each a point
+    // low of the track's middle, as System Settings has them.
+    volumeLow: { fill: speakerAt(24 / 13, 7.5 * 24 / 13) },
+    volumeHigh: { fill: speakerAt(24 / 17, 9.5 * 24 / 17), stroke: wavesAt(24 / 17, 9.5 * 24 / 17), width: 24 / 17 },
     sound: {
         fill: "M3.5 9.2h3.8L12 5v14l-4.7-4.2H3.5z",
         stroke: "M15.3 8.8a4.5 4.5 0 0 1 0 6.4M18 6.2a8.2 8.2 0 0 1 0 11.6",
         width: 1.9,
+    },
+    // A microphone with its level beside it, all four dots lit at the loud
+    // end, one at the quiet end (Sound's input volume).
+    mic: {
+        stroke: "M9 9.3v2.6a6.6 6.6 0 0 0 13.2 0V9.3M15.6 18.5v4.1M10.3 22.6h11",
+        fill: rect(11.95, 0.7, 7.3, 15.4, 3.65) + circle(2.6, 5, 1.7) + circle(2.6, 10.5, 1.7) +
+            circle(2.6, 16.1, 1.7) + circle(2.6, 21.8, 1.7),
+        width: 1.7,
+    },
+    micQuiet: {
+        stroke: "M9 9.3v2.6a6.6 6.6 0 0 0 13.2 0V9.3M15.6 18.5v4.1M10.3 22.6h11",
+        fill: rect(11.95, 0.7, 7.3, 15.4, 3.65) + circle(2.6, 21.8, 1.7),
+        dim: circle(2.6, 5, 1.7) + circle(2.6, 10.5, 1.7) + circle(2.6, 16.1, 1.7),
+        width: 1.7,
     },
     focus: { fill: "M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" },
     lockscreen: { stroke: "M8 10.5V8a4 4 0 0 1 8 0v2.5", fill: rect(5, 10.5, 14, 10, 2.5), width: 2.2 },

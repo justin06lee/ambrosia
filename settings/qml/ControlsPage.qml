@@ -37,8 +37,8 @@ Page {
         FormRow {
             label: "Alert volume"
             Slider {
-                minGlyph: "speaker"
-                maxGlyph: "sound"
+                minGlyph: "volumeLow"
+                maxGlyph: "volumeHigh"
                 value: page.alertVolume
                 onMoved: (value) => page.alertVolume = value
             }
@@ -79,8 +79,8 @@ Page {
         FormRow {
             label: "Output volume"
             Slider {
-                minGlyph: "speaker"
-                maxGlyph: "sound"
+                minGlyph: "volumeLow"
+                maxGlyph: "volumeHigh"
                 value: page.volume
                 onMoved: (value) => page.volume = value
             }

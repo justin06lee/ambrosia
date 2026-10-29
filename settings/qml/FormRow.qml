@@ -12,17 +12,25 @@ Item {
     property string description
     // A value shown on the right, in secondary text, when there's no control.
     property string value
+    // Set, the row is laid from the top as System Settings lays its rows of
+    // sliders and pop-ups: the label 10 down, the control's first line (this
+    // tall) centred on it, and 10 under the control.
+    property real firstLine: 0
     default property alias control: slot.data
 
+    readonly property bool fromTop: firstLine > 0
     width: parent ? parent.width : Look.boxWidth
-    implicitHeight: Math.max(Look.textRow, labels.implicitHeight + 2 * Look.boxPadding, slot.height + 16)
+    implicitHeight: fromTop
+        ? Math.max(Look.textRow, labels.implicitHeight + 2 * Look.boxPadding, slot.y + slot.height + Look.boxPadding)
+        : Math.max(Look.textRow, labels.implicitHeight + 2 * Look.boxPadding, slot.height + 16)
 
     Column {
         id: labels
         x: Look.boxPadding
+        y: row.fromTop ? Look.boxPadding : (row.height - height) / 2
         width: slot.x - x - 12
-        anchors.verticalCenter: parent.verticalCenter
         Label {
+            id: title
             width: parent.width
             text: row.label
             elide: Text.ElideRight
@@ -39,7 +47,7 @@ Item {
     Item {
         id: slot
         x: row.width - Look.boxPadding - width
-        anchors.verticalCenter: parent.verticalCenter
+        y: row.fromTop ? Look.boxPadding + (title.height - row.firstLine) / 2 : (row.height - height) / 2
         width: childrenRect.width
         height: childrenRect.height
     }

@@ -15,6 +15,9 @@ Window {
     property string current: ""
     readonly property var page: Panes.find(current)
     readonly property string sidebarPane: Panes.parentOf[current] ?? current
+    // A place in the page asked for after a "?", as System Settings' URLs
+    // have (sound?input opens Sound on its Input side).
+    property string anchor: ""
 
     // Back and forward, through the pages shown.
     property var history: []
@@ -44,7 +47,11 @@ Window {
 
     // Shows a page: ours in the window, or the KDE module standing in for a
     // pane we haven't built, in its own window (the window stays as it is).
-    function choose(id) {
+    function paneOf(id) {
+        return Panes.find(id.split("?")[0]);
+    }
+    function choose(asked) {
+        const [id, anchor] = asked.split("?");
         const pane = Panes.find(id);
         if (!pane || !Panes.available(pane))
             return;
@@ -52,6 +59,8 @@ Window {
             App.openModule(pane.module);
             return;
         }
+        win.anchor = "";
+        win.anchor = anchor ?? "";
         if (id === current)
             return;
         history = history.slice(0, historyIndex + 1).concat([id]);
@@ -84,7 +93,7 @@ Window {
     // Settings opens only its KDE module; otherwise the window, on that
     // pane or on General.
     Component.onCompleted: {
-        const first = Panes.find(App.pane);
+        const first = paneOf(App.pane);
         if (first && first.page === undefined && Panes.available(first)) {
             choose(App.pane);
             Qt.callLater(Qt.quit);
@@ -98,7 +107,7 @@ Window {
     Connections {
         target: App
         function onShowRequested(pane) {
-            const asked = Panes.find(pane);
+            const asked = paneOf(pane);
             if (asked)
                 win.choose(pane);
             if (!asked || asked.page !== undefined)
@@ -138,11 +147,12 @@ Window {
             width: parent.width - x
             height: parent.height - y
             focus: true
-            sourceComponent: ({ general: generalPage, about: aboutPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
+            sourceComponent: ({ general: generalPage, about: aboutPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
             onLoaded: Qt.callLater(App.shown, win)
         }
         Component { id: generalPage; GeneralPage { settings: win } }
         Component { id: aboutPage; AboutPage { settings: win } }
+        Component { id: soundPage; SoundPage { settings: win } }
         Component { id: controlsPage; ControlsPage { settings: win } }
 
         Toolbar {

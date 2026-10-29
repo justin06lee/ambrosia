@@ -9,6 +9,10 @@ endif()
 
 find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControls2 DBus)
 find_package(KF6WindowSystem REQUIRED)
+find_package(KF6Config REQUIRED)
+find_package(KF6PulseAudioQt REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PULSE REQUIRED IMPORTED_TARGET libpulse)
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(ambrosia-settings
@@ -22,6 +26,7 @@ qt_add_qml_module(ambrosia-settings
     SOURCES
         src/app.h src/app.cpp
         src/about.h src/about.cpp
+        src/sound.h src/sound.cpp
     QML_FILES
         qml/SettingsWindow.qml
         qml/MenuBar.qml
@@ -54,6 +59,10 @@ qt_add_qml_module(ambrosia-settings
         qml/GeneralPage.qml
         qml/AboutPage.qml
         qml/ControlsPage.qml
+        qml/SoundPage.qml
+        qml/CheckBox.qml
+        qml/DeviceTable.qml
+        qml/LevelMeter.qml
     RESOURCES
         art/desktop.svg
         art/laptop.svg
@@ -64,6 +73,7 @@ target_include_directories(ambrosia-settings PRIVATE src)
 
 target_link_libraries(ambrosia-settings PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem
+    KF6::ConfigCore KF6::PulseAudioQt PkgConfig::PULSE
 )
 
 include(GNUInstallDirs)
