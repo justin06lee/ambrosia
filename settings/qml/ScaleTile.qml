@@ -41,18 +41,26 @@ Item {
                 }
             }
         }
-        // Lines of text, as long as a line runs.
+        // Lines of text, word by word, running off the edge.
         Repeater {
-            model: [1, 0.8, 0.95, 0.7, 0.9, 0.85, 1, 0.6]
-            Rectangle {
-                required property real modelData
+            model: [[5, 3, 6, 4], [7, 4, 3, 5], [3, 5, 4, 6], [6, 2, 5, 4], [4, 6, 3, 5], [5, 4, 6, 3], [3, 6, 5, 4], [6, 3, 4, 5]]
+            Row {
+                required property var modelData
                 required property int index
                 x: tile.unit
-                y: tile.unit * (3.3 + 1.75 * index)
-                width: face.width * 1.4 * modelData
-                height: tile.unit * 0.7
-                radius: height / 2
-                color: Theme.color.label.tertiary
+                y: tile.unit * (3.4 + 1.6 * index)
+                spacing: tile.unit * 0.55
+                Repeater {
+                    model: parent.modelData
+                    Rectangle {
+                        required property int modelData
+                        width: tile.unit * 0.62 * modelData
+                        height: tile.unit * 0.5
+                        radius: height / 2
+                        color: Theme.color.label.secondary
+                        opacity: 0.7
+                    }
+                }
             }
         }
     }
