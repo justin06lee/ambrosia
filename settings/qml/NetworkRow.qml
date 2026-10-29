@@ -2,10 +2,10 @@ import QtQuick
 import Ambrosia
 import Settings
 
-// A Wi-Fi network in a list, as System Settings has it: its name (a check
-// before it for the one in use, among known networks), a lock if it takes
-// a password and its signal at the right; pointed at, a Connect button
-// left of them. Known networks' rows are 37 tall, others' 45.
+// A Wi-Fi network in a list, as System Settings has it: its name, with
+// room before it for the check by the one in use; a lock if it takes a
+// password and its signal at the right; pointed at, a Connect button left
+// of them. Known networks' rows are 40 tall, others' 44.
 Item {
     id: row
 
@@ -14,7 +14,7 @@ Item {
     signal connect()
 
     width: parent ? parent.width : Look.boxWidth
-    height: known ? Look.textRow + 1 : 45
+    height: known ? 40 : 44
     Accessible.role: Accessible.ListItem
     Accessible.name: network.ssid
 
@@ -23,12 +23,12 @@ Item {
     Glyph {
         visible: row.network.current
         x: 18.2
-        y: (row.height - 16) / 2 + 0.2
+        y: (row.height - 16) / 2 + 0.5
         name: "tick"
         size: 16
     }
     Label {
-        x: row.known ? 41 : 21
+        x: 41
         anchors.verticalCenter: parent.verticalCenter
         width: connectButton.x - x - 8
         text: row.network.ssid

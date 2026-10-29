@@ -22,7 +22,7 @@ Page {
     Box {
         Item {
             width: parent.width
-            height: 66
+            height: 65.5
             PaneIcon {
                 x: 11
                 y: 12
@@ -57,10 +57,10 @@ Page {
                 Accessible.name: qsTr("Wi‑Fi")
             }
         }
-        // The network in use.
+        // The network in use, laid from the top.
         Item {
             width: parent.width
-            height: 52
+            height: 54
             visible: WiFi.enabled && WiFi.current.ssid !== undefined
             Label {
                 x: Look.boxPadding
@@ -71,21 +71,21 @@ Page {
             }
             Rectangle {
                 x: 12.5
-                y: 33
-                width: 6
-                height: 6
-                radius: 3
+                y: 31
+                width: 10
+                height: 10
+                radius: 5
                 color: WiFi.current.state === "connected" ? Look.connected : Theme.color.label.tertiary
             }
             Label {
-                x: 21
+                x: 28.5
                 y: 28
                 color: Theme.color.label.secondary
                 text: WiFi.current.state === "connected" ? qsTr("Connected") : qsTr("Connecting…")
             }
             NetworkSignal {
                 x: 318
-                y: 16.3
+                y: 15
                 pitch: 25
                 secure: WiFi.current.secure ?? false
                 bars: WiFi.current.bars ?? 3

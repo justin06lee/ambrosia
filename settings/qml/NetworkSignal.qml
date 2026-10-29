@@ -18,13 +18,13 @@ Item {
     Glyph {
         visible: signal.secure
         x: 0
-        y: -0.3
+        y: 0.83
         name: "lock"
         size: 13
     }
     Glyph {
         x: signal.pitch + 1.8
-        y: -0.9
+        y: -0.72
         name: "signal" + Math.max(1, Math.min(3, signal.bars))
         size: 15
     }

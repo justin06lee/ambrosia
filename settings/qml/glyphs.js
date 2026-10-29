@@ -56,18 +56,19 @@ function wavesAt(k, cy) {
         .map(([x, h, c]) => `M${p(x, -h)}Q${p(c, 0)} ${p(x, h)}`).join("");
 }
 
-// The signal's arcs about the wedge at its foot, 50° either side: the
-// middle one and the outer one (2 of them), or just the outer (-1), just
-// the middle (1), or both dimmed (-2).
+// The signal's arcs about a point just above the wedge's tip, 48.5°
+// either side: the middle one and the outer one (2 of them), or just the
+// outer (-1), just the middle (1), or both dimmed (-2). The wedge is a
+// 35° sector about its own tip.
 function wifiArc(r) {
-    const dx = +(r * 0.766).toFixed(2), y = +(19.8 - r * 0.643).toFixed(2);
-    return `M${12 - dx} ${y}A${r} ${r} 0 0 1 ${12 + dx} ${y}`;
+    const dx = +(r * 0.749).toFixed(2), y = +(19.8 - r * 0.663).toFixed(2);
+    return `M${+(12 - dx).toFixed(2)} ${y}A${r} ${r} 0 0 1 ${+(12 + dx).toFixed(2)} ${y}`;
 }
 function wifiArcs(lit) {
-    return { 3: wifiArc(8.8) + wifiArc(13.5), 2: wifiArc(8.8), "-1": wifiArc(13.5), "-2": wifiArc(8.8) + wifiArc(13.5) }[lit];
+    return { 3: wifiArc(7.23) + wifiArc(13.15), 2: wifiArc(7.23), "-1": wifiArc(13.15), "-2": wifiArc(7.23) + wifiArc(13.15) }[lit];
 }
 function wifiWedge() {
-    return "M12 20.9L8.48 16.84A4.6 4.6 0 0 1 15.52 16.84Z";
+    return "M12 21.9L9.19 17.89A4.9 4.9 0 0 1 14.81 17.89Z";
 }
 
 var glyphs = {
@@ -145,12 +146,12 @@ var glyphs = {
     // Wi-Fi's: a lock for a network with a password; its signal, lit to
     // as many bars as it has (the rest dim); the ⋯ in a ring that opens a
     // network's menu; the check by the one in use.
-    lock: { stroke: "M7.6 11.2V7.6a4.4 4.4 0 0 1 8.8 0v3.6", fill: rect(3.7, 10.5, 16.6, 13, 2.6), width: 2.6 },
-    signal3: { stroke: wifiArcs(3), fill: wifiWedge(), width: 2.6 },
-    signal2: { stroke: wifiArcs(2), dimStroke: wifiArcs(-1), fill: wifiWedge(), width: 2.6 },
-    signal1: { dimStroke: wifiArcs(-2), fill: wifiWedge(), width: 2.6 },
+    lock: { stroke: "M6.82 11V6.7a5.18 5.18 0 0 1 10.36 0V11", fill: rect(3.7, 9.84, 16.6, 13.66, 2.6), width: 2.2 },
+    signal3: { stroke: wifiArcs(3), fill: wifiWedge(), width: 3.2 },
+    signal2: { stroke: wifiArcs(2), dimStroke: wifiArcs(-1), fill: wifiWedge(), width: 3.2 },
+    signal1: { dimStroke: wifiArcs(-2), fill: wifiWedge(), width: 3.2 },
     more: { stroke: circle(12, 12, 10.9), fill: circle(7.4, 12, 1.5) + circle(12, 12, 1.5) + circle(16.6, 12, 1.5), width: 1.41 },
-    tick: { stroke: "M5 12.5l5 6L19 5", width: 2.4 },
+    tick: { stroke: "M6.1 12.6l3.45 4.95L17.9 6.45", width: 2.4 },
     focus: { fill: "M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z" },
     lockscreen: { stroke: "M8 10.5V8a4 4 0 0 1 8 0v2.5", fill: rect(5, 10.5, 14, 10, 2.5), width: 2.2 },
     privacy: {
