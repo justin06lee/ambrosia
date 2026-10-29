@@ -5,7 +5,8 @@ import "glyphs.js" as Glyphs
 
 // A glyph from glyphs.js, drawn as vectors so it is sharp at any scale
 // and takes any color (as the shell's Icon.qml); its `dim` part takes a
-// fifth of it (the unlit dots by the input volume's quiet end).
+// fifth of it (the unlit dots by the input volume's quiet end), its
+// `dimStroke` a quarter (a weak signal's unlit bars).
 Item {
     id: glyph
 
@@ -38,6 +39,13 @@ Item {
             fillColor: glyph.shape.fill ? glyph.color : "transparent"
             fillRule: ShapePath.WindingFill
             PathSvg { path: glyph.shape.fill ?? "" }
+        }
+        ShapePath {
+            strokeColor: glyph.shape.dimStroke ? Qt.alpha(glyph.color, glyph.color.a * 0.25) : "transparent"
+            strokeWidth: glyph.weight
+            fillColor: "transparent"
+            capStyle: ShapePath.RoundCap
+            PathSvg { path: glyph.shape.dimStroke ?? "" }
         }
         ShapePath {
             strokeColor: "transparent"

@@ -83,6 +83,9 @@ QtObject {
     readonly property int switchWidth: 36
     readonly property int switchHeight: 16
     readonly property int switchKnob: 20      // 12 tall, 2 in from the track's edge
+    readonly property int switchLargeWidth: 44
+    readonly property int switchLargeHeight: 20
+    readonly property int switchLargeKnob: 26  // 16 tall
     readonly property int popupHeight: 24
     readonly property int popupChevronWidth: 16 // the up-down capsule at a pop-up's right
     readonly property int popupChevronHeight: 20
@@ -120,6 +123,7 @@ QtObject {
     readonly property color track: dark ? "#424240" : "#dfdfdf"
     readonly property color switchOff: dark ? "#414140" : "#dddddd"
     readonly property color knob: dark ? "#e6e6e6" : "#ffffff"
+    readonly property color connected: dark ? "#68ce67" : Theme.color.palette.green // Wi-Fi's dot
     readonly property color helpFace: dark ? "#373734" : "#ececec"
     readonly property color menu: dark ? "#262624" : "#f2f2f2"
     readonly property color menuRim: dark ? "#4e4e4c" : "#d3d3d3"

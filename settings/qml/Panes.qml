@@ -14,7 +14,7 @@ QtObject {
     // the search, and page or module.
     readonly property var groups: [
         [
-            { id: "wifi", name: "Wi‑Fi", glyph: "wifi", tint: "blue", module: "kcm_networkmanagement",
+            { id: "wifi", name: "Wi‑Fi", glyph: "wifi", tint: "blue", page: "wifi", device: "wifi",
               keywords: ["wireless", "network", "internet", "hotspot", "join"] },
             { id: "bluetooth", name: "Bluetooth", glyph: "bluetooth", tint: "blue", module: "kcm_bluetooth",
               keywords: ["devices", "pair", "headphones", "wireless"] },
@@ -109,6 +109,8 @@ QtObject {
         if (pane.device === "mouse" && !App.hasMouse)
             return false;
         if (pane.device === "trackpad" && !App.hasTrackpad)
+            return false;
+        if (pane.device === "wifi" && !WiFi.available)
             return false;
         return pane.page !== undefined || (pane.module !== undefined && App.hasModule(pane.module));
     }
