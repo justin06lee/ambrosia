@@ -94,6 +94,11 @@ QtObject {
     readonly property int sliderWidth: 200
     readonly property int segmented: 24
     readonly property int segmentedRadius: 6
+    readonly property int check: 16
+    readonly property int checkRadius: 4
+    readonly property int tableHeader: 28
+    readonly property int tableRow: 24
+    readonly property int tableNameWidth: 291
     readonly property int help: 24
     readonly property int menuRow: 22
 
@@ -119,6 +124,11 @@ QtObject {
     readonly property color menu: dark ? "#262624" : "#f2f2f2"
     readonly property color menuRim: dark ? "#4e4e4c" : "#d3d3d3"
     readonly property color menuRule: dark ? "#3f3f3d" : "#dadada"
+    // A table across the foot of a box (Sound's devices): its fill, the rule
+    // under its header, a row chosen while the table hasn't the focus.
+    readonly property color tableFill: dark ? "#383836" : "#efefef"
+    readonly property color tableRule: dark ? "#41413f" : "#e5e5e5"
+    readonly property color tableChosen: dark ? "#61615f" : "#dfdfdf"
 
     // The pane icons' colors: each a rounded square lit from above, as
     // System Settings' are (top, bottom).

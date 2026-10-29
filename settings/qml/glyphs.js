@@ -86,6 +86,8 @@ var glyphs = {
     spotlight: { stroke: circle(10.5, 10.5, 6) + "M15 15l5 5", width: 2.4 },
     wallpaper: { fill: flower(12, 12) },
     notifications: { stroke: rect(3.5, 6, 14.5, 14.5, 3.5), fill: circle(18.2, 5.8, 3.1), width: 2 },
+    // Play, in a ring (Sound's alert preview).
+    play: { stroke: "M12 2.6a9.4 9.4 0 1 1 0 18.8a9.4 9.4 0 1 1 0-18.8z", width: 1.4, fill: "M10 8.2v7.6l6.2-3.8z" },
     speaker: { fill: "M5 9.2h3.8L13.5 5v14l-4.7-4.2H5z" },
     sound: {
         fill: "M3.5 9.2h3.8L12 5v14l-4.7-4.2H3.5z",

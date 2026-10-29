@@ -3,22 +3,27 @@ import QtQuick.Effects
 import Ambrosia
 import Settings
 
-// A slider, 200 wide: a 6 point track filled in the accent color up to a
-// 20 × 16 white knob; tick marks under it if it has steps, and glyphs at
-// its ends (Sound's speakers). `value` runs from 0 to 1; dragging or
-// clicking says where it moved, and whoever owns the setting sets it.
+// A slider, 200 wide unless told otherwise: a 6 point track filled in the
+// accent color up to a 20 × 16 white knob; tick marks under it, glyphs at
+// its ends (Sound's speakers) and captions under them (Balance's Left and
+// Right). `value` runs from 0 to 1; dragging or clicking says where it
+// moved, and whoever owns the setting sets it. The knob stops only on the
+// ticks if it `snaps`.
 Item {
     id: slider
 
     property real value: 0
     property int ticks: 0
+    property bool snaps: false
+    property real trackWidth: Look.sliderWidth
+    property var captions: [] // [under the start, under the end]
     property string minGlyph
     property string maxGlyph
     signal moved(real value)
 
     readonly property real lead: minGlyph !== "" ? 20 : 0
-    implicitWidth: lead + Look.sliderWidth + (maxGlyph !== "" ? 23 : 0)
-    implicitHeight: ticks > 0 ? 24 : Look.sliderKnobHeight
+    implicitWidth: lead + trackWidth + (maxGlyph !== "" ? 23 : 0)
+    implicitHeight: captions.length > 0 ? 31 : ticks > 0 ? 24 : Look.sliderKnobHeight
     opacity: enabled ? 1 : 0.45
     Accessible.role: Accessible.Slider
 
@@ -32,7 +37,7 @@ Item {
     Item {
         id: groove
         x: slider.lead
-        width: Look.sliderWidth
+        width: slider.trackWidth
         height: Look.sliderKnobHeight
 
         Rectangle {
@@ -86,7 +91,7 @@ Item {
             function place(mx) {
                 let v = (mx - 4 - Look.sliderKnobWidth / 2) / (groove.width - Look.sliderKnobWidth);
                 v = Math.max(0, Math.min(1, v));
-                if (slider.ticks > 1)
+                if (slider.snaps && slider.ticks > 1)
                     v = Math.round(v * (slider.ticks - 1)) / (slider.ticks - 1);
                 slider.moved(v);
             }
@@ -101,5 +106,16 @@ Item {
         name: slider.maxGlyph
         size: 17
         color: Theme.color.label.secondary
+    }
+    Repeater {
+        model: slider.captions
+        Label {
+            required property int index
+            required property string modelData
+            x: index === 0 ? groove.x : groove.x + groove.width - width
+            y: Look.sliderKnobHeight + 1
+            text: modelData
+            style: Theme.text.caption
+        }
     }
 }
