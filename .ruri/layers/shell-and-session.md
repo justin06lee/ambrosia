@@ -1,6 +1,6 @@
 # ambrosia — Shell and Session
 
-One layer of ambrosia's stack, owning `shell/, session/, tools/shot.sh`. The whole stack, and how the layers connect, is in `.ruri/architecture.md`.
+One layer of ambrosia's stack, owning `shell/, session/, tools/shot.sh, decoration/`. The whole stack, and how the layers connect, is in `.ruri/architecture.md`.
 Don't edit this file: ruri writes it. `ruri layer shell-and-session` prints it with every line numbered, what git says changed in this layer lately and what sessions learned working here; once you have read it that way, put right what your work changed — `ruri layer shell-and-session add|set|drop <section> …`. Where it and the code disagree, the code is right.
 
 The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and the session that hosts it. startambrosia runs Plasma's session with XDG_SESSION_DESKTOP=ambrosia; systemd units keyed on that variable swap plasmashell for Quickshell, and /etc/xdg/ambrosia carries session-only KDE/KWin defaults. The shell is now functional, not just visual: menu bar with real app menus, Spotlight launcher on Super+Space, dock, control center and notification banners, and it must match preview/ visually.
@@ -19,11 +19,10 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - **Text in the type scale:** shell/Label.qml
 - **Desktop wallpaper:** shell/Wallpaper.qml
 - **Which windows/screens the shell puts up:** shell/shell.qml
+- **Window traffic lights (close, minimise, zoom in window frames):** decoration/src/button.cpp
 - **Session start, env and defaults scope:** session/startambrosia, session/ambrosia.desktop
 - **Swapping plasmashell for the shell:** session/ambrosia-shell.service, session/plasmashell.conf
 - **KWin's grant of its window list to the shell; Super+Space for Search; the ambrosia command:** session/org.ambrosia.shell.desktop, session/org.ambrosia.search.desktop, session/ambrosia
-- **KWin defaults (buttons, borders, hot corner, blur, popups), Breeze menus, folders open in Files, no splash:** session/xdg/kwinrc, session/xdg/breezerc, session/xdg/mimeapps.list, session/ksplash.conf
-- **Session look-and-feel (colors, widget style, traffic-light window frames, splash off; dark mode switches the frame in shell/Appearance.qml):** session/look-and-feel/org.ambrosia.desktop/, session/startambrosia, tools/gen/targets/aurorae.ts
 
 ## How it works
 
@@ -60,6 +59,7 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - Dock and Trash artwork is hand-drawn vector art; never copy or extract Apple's images from Dock.app or any system bundle.
 - Dock icons, including the Files icon, are our own drawings: never trace Finder.app or any macOS file; the face and shapes must be ours even when the squircle and colours match macOS.
 - The Dock's Trash is sized against its neighbouring icons by macOS's squircle-to-bin ratio; resize it with them, not on its own.
+- Window traffic lights use macOS's colours in both light and dark mode, and each light's edge is a thin darker shade of its own colour, not grey.
 - KWin gives its window list (org_kde_plasma_window_management) only to programs a desktop file grants, matched by Exec path: org.ambrosia.shell.desktop names /usr/bin/quickshell. No other desktop file may Exec /usr/bin/quickshell (KWin takes the first match), so shortcuts run /usr/bin/ambrosia.
 - Plasma's appmenu kded only collects apps' menus while org.kde.kappmenuview is on the bus; Apps.qml holds it with dbus-test-tool black-hole. Apps check at startup, so ones started before the shell keep their in-window menus.
 - A QML file loaded by file:// URL (Loader) gets its own copies of the shell's singletons; pass it values instead (AppMenu.qml).
@@ -69,7 +69,6 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - Pinned apps' AppId ends in .desktop, running ones' not (use Apps.entryFor). Windows keep their pin's Dock spot only with launchInPlace and separateLaunchers: true.
 - Glass.qml draws preview/glass.css: top-lit rim (ring: true for the Dock's all-round rim), a 135° specular ring, 0.5px edge, shadow outside only. Use it for any glass surface instead of a plain tinted Rectangle.
 - KWin's blur is global: [Effect-blur] BlurStrength and Saturation (integer, 100 = none) in session/xdg/kwinrc apply to every glass surface; the control center's untinted backdrop sets them (6, 100). Reload with /Effects reconfigureEffect blur, not KWin.reconfigure.
-- kdedefaults is rewritten only when the look-and-feel's name changes: Breeze settings go in session/xdg/breezerc; startambrosia copies the look-and-feel's decoration into kdedefaults/kwinrc each login.
 
 ## What it talks to
 
@@ -77,3 +76,4 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - Packaging and Image — ambrosia-shell installs shell/ to /usr/share/ambrosia/shell and session/ files system-wide, and ships assets/icons/org.ambrosia.files.svg with them
 - Preview Desktop — the visual reference the QML must match
 - Files app — pinned in the Dock; Trash drops use its DBus Trash method
+- Settings app (ambrosia-settings, settings/) — the menu bar's Settings items and the Dock open it instead of KDE's settings module

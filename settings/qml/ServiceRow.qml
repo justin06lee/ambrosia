@@ -33,23 +33,24 @@ Item {
     }
     Label {
         x: 48.5
-        y: 10
+        y: 10.5
         width: chevron.x - x - 8
         text: row.service.name
         elide: Text.ElideRight
     }
     Rectangle {
-        x: 49.25
-        y: 30.75
-        width: 8
-        height: 8
-        radius: 4
+        x: 49
+        y: 30.5
+        width: 8.5
+        height: 8.5
+        radius: 4.25
         color: row.service.state === "connected" ? Look.connected
             : row.service.state === "connecting" ? Look.connecting : Look.notConnected
     }
     Label {
         x: 62
-        y: 27.5
+        y: 28.5
+        style: Theme.text.caption
         color: Theme.color.label.secondary
         text: ({
             connected: qsTr("Connected"),
@@ -59,10 +60,10 @@ Item {
     }
     Glyph {
         id: chevron
-        x: row.width - Look.chevronRight - width + 3
-        anchors.verticalCenter: parent.verticalCenter
+        x: row.width - 21
+        y: 19.5
         name: "chevronRight"
-        size: 12
+        size: 14
         color: Theme.color.label.tertiary
     }
     TapHandler {
