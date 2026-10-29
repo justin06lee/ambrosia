@@ -93,7 +93,7 @@ Page {
                     }
                     Label {
                         x: (parent.width - width) / 2
-                        y: 56
+                        y: 55
                         style: Theme.text.caption
                         text: choice.isDefault ? qsTr("Default")
                             : choice.index === 0 ? qsTr("Larger Text")
