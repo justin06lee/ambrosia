@@ -29,6 +29,7 @@ Item {
         x: Look.boxPadding
         y: row.fromTop ? Look.boxPadding : (row.height - height) / 2
         width: slot.x - x - 12
+        spacing: row.description !== "" ? 2 : 0
         Label {
             id: title
             width: parent.width
@@ -41,6 +42,8 @@ Item {
             text: row.description
             style: Theme.text.caption
             wrapMode: Text.WordWrap
+            lineHeightMode: Text.FixedHeight
+            lineHeight: 14
             color: Theme.color.label.secondary
         }
     }

@@ -5,8 +5,8 @@ import Settings
 // A Wi-Fi network in a list, as System Settings has it: its name, with
 // room before it for the check by the one in use; a lock if it takes a
 // password and its signal at the right; pointed at, a Connect button left
-// of them, and a known one's ⋯ (its menu) right of them. Known networks'
-// rows are 40 tall, others' 44.
+// of them, and its ⋯ right of them. Known networks' rows are 40 tall,
+// others' 44.
 Item {
     id: row
 
@@ -53,7 +53,6 @@ Item {
     }
     Glyph {
         id: moreButton
-        visible: row.known
         x: 421.5 - (size - 17) / 2
         anchors.verticalCenter: parent.verticalCenter
         name: "more"

@@ -89,6 +89,10 @@ public:
     // the network takes them at once (joined again for a new address or
     // MTU, as on a Mac).
     Q_INVOKABLE void applyDetails(const QString &uuid, const QVariantMap &changes);
+    // The private address ("off", "fixed" or "rotating") a network not yet
+    // joined will be joined with (its ⋯), kept in ambrosiarc until it is.
+    Q_INVOKABLE QString privateAddressFor(const QString &ssid) const;
+    Q_INVOKABLE void setPrivateAddressFor(const QString &ssid, const QString &mode);
     // A known network's password, onto the clipboard.
     Q_INVOKABLE void copyPassword(const QString &uuid);
 

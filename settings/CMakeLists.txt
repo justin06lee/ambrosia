@@ -84,6 +84,7 @@ qt_add_qml_module(ambrosia-settings
         qml/WiFiDetailsSheet.qml
         qml/EditList.qml
         qml/WiFiOtherSheet.qml
+        qml/WiFiPrivateSheet.qml
         qml/WiFiAdvancedSheet.qml
     RESOURCES
         art/desktop.svg

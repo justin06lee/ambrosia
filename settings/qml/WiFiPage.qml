@@ -6,12 +6,13 @@ import Settings
 // name, what it does and its switch) with the network in use under it;
 // then the known networks in range and the others, each with its lock and
 // signal, a Connect button where pointed; Details… on the one in use and a
-// known one's ⋯ menu open its settings (WiFiDetailsSheet); Other… adds a
+// known one's ⋯ menu open its settings (WiFiDetailsSheet), an other one's ⋯
+// the private address to join it with (WiFiPrivateSheet); Other… adds a
 // network by name (WiFiOtherSheet), Advanced… lists every one saved
 // (WiFiAdvancedSheet). All of it NetworkManager's (src/wifi.cpp). Left out:
 // Personal Hotspots and asking to join hotspots (an iPhone's), asking to
 // join networks (NetworkManager never asks), the help button and its Learn
-// More. Not yet: other networks' ⋯ menu.
+// More.
 Page {
     id: page
 
@@ -143,6 +144,7 @@ Page {
                 required property var modelData
                 network: modelData
                 onConnect: page.connect(modelData)
+                onMore: privateSheet.show(modelData.ssid)
             }
         }
     }
@@ -202,6 +204,10 @@ Page {
         forgetSheet.open = true;
     }
 
+    WiFiPrivateSheet {
+        id: privateSheet
+        settings: page.settings
+    }
     WiFiOtherSheet {
         id: otherSheet
         settings: page.settings

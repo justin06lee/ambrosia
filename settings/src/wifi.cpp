@@ -123,6 +123,12 @@ KConfigGroup preferences()
     return KSharedConfig::openConfig(QStringLiteral("ambrosiarc"))->group(QStringLiteral("Wi-Fi"));
 }
 
+// The private addresses chosen for networks not joined yet, by name.
+KConfigGroup privateAddresses()
+{
+    return KSharedConfig::openConfig(QStringLiteral("ambrosiarc"))->group(QStringLiteral("Wi-Fi Private Addresses"));
+}
+
 // The saved connections for networks (infrastructure Wi-Fi), by name.
 QHash<QString, Connection::Ptr> savedNetworks()
 {
@@ -150,6 +156,9 @@ NMVariantMapMap connectionFor(const QString &ssid, const QString &security, cons
     QVariantMap wireless{{QStringLiteral("ssid"), ssid.toUtf8()}, {QStringLiteral("mode"), QStringLiteral("infrastructure")}};
     if (hidden)
         wireless.insert(QStringLiteral("hidden"), true);
+    const QString privateAddress = privateAddresses().readEntry(ssid, QString());
+    if (!privateAddress.isEmpty())
+        wireless.insert(QStringLiteral("assigned-mac-address"), privateAddress == QLatin1String("rotating") ? QStringLiteral("random") : QStringLiteral("stable"));
     map[QStringLiteral("802-11-wireless")] = wireless;
     // Secrets are kept by the system for every user, as a Mac keeps them
     // in its System keychain.
@@ -480,6 +489,10 @@ void WiFi::deviceStateChanged(int state, int reason)
     if (m_joining.isEmpty())
         return;
     if (state == Device::Activated) {
+        // The connection keeps it now.
+        KConfigGroup kept = privateAddresses();
+        kept.deleteEntry(m_joining);
+        kept.sync();
         m_joining.clear();
         m_madePath.clear();
         return;
@@ -508,6 +521,21 @@ void WiFi::forget(const QString &uuid)
 {
     if (const Connection::Ptr connection = findConnectionByUuid(uuid))
         connection->remove();
+}
+
+QString WiFi::privateAddressFor(const QString &ssid) const
+{
+    return privateAddresses().readEntry(ssid, QStringLiteral("off"));
+}
+
+void WiFi::setPrivateAddressFor(const QString &ssid, const QString &mode)
+{
+    KConfigGroup kept = privateAddresses();
+    if (mode == QLatin1String("off"))
+        kept.deleteEntry(ssid);
+    else
+        kept.writeEntry(ssid, mode);
+    kept.sync();
 }
 
 QVariantMap WiFi::details(const QString &uuid) const
