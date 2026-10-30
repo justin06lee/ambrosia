@@ -5,13 +5,15 @@ import Settings
 // A Bluetooth device in a list, as System Settings has it: what it is, its
 // name and, for one paired with this computer, whether it's connected;
 // pointed at, Connect or Disconnect, and a spinner while it pairs or
-// connects. Paired devices' rows are 57 tall, nearby ones' 44.
+// connects; a paired one's ⓘ opens its sheet. Paired devices' rows are 57
+// tall, nearby ones' 44.
 Item {
     id: row
 
     required property var device
     property bool paired: false
     signal toggle()
+    signal info()
 
     width: parent ? parent.width : Look.boxWidth
     height: paired ? 57 : 44
@@ -50,6 +52,15 @@ Item {
         visible: hover.hovered && !row.device.busy
         text: row.device.connected ? qsTr("Disconnect") : qsTr("Connect")
         onClicked: row.toggle()
+    }
+    Glyph {
+        visible: row.paired
+        x: 431.5 - (size - 17) / 2
+        y: 13.5 - (size - 17) / 2
+        name: "info"
+        size: 18.7
+        color: Theme.color.label.secondary
+        TapHandler { onTapped: row.info() }
     }
     Spinner {
         x: 422.5 - width

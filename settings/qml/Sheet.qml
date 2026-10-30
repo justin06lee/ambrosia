@@ -1,0 +1,112 @@
+import QtQuick
+import QtQuick.Effects
+import Ambrosia
+import Settings
+
+// A sheet over the window, as System Settings shows them (Bluetooth's ⓘ,
+// Wi-Fi's Details…): the window dimmed under it, the sheet centred on it
+// with 24 corners, a dark outline and a lighter rim inside; its boxes 20
+// in, and its buttons along the foot under a rule, the default one on the
+// right. Escape closes it, Return presses the default button.
+Item {
+    id: sheet
+
+    // The window it covers (a page's settings).
+    required property var settings
+    property bool open: false
+    property real sheetWidth: 490
+    default property alias content: column.data
+    // Buttons on the left of the foot, and on the right (the default last).
+    property alias leading: leadingRow.data
+    property alias trailing: trailingRow.data
+    signal accepted()
+
+    function close() { open = false; }
+
+    parent: settings.contentItem
+    anchors.fill: parent
+    z: 100
+    visible: opacity > 0
+    opacity: open ? 1 : 0
+    Behavior on opacity { NumberAnimation { duration: Theme.fade.fast } }
+
+    Shortcut {
+        sequence: "Esc"
+        enabled: sheet.open
+        onActivated: sheet.close()
+    }
+    Shortcut {
+        sequences: ["Return", "Enter"]
+        enabled: sheet.open
+        onActivated: sheet.accepted()
+    }
+
+    // The window, dimmed; it takes no clicks while the sheet is up.
+    Rectangle {
+        anchors.fill: parent
+        color: "black"
+        opacity: Theme.dark ? 0.3 : 0.12
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.AllButtons
+            hoverEnabled: true
+            onWheel: (wheel) => wheel.accepted = true
+        }
+    }
+
+    Rectangle {
+        id: panel
+        x: Math.round((parent.width - width) / 2)
+        y: Math.round((parent.height - height) / 2)
+        width: sheet.sheetWidth
+        height: column.height + 2 * Look.margin + 1 + 2 * Look.margin + Look.popupHeight
+        radius: 24
+        color: Look.sheet
+        border.width: 0.5
+        border.color: Look.sheetOutline
+        layer.enabled: true
+        layer.effect: MultiEffect {
+            shadowEnabled: true
+            shadowColor: "black"
+            shadowOpacity: Theme.dark ? 0.6 : 0.25
+            shadowBlur: 1
+            shadowVerticalOffset: 10
+            blurMax: 48
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 0.5
+            radius: 23.5
+            color: "transparent"
+            border.width: 1
+            border.color: Look.sheetRim
+        }
+        Column {
+            id: column
+            x: Look.margin
+            y: Look.margin
+            width: parent.width - 2 * Look.margin
+            spacing: Look.boxGap
+        }
+        Rectangle {
+            id: rule
+            y: column.y + column.height + Look.margin
+            width: parent.width
+            height: 1
+            color: Look.sheetRule
+        }
+        Row {
+            id: leadingRow
+            x: Look.margin
+            y: rule.y + 1 + Look.margin
+            spacing: 8
+        }
+        Row {
+            id: trailingRow
+            x: parent.width - Look.margin - width
+            y: leadingRow.y
+            spacing: 8
+        }
+    }
+}

@@ -131,6 +131,12 @@ QtObject {
     // a scale tile's window.
     readonly property color band: dark ? "#282828" : window
     readonly property color bandRule: dark ? "#3e3e3e" : "#e0e0e0"
+    // A sheet: its fill, the dark line round it, the lighter rim inside
+    // that, and the rule over its buttons.
+    readonly property color sheet: dark ? "#262724" : "#f5f5f5"
+    readonly property color sheetOutline: dark ? "#030302" : "#33000000"
+    readonly property color sheetRim: dark ? "#515250" : "#ffffff"
+    readonly property color sheetRule: dark ? "#30302d" : "#e0e0e0"
     readonly property color tileWindow: dark ? "#141414" : "#ffffff"
     readonly property color helpFace: dark ? "#373734" : "#ececec"
     readonly property color menu: dark ? "#262624" : "#f2f2f2"

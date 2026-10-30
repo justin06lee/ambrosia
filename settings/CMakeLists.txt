@@ -80,6 +80,7 @@ qt_add_qml_module(ambrosia-settings
         qml/ServiceRow.qml
         qml/DisplaysPage.qml
         qml/ScaleTile.qml
+        qml/Sheet.qml
     RESOURCES
         art/desktop.svg
         art/laptop.svg
