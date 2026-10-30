@@ -76,18 +76,8 @@ public:
     Q_INVOKABLE void leave(); // the network in use
     Q_INVOKABLE void forget(const QString &uuid);
 
-    // A saved network's settings, as its Details… sheet shows them:
-    // {ssid, autoJoin, lowData, privateAddress ("off", "fixed" or
-    // "rotating"), address (this computer's on it), mac (its own), mtu (0:
-    // standard), ipv4Method ("dhcp", "manual" or "off") with manualIp,
-    // manualSubnet, manualRouter and clientId; ipv6Method ("auto",
-    // "link-local" or "off"); dnsServers [] and searchDomains [] typed in;
-    // and while in use ip, subnet, router, ipv6Router, ipv6 [{address,
-    // prefix}], dns [] and domains [] as they are}.
+    // A saved network's settings (connectiondetails.h).
     Q_INVOKABLE QVariantMap details(const QString &uuid) const;
-    // The sheet's OK: changes holds the keys above that changed. In use,
-    // the network takes them at once (joined again for a new address or
-    // MTU, as on a Mac).
     Q_INVOKABLE void applyDetails(const QString &uuid, const QVariantMap &changes);
     // The private address ("off", "fixed" or "rotating") a network not yet
     // joined will be joined with (its ⋯), kept in ambrosiarc until it is.

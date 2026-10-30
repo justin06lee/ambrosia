@@ -6,7 +6,7 @@ import Settings
 // name, what it does and its switch) with the network in use under it;
 // then the known networks in range and the others, each with its lock and
 // signal, a Connect button where pointed; Details… on the one in use and a
-// known one's ⋯ menu open its settings (WiFiDetailsSheet), an other one's ⋯
+// known one's ⋯ menu open its settings (DetailsSheet), an other one's ⋯
 // the private address to join it with (WiFiPrivateSheet); Other… adds a
 // network by name (WiFiOtherSheet), Advanced… lists every one saved
 // (WiFiAdvancedSheet). All of it NetworkManager's (src/wifi.cpp). Left out:
@@ -217,7 +217,7 @@ Page {
         settings: page.settings
         onForget: (uuid, ssid) => page.askForget(uuid, ssid)
     }
-    WiFiDetailsSheet {
+    DetailsSheet {
         id: detailsSheet
         settings: page.settings
         onForget: (uuid, ssid) => page.askForget(uuid, ssid)
