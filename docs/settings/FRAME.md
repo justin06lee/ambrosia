@@ -70,8 +70,9 @@ x, y, w, h) beside a 2x screenshot of each pane, on the Mac only.
   - help button: a 24 pt circle with "?", bottom right, 20 below the last box.
 - Descriptions under a label: 11 pt secondary.
 
-- Pop-ups have no face: the value in plain text, then a 16 × 20 capsule with
-  the up/down chevrons, 4 from the right. Switch knob 20 × 12, 2 in; slider
+- Pop-ups have no face: the value in plain text, then 12.5 on a 20 × 20 circle
+  with the up/down chevrons, 3.5 from the right (remeasured 2026-10-30 on
+  Sound's Alert sound and Wi-Fi's Other…; the first pass had 16 × 20, 4). Switch knob 20 × 12, 2 in; slider
   track 6, knob 20 × 16. Faces: #e4e4e4 light, #3d3d3b dark. The window's
   corner radius is 26, the sidebar panel's 18. The sidebar selection is the
   accent while the window is key, grey (#464646 dark) when it isn't.

@@ -22,6 +22,8 @@ Item {
     property real sheetWidth: 490
     property real pageX: 0
     property real bodyHeight: 0
+    // Room under the last box (24 under Wi-Fi's Other… form).
+    property real below: Look.margin
     property alias side: sideArea.data
     default property alias content: column.data
     // Buttons on the left of the foot, and on the right (the default last).
@@ -99,7 +101,8 @@ Item {
         enabled: sheet.onTop
         readonly property real foot: 1 + 2 * Look.margin + Look.popupHeight
         x: Math.round((parent.width - width) / 2)
-        y: Math.max(Look.toolbar, Math.round((parent.height - height) / 2))
+        // Centred, a half point up as the Mac rounds (Other…: 209 of 209.5).
+        y: Math.max(Look.toolbar, Math.floor((parent.height - height) / 2))
         width: sheet.sheetWidth
         height: body.height + foot
         radius: 24
@@ -142,7 +145,7 @@ Item {
             width: parent.width - x
             height: sheet.bodyHeight > 0 ? sheet.bodyHeight
                 : Math.min(contentHeight, sheet.height - Look.toolbar - Look.sheetBelow - panel.foot)
-            contentHeight: column.height + 2 * Look.margin
+            contentHeight: column.height + Look.margin + sheet.below
             clip: contentHeight > height
             interactive: contentHeight > height
             boundsBehavior: Flickable.StopAtBounds

@@ -29,6 +29,7 @@ Sheet {
     }
 
     sheetWidth: 400
+    below: 24
     onAccepted: {
         if (!ready)
             return;
@@ -38,9 +39,10 @@ Sheet {
 
     Box {
         width: parent.width
+        // Rows at the Mac's heights.
         Item {
             width: parent.width
-            height: 65.5
+            height: 66
             PaneIcon {
                 x: 11
                 y: 12
@@ -67,6 +69,7 @@ Sheet {
             }
         }
         FormRow {
+            height: 36
             label: qsTr("Network Name")
             NameField {
                 id: nameField
@@ -77,6 +80,7 @@ Sheet {
             }
         }
         FormRow {
+            height: 37.5
             label: qsTr("Security")
             PopUpButton {
                 items: [
@@ -94,6 +98,7 @@ Sheet {
             }
         }
         FormRow {
+            height: 36
             visible: sheet.enterprise
             label: qsTr("Username")
             NameField {
@@ -105,6 +110,7 @@ Sheet {
             }
         }
         FormRow {
+            height: 36
             visible: sheet.needsPassword
             label: qsTr("Password")
             NameField {
@@ -118,6 +124,7 @@ Sheet {
             }
         }
         FormRow {
+            height: 36.5
             visible: sheet.needsPassword
             label: qsTr("Show password")
             Switch {
