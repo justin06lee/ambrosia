@@ -88,6 +88,10 @@ QtObject {
     readonly property int switchLargeHeight: 20
     readonly property int switchLargeKnob: 26  // 16 tall
     readonly property int popupHeight: 24
+    // A list typed into (Wi-Fi's DNS servers): four 24 rows, a 24 bar of + and −.
+    readonly property int editListRows: 4
+    readonly property int editListRow: 24
+    readonly property int editListBar: 24
     readonly property int popupChevronWidth: 16 // the up-down capsule at a pop-up's right
     readonly property int popupChevronHeight: 20
     readonly property int popupEnd: 4

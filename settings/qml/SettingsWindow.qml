@@ -136,12 +136,15 @@ Window {
         border.color: Theme.dark ? "#33ffffff" : "#26000000"
 
         // The window moves by its toolbar's empty space and the sidebar's.
+        // Off under a sheet: they'd take its clicks too (and its focus).
         DragHandler {
             target: null
+            enabled: !win.underSheet
             onActiveChanged: if (active) win.startSystemMove()
         }
         TapHandler {
             // A click on empty space leaves the search field.
+            enabled: !win.underSheet
             onTapped: frame.forceActiveFocus()
         }
 

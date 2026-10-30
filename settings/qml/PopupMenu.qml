@@ -27,6 +27,15 @@ Controls.Popup {
         minimumWidth = control.width;
         open();
     }
+    // Opens under a control, as a pull-down (a ⋯ button's) does, moved
+    // left as far as it must to stay in the window.
+    function openUnder(control) {
+        parent = control;
+        x = Math.min(0, control.Window.width - Look.boxPadding - control.mapToItem(null, 0, 0).x - implicitWidth);
+        y = control.height + 4;
+        minimumWidth = 0;
+        open();
+    }
     function choose(i) {
         const item = items[i];
         if (!item || item.value === undefined || item.enabled === false)
@@ -48,7 +57,15 @@ Controls.Popup {
     padding: 5
     focus: true
     closePolicy: Controls.Popup.CloseOnEscape | Controls.Popup.CloseOnPressOutside
-    implicitWidth: Math.max(minimumWidth, rows.implicitWidth + 2 * padding)
+    // As wide as its widest row asks (rows take the menu's width, so the
+    // column's own would be circular), or the control's.
+    readonly property real widest: {
+        let widest = 0;
+        for (const row of rows.children)
+            widest = Math.max(widest, row.implicitWidth ?? 0);
+        return widest;
+    }
+    implicitWidth: Math.max(minimumWidth, widest + 2 * padding)
     onOpened: {
         lit = currentIndex;
         rows.forceActiveFocus();

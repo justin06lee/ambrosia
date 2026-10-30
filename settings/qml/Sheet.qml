@@ -8,7 +8,10 @@ import Settings
 // Wi-Fi's Details…): the window dimmed under it, the sheet centred on it
 // with 24 corners, a dark outline and a lighter rim inside; its boxes 20
 // in, and its buttons along the foot under a rule, the default one on the
-// right. Escape closes it, Return presses the default button.
+// right. Escape closes it, Return presses the default button. One with a
+// sidebar of its own (Wi-Fi's Details…) has it inset 8 on the left, pageX
+// wide with the inset, and its page scrolling in bodyHeight over the
+// buttons.
 Item {
     id: sheet
 
@@ -16,6 +19,9 @@ Item {
     required property var settings
     property bool open: false
     property real sheetWidth: 490
+    property real pageX: 0
+    property real bodyHeight: 0
+    property alias side: sideArea.data
     default property alias content: column.data
     // Buttons on the left of the foot, and on the right (the default last).
     property alias leading: leadingRow.data
@@ -88,7 +94,7 @@ Item {
         x: Math.round((parent.width - width) / 2)
         y: Math.round((parent.height - height) / 2)
         width: sheet.sheetWidth
-        height: column.height + 2 * Look.margin + 1 + 2 * Look.margin + Look.popupHeight
+        height: body.height + 1 + 2 * Look.margin + Look.popupHeight
         radius: 24
         color: Look.sheet
         border.width: 0.5
@@ -111,23 +117,46 @@ Item {
             border.width: 1
             border.color: Look.sheetRim
         }
-        Column {
-            id: column
-            x: Look.margin
-            y: Look.margin
-            width: parent.width - 2 * Look.margin
-            spacing: Look.boxGap
+        Rectangle {
+            id: sideArea
+            visible: sheet.pageX > 0
+            x: Look.sidebarInset
+            y: Look.sidebarInset
+            width: sheet.pageX - Look.sidebarInset
+            height: parent.height - 2 * Look.sidebarInset
+            radius: parent.radius - Look.sidebarInset
+            color: Look.sidebar
+            border.width: 0.5
+            border.color: Look.sidebarRim
+        }
+        Flickable {
+            id: body
+            x: sheet.pageX
+            width: parent.width - x
+            height: sheet.bodyHeight > 0 ? sheet.bodyHeight : contentHeight
+            contentHeight: column.height + 2 * Look.margin
+            clip: sheet.bodyHeight > 0
+            interactive: contentHeight > height
+            boundsBehavior: Flickable.StopAtBounds
+            Column {
+                id: column
+                x: Look.margin
+                y: Look.margin
+                width: body.width - 2 * Look.margin
+                spacing: Look.boxGap
+            }
         }
         Rectangle {
             id: rule
-            y: column.y + column.height + Look.margin
-            width: parent.width
+            x: sheet.pageX
+            y: body.height
+            width: parent.width - x
             height: 1
             color: Look.sheetRule
         }
         Row {
             id: leadingRow
-            x: Look.margin
+            x: sheet.pageX + Look.margin
             y: rule.y + 1 + Look.margin
             spacing: 8
         }

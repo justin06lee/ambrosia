@@ -28,7 +28,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: height / 2
-        color: !control.checked ? Look.switchOff : control.Window.window?.underSheet ? Look.switchInactive : Theme.accent.bg
+        // Under a sheet (disabled there), gray; a sheet's own keeps the accent.
+        color: !control.checked ? Look.switchOff : !control.enabled && control.Window.window?.underSheet ? Look.switchInactive : Theme.accent.bg
         Behavior on color { enabled: control.animated; ColorAnimation { duration: Theme.fade.fast } }
     }
     Rectangle {

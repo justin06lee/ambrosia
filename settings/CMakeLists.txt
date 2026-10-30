@@ -81,6 +81,8 @@ qt_add_qml_module(ambrosia-settings
         qml/DisplaysPage.qml
         qml/ScaleTile.qml
         qml/Sheet.qml
+        qml/WiFiDetailsSheet.qml
+        qml/EditList.qml
     RESOURCES
         art/desktop.svg
         art/laptop.svg
