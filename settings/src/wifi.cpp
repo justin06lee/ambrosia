@@ -1,5 +1,7 @@
 #include "wifi.h"
 
+#include <KConfigGroup>
+#include <KSharedConfig>
 #include <NetworkManagerQt/AccessPoint>
 #include <NetworkManagerQt/ActiveConnection>
 #include <NetworkManagerQt/Connection>
@@ -11,6 +13,7 @@
 #include <NetworkManagerQt/Settings>
 #include <NetworkManagerQt/Utils>
 #include <NetworkManagerQt/WirelessNetwork>
+#include <NetworkManagerQt/WirelessSecuritySetting>
 #include <NetworkManagerQt/WirelessSetting>
 #include <QClipboard>
 #include <QDBusPendingCallWatcher>
@@ -29,14 +32,20 @@ int bars(int strength)
     return strength >= 67 ? 3 : strength >= 34 ? 2 : 1;
 }
 
+// The best way into a network that this card has.
+WirelessSecurityType bestSecurity(const WirelessDevice::Ptr &device, const AccessPoint::Ptr &ap)
+{
+    return findBestWirelessSecurity(device->wirelessCapabilities(), true, ap->mode() == AccessPoint::Adhoc, ap->capabilities(),
+                                    ap->wpaFlags(), ap->rsnFlags());
+}
+
 // What joining a network takes: "none", "owe" (encrypted, no password),
-// "wep", "wpa" (WPA/WPA2 Personal), "sae" (WPA3 Personal) or "enterprise".
+// "wep", "wpa" (WPA2/WPA3 Personal), "sae" (WPA3 Personal) or "enterprise".
 QString securityOf(const WirelessDevice::Ptr &device, const AccessPoint::Ptr &ap)
 {
     if (!ap)
         return QStringLiteral("none");
-    switch (findBestWirelessSecurity(device->wirelessCapabilities(), true, ap->mode() == AccessPoint::Adhoc,
-                                     ap->capabilities(), ap->wpaFlags(), ap->rsnFlags())) {
+    switch (bestSecurity(device, ap)) {
     case OWE:
         return QStringLiteral("owe");
     case StaticWep:
@@ -60,6 +69,55 @@ QString securityOf(const WirelessDevice::Ptr &device, const AccessPoint::Ptr &ap
 bool secured(const QString &security)
 {
     return security != QLatin1String("none") && security != QLatin1String("owe");
+}
+
+// A network of an old kind, which a Mac lists only if asked to: WEP, or
+// WPA without WPA2.
+bool legacy(const WirelessDevice::Ptr &device, const AccessPoint::Ptr &ap)
+{
+    if (!ap)
+        return false;
+    switch (bestSecurity(device, ap)) {
+    case StaticWep:
+    case DynamicWep:
+    case Leap:
+    case WpaPsk:
+    case WpaEap:
+        return true;
+    default:
+        return false;
+    }
+}
+
+// A saved network's security, by NetworkManager's key management: wpa-psk
+// is WPA2 and WPA3 Personal both, sae WPA3 only; wpa-eap WPA2 and WPA3
+// Enterprise, suite B WPA3 only.
+QString savedSecurity(const ConnectionSettings::Ptr &settings)
+{
+    const auto security = settings->setting(Setting::WirelessSecurity).staticCast<WirelessSecuritySetting>();
+    switch (security ? security->keyMgmt() : WirelessSecuritySetting::Unknown) {
+    case WirelessSecuritySetting::Wep:
+        return QStringLiteral("wep");
+    case WirelessSecuritySetting::Ieee8021x:
+        return QStringLiteral("dynamic-wep");
+    case WirelessSecuritySetting::WpaPsk:
+        return security->proto() == QList{WirelessSecuritySetting::Wpa} ? QStringLiteral("wpa1") : QStringLiteral("wpa");
+    case WirelessSecuritySetting::SAE:
+        return QStringLiteral("sae");
+    case WirelessSecuritySetting::WpaEap:
+        return QStringLiteral("enterprise");
+    case WirelessSecuritySetting::WpaEapSuiteB192:
+        return QStringLiteral("enterprise3");
+    case WirelessSecuritySetting::OWE:
+        return QStringLiteral("owe");
+    default:
+        return QStringLiteral("none");
+    }
+}
+
+KConfigGroup preferences()
+{
+    return KSharedConfig::openConfig(QStringLiteral("ambrosiarc"))->group(QStringLiteral("Wi-Fi"));
 }
 
 // The saved connections for networks (infrastructure Wi-Fi), by name.
@@ -93,8 +151,10 @@ NMVariantMapMap connectionFor(const QString &ssid, const QString &security, cons
     // Secrets are kept by the system for every user, as a Mac keeps them
     // in its System keychain.
     // Without a password, NetworkManager asks the session's secret agent.
-    if (security == QLatin1String("wpa") || security == QLatin1String("sae")) {
+    if (security == QLatin1String("wpa") || security == QLatin1String("wpa1") || security == QLatin1String("sae")) {
         QVariantMap wpa{{QStringLiteral("key-mgmt"), security == QLatin1String("sae") ? QStringLiteral("sae") : QStringLiteral("wpa-psk")}};
+        if (security == QLatin1String("wpa1"))
+            wpa.insert(QStringLiteral("proto"), QStringList{QStringLiteral("wpa")});
         if (!password.isEmpty())
             wpa.insert(QStringLiteral("psk"), password);
         map[QStringLiteral("802-11-wireless-security")] = wpa;
@@ -141,6 +201,7 @@ WiFi::WiFi(QObject *parent)
     connect(notifier(), &Notifier::deviceRemoved, this, &WiFi::findDevice);
     connect(settingsNotifier(), &SettingsNotifier::connectionAdded, &m_refresh, qOverload<>(&QTimer::start));
     connect(settingsNotifier(), &SettingsNotifier::connectionRemoved, &m_refresh, qOverload<>(&QTimer::start));
+    m_showLegacy = preferences().readEntry("ShowLegacyNetworks", false);
     findDevice();
 }
 
@@ -221,6 +282,26 @@ void WiFi::setEnabled(bool on)
     setWirelessEnabled(on);
 }
 
+void WiFi::setShowLegacy(bool on)
+{
+    if (m_showLegacy == on)
+        return;
+    m_showLegacy = on;
+    KConfigGroup group = preferences();
+    group.writeEntry("ShowLegacyNetworks", on);
+    group.sync();
+    Q_EMIT showLegacyChanged();
+    refresh();
+}
+
+QString WiFi::address() const
+{
+    if (!m_device)
+        return {};
+    const QString own = m_device->permanentHardwareAddress();
+    return (own.isEmpty() ? m_device->hardwareAddress() : own).toLower();
+}
+
 void WiFi::setWatching(bool on)
 {
     if (m_watching == on)
@@ -257,9 +338,28 @@ void WiFi::scan()
 void WiFi::refresh()
 {
     QVariantMap current;
-    QVariantList known, others;
+    QVariantList known, others, saved;
+    const auto byName = [](const QVariant &a, const QVariant &b) {
+        return a.toMap().value(QStringLiteral("ssid")).toString().localeAwareCompare(b.toMap().value(QStringLiteral("ssid")).toString()) < 0;
+    };
+    for (const Connection::Ptr &connection : listConnections()) {
+        const ConnectionSettings::Ptr settings = connection->settings();
+        if (settings->connectionType() != ConnectionSettings::Wireless)
+            continue;
+        const auto wireless = settings->setting(Setting::Wireless).staticCast<WirelessSetting>();
+        if (wireless->mode() != WirelessSetting::Infrastructure)
+            continue;
+        const QString security = savedSecurity(settings);
+        saved << QVariantMap{
+            {QStringLiteral("ssid"), QString::fromUtf8(wireless->ssid())},
+            {QStringLiteral("uuid"), connection->uuid()},
+            {QStringLiteral("security"), security},
+            {QStringLiteral("secure"), secured(security)},
+        };
+    }
+    std::sort(saved.begin(), saved.end(), byName);
     if (m_device && enabled()) {
-        const QHash<QString, Connection::Ptr> saved = savedNetworks();
+        const QHash<QString, Connection::Ptr> savedByName = savedNetworks();
         const ActiveConnection::Ptr active = m_device->activeConnection();
         QString activeSsid;
         if (active && active->connection()) {
@@ -271,8 +371,10 @@ void WiFi::refresh()
             if (ssid.isEmpty())
                 continue;
             const QString security = securityOf(m_device, network->referenceAccessPoint());
-            const Connection::Ptr connection = saved.value(ssid);
+            const Connection::Ptr connection = savedByName.value(ssid);
             const bool isCurrent = ssid == activeSsid;
+            if (!connection && !isCurrent && !m_showLegacy && legacy(m_device, network->referenceAccessPoint()))
+                continue;
             const QVariantMap row{
                 {QStringLiteral("ssid"), ssid},
                 {QStringLiteral("bars"), bars(network->signalStrength())},
@@ -288,17 +390,15 @@ void WiFi::refresh()
             }
             (connection || isCurrent ? known : others) << row;
         }
-        const auto byName = [](const QVariant &a, const QVariant &b) {
-            return a.toMap().value(QStringLiteral("ssid")).toString().localeAwareCompare(b.toMap().value(QStringLiteral("ssid")).toString()) < 0;
-        };
         std::sort(known.begin(), known.end(), byName);
         std::sort(others.begin(), others.end(), byName);
     }
-    if (current == m_current && known == m_known && others == m_others)
+    if (current == m_current && known == m_known && others == m_others && saved == m_saved)
         return;
     m_current = current;
     m_known = known;
     m_others = others;
+    m_saved = saved;
     Q_EMIT networksChanged();
 }
 
@@ -331,13 +431,21 @@ void WiFi::join(const QString &ssid, const QString &password, const QString &use
     activate(connectionFor(ssid, securityOf(m_device, ap), password, user, false), ssid, apPath);
 }
 
-void WiFi::joinHidden(const QString &ssid, const QString &security, const QString &password, const QString &user)
+void WiFi::addNetwork(const QString &ssid, const QString &security, const QString &password, const QString &user)
 {
-    if (!m_device || ssid.isEmpty())
+    if (ssid.isEmpty())
         return;
-    m_joining = ssid;
-    m_madePath.clear();
-    activate(connectionFor(ssid, security, password, user, true), ssid, QStringLiteral("/"));
+    auto *watcher = new QDBusPendingCallWatcher(addConnection(connectionFor(ssid, security, password, user, true)), this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, ssid](QDBusPendingCallWatcher *call) {
+        const QDBusPendingReply<QDBusObjectPath> reply = *call;
+        call->deleteLater();
+        if (reply.isError()) {
+            qWarning("Settings: couldn't add %s: %s", qPrintable(ssid), qPrintable(reply.error().message()));
+            return;
+        }
+        if (m_device && enabled())
+            activateConnection(reply.value().path(), m_device->uni(), QStringLiteral("/"));
+    });
 }
 
 void WiFi::activate(const NMVariantMapMap &settings, const QString &ssid, const QString &accessPoint)

@@ -11,7 +11,8 @@ import Settings
 // right. Escape closes it, Return presses the default button. One with a
 // sidebar of its own (Wi-Fi's Details…) has it inset 8 on the left, pageX
 // wide with the inset, and its page scrolling in bodyHeight over the
-// buttons.
+// buttons. One taller than the window allows hangs from the toolbar's foot,
+// its page scrolling.
 Item {
     id: sheet
 
@@ -28,13 +29,17 @@ Item {
     property alias trailing: trailingRow.data
     signal accepted()
 
+    // On top of any other sheet open (Advanced…'s Network Settings…): one
+    // under another draws inactive and takes nothing.
+    readonly property bool top: settings.topSheet === sheet
+
     function close() { open = false; }
-    onOpenChanged: settings.sheetsOpen += open ? 1 : -1
-    Component.onDestruction: if (open) settings.sheetsOpen -= 1
+    onOpenChanged: settings.sheets = open ? settings.sheets.concat([sheet]) : settings.sheets.filter(s => s !== sheet)
+    Component.onDestruction: if (open) settings.sheets = settings.sheets.filter(s => s !== sheet)
 
     parent: settings.contentItem
     anchors.fill: parent
-    z: 100
+    z: 100 + Math.max(0, settings.sheets.indexOf(sheet))
     visible: opacity > 0
     opacity: open ? 1 : 0
     Behavior on opacity { NumberAnimation { duration: Theme.fade.fast } }
@@ -43,7 +48,7 @@ Item {
     // closes; Return keeps what's typed, then presses the default button.
     Shortcut {
         sequence: "Esc"
-        enabled: sheet.open
+        enabled: sheet.open && sheet.top
         onActivated: {
             const field = sheet.settings.activeFocusItem;
             if (field && typeof field.revert === "function")
@@ -53,7 +58,7 @@ Item {
     }
     Shortcut {
         sequences: ["Return", "Enter"]
-        enabled: sheet.open
+        enabled: sheet.open && sheet.top
         onActivated: {
             panel.forceActiveFocus();
             sheet.accepted();
@@ -91,10 +96,12 @@ Item {
 
     Rectangle {
         id: panel
+        enabled: sheet.top
+        readonly property real foot: 1 + 2 * Look.margin + Look.popupHeight
         x: Math.round((parent.width - width) / 2)
-        y: Math.round((parent.height - height) / 2)
+        y: Math.max(Look.toolbar, Math.round((parent.height - height) / 2))
         width: sheet.sheetWidth
-        height: body.height + 1 + 2 * Look.margin + Look.popupHeight
+        height: body.height + foot
         radius: 24
         color: Look.sheet
         border.width: 0.5
@@ -133,9 +140,10 @@ Item {
             id: body
             x: sheet.pageX
             width: parent.width - x
-            height: sheet.bodyHeight > 0 ? sheet.bodyHeight : contentHeight
+            height: sheet.bodyHeight > 0 ? sheet.bodyHeight
+                : Math.min(contentHeight, sheet.height - Look.toolbar - Look.sheetBelow - panel.foot)
             contentHeight: column.height + 2 * Look.margin
-            clip: sheet.bodyHeight > 0
+            clip: contentHeight > height
             interactive: contentHeight > height
             boundsBehavior: Flickable.StopAtBounds
             Column {
@@ -145,6 +153,18 @@ Item {
                 width: body.width - 2 * Look.margin
                 spacing: Look.boxGap
             }
+        }
+        // The overlay scroll bar, while the page moves.
+        Rectangle {
+            visible: body.interactive
+            x: body.x + body.width - 9
+            y: 3 + body.visibleArea.yPosition * (body.height - 6)
+            width: 6
+            height: body.visibleArea.heightRatio * (body.height - 6)
+            radius: 3
+            color: Theme.dark ? "#73ffffff" : "#59000000"
+            opacity: body.moving ? 1 : 0
+            Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
         }
         Rectangle {
             id: rule

@@ -147,6 +147,9 @@ QtObject {
     // A sheet: its fill, the dark line round it, the lighter rim inside
     // that, and the rule over its buttons. Dark measured on the Mac's
     // Bluetooth sheet; light, not yet captured, is white like the window.
+    // A sheet taller than the window allows (Wi-Fi's Advanced…) runs from
+    // the toolbar's foot to this far above the window's, its page scrolling.
+    readonly property int sheetBelow: 41
     readonly property color sheet: dark ? "#262724" : "#ffffff"
     readonly property color sheetOutline: dark ? "#030302" : "#33000000"
     readonly property color sheetRim: dark ? "#515250" : "#ffffff"
