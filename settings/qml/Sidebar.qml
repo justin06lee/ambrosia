@@ -36,12 +36,15 @@ Item {
         x: Look.lightsX - sidebar.inset
         y: Look.lightsY - sidebar.inset
         window: sidebar.settings
+        closable: !sidebar.settings.underSheet
     }
 
     SearchField {
         id: search
         x: Look.searchX - sidebar.inset
         y: Look.searchY - sidebar.inset
+        enabled: !sidebar.settings.underSheet
+        opacity: enabled ? 1 : Look.sheetFadeIcon
         onAccepted: {
             const first = Panes.listed(text)[0]?.[0];
             if (first)
@@ -76,7 +79,7 @@ Item {
                             id: row
                             required property var modelData
                             readonly property bool current: sidebar.settings.sidebarPane === modelData.id
-                            readonly property bool lit: current && sidebar.settings.looksActive
+                            readonly property bool lit: current && sidebar.settings.looksActive && !sidebar.settings.underSheet
                             width: group.width
                             height: Look.row
 
@@ -86,10 +89,11 @@ Item {
                                 height: parent.height
                                 radius: Look.rowRadius
                                 visible: row.current
-                                color: row.lit ? Theme.accent.bg : Look.selectionInactive
+                                color: row.lit ? Theme.accent.bg : sidebar.settings.underSheet ? Look.selectionUnderSheet : Look.selectionInactive
                             }
                             PaneIcon {
                                 x: Look.rowIconX - sidebar.inset
+                                opacity: sidebar.settings.underSheet ? Look.sheetFadeIcon : 1
                                 anchors.verticalCenter: parent.verticalCenter
                                 glyph: row.modelData.glyph
                                 tint: row.modelData.tint
@@ -100,9 +104,11 @@ Item {
                                 anchors.verticalCenter: parent.verticalCenter
                                 text: row.modelData.name
                                 elide: Text.ElideRight
+                                opacity: sidebar.settings.underSheet ? Look.sheetFade : 1
                                 color: row.lit ? Theme.accent.fg : Theme.color.label.primary
                             }
                             TapHandler {
+                                enabled: !sidebar.settings.underSheet
                                 onTapped: sidebar.settings.choose(row.modelData.id)
                             }
                         }

@@ -162,6 +162,7 @@ var glyphs = {
     signal3: { stroke: wifiArcs(3), fill: wifiWedge(), width: 3.2 },
     signal2: { stroke: wifiArcs(2), dimStroke: wifiArcs(-1), fill: wifiWedge(), width: 3.2 },
     signal1: { dimStroke: wifiArcs(-2), fill: wifiWedge(), width: 3.2 },
+    info: { stroke: circle(12, 12, 10.9), fill: circle(12, 7.3, 1.45) + rect(10.95, 10.2, 2.1, 8.2, 1.05), width: 1.41 },
     more: { stroke: circle(12, 12, 10.9), fill: circle(7.4, 12, 1.5) + circle(12, 12, 1.5) + circle(16.6, 12, 1.5), width: 1.41 },
     tick: { stroke: "M6.1 12.6l3.45 4.95L17.9 6.45", width: 2.4 },
     // Bluetooth's: a device, by what it says it is.

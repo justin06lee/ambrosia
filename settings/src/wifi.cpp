@@ -5,12 +5,16 @@
 #include <NetworkManagerQt/Connection>
 #include <NetworkManagerQt/ConnectionSettings>
 #include <NetworkManagerQt/IpConfig>
+#include <NetworkManagerQt/Ipv4Setting>
+#include <NetworkManagerQt/Ipv6Setting>
 #include <NetworkManagerQt/Manager>
 #include <NetworkManagerQt/Settings>
 #include <NetworkManagerQt/Utils>
 #include <NetworkManagerQt/WirelessNetwork>
 #include <NetworkManagerQt/WirelessSetting>
+#include <QClipboard>
 #include <QDBusPendingCallWatcher>
+#include <QGuiApplication>
 #include <QUuid>
 
 #include <algorithm>
@@ -396,17 +400,49 @@ QVariantMap WiFi::details(const QString &uuid) const
         return {};
     const ConnectionSettings::Ptr settings = connection->settings();
     const auto wireless = settings->setting(Setting::Wireless).staticCast<WirelessSetting>();
+    const auto ipv4 = settings->setting(Setting::Ipv4).staticCast<Ipv4Setting>();
+    const auto ipv6 = settings->setting(Setting::Ipv6).staticCast<Ipv6Setting>();
     const QString cloned = wireless->assignedMacAddress();
+    const auto strings = [](const QList<QHostAddress> &addresses) {
+        QStringList list;
+        for (const QHostAddress &address : addresses)
+            list << address.toString();
+        return list;
+    };
     QVariantMap details{
         {QStringLiteral("ssid"), QString::fromUtf8(wireless->ssid())},
         {QStringLiteral("autoJoin"), settings->autoconnect()},
         {QStringLiteral("lowData"), settings->metered() == ConnectionSettings::MeteredYes},
         {QStringLiteral("privateAddress"),
          cloned == QLatin1String("random") ? QStringLiteral("rotating") : cloned == QLatin1String("stable") ? QStringLiteral("fixed") : QStringLiteral("off")},
+        {QStringLiteral("mtu"), wireless->mtu()},
+        {QStringLiteral("ipv4Method"),
+         ipv4->method() == Ipv4Setting::Manual ? QStringLiteral("manual") : ipv4->method() == Ipv4Setting::Disabled ? QStringLiteral("off") : QStringLiteral("dhcp")},
+        {QStringLiteral("clientId"), ipv4->dhcpClientId()},
+        {QStringLiteral("ipv6Method"),
+         ipv6->method() == Ipv6Setting::LinkLocal                                             ? QStringLiteral("link-local")
+             : ipv6->method() == Ipv6Setting::Ignored || ipv6->method() == Ipv6Setting::ConfigDisabled ? QStringLiteral("off")
+                                                                                              : QStringLiteral("auto")},
+        {QStringLiteral("dnsServers"), strings(ipv4->dns()) + strings(ipv6->dns())},
+        {QStringLiteral("searchDomains"), ipv4->dnsSearch()},
     };
+    if (!ipv4->addressData().isEmpty() || !ipv4->addresses().isEmpty()) {
+        IpAddress manual;
+        if (!ipv4->addressData().isEmpty()) {
+            const QVariantMap data = ipv4->addressData().first();
+            manual.setIp(QHostAddress(data.value(QStringLiteral("address")).toString()));
+            manual.setPrefixLength(data.value(QStringLiteral("prefix")).toInt());
+        } else {
+            manual = ipv4->addresses().first();
+        }
+        details.insert(QStringLiteral("manualIp"), manual.ip().toString());
+        details.insert(QStringLiteral("manualSubnet"), manual.netmask().toString());
+        details.insert(QStringLiteral("manualRouter"), ipv4->gateway());
+    }
     if (!m_device)
         return details;
     details.insert(QStringLiteral("address"), m_device->hardwareAddress());
+    details.insert(QStringLiteral("mac"), m_device->permanentHardwareAddress());
     const ActiveConnection::Ptr active = m_device->activeConnection();
     if (!active || !active->connection() || active->connection()->uuid() != uuid)
         return details;
@@ -417,69 +453,120 @@ QVariantMap WiFi::details(const QString &uuid) const
         details.insert(QStringLiteral("subnet"), first.netmask().toString());
     }
     details.insert(QStringLiteral("router"), ip.gateway());
-    QStringList dns;
-    for (const QHostAddress &server : ip.nameservers())
-        dns << server.toString();
-    details.insert(QStringLiteral("dns"), dns);
     const IpConfig ip6 = m_device->ipV6Config();
+    details.insert(QStringLiteral("ipv6Router"), ip6.gateway());
+    QVariantList addresses;
     for (const IpAddress &address : ip6.addresses()) {
-        if (!address.ip().isLinkLocal()) {
-            details.insert(QStringLiteral("ipv6"), address.ip().toString());
-            break;
-        }
+        if (!address.ip().isLinkLocal())
+            addresses << QVariantMap{{QStringLiteral("address"), address.ip().toString()}, {QStringLiteral("prefix"), address.prefixLength()}};
     }
+    details.insert(QStringLiteral("ipv6"), addresses);
+    details.insert(QStringLiteral("dns"), strings(ip.nameservers()) + strings(ip6.nameservers()));
+    details.insert(QStringLiteral("domains"), ip.searches() + ip.domains());
     return details;
 }
 
-void WiFi::setAutoJoin(const QString &uuid, bool on)
+void WiFi::applyDetails(const QString &uuid, const QVariantMap &changes)
 {
     const Connection::Ptr connection = findConnectionByUuid(uuid);
-    if (!connection)
+    if (!connection || changes.isEmpty())
         return;
     const ConnectionSettings::Ptr settings = connection->settings();
-    settings->setAutoconnect(on);
-    connection->update(settings->toMap());
-    Q_EMIT detailsChanged();
-}
+    const auto wireless = settings->setting(Setting::Wireless).staticCast<WirelessSetting>();
+    const auto ipv4 = settings->setting(Setting::Ipv4).staticCast<Ipv4Setting>();
+    const auto ipv6 = settings->setting(Setting::Ipv6).staticCast<Ipv6Setting>();
+    const auto has = [&changes](const char *key) { return changes.contains(QLatin1String(key)); };
+    const auto text = [&changes](const char *key) { return changes.value(QLatin1String(key)).toString(); };
 
-void WiFi::setLowData(const QString &uuid, bool on)
-{
-    const Connection::Ptr connection = findConnectionByUuid(uuid);
-    if (!connection)
-        return;
-    const ConnectionSettings::Ptr settings = connection->settings();
-    settings->setMetered(on ? ConnectionSettings::MeteredYes : ConnectionSettings::MeteredUnknown);
+    if (has("autoJoin"))
+        settings->setAutoconnect(changes.value(QStringLiteral("autoJoin")).toBool());
+    if (has("lowData"))
+        settings->setMetered(changes.value(QStringLiteral("lowData")).toBool() ? ConnectionSettings::MeteredYes : ConnectionSettings::MeteredUnknown);
+    // A private address: off is the computer's own, fixed is one of its
+    // own for this network, rotating a new one each time.
+    if (has("privateAddress"))
+        wireless->setAssignedMacAddress(text("privateAddress") == QLatin1String("rotating") ? QStringLiteral("random")
+                                            : text("privateAddress") == QLatin1String("fixed") ? QStringLiteral("stable")
+                                                                                               : QStringLiteral("permanent"));
+    if (has("mtu"))
+        wireless->setMtu(changes.value(QStringLiteral("mtu")).toUInt());
+    if (has("ipv4Method") || has("manualIp") || has("manualSubnet") || has("manualRouter")) {
+        const QString method = has("ipv4Method") ? text("ipv4Method") : details(uuid).value(QStringLiteral("ipv4Method")).toString();
+        ipv4->setMethod(method == QLatin1String("manual") ? Ipv4Setting::Manual : method == QLatin1String("off") ? Ipv4Setting::Disabled : Ipv4Setting::Automatic);
+        if (method == QLatin1String("manual")) {
+            const QVariantMap now = details(uuid);
+            const auto value = [&](const char *key) { return has(key) ? text(key) : now.value(QLatin1String(key)).toString(); };
+            // NetworkManager reads address-data over the old addresses list.
+            IpAddress address;
+            address.setIp(QHostAddress(value("manualIp")));
+            address.setNetmask(QHostAddress(value("manualSubnet")));
+            ipv4->setAddresses({});
+            ipv4->setAddressData({QVariantMap{{QStringLiteral("address"), address.ip().toString()},
+                                              {QStringLiteral("prefix"), static_cast<uint>(address.prefixLength())}}});
+            ipv4->setGateway(value("manualRouter"));
+        } else {
+            ipv4->setAddresses({});
+            ipv4->setAddressData({});
+            ipv4->setGateway({});
+        }
+    }
+    if (has("clientId"))
+        ipv4->setDhcpClientId(text("clientId"));
+    if (has("ipv6Method")) {
+        const QString method = text("ipv6Method");
+        ipv6->setMethod(method == QLatin1String("link-local") ? Ipv6Setting::LinkLocal : method == QLatin1String("off") ? Ipv6Setting::Ignored : Ipv6Setting::Automatic);
+    }
+    // Servers typed in replace the network's own, as on a Mac.
+    if (has("dnsServers")) {
+        QList<QHostAddress> v4, v6;
+        for (const QString &server : changes.value(QStringLiteral("dnsServers")).toStringList()) {
+            const QHostAddress address(server);
+            (address.protocol() == QAbstractSocket::IPv6Protocol ? v6 : v4) << address;
+        }
+        ipv4->setDns(v4);
+        ipv6->setDns(v6);
+        ipv4->setIgnoreAutoDns(!v4.isEmpty() || !v6.isEmpty());
+        ipv6->setIgnoreAutoDns(!v4.isEmpty() || !v6.isEmpty());
+    }
+    if (has("searchDomains"))
+        ipv4->setDnsSearch(changes.value(QStringLiteral("searchDomains")).toStringList());
+
     const NMVariantMapMap map = settings->toMap();
+    const bool rejoin = has("privateAddress") || has("mtu");
     auto *watcher = new QDBusPendingCallWatcher(connection->update(map), this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, uuid, map](QDBusPendingCallWatcher *call) {
-        // In use, it takes the change at once: metered is reapplied.
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, uuid, map, rejoin, connection](QDBusPendingCallWatcher *call) {
+        if (call->isError())
+            qWarning("Settings: couldn't save %s: %s", qPrintable(uuid), qPrintable(call->error().message()));
         const ActiveConnection::Ptr active = m_device ? m_device->activeConnection() : ActiveConnection::Ptr();
-        if (!call->isError() && active && active->connection() && active->connection()->uuid() == uuid)
-            m_device->reapplyConnection(map, 0, 0);
+        if (!call->isError() && active && active->connection() && active->connection()->uuid() == uuid) {
+            if (rejoin)
+                activateConnection(connection->path(), m_device->uni(), QStringLiteral("/"));
+            else
+                m_device->reapplyConnection(map, 0, 0);
+        }
         call->deleteLater();
         Q_EMIT detailsChanged();
     });
 }
 
-// A private address: off is the computer's own, fixed is one of its own
-// for this network, rotating a new one each time. In use, the network is
-// joined again with it, as on a Mac.
-void WiFi::setPrivateAddress(const QString &uuid, const QString &mode)
+void WiFi::copyPassword(const QString &uuid)
 {
     const Connection::Ptr connection = findConnectionByUuid(uuid);
     if (!connection)
         return;
-    const ConnectionSettings::Ptr settings = connection->settings();
-    const auto wireless = settings->setting(Setting::Wireless).staticCast<WirelessSetting>();
-    wireless->setAssignedMacAddress(mode == QLatin1String("rotating") ? QStringLiteral("random")
-                                        : mode == QLatin1String("fixed")  ? QStringLiteral("stable")
-                                                                          : QStringLiteral("permanent"));
-    auto *watcher = new QDBusPendingCallWatcher(connection->update(settings->toMap()), this);
-    connect(watcher, &QDBusPendingCallWatcher::finished, this, [this, uuid, connection](QDBusPendingCallWatcher *call) {
-        const ActiveConnection::Ptr active = m_device ? m_device->activeConnection() : ActiveConnection::Ptr();
-        if (!call->isError() && active && active->connection() && active->connection()->uuid() == uuid)
-            activateConnection(connection->path(), m_device->uni(), QStringLiteral("/"));
+    static const QString security = QStringLiteral("802-11-wireless-security");
+    auto *watcher = new QDBusPendingCallWatcher(connection->secrets(security), this);
+    connect(watcher, &QDBusPendingCallWatcher::finished, this, [uuid](QDBusPendingCallWatcher *call) {
+        const QDBusPendingReply<NMVariantMapMap> reply = *call;
         call->deleteLater();
-        Q_EMIT detailsChanged();
+        if (reply.isError()) {
+            qWarning("Settings: no password for %s: %s", qPrintable(uuid), qPrintable(reply.error().message()));
+            return;
+        }
+        const QString password = reply.value().value(security).value(QStringLiteral("psk")).toString();
+        if (password.isEmpty())
+            qWarning("Settings: no password saved for %s", qPrintable(uuid));
+        else
+            QGuiApplication::clipboard()->setText(password);
     });
 }

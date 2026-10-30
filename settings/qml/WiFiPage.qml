@@ -5,10 +5,11 @@ import Settings
 // Wi-Fi, as System Settings lays it out: the pane's own box (its icon,
 // name, what it does and its switch) with the network in use under it;
 // then the known networks in range and the others, each with its lock and
-// signal, a Connect button where pointed. All of it NetworkManager's
-// (src/wifi.cpp). Left out: Personal Hotspots and asking to join
-// hotspots (an iPhone's), the help button and its Learn More. Not yet:
-// Details…, a network's ⋯ menu, Other… and Advanced….
+// signal, a Connect button where pointed; Details… on the one in use and a
+// known one's ⋯ menu open its settings (WiFiDetailsSheet). All of it
+// NetworkManager's (src/wifi.cpp). Left out: Personal Hotspots and asking
+// to join hotspots (an iPhone's), the help button and its Learn More. Not
+// yet: other networks' ⋯ menu, Other… and Advanced….
 Page {
     id: page
 
@@ -90,6 +91,13 @@ Page {
                 secure: WiFi.current.secure ?? false
                 bars: WiFi.current.bars ?? 3
             }
+            PushButton {
+                x: parent.width - Look.boxPadding - width
+                y: 10
+                width: 76
+                text: qsTr("Details…")
+                onClicked: detailsSheet.show(WiFi.current.uuid)
+            }
         }
     }
 
@@ -107,6 +115,11 @@ Page {
                 network: modelData
                 known: true
                 onConnect: page.connect(modelData)
+                onMore: (button) => {
+                    knownMenu.network = modelData;
+                    knownMenu.autoJoin = WiFi.details(modelData.uuid).autoJoin ?? false;
+                    knownMenu.openUnder(button);
+                }
             }
         }
     }
@@ -130,5 +143,81 @@ Page {
                 onConnect: page.connect(modelData)
             }
         }
+    }
+
+    // A known network's ⋯: Auto-Join, Copy Password, Network Settings…
+    // (its Details… sheet) and Forget This Network….
+    PopupMenu {
+        id: knownMenu
+        property var network: ({})
+        property bool autoJoin
+        items: [
+            { text: qsTr("Auto-Join"), value: "autoJoin" },
+            {},
+            { text: qsTr("Copy Password"), value: "copy", enabled: knownMenu.network.secure ?? false },
+            { text: qsTr("Network Settings…"), value: "settings" },
+            {},
+            { text: qsTr("Forget This Network…"), value: "forget" },
+        ]
+        current: autoJoin ? "autoJoin" : undefined
+        onChosen: (value) => {
+            if (value === "autoJoin")
+                WiFi.applyDetails(network.uuid, { autoJoin: !autoJoin });
+            else if (value === "copy")
+                WiFi.copyPassword(network.uuid);
+            else if (value === "settings")
+                detailsSheet.show(network.uuid);
+            else
+                page.askForget(network.uuid, network.ssid);
+        }
+    }
+
+    function askForget(uuid, ssid) {
+        forgetSheet.uuid = uuid;
+        forgetSheet.ssid = ssid;
+        forgetSheet.open = true;
+    }
+
+    WiFiDetailsSheet {
+        id: detailsSheet
+        settings: page.settings
+        onForget: (uuid, ssid) => page.askForget(uuid, ssid)
+    }
+    // Forgetting asks first: the password has to be typed again to join.
+    Sheet {
+        id: forgetSheet
+        property string uuid
+        property string ssid
+        settings: page.settings
+        sheetWidth: 400
+        onAccepted: {
+            WiFi.forget(uuid);
+            close();
+        }
+
+        Label {
+            width: parent.width
+            text: qsTr("Forget “%1”?").arg(forgetSheet.ssid)
+            style: Theme.text.headline
+            wrapMode: Text.Wrap
+        }
+        Label {
+            width: parent.width
+            text: qsTr("This computer will no longer join this Wi‑Fi network on its own.")
+            color: Theme.color.label.secondary
+            wrapMode: Text.Wrap
+        }
+
+        trailing: [
+            PushButton {
+                text: qsTr("Cancel")
+                onClicked: forgetSheet.close()
+            },
+            PushButton {
+                text: qsTr("Forget")
+                primary: true
+                onClicked: forgetSheet.accepted()
+            }
+        ]
     }
 }

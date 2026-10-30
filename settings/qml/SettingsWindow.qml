@@ -30,6 +30,11 @@ Window {
     // for grabs.
     property int menusOpen: 0
     readonly property bool looksActive: active || menusOpen > 0 || App.active
+    // Under a sheet, as on a Mac, the page and toolbar are dimmed and the
+    // sidebar faded, none of them taking clicks (tap handlers under a sheet's
+    // dim would still fire); close is grayed, minimize and zoom still work.
+    property int sheetsOpen: 0
+    readonly property bool underSheet: sheetsOpen > 0
     onActiveChanged: if (active) menusOpen = 0
 
     width: Look.windowWidth
@@ -115,10 +120,10 @@ Window {
         }
     }
 
-    Shortcut { sequences: ["Ctrl+[", "Meta+["]; onActivated: win.act("back", win.back) }
-    Shortcut { sequences: ["Ctrl+]", "Meta+]"]; onActivated: win.act("forward", win.forward) }
-    Shortcut { sequences: ["Ctrl+F", "Meta+F"]; onActivated: win.act("find", win.findPane) }
-    Shortcut { sequences: ["Ctrl+W", "Meta+W"]; onActivated: win.act("close", win.close) }
+    Shortcut { sequences: ["Ctrl+[", "Meta+["]; enabled: !win.underSheet; onActivated: win.act("back", win.back) }
+    Shortcut { sequences: ["Ctrl+]", "Meta+]"]; enabled: !win.underSheet; onActivated: win.act("forward", win.forward) }
+    Shortcut { sequences: ["Ctrl+F", "Meta+F"]; enabled: !win.underSheet; onActivated: win.act("find", win.findPane) }
+    Shortcut { sequences: ["Ctrl+W", "Meta+W"]; enabled: !win.underSheet; onActivated: win.act("close", win.close) }
     Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized) }
     Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: win.act("quit", Qt.quit) }
 
@@ -131,12 +136,15 @@ Window {
         border.color: Theme.dark ? "#33ffffff" : "#26000000"
 
         // The window moves by its toolbar's empty space and the sidebar's.
+        // Off under a sheet: they'd take its clicks too (and its focus).
         DragHandler {
             target: null
+            enabled: !win.underSheet
             onActiveChanged: if (active) win.startSystemMove()
         }
         TapHandler {
             // A click on empty space leaves the search field.
+            enabled: !win.underSheet
             onTapped: frame.forceActiveFocus()
         }
 
@@ -147,6 +155,7 @@ Window {
             width: parent.width - x
             height: parent.height - y
             focus: true
+            enabled: !win.underSheet
             sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, network: networkPage, displays: displaysPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
             onLoaded: Qt.callLater(App.shown, win)
         }
@@ -161,6 +170,7 @@ Window {
 
         Toolbar {
             width: parent.width
+            enabled: !win.underSheet
             settings: win
             showsTitle: content.item?.showsTitle ?? true
         }

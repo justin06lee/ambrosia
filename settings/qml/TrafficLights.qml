@@ -7,13 +7,14 @@ import Settings
 // Gray while the window is inactive; their glyphs show while the pointer is
 // over them. Settings keeps its width, so zoom fills the screen's height
 // (App.zoom) and shows plus, as System Settings' does; `zoomable: false`
-// grays it out.
+// grays it out, `closable: false` close (under a sheet).
 Row {
     id: lights
 
     required property Window window
     readonly property bool active: window.looksActive
     property bool zoomable: true
+    property bool closable: true
 
     spacing: Look.lightPitch - Look.lightSize
 
@@ -21,7 +22,8 @@ Row {
 
     Repeater {
         model: [
-            { color: Theme.windowControls.close, rim: Theme.windowControls.closeRim, glyph: Theme.windowGlyphs.close, act: () => lights.window.close() },
+            { color: Theme.windowControls.close, rim: Theme.windowControls.closeRim, glyph: Theme.windowGlyphs.close, off: !lights.closable,
+              act: () => lights.window.close() },
             { color: Theme.windowControls.minimize, rim: Theme.windowControls.minimizeRim, glyph: Theme.windowGlyphs.minimize, act: () => lights.window.showMinimized() },
             { color: Theme.windowControls.zoom, rim: Theme.windowControls.zoomRim, glyph: Theme.windowGlyphs.plus, off: !lights.zoomable,
               act: () => App.zoom(lights.window) },

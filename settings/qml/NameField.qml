@@ -8,6 +8,8 @@ TextInput {
     id: field
 
     property string value
+    // Shown, gray, while it's empty (DHCP client ID).
+    property string placeholder
     signal committed(string text)
 
     text: value
@@ -29,11 +31,18 @@ TextInput {
             committed(text);
         focus = false;
     }
-    Keys.onEscapePressed: {
+    function revert() {
         text = value;
         focus = false;
     }
+    Keys.onEscapePressed: revert()
 
+    Label {
+        anchors.right: parent.right
+        visible: field.text === "" && !field.activeFocus
+        text: field.placeholder
+        color: Theme.color.label.tertiary
+    }
     // The field it becomes while editing.
     Rectangle {
         z: -1

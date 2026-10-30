@@ -1,5 +1,7 @@
 #include "bluetooth.h"
 
+#include <QRegularExpression>
+
 #include <BluezQt/Adapter>
 #include <BluezQt/Battery>
 #include <BluezQt/Device>
@@ -303,8 +305,16 @@ QVariantMap Bluetooth::details(const QString &address) const
     if (!device)
         return {};
     const BatteryPtr battery = device->battery();
+    // Its firmware's version, from the Device ID it gives (modalias
+    // bluetooth:v…p…dVVVV): 0x0100 is 1.0.0, as System Settings writes it.
+    QString version;
+    if (const auto match = QRegularExpression(QStringLiteral("d([0-9A-Fa-f]{4})$")).match(device->modalias()); match.hasMatch()) {
+        const uint d = match.captured(1).toUInt(nullptr, 16);
+        version = QStringLiteral("%1.%2.%3").arg(d >> 8).arg((d >> 4) & 0xf).arg(d & 0xf);
+    }
     return {
         {QStringLiteral("name"), device->name()},
+        {QStringLiteral("version"), version},
         {QStringLiteral("address"), device->address()},
         {QStringLiteral("kind"), kindOf(device->type())},
         {QStringLiteral("connected"), device->isConnected()},

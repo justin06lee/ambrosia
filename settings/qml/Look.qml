@@ -88,6 +88,10 @@ QtObject {
     readonly property int switchLargeHeight: 20
     readonly property int switchLargeKnob: 26  // 16 tall
     readonly property int popupHeight: 24
+    // A list typed into (Wi-Fi's DNS servers): four 24 rows, a 24 bar of + and −.
+    readonly property int editListRows: 4
+    readonly property int editListRow: 24
+    readonly property int editListBar: 24
     readonly property int popupChevronWidth: 16 // the up-down capsule at a pop-up's right
     readonly property int popupChevronHeight: 20
     readonly property int popupEnd: 4
@@ -113,6 +117,12 @@ QtObject {
     readonly property color sidebarRim: dark ? "#1affffff" : "#ffffff"
     readonly property color search: dark ? "#2f2f2e" : "#e4e4e4"
     readonly property color selectionInactive: dark ? "#464646" : "#dcdcdc"
+    // Under a sheet the sidebar's labels fade to this, its icons and search
+    // to the second, and the selection is this gray (dark measured on the
+    // Mac, light a guess).
+    readonly property real sheetFade: 0.12
+    readonly property real sheetFadeIcon: 0.2
+    readonly property color selectionUnderSheet: dark ? "#2d2d2b" : "#ebebeb"
     readonly property color box: dark ? "#2d2d2b" : "#f7f7f7"
     readonly property color hairline: dark ? "#373735" : "#ebebeb"
     readonly property color capsule: dark ? "#1c1c1a" : "#f9f9f9"
@@ -123,6 +133,9 @@ QtObject {
     readonly property color face: dark ? "#3d3d3b" : "#e4e4e4"
     readonly property color track: dark ? "#424240" : "#dfdfdf"
     readonly property color switchOff: dark ? "#414140" : "#dddddd"
+    // On, under a sheet (the window drawn inactive): gray, not the accent;
+    // dark measured through the sheet's dim, light a guess.
+    readonly property color switchInactive: dark ? "#4c4c4a" : "#c4c4c4"
     readonly property color knob: dark ? "#e6e6e6" : "#ffffff"
     readonly property color connected: dark ? "#68ce67" : Theme.color.palette.green // Wi-Fi's dot
     readonly property color notConnected: dark ? "#eb534e" : Theme.color.palette.red // Network's
@@ -131,6 +144,13 @@ QtObject {
     // a scale tile's window.
     readonly property color band: dark ? "#282828" : window
     readonly property color bandRule: dark ? "#3e3e3e" : "#e0e0e0"
+    // A sheet: its fill, the dark line round it, the lighter rim inside
+    // that, and the rule over its buttons. Dark measured on the Mac's
+    // Bluetooth sheet; light, not yet captured, is white like the window.
+    readonly property color sheet: dark ? "#262724" : "#ffffff"
+    readonly property color sheetOutline: dark ? "#030302" : "#33000000"
+    readonly property color sheetRim: dark ? "#515250" : "#ffffff"
+    readonly property color sheetRule: dark ? "#30302d" : "#e0e0e0"
     readonly property color tileWindow: dark ? "#141414" : "#ffffff"
     readonly property color helpFace: dark ? "#373734" : "#ececec"
     readonly property color menu: dark ? "#262624" : "#f2f2f2"

@@ -6,9 +6,9 @@ import Settings
 // name, what it does and its switch) with how others see this computer
 // under it, discoverable while the pane is open; then the devices paired
 // with it, and those in range, each connected or disconnected where
-// pointed. All of it BlueZ's (src/bluetooth.cpp); pairing codes come from
-// the session's agent (bluedevil). Left out: the help button and Learn
-// more…. Not yet: a device's ⓘ (rename, forget).
+// pointed, a paired one's ⓘ opening its sheet (rename, forget). All of it
+// BlueZ's (src/bluetooth.cpp); pairing codes come from the session's agent
+// (bluedevil). Left out: the help button and Learn more….
 Page {
     id: page
 
@@ -94,6 +94,10 @@ Page {
                 device: modelData
                 paired: true
                 onToggle: page.toggle(modelData)
+                onInfo: {
+                    deviceSheet.device = Bluetooth.details(modelData.address);
+                    deviceSheet.open = true;
+                }
             }
         }
     }
@@ -127,5 +131,105 @@ Page {
                 onToggle: page.toggle(modelData)
             }
         }
+    }
+
+    // A paired device's sheet: its name (typed over, it's renamed), what it
+    // is and its version; forget it, connect or disconnect it.
+    Sheet {
+        id: deviceSheet
+        property var device: ({})
+        settings: page.settings
+        onAccepted: close()
+
+        Box {
+            width: parent.width
+            FormRow {
+                label: qsTr("Name")
+                NameField {
+                    width: 300
+                    value: deviceSheet.device.name ?? ""
+                    onCommitted: (text) => Bluetooth.rename(deviceSheet.device.address, text)
+                }
+            }
+        }
+        Box {
+            width: parent.width
+            FormRow {
+                label: qsTr("Device Type")
+                value: ({
+                    headphones: qsTr("Headphones"), speaker: qsTr("Speaker"), gamepad: qsTr("Gamepad"),
+                    keyboard: qsTr("Keyboard"), mouse: qsTr("Mouse"), phone: qsTr("Phone"),
+                    computer: qsTr("Computer"), watch: qsTr("Watch"),
+                })[deviceSheet.device.kind] ?? qsTr("Device")
+            }
+            FormRow {
+                visible: (deviceSheet.device.battery ?? -1) >= 0
+                label: qsTr("Battery")
+                value: (deviceSheet.device.battery ?? 0) + "%"
+            }
+            FormRow {
+                visible: (deviceSheet.device.version ?? "") !== ""
+                label: qsTr("Version")
+                value: deviceSheet.device.version ?? ""
+            }
+        }
+
+        leading: [
+            PushButton {
+                text: qsTr("Forget This Device…")
+                onClicked: {
+                    forgetSheet.device = deviceSheet.device;
+                    deviceSheet.close();
+                    forgetSheet.open = true;
+                }
+            },
+            PushButton {
+                readonly property bool connected: (Bluetooth.devices.find(d => d.address === deviceSheet.device.address) ?? {}).connected ?? false
+                text: connected ? qsTr("Disconnect") : qsTr("Connect")
+                onClicked: connected ? Bluetooth.disconnectDevice(deviceSheet.device.address)
+                    : Bluetooth.connectDevice(deviceSheet.device.address)
+            }
+        ]
+        trailing: PushButton {
+            text: qsTr("Done")
+            primary: true
+            onClicked: deviceSheet.close()
+        }
+    }
+    // Forgetting asks first: the device has to be paired again to be used.
+    Sheet {
+        id: forgetSheet
+        property var device: ({})
+        settings: page.settings
+        sheetWidth: 400
+        onAccepted: {
+            Bluetooth.forget(device.address);
+            close();
+        }
+
+        Label {
+            width: parent.width
+            text: qsTr("Forget “%1”?").arg(forgetSheet.device.name ?? "")
+            style: Theme.text.headline
+            wrapMode: Text.Wrap
+        }
+        Label {
+            width: parent.width
+            text: qsTr("You'll need to pair it again to use it with this computer.")
+            color: Theme.color.label.secondary
+            wrapMode: Text.Wrap
+        }
+
+        trailing: [
+            PushButton {
+                text: qsTr("Cancel")
+                onClicked: forgetSheet.close()
+            },
+            PushButton {
+                text: qsTr("Forget Device")
+                primary: true
+                onClicked: forgetSheet.accepted()
+            }
+        ]
     }
 }
