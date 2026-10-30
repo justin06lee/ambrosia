@@ -70,7 +70,7 @@ Sheet {
             label: qsTr("Network Name")
             NameField {
                 id: nameField
-                width: 250
+                width: 236
                 ring: false
                 activeFocusOnTab: true
                 Accessible.name: qsTr("Network Name")
@@ -98,7 +98,7 @@ Sheet {
             label: qsTr("Username")
             NameField {
                 id: userField
-                width: 250
+                width: 260
                 ring: false
                 activeFocusOnTab: true
                 Accessible.name: qsTr("Username")
@@ -109,7 +109,7 @@ Sheet {
             label: qsTr("Password")
             NameField {
                 id: passwordField
-                width: 280
+                width: 268
                 ring: false
                 activeFocusOnTab: true
                 echoMode: sheet.showPassword ? TextInput.Normal : TextInput.Password

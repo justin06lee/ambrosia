@@ -76,6 +76,13 @@ Controls.Popup {
         color: Look.menu
         border.width: 0.5
         border.color: Look.menuRim
+        // A press in the menu stops here: the rows' tap handlers take only a
+        // passive grab, so a tap handler under the menu (a sheet's Done)
+        // would fire with them.
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.AllButtons
+        }
         layer.enabled: true
         layer.effect: MultiEffect {
             shadowEnabled: true
