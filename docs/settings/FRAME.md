@@ -62,6 +62,9 @@ x, y, w, h) beside a 2x screenshot of each pane, on the Mac only.
   text, centred, at most 397 wide.
 - Controls sit right-aligned at x 693:
   - switch 36 × 16 (on = accent);
+  - push button 24 tall, corners 7, its title 13 from each side (a sheet's Cancel
+    and OK one width); the face is white at 7.5% in dark, so #3d3d3b on a box and
+    #363734 on a sheet;
   - pop-up button 24 tall: the value then an up/down chevron capsule;
   - slider: thin track, 20 × 16 white capsule knob, optional tick marks below,
     speaker glyphs at the ends for volume;

@@ -335,11 +335,13 @@ Sheet {
     }
     trailing: [
         PushButton {
+            id: cancelButton
             text: qsTr("Cancel")
             onClicked: sheet.close()
         },
         PushButton {
             text: qsTr("OK")
+            minimumWidth: cancelButton.implicitWidth
             primary: true
             onClicked: sheet.accepted()
         },

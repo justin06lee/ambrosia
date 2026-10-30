@@ -4,19 +4,19 @@ import Settings
 
 // Wi-Fi's Other…, as System Settings shows it: a network added by its name
 // and security, with its password; OK saves it and joins it
-// (WiFi.addNetwork), and it stays saved if it isn't in range. Old kinds of
-// security (WEP, WPA) are offered only with Advanced…'s Show legacy
-// networks and options.
+// (WiFi.addNetwork), and it stays saved if it isn't in range. Other…
+// offers all its security types whatever Advanced…'s Show legacy networks
+// switch says; the switch only affects which networks are listed.
 Sheet {
     id: sheet
 
     property string security: "wpa"
     property bool showPassword: false
-    readonly property bool enterprise: security === "enterprise"
+    readonly property bool enterprise: ["dynamic-wep", "wpa-wpa2-enterprise", "enterprise", "enterprise3"].includes(security)
     readonly property bool needsPassword: security !== "none"
     // WPA's passwords run 8 to 63 characters; none typed, the system asks.
     readonly property bool ready: nameField.text !== ""
-        && (!["wpa", "wpa1", "sae"].includes(security) || passwordField.text === "" || passwordField.text.length >= 8)
+        && (!["wpa-wpa2", "wpa", "sae"].includes(security) || passwordField.text === "" || passwordField.text.length >= 8)
 
     function show() {
         nameField.text = "";
@@ -29,7 +29,8 @@ Sheet {
     }
 
     sheetWidth: 400
-    below: 24
+    // The room under the box, as the Mac leaves it for each kind.
+    below: security === "none" ? 68.5 : enterprise ? 20.5 : security === "wep" ? 20 : 24
     onAccepted: {
         if (!ready)
             return;
@@ -85,16 +86,28 @@ Sheet {
             PopUpButton {
                 items: [
                     { text: qsTr("None"), value: "none" },
-                    { text: qsTr("WPA2/WPA3 Personal"), value: "wpa" },
-                    { text: qsTr("WPA3 Personal"), value: "sae" },
-                    { text: qsTr("WPA2/WPA3 Enterprise"), value: "enterprise" },
-                ].concat(WiFi.showLegacy ? [
                     {},
                     { text: qsTr("WEP"), value: "wep" },
-                    { text: qsTr("WPA Personal"), value: "wpa1" },
-                ] : [])
+                    { text: qsTr("WPA/WPA2 Personal"), value: "wpa-wpa2" },
+                    { text: qsTr("WPA2/WPA3 Personal"), value: "wpa" },
+                    { text: qsTr("WPA3 Personal"), value: "sae" },
+                    {},
+                    { text: qsTr("Dynamic WEP"), value: "dynamic-wep" },
+                    { text: qsTr("WPA/WPA2 Enterprise"), value: "wpa-wpa2-enterprise" },
+                    { text: qsTr("WPA2 Enterprise"), value: "enterprise" },
+                    { text: qsTr("WPA3 Enterprise"), value: "enterprise3" },
+                ]
                 current: sheet.security
                 onChosen: (value) => sheet.security = value
+            }
+        }
+        FormRow {
+            height: 37
+            visible: sheet.enterprise
+            label: qsTr("Mode")
+            PopUpButton {
+                items: [{ text: qsTr("Automatic"), value: "automatic" }]
+                current: "automatic"
             }
         }
         FormRow {
@@ -118,14 +131,14 @@ Sheet {
                 width: 268
                 ring: false
                 activeFocusOnTab: true
-                echoMode: sheet.showPassword ? TextInput.Normal : TextInput.Password
+                echoMode: sheet.showPassword && !sheet.enterprise ? TextInput.Normal : TextInput.Password
                 passwordCharacter: "•"
                 Accessible.name: qsTr("Password")
             }
         }
         FormRow {
             height: 36.5
-            visible: sheet.needsPassword
+            visible: sheet.needsPassword && !sheet.enterprise
             label: qsTr("Show password")
             Switch {
                 checked: sheet.showPassword
@@ -136,11 +149,13 @@ Sheet {
 
     trailing: [
         PushButton {
+            id: cancelButton
             text: qsTr("Cancel")
             onClicked: sheet.close()
         },
         PushButton {
             text: qsTr("OK")
+            minimumWidth: cancelButton.implicitWidth
             primary: true
             enabled: sheet.ready
             onClicked: sheet.accepted()

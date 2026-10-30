@@ -3,15 +3,14 @@ import Ambrosia
 import Settings
 
 // Wi-Fi's Advanced…, as System Settings shows it: Show legacy networks and
-// options (WEP and WPA networks in the list, and in Other…), the card's own
-// address, and every network saved here in a table, each with its ⋯ menu.
-// Left out: Require administrator authorization to change networks or to
-// turn Wi-Fi on or off (NetworkManager's polkit rules, which only root can
-// write).
+// options (networks of an old kind in the lists only: Other… offers all its
+// security types whatever the switch says), the card's own address, and
+// every network saved here in a table, each with its ⋯ menu. Left out:
+// Require administrator authorization to change networks or to turn Wi-Fi
+// on or off (NetworkManager's polkit rules, which only root can write).
 Sheet {
     id: sheet
 
-    signal settingsOf(string uuid)
     signal forget(string uuid, string ssid)
 
     function show() {
@@ -116,9 +115,10 @@ Sheet {
                     elide: Text.ElideRight
                     text: ({
                         none: qsTr("None"), owe: qsTr("Enhanced Open"), wep: qsTr("WEP"),
-                        "dynamic-wep": qsTr("Dynamic WEP"), wpa1: qsTr("WPA Personal"),
+                        "dynamic-wep": qsTr("Dynamic WEP"), "wpa-wpa2": qsTr("WPA/WPA2 Personal"),
                         wpa: qsTr("WPA2/WPA3 Personal"), sae: qsTr("WPA3 Personal"),
-                        enterprise: qsTr("WPA2/WPA3 Enterprise"), enterprise3: qsTr("WPA3 Enterprise"),
+                        enterprise: qsTr("WPA2 Enterprise"), "wpa-wpa2-enterprise": qsTr("WPA/WPA2 Enterprise"),
+                        enterprise3: qsTr("WPA3 Enterprise"),
                     })[entry.modelData.security] ?? ""
                 }
                 Glyph {
@@ -148,12 +148,11 @@ Sheet {
         property var network: ({})
         property bool autoJoin
         items: [
-            { text: qsTr("Auto-Join"), value: "autoJoin" },
+            { text: qsTr("Auto-Join"), value: "autoJoin", glyph: "wifi", tint: "blue" },
             {},
             { text: qsTr("Copy Password"), value: "copy", enabled: menu.network.secure ?? false },
-            { text: qsTr("Network Settings…"), value: "settings" },
             {},
-            { text: qsTr("Forget This Network…"), value: "forget" },
+            { text: qsTr("Remove From List"), value: "forget" },
         ]
         current: autoJoin ? "autoJoin" : undefined
         onChosen: (value) => {
@@ -161,8 +160,6 @@ Sheet {
                 WiFi.applyDetails(network.uuid, { autoJoin: !autoJoin });
             else if (value === "copy")
                 WiFi.copyPassword(network.uuid);
-            else if (value === "settings")
-                sheet.settingsOf(network.uuid);
             else
                 sheet.forget(network.uuid, network.ssid);
         }

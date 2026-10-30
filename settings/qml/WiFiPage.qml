@@ -209,7 +209,6 @@ Page {
     WiFiAdvancedSheet {
         id: advancedSheet
         settings: page.settings
-        onSettingsOf: (uuid) => detailsSheet.show(uuid)
         onForget: (uuid, ssid) => page.askForget(uuid, ssid)
     }
     WiFiDetailsSheet {
@@ -244,11 +243,13 @@ Page {
 
         trailing: [
             PushButton {
+                id: cancelButton
                 text: qsTr("Cancel")
                 onClicked: forgetSheet.close()
             },
             PushButton {
                 text: qsTr("Forget")
+                minimumWidth: cancelButton.implicitWidth
                 primary: true
                 onClicked: forgetSheet.accepted()
             }

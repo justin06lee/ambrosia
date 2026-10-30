@@ -3,20 +3,21 @@ import Ambrosia
 import Settings
 
 // A push button (Display Settings…, System Report…): its title on a
-// capsule of the control color, 24 tall; a sheet's default one (Done) in
-// the accent, at least 64 wide.
+// rounded face of the control color, 24 tall; a sheet's default one (Done)
+// in the accent, at least 64 wide, and as wide as the Cancel beside it.
 Rectangle {
     id: button
 
     property string text
     property bool primary: false
+    property real minimumWidth: 0
     signal clicked()
 
-    readonly property color face: primary ? Theme.accent.bg : Look.face
-    implicitWidth: Math.max(primary ? 64 : 0, label.implicitWidth + 26)
+    implicitWidth: Math.max(primary ? 64 : 0, minimumWidth, label.implicitWidth + 26)
     implicitHeight: Look.popupHeight
-    radius: height / 2
-    color: tap.pressed ? Qt.darker(face, Theme.dark ? 0.8 : 1.08) : face
+    radius: Look.pushRadius
+    color: primary ? (tap.pressed ? Qt.darker(Theme.accent.bg, Theme.dark ? 0.8 : 1.08) : Theme.accent.bg)
+                   : (tap.pressed ? Look.facePressed : Look.face)
     opacity: enabled ? 1 : 0.45
     activeFocusOnTab: true
     Accessible.role: Accessible.Button

@@ -33,10 +33,11 @@ class WiFi : public QObject
     Q_PROPERTY(QVariantList others READ others NOTIFY networksChanged)
     // [{ssid, secure, security, uuid}]: every network saved here, in range
     // or not, by name. security is "none", "owe", "wep", "dynamic-wep",
-    // "wpa1" (WPA Personal), "wpa" (WPA2/WPA3 Personal), "sae" (WPA3
-    // Personal), "enterprise" (WPA2/WPA3 Enterprise) or "enterprise3".
+    // "wpa-wpa2" (WPA/WPA2 Personal), "wpa" (WPA2/WPA3 Personal), "sae"
+    // (WPA3 Personal), "enterprise" (WPA2 Enterprise), "wpa-wpa2-enterprise"
+    // (WPA/WPA2 Enterprise) or "enterprise3" (WPA3 Enterprise).
     Q_PROPERTY(QVariantList saved READ saved NOTIFY networksChanged)
-    // Networks and choices of an old kind shown too (Advanced…), kept in
+    // Networks of an old kind shown too, in the lists (Advanced…), kept in
     // ambrosiarc.
     Q_PROPERTY(bool showLegacy READ showLegacy WRITE setShowLegacy NOTIFY showLegacyChanged)
     // The card's own address, as Advanced… shows it.
