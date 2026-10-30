@@ -31,7 +31,7 @@ Item {
 
     // On top of any other sheet open (Advanced…'s Network Settings…): one
     // under another draws inactive and takes nothing.
-    readonly property bool top: settings.topSheet === sheet
+    readonly property bool onTop: settings.topSheet === sheet
 
     function close() { open = false; }
     onOpenChanged: settings.sheets = open ? settings.sheets.concat([sheet]) : settings.sheets.filter(s => s !== sheet)
@@ -48,7 +48,7 @@ Item {
     // closes; Return keeps what's typed, then presses the default button.
     Shortcut {
         sequence: "Esc"
-        enabled: sheet.open && sheet.top
+        enabled: sheet.open && sheet.onTop
         onActivated: {
             const field = sheet.settings.activeFocusItem;
             if (field && typeof field.revert === "function")
@@ -58,7 +58,7 @@ Item {
     }
     Shortcut {
         sequences: ["Return", "Enter"]
-        enabled: sheet.open && sheet.top
+        enabled: sheet.open && sheet.onTop
         onActivated: {
             panel.forceActiveFocus();
             sheet.accepted();
@@ -96,7 +96,7 @@ Item {
 
     Rectangle {
         id: panel
-        enabled: sheet.top
+        enabled: sheet.onTop
         readonly property real foot: 1 + 2 * Look.margin + Look.popupHeight
         x: Math.round((parent.width - width) / 2)
         y: Math.max(Look.toolbar, Math.round((parent.height - height) / 2))
