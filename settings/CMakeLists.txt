@@ -83,6 +83,7 @@ qt_add_qml_module(ambrosia-settings
         qml/ScaleTile.qml
         qml/Sheet.qml
         qml/DetailsSheet.qml
+        qml/DisplaysAdvancedSheet.qml
         qml/MoreButton.qml
         qml/ServicePage.qml
         qml/StatusLine.qml

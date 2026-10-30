@@ -20,11 +20,16 @@ class Displays : public QObject
     // rotation ("0", "90", "180", "270"), profile, profiles [{id, name}],
     // dimmable, brightness (0 to 1)}]: the main display first.
     Q_PROPERTY(QVariantList list READ list NOTIFY changed)
+    // Scales as a list of sizes rather than tiles (Advanced…), kept in
+    // ambrosiarc.
+    Q_PROPERTY(bool showAsList READ showAsList WRITE setShowAsList NOTIFY showAsListChanged)
 
 public:
     explicit Displays(QObject *parent = nullptr);
 
     QVariantList list() const { return m_list; }
+    bool showAsList() const { return m_showAsList; }
+    void setShowAsList(bool on);
 
     Q_INVOKABLE void setScale(int id, double scale);
     Q_INVOKABLE void setRate(int id, const QString &modeId);
@@ -35,6 +40,7 @@ public:
 
 Q_SIGNALS:
     void changed();
+    void showAsListChanged();
 
 private Q_SLOTS:
     void readBrightness();
@@ -46,6 +52,7 @@ private:
 
     KScreen::ConfigPtr m_config;
     QVariantList m_list;
+    bool m_showAsList = false;
     // The brightness service's displays, by output id: {path, max, value}.
     QHash<int, QVariantMap> m_brightness;
 };

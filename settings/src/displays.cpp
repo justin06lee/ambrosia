@@ -1,5 +1,8 @@
 #include "displays.h"
 
+#include <KConfigGroup>
+#include <KSharedConfig>
+
 #include <KScreen/Config>
 #include <KScreen/ConfigMonitor>
 #include <KScreen/EDID>
@@ -111,9 +114,18 @@ QVariantList iccProfiles()
 }
 }
 
+namespace
+{
+KConfigGroup preferences()
+{
+    return KSharedConfig::openConfig(QStringLiteral("ambrosiarc"))->group(QStringLiteral("Displays"));
+}
+}
+
 Displays::Displays(QObject *parent)
     : QObject(parent)
 {
+    m_showAsList = preferences().readEntry("ShowResolutionsAsList", false);
     auto *get = new GetConfigOperation();
     connect(get, &ConfigOperation::finished, this, [this](ConfigOperation *op) {
         if (op->hasError()) {
@@ -271,6 +283,17 @@ void Displays::apply()
         if (op->hasError())
             qWarning("Settings: the displays didn't change: %s", qPrintable(op->errorString()));
     });
+}
+
+void Displays::setShowAsList(bool on)
+{
+    if (m_showAsList == on)
+        return;
+    m_showAsList = on;
+    KConfigGroup group = preferences();
+    group.writeEntry("ShowResolutionsAsList", on);
+    group.sync();
+    Q_EMIT showAsListChanged();
 }
 
 void Displays::setScale(int id, double scale)
