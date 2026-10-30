@@ -6,9 +6,9 @@ import Settings
 // name, what it does and its switch) with how others see this computer
 // under it, discoverable while the pane is open; then the devices paired
 // with it, and those in range, each connected or disconnected where
-// pointed. All of it BlueZ's (src/bluetooth.cpp); pairing codes come from
-// the session's agent (bluedevil). Left out: the help button and Learn
-// more…. Not yet: a device's ⓘ (rename, forget).
+// pointed, a paired one's ⓘ opening its sheet (rename, forget). All of it
+// BlueZ's (src/bluetooth.cpp); pairing codes come from the session's agent
+// (bluedevil). Left out: the help button and Learn more….
 Page {
     id: page
 

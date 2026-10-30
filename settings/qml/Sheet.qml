@@ -22,6 +22,8 @@ Item {
     signal accepted()
 
     function close() { open = false; }
+    onOpenChanged: settings.sheetsOpen += open ? 1 : -1
+    Component.onDestruction: if (open) settings.sheetsOpen -= 1
 
     parent: settings.contentItem
     anchors.fill: parent
@@ -30,15 +32,25 @@ Item {
     opacity: open ? 1 : 0
     Behavior on opacity { NumberAnimation { duration: Theme.fade.fast } }
 
+    // Escape puts back a field being typed in (a NameField's revert) and
+    // closes; Return keeps what's typed, then presses the default button.
     Shortcut {
         sequence: "Esc"
         enabled: sheet.open
-        onActivated: sheet.close()
+        onActivated: {
+            const field = sheet.settings.activeFocusItem;
+            if (field && typeof field.revert === "function")
+                field.revert();
+            sheet.close();
+        }
     }
     Shortcut {
         sequences: ["Return", "Enter"]
         enabled: sheet.open
-        onActivated: sheet.accepted()
+        onActivated: {
+            panel.forceActiveFocus();
+            sheet.accepted();
+        }
     }
 
     // The window, dimmed; it takes no clicks while the sheet is up.

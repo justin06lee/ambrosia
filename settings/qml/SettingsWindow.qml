@@ -28,8 +28,12 @@ Window {
     // A window keeps its active look while one of its menus is open, as on
     // a Mac (Files' FinderWindow does the same); --active draws it active
     // for grabs.
+    // A sheet takes the window's key, as on a Mac: under it the window draws
+    // inactive (gray lights and selection) and disabled.
     property int menusOpen: 0
-    readonly property bool looksActive: active || menusOpen > 0 || App.active
+    property int sheetsOpen: 0
+    readonly property bool underSheet: sheetsOpen > 0
+    readonly property bool looksActive: (active || menusOpen > 0 || App.active) && !underSheet
     onActiveChanged: if (active) menusOpen = 0
 
     width: Look.windowWidth
@@ -125,6 +129,9 @@ Window {
     Rectangle {
         id: frame
         anchors.fill: parent
+        // Nothing under a sheet takes a click: a sheet's dim would stop the
+        // press, but tap handlers below still see it and fire.
+        enabled: !win.underSheet
         radius: Look.windowRadius
         color: Look.window
         border.width: 0.5

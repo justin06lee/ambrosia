@@ -29,10 +29,11 @@ TextInput {
             committed(text);
         focus = false;
     }
-    Keys.onEscapePressed: {
+    function revert() {
         text = value;
         focus = false;
     }
+    Keys.onEscapePressed: revert()
 
     // The field it becomes while editing.
     Rectangle {

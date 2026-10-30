@@ -28,7 +28,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: height / 2
-        color: control.checked ? Theme.accent.bg : Look.switchOff
+        color: !control.checked ? Look.switchOff : control.Window.window?.underSheet ? Look.switchInactive : Theme.accent.bg
         Behavior on color { enabled: control.animated; ColorAnimation { duration: Theme.fade.fast } }
     }
     Rectangle {
