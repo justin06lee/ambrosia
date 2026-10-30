@@ -99,11 +99,18 @@ QtObject {
             for (const group of children[id])
                 for (const pane of group)
                     map[pane.id] = id;
+        for (const pane of hidden)
+            if (pane.parent)
+                map[pane.id] = pane.parent;
         return map;
     }
     // A pane the app doesn't list: the controls, side by side with System
     // Settings' (--pane controls).
-    readonly property var hidden: [{ id: "controls", name: "Controls", glyph: "general", tint: "gray", page: "controls" }]
+    readonly property var hidden: [
+        { id: "controls", name: "Controls", glyph: "general", tint: "gray", page: "controls" },
+        { id: "network-service", name: "Network", glyph: "network", tint: "blue", page: "service", parent: "network" },
+        { id: "network-vpn", name: "VPN", glyph: "network", tint: "blue", page: "vpn", parent: "network" },
+    ]
 
     function available(pane) {
         if (pane.device === "mouse" && !App.hasMouse)

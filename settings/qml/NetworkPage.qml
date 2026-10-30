@@ -4,8 +4,9 @@ import Settings
 
 // Network, as System Settings lays it out: the services connected, the
 // VPNs, then Other Services. No Firewall row: Ambrosia ships no firewall
-// (docs/settings/PLAN.md). The ⋯ menu (add a service, its order) waits on
-// the Mac's to be captured.
+// (docs/settings/PLAN.md). The ⋯ menu's Add Service… and Add VPN Configuration
+// open KDE's connection editor. Left out of it: Manage Virtual Interfaces…,
+// Set Service Order… and Locations (nothing on our side acts on them yet).
 Page {
     id: page
 
@@ -44,5 +45,23 @@ Page {
                 service: modelData
             }
         }
+    }
+    Item {
+        width: Look.boxWidth
+        height: Look.popupHeight + Look.boxGap
+        MoreButton {
+            id: moreButton
+            x: parent.width - width
+            y: Look.boxGap
+            onClicked: moreMenu.openUnder(moreButton)
+        }
+    }
+    PopupMenu {
+        id: moreMenu
+        items: [
+            { text: qsTr("Add Service…"), value: "add" },
+            { text: qsTr("Add VPN Configuration…"), value: "vpn" },
+        ]
+        onChosen: App.openModule("kcm_networkmanagement")
     }
 }

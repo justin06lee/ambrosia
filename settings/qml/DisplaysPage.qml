@@ -5,8 +5,8 @@ import Settings
 // Displays, as System Settings lays it out: the displays in a band across
 // the top, then the one chosen's scale (Larger Text … More Space),
 // brightness where it can be dimmed, color profile, refresh rate and
-// rotation. True Tone and the TV's options are Apple's and left out;
-// Advanced… and Night Shift… come with their sheets.
+// rotation; Advanced… (DisplaysAdvancedSheet) at the foot. True Tone and the
+// TV's options are Apple's and left out.
 Page {
     id: page
 
@@ -67,7 +67,7 @@ Page {
 
     // The scale, as what the display looks like: larger text to more space.
     Box {
-        visible: page.display !== null
+        visible: page.display !== null && !Displays.showAsList
         Item {
             id: scales
             readonly property var choices: page.display?.scales ?? []
@@ -110,6 +110,39 @@ Page {
         }
     }
 
+    // Advanced…'s list of sizes in place of the tiles' scale: not photographed
+    // on the Mac (it would mean changing its setting), laid out as our lists are.
+    Box {
+        visible: page.display !== null && Displays.showAsList
+        Repeater {
+            model: Displays.showAsList ? (page.display?.scales ?? []) : []
+            Item {
+                id: size
+                required property var modelData
+                readonly property bool chosen: Math.abs(modelData.scale - (page.display?.scale ?? 0)) < 0.01
+                width: parent.width
+                height: 36
+                Glyph {
+                    visible: size.chosen
+                    x: 12
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "tick"
+                    size: 16
+                }
+                Label {
+                    x: 36
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: Math.abs(size.modelData.scale - (page.display?.defaultScale ?? 0)) < 0.01
+                        ? qsTr("%1 × %2 (Default)").arg(size.modelData.width).arg(size.modelData.height)
+                        : qsTr("%1 × %2").arg(size.modelData.width).arg(size.modelData.height)
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: Displays.setScale(page.display.id, size.modelData.scale)
+                }
+            }
+        }
+    }
     Box {
         visible: page.display?.dimmable ?? false
         FormRow {
@@ -163,5 +196,20 @@ Page {
                 onChosen: (value) => Displays.setRotation(page.display.id, value)
             }
         }
+    }
+    // 20 under what's above, as the page's foot.
+    Item {
+        width: Look.boxWidth
+        height: Look.popupHeight + Look.boxGap
+        PushButton {
+            x: parent.width - width
+            y: Look.boxGap
+            text: qsTr("Advanced…")
+            onClicked: advancedSheet.open = true
+        }
+    }
+    DisplaysAdvancedSheet {
+        id: advancedSheet
+        settings: page.settings
     }
 }

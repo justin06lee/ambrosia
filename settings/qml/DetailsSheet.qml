@@ -2,9 +2,10 @@ import QtQuick
 import Ambrosia
 import Settings
 
-// Wi-Fi's Details… sheet (a known network's Network Settings…), as System
-// Settings shows it: a sidebar of the network, TCP/IP, DNS and Hardware;
-// what's changed kept until OK (WiFi.applyDetails), Cancel dropping it.
+// A Details… sheet, Wi-Fi's (a known network's Network Settings…) or a network
+// service's, as System Settings shows it: a sidebar of the network, TCP/IP,
+// DNS and Hardware; what's changed kept until OK (source.applyDetails), Cancel
+// dropping it.
 // Left out: WINS (Windows file sharing's), 802.1X (the Mac takes only
 // Apple's configuration profiles there), Proxies (apps don't read
 // NetworkManager's), Limit IP address tracking (Apple's own) and Renew DHCP
@@ -12,6 +13,13 @@ import Settings
 Sheet {
     id: sheet
 
+    // WiFi or Network: where details and applyDetails are.
+    property var source: WiFi
+    readonly property bool wifi: source === WiFi
+    property string glyph: "wifi"
+    property string tint: "blue"
+    // What the sidebar calls it, if not the network's own name.
+    property string name
     property string uuid
     property var details: ({})
     property var changes: ({})
@@ -22,7 +30,7 @@ Sheet {
 
     function show(uuid) {
         sheet.uuid = uuid;
-        details = WiFi.details(uuid);
+        details = source.details(uuid);
         changes = {};
         page = "network";
         open = true;
@@ -46,14 +54,14 @@ Sheet {
     pageX: 208
     bodyHeight: 360
     onAccepted: {
-        WiFi.applyDetails(uuid, changes);
+        source.applyDetails(uuid, changes);
         close();
     }
     Connections {
-        target: WiFi
+        target: sheet.source
         function onDetailsChanged() {
             if (sheet.open)
-                sheet.details = WiFi.details(sheet.uuid);
+                sheet.details = sheet.source.details(sheet.uuid);
         }
     }
 
@@ -82,15 +90,15 @@ Sheet {
                     x: 6
                     anchors.verticalCenter: parent.verticalCenter
                     size: 28
-                    glyph: "wifi"
-                    tint: "blue"
+                    glyph: sheet.glyph
+                    tint: sheet.tint
                 }
                 Label {
                     x: entry.network ? 40 : 6
                     y: entry.network ? 8 : (parent.height - height) / 2
                     width: parent.width - x - 6
                     elide: Text.ElideRight
-                    text: entry.network ? (sheet.shown.ssid ?? "") : entry.modelData.name
+                    text: entry.network ? (sheet.name || (sheet.shown.ssid ?? "")) : entry.modelData.name
                     font.weight: entry.network ? 600 : 400
                     color: entry.chosen ? Theme.accent.fg : Theme.color.label.primary
                 }
@@ -118,7 +126,7 @@ Sheet {
 
     // The network's own page.
     Box {
-        visible: sheet.page === "network"
+        visible: sheet.page === "network" && sheet.wifi
         width: parent.width
         FormRow {
             label: qsTr("Automatically join this network")
@@ -129,7 +137,7 @@ Sheet {
         }
     }
     Box {
-        visible: sheet.page === "network"
+        visible: sheet.page === "network" && sheet.wifi
         width: parent.width
         FormRow {
             label: qsTr("Private Wi‑Fi address")
@@ -157,7 +165,8 @@ Sheet {
         width: parent.width
         FormRow {
             label: qsTr("Low data mode")
-            description: qsTr("Low data mode helps reduce your computer's data usage over specific Wi‑Fi networks you select.")
+            description: sheet.wifi ? qsTr("Low data mode helps reduce your computer's data usage over specific Wi‑Fi networks you select.")
+                : qsTr("Low data mode helps reduce your computer's data usage over this connection.")
             firstLine: Look.switchHeight
             Switch {
                 checked: sheet.shown.lowData ?? false
@@ -327,6 +336,7 @@ Sheet {
     }
 
     leading: PushButton {
+        visible: sheet.wifi
         text: qsTr("Forget This Network…")
         onClicked: {
             sheet.close();

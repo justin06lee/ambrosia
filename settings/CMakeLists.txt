@@ -33,6 +33,7 @@ qt_add_qml_module(ambrosia-settings
         src/wifi.h src/wifi.cpp
         src/bluetooth.h src/bluetooth.cpp
         src/network.h src/network.cpp
+        src/connectiondetails.h src/connectiondetails.cpp
         src/displays.h src/displays.cpp
     QML_FILES
         qml/SettingsWindow.qml
@@ -81,9 +82,15 @@ qt_add_qml_module(ambrosia-settings
         qml/DisplaysPage.qml
         qml/ScaleTile.qml
         qml/Sheet.qml
-        qml/WiFiDetailsSheet.qml
+        qml/DetailsSheet.qml
+        qml/DisplaysAdvancedSheet.qml
+        qml/MoreButton.qml
+        qml/ServicePage.qml
+        qml/StatusLine.qml
+        qml/VpnPage.qml
         qml/EditList.qml
         qml/WiFiOtherSheet.qml
+        qml/WiFiPrivateSheet.qml
         qml/WiFiAdvancedSheet.qml
     RESOURCES
         art/desktop.svg

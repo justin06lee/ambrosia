@@ -47,7 +47,7 @@ Window {
     visible: false
     color: "transparent"
     flags: Qt.Window | Qt.FramelessWindowHint
-    title: page ? page.name : "System Settings"
+    title: page ? (page.page === "service" ? Network.connected.concat(Network.others).find(s => s.id === anchor)?.name ?? page.name : page.name) : "System Settings"
 
     readonly property Appearance appearance: Appearance {}
     MenuBar { settings: win }
@@ -70,17 +70,23 @@ Window {
         win.anchor = anchor ?? "";
         if (id === current)
             return;
-        history = history.slice(0, historyIndex + 1).concat([id]);
+        history = history.slice(0, historyIndex + 1).concat([asked]);
         historyIndex = history.length - 1;
+        current = id;
+    }
+    // History keeps the anchor: a service's page is the service's.
+    function visit(asked) {
+        const [id, anchor] = asked.split("?");
+        win.anchor = anchor ?? "";
         current = id;
     }
     function back() {
         if (canGoBack)
-            current = history[--historyIndex];
+            visit(history[--historyIndex]);
     }
     function forward() {
         if (canGoForward)
-            current = history[++historyIndex];
+            visit(history[++historyIndex]);
     }
     function findPane() {
         sidebar.search.focusField();
@@ -158,7 +164,7 @@ Window {
             height: parent.height - y
             focus: true
             enabled: !win.underSheet
-            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, network: networkPage, displays: displaysPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
+            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, network: networkPage, service: servicePage, vpn: vpnPage, displays: displaysPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
             onLoaded: Qt.callLater(App.shown, win)
         }
         Component { id: generalPage; GeneralPage { settings: win } }
@@ -167,6 +173,8 @@ Window {
         Component { id: wifiPage; WiFiPage { settings: win } }
         Component { id: bluetoothPage; BluetoothPage { settings: win } }
         Component { id: networkPage; NetworkPage { settings: win } }
+        Component { id: servicePage; ServicePage { settings: win } }
+        Component { id: vpnPage; VpnPage { settings: win } }
         Component { id: displaysPage; DisplaysPage { settings: win } }
         Component { id: controlsPage; ControlsPage { settings: win } }
 
