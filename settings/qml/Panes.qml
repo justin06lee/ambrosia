@@ -30,7 +30,7 @@ QtObject {
               keywords: ["about", "software update", "date", "time", "language", "region", "login items"] },
             { id: "accessibility", name: "Accessibility", glyph: "accessibility", tint: "blue", module: "kcm_access",
               keywords: ["zoom", "sticky keys", "slow keys", "bounce keys", "bell"] },
-            { id: "appearance", name: "Appearance", glyph: "appearance", tint: "black",
+            { id: "appearance", name: "Appearance", glyph: "appearance", tint: "black", page: "appearance",
               keywords: ["dark", "light", "accent", "theme", "color"] },
             { id: "dock", name: "Desktop & Dock", glyph: "dock", tint: "black",
               keywords: ["dock", "hot corners", "windows", "minimize"] },
