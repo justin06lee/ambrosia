@@ -35,7 +35,7 @@ Item {
         Glyph {
             anchors.centerIn: parent
             name: "chevronUpDown"
-            size: 11
+            size: 16 // 7 × 10.5, as the Mac draws them
             color: Theme.color.label.primary
         }
     }
