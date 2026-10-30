@@ -209,7 +209,6 @@ Page {
     WiFiAdvancedSheet {
         id: advancedSheet
         settings: page.settings
-        onSettingsOf: (uuid) => detailsSheet.show(uuid)
         onForget: (uuid, ssid) => page.askForget(uuid, ssid)
     }
     WiFiDetailsSheet {

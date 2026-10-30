@@ -109,8 +109,10 @@ Controls.Popup {
                 readonly property bool separator: modelData.value === undefined
                 readonly property bool lit: !separator && menu.lit === index
                 readonly property bool usable: !separator && modelData.enabled !== false
+                // An item may carry an icon (Advanced…'s Auto-Join).
+                readonly property bool hasIcon: !!modelData.glyph
                 width: menu.availableWidth
-                implicitWidth: label.implicitWidth + 34
+                implicitWidth: label.implicitWidth + 34 + (hasIcon ? 21 : 0)
                 height: separator ? 11 : Look.menuRow
 
                 Rectangle {
@@ -134,10 +136,18 @@ Controls.Popup {
                     size: 13
                     color: row.lit ? Theme.accent.fg : Theme.color.label.primary
                 }
+                PaneIcon {
+                    visible: row.hasIcon
+                    x: 20
+                    anchors.verticalCenter: parent.verticalCenter
+                    size: 15
+                    glyph: row.modelData.glyph ?? ""
+                    tint: row.modelData.tint ?? "gray"
+                }
                 Label {
                     id: label
                     visible: !row.separator
-                    x: 20
+                    x: row.hasIcon ? 41 : 20
                     anchors.verticalCenter: parent.verticalCenter
                     text: row.modelData.text ?? ""
                     color: row.lit ? Theme.accent.fg : row.usable ? Theme.color.label.primary : Theme.color.label.tertiary

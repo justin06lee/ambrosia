@@ -89,9 +89,10 @@ bool legacy(const WirelessDevice::Ptr &device, const AccessPoint::Ptr &ap)
     }
 }
 
-// A saved network's security, by NetworkManager's key management: wpa-psk
-// is WPA2 and WPA3 Personal both, sae WPA3 only; wpa-eap WPA2 and WPA3
-// Enterprise, suite B WPA3 only.
+// A saved network's security, by NetworkManager's key management and
+// protocols: wpa-psk is WPA2 and WPA3 Personal both (WPA/WPA2 with proto
+// wpa too), sae WPA3 only; wpa-eap is WPA2 Enterprise (WPA/WPA2 with proto
+// wpa too), or WPA3 Enterprise with pmf required; suite B WPA3 only.
 QString savedSecurity(const ConnectionSettings::Ptr &settings)
 {
     const auto security = settings->setting(Setting::WirelessSecurity).staticCast<WirelessSecuritySetting>();
@@ -101,11 +102,13 @@ QString savedSecurity(const ConnectionSettings::Ptr &settings)
     case WirelessSecuritySetting::Ieee8021x:
         return QStringLiteral("dynamic-wep");
     case WirelessSecuritySetting::WpaPsk:
-        return security->proto() == QList{WirelessSecuritySetting::Wpa} ? QStringLiteral("wpa1") : QStringLiteral("wpa");
+        return security->proto().contains(WirelessSecuritySetting::Wpa) ? QStringLiteral("wpa-wpa2") : QStringLiteral("wpa");
     case WirelessSecuritySetting::SAE:
         return QStringLiteral("sae");
     case WirelessSecuritySetting::WpaEap:
-        return QStringLiteral("enterprise");
+        if (security->pmf() == WirelessSecuritySetting::RequiredPmf)
+            return QStringLiteral("enterprise3");
+        return security->proto().contains(WirelessSecuritySetting::Wpa) ? QStringLiteral("wpa-wpa2-enterprise") : QStringLiteral("enterprise");
     case WirelessSecuritySetting::WpaEapSuiteB192:
         return QStringLiteral("enterprise3");
     case WirelessSecuritySetting::OWE:
@@ -151,10 +154,10 @@ NMVariantMapMap connectionFor(const QString &ssid, const QString &security, cons
     // Secrets are kept by the system for every user, as a Mac keeps them
     // in its System keychain.
     // Without a password, NetworkManager asks the session's secret agent.
-    if (security == QLatin1String("wpa") || security == QLatin1String("wpa1") || security == QLatin1String("sae")) {
+    if (security == QLatin1String("wpa") || security == QLatin1String("wpa-wpa2") || security == QLatin1String("sae")) {
         QVariantMap wpa{{QStringLiteral("key-mgmt"), security == QLatin1String("sae") ? QStringLiteral("sae") : QStringLiteral("wpa-psk")}};
-        if (security == QLatin1String("wpa1"))
-            wpa.insert(QStringLiteral("proto"), QStringList{QStringLiteral("wpa")});
+        if (security == QLatin1String("wpa-wpa2"))
+            wpa.insert(QStringLiteral("proto"), QStringList{QStringLiteral("wpa"), QStringLiteral("rsn")});
         if (!password.isEmpty())
             wpa.insert(QStringLiteral("psk"), password);
         map[QStringLiteral("802-11-wireless-security")] = wpa;
@@ -165,10 +168,16 @@ NMVariantMapMap connectionFor(const QString &ssid, const QString &security, cons
         map[QStringLiteral("802-11-wireless-security")] = wep;
     } else if (security == QLatin1String("owe")) {
         map[QStringLiteral("802-11-wireless-security")] = {{QStringLiteral("key-mgmt"), QStringLiteral("owe")}};
-    } else if (security == QLatin1String("enterprise")) {
+    } else if (security == QLatin1String("enterprise") || security == QLatin1String("wpa-wpa2-enterprise")
+               || security == QLatin1String("enterprise3") || security == QLatin1String("dynamic-wep")) {
         // A name and password, as a Mac asks: PEAP with MSCHAPv2 inside,
         // what most such networks take.
-        map[QStringLiteral("802-11-wireless-security")] = {{QStringLiteral("key-mgmt"), QStringLiteral("wpa-eap")}};
+        QVariantMap key{{QStringLiteral("key-mgmt"), security == QLatin1String("dynamic-wep") ? QStringLiteral("ieee8021x") : QStringLiteral("wpa-eap")}};
+        if (security == QLatin1String("wpa-wpa2-enterprise"))
+            key.insert(QStringLiteral("proto"), QStringList{QStringLiteral("wpa"), QStringLiteral("rsn")});
+        if (security == QLatin1String("enterprise3"))
+            key.insert(QStringLiteral("pmf"), static_cast<int>(WirelessSecuritySetting::RequiredPmf));
+        map[QStringLiteral("802-11-wireless-security")] = key;
         QVariantMap eap{
             {QStringLiteral("eap"), QStringList{QStringLiteral("peap")}},
             {QStringLiteral("phase2-auth"), QStringLiteral("mschapv2")},
