@@ -10,6 +10,9 @@ TextInput {
     property string value
     // Shown, gray, while it's empty (DHCP client ID).
     property string placeholder
+    // Drawn as a field while editing (About's Name); a form's fields (Wi-Fi's
+    // Other…) show only the caret.
+    property bool ring: true
     signal committed(string text)
 
     text: value
@@ -46,7 +49,7 @@ TextInput {
     // The field it becomes while editing.
     Rectangle {
         z: -1
-        visible: field.activeFocus
+        visible: field.activeFocus && field.ring
         x: field.width - Math.min(field.width, field.contentWidth) - 5
         y: -3
         width: Math.min(field.width, field.contentWidth) + 10

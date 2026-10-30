@@ -107,9 +107,10 @@ Item {
                                 opacity: sidebar.settings.underSheet ? Look.sheetFade : 1
                                 color: row.lit ? Theme.accent.fg : Theme.color.label.primary
                             }
-                            TapHandler {
+                            MouseArea {
+                                anchors.fill: parent
                                 enabled: !sidebar.settings.underSheet
-                                onTapped: sidebar.settings.choose(row.modelData.id)
+                                onClicked: sidebar.settings.choose(row.modelData.id)
                             }
                         }
                     }

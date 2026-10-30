@@ -56,8 +56,9 @@ Page {
                         text: slot.modelData.name
                         font.weight: slot.index === page.chosen ? 600 : 400
                     }
-                    TapHandler {
-                        onTapped: page.chosen = slot.index
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: page.chosen = slot.index
                     }
                 }
             }
@@ -100,8 +101,9 @@ Page {
                             : choice.index === scales.choices.length - 1 ? qsTr("More Space") : ""
                         font.weight: choice.isDefault ? 600 : 400
                     }
-                    TapHandler {
-                        onTapped: Displays.setScale(page.display.id, choice.modelData.scale)
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: Displays.setScale(page.display.id, choice.modelData.scale)
                     }
                 }
             }

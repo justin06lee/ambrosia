@@ -35,12 +35,13 @@ Item {
         Glyph {
             anchors.centerIn: parent
             name: "chevronUpDown"
-            size: 11
+            size: 16 // 7 × 10.5, as the Mac draws them
             color: Theme.color.label.primary
         }
     }
-    TapHandler {
-        onTapped: {
+    MouseArea {
+        anchors.fill: parent
+        onClicked: {
             menu.openOver(button);
             menu.x = label.x - 25; // the menu's text over the button's
         }

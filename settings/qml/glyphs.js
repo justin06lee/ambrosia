@@ -77,7 +77,7 @@ var glyphs = {
     forward: { stroke: "M9.5 5l7 7-7 7", width: 2 },
     search: { stroke: circle(10.5, 10.5, 6.5) + "M15.3 15.3L20.5 20.5", width: 1.9 },
     chevronRight: { stroke: "M9.5 5.5l6.5 6.5-6.5 6.5", width: 2.2 },
-    chevronUpDown: { stroke: "M8 9.5L12 5.5l4 4M8 14.5l4 4 4-4", width: 2.4 },
+    chevronUpDown: { stroke: "M7.9 8.25L12 5.25l4.1 3M7.9 15.75l4.1 3 4.1-3", width: 2.25 },
     check: { stroke: "M5.5 12.5l4.2 4.2L18.5 7.5", width: 2.2 },
     help: { stroke: "M9 9.2a3.1 3.1 0 1 1 4.6 2.7c-1 .6-1.6 1.2-1.6 2.4v.4", width: 2, fill: circle(12, 18, 1.25) },
     cross: { stroke: "M8 8l8 8M16 8l-8 8", width: 2.6 },

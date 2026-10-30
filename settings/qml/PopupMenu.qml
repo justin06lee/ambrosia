@@ -56,6 +56,10 @@ Controls.Popup {
 
     padding: 5
     focus: true
+    // Modal, undimmed: a tap handler under a menu (a sheet's Done) would
+    // take its clicks too, and a click outside only closes it, as on a Mac.
+    modal: true
+    dim: false
     closePolicy: Controls.Popup.CloseOnEscape | Controls.Popup.CloseOnPressOutside
     // As wide as its widest row asks (rows take the menu's width, so the
     // column's own would be circular), or the control's.
@@ -141,8 +145,9 @@ Controls.Popup {
                 HoverHandler {
                     onHoveredChanged: if (hovered && row.usable) menu.lit = row.index
                 }
-                TapHandler {
-                    onTapped: menu.choose(row.index)
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: menu.choose(row.index)
                 }
             }
         }

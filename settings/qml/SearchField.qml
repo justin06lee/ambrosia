@@ -76,6 +76,6 @@ Rectangle {
             size: 10
             color: Look.search
         }
-        TapHandler { onTapped: input.text = "" }
+        MouseArea { anchors.fill: parent; onClicked: input.text = "" }
     }
 }

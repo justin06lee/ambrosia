@@ -6,10 +6,12 @@ import Settings
 // name, what it does and its switch) with the network in use under it;
 // then the known networks in range and the others, each with its lock and
 // signal, a Connect button where pointed; Details… on the one in use and a
-// known one's ⋯ menu open its settings (WiFiDetailsSheet). All of it
-// NetworkManager's (src/wifi.cpp). Left out: Personal Hotspots and asking
-// to join hotspots (an iPhone's), the help button and its Learn More. Not
-// yet: other networks' ⋯ menu, Other… and Advanced….
+// known one's ⋯ menu open its settings (WiFiDetailsSheet); Other… adds a
+// network by name (WiFiOtherSheet), Advanced… lists every one saved
+// (WiFiAdvancedSheet). All of it NetworkManager's (src/wifi.cpp). Left out:
+// Personal Hotspots and asking to join hotspots (an iPhone's), asking to
+// join networks (NetworkManager never asks), the help button and its Learn
+// More. Not yet: other networks' ⋯ menu.
 Page {
     id: page
 
@@ -144,6 +146,28 @@ Page {
             }
         }
     }
+    Item {
+        width: Look.boxWidth
+        height: Look.popupHeight
+        visible: WiFi.enabled
+        PushButton {
+            x: parent.width - width
+            text: qsTr("Other…")
+            onClicked: otherSheet.show()
+        }
+    }
+    // 20 under what's above, as the page's foot.
+    Item {
+        width: Look.boxWidth
+        height: Look.popupHeight + Look.boxGap
+        visible: WiFi.available
+        PushButton {
+            x: parent.width - width
+            y: Look.boxGap
+            text: qsTr("Advanced…")
+            onClicked: advancedSheet.show()
+        }
+    }
 
     // A known network's ⋯: Auto-Join, Copy Password, Network Settings…
     // (its Details… sheet) and Forget This Network….
@@ -178,6 +202,16 @@ Page {
         forgetSheet.open = true;
     }
 
+    WiFiOtherSheet {
+        id: otherSheet
+        settings: page.settings
+    }
+    WiFiAdvancedSheet {
+        id: advancedSheet
+        settings: page.settings
+        onSettingsOf: (uuid) => detailsSheet.show(uuid)
+        onForget: (uuid, ssid) => page.askForget(uuid, ssid)
+    }
     WiFiDetailsSheet {
         id: detailsSheet
         settings: page.settings

@@ -92,10 +92,12 @@ QtObject {
     readonly property int editListRows: 4
     readonly property int editListRow: 24
     readonly property int editListBar: 24
-    readonly property int popupChevronWidth: 16 // the up-down capsule at a pop-up's right
+    // A pop-up's up-down chevrons on a 20 circle, 3.5 from its right and
+    // 12.5 after its text (Sound's Alert sound, Wi-Fi's Other…).
+    readonly property int popupChevronWidth: 20
     readonly property int popupChevronHeight: 20
-    readonly property int popupEnd: 4
-    readonly property int popupTextGap: 6
+    readonly property real popupEnd: 3.5
+    readonly property real popupTextGap: 12.5
     readonly property int sliderKnobWidth: 20
     readonly property int sliderKnobHeight: 16
     readonly property int sliderTrack: 6
@@ -147,6 +149,9 @@ QtObject {
     // A sheet: its fill, the dark line round it, the lighter rim inside
     // that, and the rule over its buttons. Dark measured on the Mac's
     // Bluetooth sheet; light, not yet captured, is white like the window.
+    // A sheet taller than the window allows (Wi-Fi's Advanced…) runs from
+    // the toolbar's foot to this far above the window's, its page scrolling.
+    readonly property int sheetBelow: 41
     readonly property color sheet: dark ? "#262724" : "#ffffff"
     readonly property color sheetOutline: dark ? "#030302" : "#33000000"
     readonly property color sheetRim: dark ? "#515250" : "#ffffff"

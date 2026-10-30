@@ -61,6 +61,6 @@ Item {
         color: Theme.color.label.secondary
         Accessible.role: Accessible.ButtonMenu
         Accessible.name: qsTr("Show Detail")
-        TapHandler { onTapped: row.more(moreButton) }
+        MouseArea { anchors.fill: parent; onClicked: row.more(moreButton) }
     }
 }

@@ -66,7 +66,8 @@ Item {
         size: 14
         color: Theme.color.label.tertiary
     }
-    TapHandler {
-        onTapped: row.service.kind === "wifi" ? row.settings.choose("wifi") : App.openModule("kcm_networkmanagement")
+    MouseArea {
+        anchors.fill: parent
+        onClicked: row.service.kind === "wifi" ? row.settings.choose("wifi") : App.openModule("kcm_networkmanagement")
     }
 }

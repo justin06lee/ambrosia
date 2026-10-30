@@ -33,8 +33,10 @@ Window {
     // Under a sheet, as on a Mac, the page and toolbar are dimmed and the
     // sidebar faded, none of them taking clicks (tap handlers under a sheet's
     // dim would still fire); close is grayed, minimize and zoom still work.
-    property int sheetsOpen: 0
-    readonly property bool underSheet: sheetsOpen > 0
+    // The sheets open, the last on top: only it takes keys and clicks.
+    property var sheets: []
+    readonly property bool underSheet: sheets.length > 0
+    readonly property var topSheet: underSheet ? sheets[sheets.length - 1] : null
     onActiveChanged: if (active) menusOpen = 0
 
     width: Look.windowWidth

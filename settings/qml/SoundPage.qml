@@ -60,7 +60,7 @@ Page {
                         size: 17
                         color: Theme.color.label.secondary
                     }
-                    TapHandler { onTapped: Sound.playAlert() }
+                    MouseArea { anchors.fill: parent; onClicked: Sound.playAlert() }
                 }
             }
         }

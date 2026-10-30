@@ -42,5 +42,5 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         text: control.text
     }
-    TapHandler { onTapped: control.toggled() }
+    MouseArea { anchors.fill: parent; onClicked: control.toggled() }
 }
