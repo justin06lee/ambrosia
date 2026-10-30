@@ -132,7 +132,11 @@ QtObject {
     readonly property color capsuleDivider: dark ? "#30302e" : "#ececec"
     readonly property color lightInactive: dark ? "#4a4a46" : "#dcdcdc"
     // A control's face: a button, a pop-up's chevrons, a segment not chosen.
-    readonly property color face: dark ? "#3d3d3b" : "#e4e4e4"
+    // White over what's under it, in the dark: #3d3d3b on a box, #363734 on a sheet.
+    readonly property color face: dark ? "#13ffffff" : "#e4e4e4"
+    readonly property color facePressed: dark ? "#26ffffff" : "#d3d3d3"
+    // A push button's corners, not a capsule's.
+    readonly property int pushRadius: 7
     readonly property color track: dark ? "#424240" : "#dfdfdf"
     readonly property color switchOff: dark ? "#414140" : "#dddddd"
     // On, under a sheet (the window drawn inactive): gray, not the accent;
