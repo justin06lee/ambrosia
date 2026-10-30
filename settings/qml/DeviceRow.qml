@@ -60,7 +60,7 @@ Item {
         name: "info"
         size: 18.7
         color: Theme.color.label.secondary
-        TapHandler { onTapped: row.info() }
+        MouseArea { anchors.fill: parent; onClicked: row.info() }
     }
     Spinner {
         x: 422.5 - width

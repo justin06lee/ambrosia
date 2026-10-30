@@ -29,8 +29,9 @@ Rectangle {
         text: button.text
         color: button.primary ? Theme.accent.fg : Theme.color.label.primary
     }
-    TapHandler {
+    MouseArea {
+        anchors.fill: parent
         id: tap
-        onTapped: button.clicked()
+        onClicked: button.clicked()
     }
 }

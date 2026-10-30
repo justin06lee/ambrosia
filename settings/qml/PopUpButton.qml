@@ -39,8 +39,9 @@ Item {
             color: Theme.color.label.primary
         }
     }
-    TapHandler {
-        onTapped: {
+    MouseArea {
+        anchors.fill: parent
+        onClicked: {
             menu.openOver(button);
             menu.x = label.x - 25; // the menu's text over the button's
         }

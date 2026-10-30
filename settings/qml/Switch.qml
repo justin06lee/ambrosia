@@ -50,5 +50,5 @@ Item {
             blurMax: 4
         }
     }
-    TapHandler { onTapped: control.toggled() }
+    MouseArea { anchors.fill: parent; onClicked: control.toggled() }
 }

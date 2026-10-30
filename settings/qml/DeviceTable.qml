@@ -85,8 +85,9 @@ FocusScope {
                 text: row.modelData.kind
                 color: row.emphasized ? Theme.accent.fg : Theme.color.label.primary
             }
-            TapHandler {
-                onTapped: {
+            MouseArea {
+                anchors.fill: parent
+                onClicked: {
                     table.forceActiveFocus();
                     table.chosen(row.modelData.name);
                 }

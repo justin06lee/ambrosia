@@ -41,7 +41,7 @@ Rectangle {
                     text: segment.modelData.text
                     color: segment.chosen ? Theme.accent.fg : Theme.color.label.primary
                 }
-                TapHandler { onTapped: control.chosen(segment.modelData.value) }
+                MouseArea { anchors.fill: parent; onClicked: control.chosen(segment.modelData.value) }
             }
         }
     }

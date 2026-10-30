@@ -60,9 +60,10 @@ Item {
                         color: list.items.length === 0 ? Theme.color.label.secondary
                             : list.chosen === parent.index ? Theme.accent.fg : Theme.color.label.primary
                     }
-                    TapHandler {
+                    MouseArea {
+                        anchors.fill: parent
                         enabled: list.items.length > 0
-                        onTapped: list.chosen = parent.index
+                        onClicked: list.chosen = parent.index
                     }
                 }
             }
@@ -130,9 +131,10 @@ Item {
                     text: parent.modelData.glyph
                     color: parent.modelData.usable ? Theme.color.label.primary : Theme.color.label.tertiary
                 }
-                TapHandler {
+                MouseArea {
+                    anchors.fill: parent
                     enabled: parent.modelData.usable
-                    onTapped: parent.modelData.act()
+                    onClicked: parent.modelData.act()
                 }
             }
         }

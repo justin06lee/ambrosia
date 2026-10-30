@@ -34,7 +34,8 @@ Item {
         size: 12
         color: Theme.color.label.tertiary
     }
-    TapHandler {
-        onTapped: row.settings.choose(row.pane.id)
+    MouseArea {
+        anchors.fill: parent
+        onClicked: row.settings.choose(row.pane.id)
     }
 }

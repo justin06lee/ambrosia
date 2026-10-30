@@ -111,7 +111,7 @@ Sheet {
                     text: sheet.inUse ? qsTr("Connected") : qsTr("Not Connected")
                     color: entry.chosen ? Theme.accent.fg : Theme.color.label.secondary
                 }
-                TapHandler { onTapped: sheet.page = entry.modelData.id }
+                MouseArea { anchors.fill: parent; onClicked: sheet.page = entry.modelData.id }
             }
         }
     }

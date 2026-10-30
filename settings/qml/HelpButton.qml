@@ -22,5 +22,5 @@ Rectangle {
         size: 17
         color: Theme.color.label.primary
     }
-    TapHandler { onTapped: button.clicked() }
+    MouseArea { anchors.fill: parent; onClicked: button.clicked() }
 }

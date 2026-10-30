@@ -129,8 +129,9 @@ Sheet {
                     size: 13.4
                     Accessible.role: Accessible.ButtonMenu
                     Accessible.name: qsTr("Show Detail")
-                    TapHandler {
-                        onTapped: {
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
                             menu.network = entry.modelData;
                             menu.autoJoin = WiFi.details(entry.modelData.uuid).autoJoin ?? false;
                             menu.openUnder(moreButton);
