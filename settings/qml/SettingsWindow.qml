@@ -164,7 +164,7 @@ Window {
             height: parent.height - y
             focus: true
             enabled: !win.underSheet
-            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, network: networkPage, service: servicePage, vpn: vpnPage, displays: displaysPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
+            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, appearance: appearancePage, network: networkPage, service: servicePage, vpn: vpnPage, displays: displaysPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
             onLoaded: Qt.callLater(App.shown, win)
         }
         Component { id: generalPage; GeneralPage { settings: win } }
@@ -172,6 +172,7 @@ Window {
         Component { id: soundPage; SoundPage { settings: win } }
         Component { id: wifiPage; WiFiPage { settings: win } }
         Component { id: bluetoothPage; BluetoothPage { settings: win } }
+        Component { id: appearancePage; AppearancePage { settings: win } }
         Component { id: networkPage; NetworkPage { settings: win } }
         Component { id: servicePage; ServicePage { settings: win } }
         Component { id: vpnPage; VpnPage { settings: win } }

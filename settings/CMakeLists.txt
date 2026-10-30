@@ -33,6 +33,7 @@ qt_add_qml_module(ambrosia-settings
         src/wifi.h src/wifi.cpp
         src/bluetooth.h src/bluetooth.cpp
         src/nightshift.h src/nightshift.cpp
+        src/preferences.h src/preferences.cpp
         src/network.h src/network.cpp
         src/connectiondetails.h src/connectiondetails.cpp
         src/displays.h src/displays.cpp
@@ -83,6 +84,9 @@ qt_add_qml_module(ambrosia-settings
         qml/DisplaysPage.qml
         qml/ScaleTile.qml
         qml/Sheet.qml
+        qml/AppearancePage.qml
+        qml/AppearanceTile.qml
+        qml/RadioRow.qml
         qml/DetailsSheet.qml
         qml/DisplaysAdvancedSheet.qml
         qml/NightShiftSheet.qml
@@ -95,6 +99,8 @@ qt_add_qml_module(ambrosia-settings
         qml/WiFiPrivateSheet.qml
         qml/WiFiAdvancedSheet.qml
     RESOURCES
+        art/appearance-dark.svg
+        art/appearance-light.svg
         art/desktop.svg
         art/laptop.svg
         art/drive.svg

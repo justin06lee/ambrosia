@@ -18,6 +18,8 @@ ShellRoot {
     // The shell's look follows its settings.
     Binding { target: Theme; property: "dark"; value: Settings.dark }
     Binding { target: Theme; property: "accentName"; value: Settings.accent }
+    // Up from the start: it applies them and follows the night.
+    readonly property bool nightLight: Appearance.nightLight
 
     // Search takes the keyboard, and with it focus, from the app; menus keep
     // the app active, but its window may change under them. Either way the
