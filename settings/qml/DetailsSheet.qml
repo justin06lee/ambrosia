@@ -160,13 +160,26 @@ Sheet {
             value: (sheet.inUse ? sheet.details.address : sheet.details.mac) ?? ""
         }
     }
+    // A service's: its name, which the list and its page go by.
     Box {
-        visible: sheet.page === "network"
+        visible: sheet.page === "network" && !sheet.wifi
+        width: parent.width
+        FormRow {
+            label: qsTr("Name")
+            NameField {
+                width: 350
+                ring: false
+                value: sheet.name
+                onCommitted: (text) => sheet.change("name", text)
+            }
+        }
+    }
+    Box {
+        visible: sheet.page === "network" && sheet.wifi
         width: parent.width
         FormRow {
             label: qsTr("Low data mode")
-            description: sheet.wifi ? qsTr("Low data mode helps reduce your computer's data usage over specific Wi‑Fi networks you select.")
-                : qsTr("Low data mode helps reduce your computer's data usage over this connection.")
+            description: qsTr("Low data mode helps reduce your computer's data usage over specific Wi‑Fi networks you select.")
             firstLine: Look.switchHeight
             Switch {
                 checked: sheet.shown.lowData ?? false
@@ -175,7 +188,7 @@ Sheet {
         }
     }
     Box {
-        visible: sheet.page === "network" && sheet.inUse
+        visible: sheet.page === "network" && sheet.wifi && sheet.inUse
         width: parent.width
         FormRow { label: qsTr("IP address"); value: sheet.details.ip ?? "" }
         FormRow {

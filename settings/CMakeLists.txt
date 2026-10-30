@@ -32,6 +32,7 @@ qt_add_qml_module(ambrosia-settings
         src/sound.h src/sound.cpp
         src/wifi.h src/wifi.cpp
         src/bluetooth.h src/bluetooth.cpp
+        src/nightshift.h src/nightshift.cpp
         src/network.h src/network.cpp
         src/connectiondetails.h src/connectiondetails.cpp
         src/displays.h src/displays.cpp
@@ -84,6 +85,7 @@ qt_add_qml_module(ambrosia-settings
         qml/Sheet.qml
         qml/DetailsSheet.qml
         qml/DisplaysAdvancedSheet.qml
+        qml/NightShiftSheet.qml
         qml/MoreButton.qml
         qml/ServicePage.qml
         qml/StatusLine.qml

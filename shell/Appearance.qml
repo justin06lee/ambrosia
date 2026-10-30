@@ -24,9 +24,8 @@ Singleton {
     function setNightLight(on) {
         nightLight = on;
         Quickshell.execDetached(["sh", "-c",
-            `kwriteconfig6 --file kwinrc --group NightColor --key Active ${on} && ` +
-            "kwriteconfig6 --file kwinrc --group NightColor --key Mode Constant && " +
-            "dbus-send --session --type=method_call --dest=org.kde.KWin /KWin org.kde.KWin.reconfigure"]);
+            "kwriteconfig6 --file kwinrc --group NightColor --key Mode Constant --notify && " +
+            `kwriteconfig6 --file kwinrc --group NightColor --key Active ${on} --notify`]);
     }
 
     Process {
