@@ -5,7 +5,7 @@ import Settings
 // Displays, as System Settings lays it out: the displays in a band across
 // the top, then the one chosen's scale (Larger Text … More Space),
 // brightness where it can be dimmed, color profile, refresh rate and
-// rotation; Advanced… (DisplaysAdvancedSheet) at the foot. True Tone and the
+// rotation; Advanced… and Night Shift… (their sheets) at the foot. True Tone and the
 // TV's options are Apple's and left out.
 Page {
     id: page
@@ -201,12 +201,23 @@ Page {
     Item {
         width: Look.boxWidth
         height: Look.popupHeight + Look.boxGap
-        PushButton {
+        Row {
             x: parent.width - width
             y: Look.boxGap
-            text: qsTr("Advanced…")
-            onClicked: advancedSheet.open = true
+            spacing: 8
+            PushButton {
+                text: qsTr("Advanced…")
+                onClicked: advancedSheet.open = true
+            }
+            PushButton {
+                text: qsTr("Night Shift…")
+                onClicked: nightSheet.open = true
+            }
         }
+    }
+    NightShiftSheet {
+        id: nightSheet
+        settings: page.settings
     }
     DisplaysAdvancedSheet {
         id: advancedSheet

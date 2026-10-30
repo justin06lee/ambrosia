@@ -181,6 +181,10 @@ void Network::refresh()
         QString name = baseName(device);
         if (const int n = ++named[name]; n > 1)
             name += QLatin1Char(' ') + QString::number(n);
+        // One the user has named goes by that (Details…'s Name).
+        if (const Connection::Ptr saved = connectionOf(device);
+            saved && device->type() != Device::Wifi && !saved->name().startsWith(QLatin1String("Wired connection")))
+            name = saved->name();
         const QVariantMap service{
             {QStringLiteral("id"), device->uni()},
             {QStringLiteral("name"), name},
