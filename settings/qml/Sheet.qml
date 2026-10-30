@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Effects
+import QtQuick.Shapes
 import Ambrosia
 import Settings
 
@@ -53,17 +54,33 @@ Item {
         }
     }
 
-    // The window, dimmed; it takes no clicks while the sheet is up.
-    Rectangle {
+    // The window dimmed round the sidebar, which floats above it faded
+    // (Sidebar.qml); the window under it takes no clicks while it's up.
+    Shape {
         anchors.fill: parent
-        color: "black"
         opacity: Theme.dark ? 0.3 : 0.12
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.AllButtons
-            hoverEnabled: true
-            onWheel: (wheel) => wheel.accepted = true
+        preferredRendererType: Shape.CurveRenderer
+        ShapePath {
+            fillColor: "black"
+            strokeWidth: -1
+            fillRule: ShapePath.OddEvenFill
+            PathRectangle { width: sheet.width; height: sheet.height; radius: Look.windowRadius }
+            PathRectangle {
+                x: Look.sidebarInset
+                y: Look.sidebarInset
+                width: Look.sidebarWidth
+                height: sheet.height - 2 * Look.sidebarInset
+                radius: Look.sidebarRadius
+            }
         }
+    }
+    MouseArea {
+        x: Look.sidebarInset + Look.sidebarWidth
+        width: parent.width - x
+        height: parent.height
+        acceptedButtons: Qt.AllButtons
+        hoverEnabled: true
+        onWheel: (wheel) => wheel.accepted = true
     }
 
     Rectangle {

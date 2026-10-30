@@ -113,6 +113,12 @@ QtObject {
     readonly property color sidebarRim: dark ? "#1affffff" : "#ffffff"
     readonly property color search: dark ? "#2f2f2e" : "#e4e4e4"
     readonly property color selectionInactive: dark ? "#464646" : "#dcdcdc"
+    // Under a sheet the sidebar's labels fade to this, its icons and search
+    // to the second, and the selection is this gray (dark measured on the
+    // Mac, light a guess).
+    readonly property real sheetFade: 0.12
+    readonly property real sheetFadeIcon: 0.2
+    readonly property color selectionUnderSheet: dark ? "#2d2d2b" : "#ebebeb"
     readonly property color box: dark ? "#2d2d2b" : "#f7f7f7"
     readonly property color hairline: dark ? "#373735" : "#ebebeb"
     readonly property color capsule: dark ? "#1c1c1a" : "#f9f9f9"
