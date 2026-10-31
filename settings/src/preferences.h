@@ -30,6 +30,15 @@ class Preferences : public QObject
     Q_PROPERTY(QString wallpaperFit READ wallpaperFit WRITE setWallpaperFit NOTIFY changed)
     // The pictures added so far that still exist, the latest first.
     Q_PROPERTY(QStringList wallpaperRecent READ wallpaperRecent NOTIFY changed)
+    // The Dock, which the shell draws: its icons' size in points; how much
+    // the one under the pointer grows, 0 to 1; "left", "bottom" or "right";
+    // whether it hides, launching apps bounce, running ones have dots.
+    Q_PROPERTY(int dockSize READ dockSize WRITE setDockSize NOTIFY changed)
+    Q_PROPERTY(qreal dockMagnification READ dockMagnification WRITE setDockMagnification NOTIFY changed)
+    Q_PROPERTY(QString dockPosition READ dockPosition WRITE setDockPosition NOTIFY changed)
+    Q_PROPERTY(bool dockAutohide READ dockAutohide WRITE setDockAutohide NOTIFY changed)
+    Q_PROPERTY(bool dockBounce READ dockBounce WRITE setDockBounce NOTIFY changed)
+    Q_PROPERTY(bool dockIndicators READ dockIndicators WRITE setDockIndicators NOTIFY changed)
 
 public:
     explicit Preferences(QObject *parent = nullptr);
@@ -45,6 +54,18 @@ public:
     QString wallpaperFit() const;
     void setWallpaperFit(const QString &fit);
     QStringList wallpaperRecent() const;
+    int dockSize() const;
+    void setDockSize(int size);
+    qreal dockMagnification() const;
+    void setDockMagnification(qreal amount);
+    QString dockPosition() const;
+    void setDockPosition(const QString &position);
+    bool dockAutohide() const;
+    void setDockAutohide(bool on);
+    bool dockBounce() const;
+    void setDockBounce(bool on);
+    bool dockIndicators() const;
+    void setDockIndicators(bool on);
 
     // Where Nectar's day and night are.
     Q_INVOKABLE QString wallpaperFolder() const;
@@ -60,6 +81,7 @@ Q_SIGNALS:
 private:
     void read();
     void write();
+    void set(const QString &key, const QJsonValue &value);
 
     QString m_path;
     QJsonObject m_settings;

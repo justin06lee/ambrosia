@@ -23,6 +23,16 @@ Singleton {
     property alias wallpaper: adapter.wallpaper
     property alias wallpaperFit: adapter.wallpaperFit
     property alias wallpaperRecent: adapter.wallpaperRecent
+    // The Dock: the icons' size in points; how much the one under the pointer
+    // grows, 0 (not at all) to 1 (to twice its size); "left", "bottom" or
+    // "right"; hidden until the pointer reaches its edge; launching apps
+    // bounce; dots under running ones.
+    property alias dockSize: adapter.dockSize
+    property alias dockMagnification: adapter.dockMagnification
+    property alias dockPosition: adapter.dockPosition
+    property alias dockAutohide: adapter.dockAutohide
+    property alias dockBounce: adapter.dockBounce
+    property alias dockIndicators: adapter.dockIndicators
     // Read once: from here on, a change is one somebody made.
     property bool loaded: false
 
@@ -68,6 +78,12 @@ Singleton {
             // "fill", "fit", "stretch", "center" or "tile".
             property string wallpaperFit: "fill"
             property list<string> wallpaperRecent: []
+            property int dockSize: 52
+            property real dockMagnification: 0
+            property string dockPosition: "bottom"
+            property bool dockAutohide: false
+            property bool dockBounce: true
+            property bool dockIndicators: true
             // How many of migrate()'s steps this file has been through.
             property int migrated: 0
         }
