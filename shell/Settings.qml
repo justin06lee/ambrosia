@@ -17,6 +17,12 @@ Singleton {
     property alias dark: adapter.dark
     property alias accent: adapter.accent
     property alias doNotDisturb: adapter.doNotDisturb
+    // The desktop picture: "nectar" (ours, day or night with the appearance),
+    // a picture's path, or a color as "#rrggbb"; how a picture fits the
+    // screen; the pictures added so far, for Settings to offer again.
+    property alias wallpaper: adapter.wallpaper
+    property alias wallpaperFit: adapter.wallpaperFit
+    property alias wallpaperRecent: adapter.wallpaperRecent
     // Read once: from here on, a change is one somebody made.
     property bool loaded: false
 
@@ -58,6 +64,10 @@ Singleton {
             property bool dark: false
             property string accent: "blue"
             property bool doNotDisturb: false
+            property string wallpaper: "nectar"
+            // "fill", "fit", "stretch", "center" or "tile".
+            property string wallpaperFit: "fill"
+            property list<string> wallpaperRecent: []
             // How many of migrate()'s steps this file has been through.
             property int migrated: 0
         }

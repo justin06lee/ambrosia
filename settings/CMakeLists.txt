@@ -86,6 +86,9 @@ qt_add_qml_module(ambrosia-settings
         qml/Sheet.qml
         qml/AppearancePage.qml
         qml/AppearanceTile.qml
+        qml/WallpaperPage.qml
+        qml/WallpaperTile.qml
+        qml/WallpaperPicture.qml
         qml/RadioRow.qml
         qml/DetailsSheet.qml
         qml/DisplaysAdvancedSheet.qml

@@ -150,6 +150,10 @@ QtObject {
     // a scale tile's window.
     readonly property color band: dark ? "#282828" : window
     readonly property color bandRule: dark ? "#3e3e3e" : "#e0e0e0"
+    // Wallpaper: the rim round the chosen tile. Light measured on the Mac;
+    // dark, not captured, is a guess.
+    readonly property color tileRing: dark ? "#55ffffff" : "#d9d9d9"
+    readonly property int tileRadius: 6
     // A sheet: its fill, the dark line round it, the lighter rim inside
     // that, and the rule over its buttons. Dark measured on the Mac's
     // Bluetooth sheet; light, not yet captured, is white like the window.
