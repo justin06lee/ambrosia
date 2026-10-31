@@ -189,10 +189,15 @@ void Preferences::chooseWallpaperColor()
     present(dialog);
 }
 
-void Preferences::set(const QString &key, const QJsonValue &value)
+QVariantMap Preferences::all() const
+{
+    return m_settings.toVariantMap();
+}
+
+void Preferences::set(const QString &key, const QVariant &value)
 {
     read();
-    m_settings.insert(key, value);
+    m_settings.insert(key, QJsonValue::fromVariant(value));
     write();
 }
 

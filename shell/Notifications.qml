@@ -10,7 +10,9 @@ import Ambrosia
 // slides in from the edge of the screen and leaves after a few seconds, or
 // stays until closed when it's urgent; clicking it runs the notification's
 // default action. Banners step aside while the control center is open.
-// Focus (Do Not Disturb) holds back all but urgent ones.
+// Focus (Do Not Disturb) holds back all but urgent ones; an app turned off in
+// Settings is held back whatever it says; Settings' list of apps is those
+// heard from here. Without previews a banner says only that there's one.
 Scope {
     NotificationServer {
         id: server
@@ -19,6 +21,14 @@ Scope {
         bodyMarkupSupported: true
         imageSupported: true
         onNotification: notification => {
+            const entry = notification.desktopEntry ? DesktopEntries.byId(notification.desktopEntry) : null;
+            const app = notification.appName || entry?.name || "";
+            if (app !== "") {
+                const heard = Settings.notificationApps.some(each => each.split("\t")[0] === app);
+                if (!heard)
+                    Settings.notificationApps = Settings.notificationApps.concat([`${app}\t${entry?.icon ?? notification.appIcon ?? ""}`]);
+                if (Settings.notificationsOff.includes(app)) return;
+            }
             if (Settings.doNotDisturb && notification.urgency !== NotificationUrgency.Critical) return;
             notification.tracked = true;
         }
@@ -175,7 +185,7 @@ Scope {
                         }
                         Label {
                             width: parent.width
-                            text: banner.modelData.summary
+                            text: Settings.notificationPreviews ? banner.modelData.summary : "Notification"
                             style: Theme.text.headline
                             elide: Text.ElideRight
                             textFormat: Text.PlainText
@@ -183,7 +193,7 @@ Scope {
                         Label {
                             width: parent.width
                             visible: text !== ""
-                            text: banner.modelData.body
+                            text: Settings.notificationPreviews ? banner.modelData.body : ""
                             color: Theme.color.label.secondary
                             wrapMode: Text.Wrap
                             maximumLineCount: 3

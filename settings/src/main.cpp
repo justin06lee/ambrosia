@@ -6,6 +6,26 @@
 #include <QDBusMessage>
 #include <QIcon>
 #include <QQmlApplicationEngine>
+#include <QQuickImageProvider>
+
+// image://icon/NAME, an icon of the system's theme, or a file's.
+class ThemeIcons : public QQuickImageProvider
+{
+public:
+    ThemeIcons()
+        : QQuickImageProvider(QQuickImageProvider::Pixmap)
+    {
+    }
+    QPixmap requestPixmap(const QString &name, QSize *size, const QSize &requested) override
+    {
+        const QSize wanted = requested.isValid() ? requested : QSize(64, 64);
+        const QIcon icon = name.startsWith(QLatin1Char('/')) ? QIcon(name) : QIcon::fromTheme(name, QIcon::fromTheme(QStringLiteral("application-x-executable")));
+        const QPixmap pixmap = icon.pixmap(wanted);
+        if (size)
+            *size = pixmap.size();
+        return pixmap;
+    }
+};
 
 int main(int argc, char *argv[])
 {
@@ -52,6 +72,7 @@ int main(int argc, char *argv[])
     if (options.grab.isEmpty())
         bus.registerObject(QStringLiteral("/org/ambrosia/settings"), &settings, QDBusConnection::ExportScriptableSlots);
     QQmlApplicationEngine engine;
+    engine.addImageProvider(QStringLiteral("icon"), new ThemeIcons);
     QObject::connect(&engine, &QQmlApplicationEngine::objectCreationFailed, &app, [] { QCoreApplication::exit(1); }, Qt::QueuedConnection);
     engine.loadFromModule(QStringLiteral("Settings"), QStringLiteral("SettingsWindow"));
     return app.exec();

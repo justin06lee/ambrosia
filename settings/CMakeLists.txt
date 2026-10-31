@@ -92,6 +92,10 @@ qt_add_qml_module(ambrosia-settings
         qml/WallpaperPicture.qml
         qml/DockPage.qml
         qml/HotCornersSheet.qml
+        qml/MenuBarPage.qml
+        qml/ClockOptionsSheet.qml
+        qml/NotificationsPage.qml
+        qml/FocusPage.qml
         qml/RadioRow.qml
         qml/DetailsSheet.qml
         qml/DisplaysAdvancedSheet.qml

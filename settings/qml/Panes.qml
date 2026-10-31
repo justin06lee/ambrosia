@@ -36,7 +36,7 @@ QtObject {
               keywords: ["dock", "hot corners", "windows", "minimize", "magnification", "browser", "tile"] },
             { id: "displays", name: "Displays", glyph: "displays", tint: "blue", page: "displays",
               keywords: ["resolution", "monitor", "scale", "refresh rate", "arrangement", "night shift"] },
-            { id: "menubar", name: "Menu Bar", glyph: "menubar", tint: "gray",
+            { id: "menubar", name: "Menu Bar", glyph: "menubar", tint: "gray", page: "menubar",
               keywords: ["control center", "menu bar", "clock"] },
             { id: "spotlight", name: "Spotlight", glyph: "spotlight", tint: "blue",
               keywords: ["search"] },
@@ -44,11 +44,11 @@ QtObject {
               keywords: ["background", "desktop picture"] },
         ],
         [
-            { id: "notifications", name: "Notifications", glyph: "notifications", tint: "red",
+            { id: "notifications", name: "Notifications", glyph: "notifications", tint: "red", page: "notifications",
               keywords: ["alerts", "banners", "badges"] },
             { id: "sound", name: "Sound", glyph: "sound", tint: "pink", page: "sound",
               keywords: ["volume", "output", "input", "microphone", "speakers", "alert"] },
-            { id: "focus", name: "Focus", glyph: "focus", tint: "indigo",
+            { id: "focus", name: "Focus", glyph: "focus", tint: "indigo", page: "focus",
               keywords: ["do not disturb"] },
         ],
         [
