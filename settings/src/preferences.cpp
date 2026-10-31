@@ -2,18 +2,36 @@
 
 #include <KConfigGroup>
 #include <KSharedConfig>
+#include <QColorDialog>
 #include <QDir>
 #include <QFile>
+#include <QFileDialog>
 #include <QFileInfo>
+#include <QGuiApplication>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QSaveFile>
 #include <QStandardPaths>
+#include <QWindow>
 
 namespace
 {
 KConfigGroup desktop()
 {
     return KSharedConfig::openConfig(QStringLiteral("kdeglobals"))->group(QStringLiteral("KDE"));
+}
+
+// How many added pictures are offered again.
+constexpr int recentPictures = 11;
+
+// Over the window it was asked from, and gone when it closes.
+void present(QDialog *dialog)
+{
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->winId();
+    if (QWindow *parent = QGuiApplication::focusWindow())
+        dialog->windowHandle()->setTransientParent(parent);
+    dialog->open();
 }
 }
 
@@ -90,4 +108,83 @@ void Preferences::setJumpToClick(bool on)
     group.writeEntry("ScrollbarLeftClickNavigatesByPage", !on, KConfig::Notify);
     group.sync();
     Q_EMIT changed();
+}
+
+QString Preferences::wallpaper() const
+{
+    const QString wallpaper = m_settings.value(QStringLiteral("wallpaper")).toString(QStringLiteral("nectar"));
+    return wallpaper.startsWith(QLatin1Char('/')) && !QFile::exists(wallpaper) ? QStringLiteral("nectar") : wallpaper;
+}
+
+void Preferences::setWallpaper(const QString &wallpaper)
+{
+    read();
+    m_settings.insert(QStringLiteral("wallpaper"), wallpaper);
+    write();
+}
+
+QString Preferences::wallpaperFit() const
+{
+    return m_settings.value(QStringLiteral("wallpaperFit")).toString(QStringLiteral("fill"));
+}
+
+void Preferences::setWallpaperFit(const QString &fit)
+{
+    read();
+    m_settings.insert(QStringLiteral("wallpaperFit"), fit);
+    write();
+}
+
+QStringList Preferences::wallpaperRecent() const
+{
+    QStringList recent;
+    const QJsonArray saved = m_settings.value(QStringLiteral("wallpaperRecent")).toArray();
+    for (const QJsonValue &path : saved) {
+        if (QFile::exists(path.toString()))
+            recent.append(path.toString());
+    }
+    return recent;
+}
+
+QString Preferences::wallpaperFolder() const
+{
+    const QString folder = qEnvironmentVariable("AMBROSIA_WALLPAPERS");
+    return folder.isEmpty() ? QStringLiteral("/usr/share/ambrosia/wallpapers") : folder;
+}
+
+QUrl Preferences::pictureUrl(const QString &path) const
+{
+    return QUrl::fromLocalFile(path);
+}
+
+void Preferences::addWallpaperPicture()
+{
+    auto *dialog = new QFileDialog(nullptr, tr("Add Photo"),
+                                   QStandardPaths::writableLocation(QStandardPaths::PicturesLocation),
+                                   tr("Pictures (*.png *.jpg *.jpeg *.webp *.avif *.heic *.bmp *.tif *.tiff)"));
+    dialog->setFileMode(QFileDialog::ExistingFile);
+    connect(dialog, &QFileDialog::fileSelected, this, [this](const QString &path) {
+        read();
+        QJsonArray recent{path};
+        const QJsonArray saved = m_settings.value(QStringLiteral("wallpaperRecent")).toArray();
+        for (const QJsonValue &other : saved) {
+            if (other.toString() != path && recent.size() < recentPictures)
+                recent.append(other);
+        }
+        m_settings.insert(QStringLiteral("wallpaperRecent"), recent);
+        m_settings.insert(QStringLiteral("wallpaper"), path);
+        write();
+    });
+    present(dialog);
+}
+
+void Preferences::chooseWallpaperColor()
+{
+    const QString now = wallpaper();
+    auto *dialog = new QColorDialog(now.startsWith(QLatin1Char('#')) ? QColor(now) : QColor(Qt::black));
+    dialog->setWindowTitle(tr("Custom Color"));
+    connect(dialog, &QColorDialog::colorSelected, this, [this](const QColor &color) {
+        setWallpaper(color.name());
+    });
+    present(dialog);
 }

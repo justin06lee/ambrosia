@@ -40,7 +40,7 @@ QtObject {
               keywords: ["control center", "menu bar", "clock"] },
             { id: "spotlight", name: "Spotlight", glyph: "spotlight", tint: "blue",
               keywords: ["search"] },
-            { id: "wallpaper", name: "Wallpaper", glyph: "wallpaper", tint: "cyan",
+            { id: "wallpaper", name: "Wallpaper", glyph: "wallpaper", tint: "cyan", page: "wallpaper",
               keywords: ["background", "desktop picture"] },
         ],
         [
