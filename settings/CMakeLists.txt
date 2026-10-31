@@ -35,6 +35,13 @@ qt_add_qml_module(ambrosia-settings
         src/nightshift.h src/nightshift.cpp
         src/preferences.h src/preferences.cpp
         src/windowing.h src/windowing.cpp
+        src/dryrun.h
+        src/updates.h src/updates.cpp
+        src/storage.h src/storage.cpp
+        src/datetime.h src/datetime.cpp
+        src/region.h src/region.cpp
+        src/loginitems.h src/loginitems.cpp
+        src/sharing.h src/sharing.cpp
         src/network.h src/network.cpp
         src/connectiondetails.h src/connectiondetails.cpp
         src/displays.h src/displays.cpp
@@ -96,6 +103,14 @@ qt_add_qml_module(ambrosia-settings
         qml/ClockOptionsSheet.qml
         qml/NotificationsPage.qml
         qml/FocusPage.qml
+        qml/SoftwareUpdatePage.qml
+        qml/StoragePage.qml
+        qml/DateTimePage.qml
+        qml/LanguagePage.qml
+        qml/LoginItemsPage.qml
+        qml/SharingPage.qml
+        qml/ChooserSheet.qml
+        qml/PickList.qml
         qml/RadioRow.qml
         qml/DetailsSheet.qml
         qml/DisplaysAdvancedSheet.qml

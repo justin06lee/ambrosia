@@ -77,18 +77,18 @@ QtObject {
     readonly property var general: [
         [
             { id: "about", name: "About", glyph: About.laptop ? "laptop" : "desktop", tint: "gray", page: "about" },
-            { id: "softwareupdate", name: "Software Update", glyph: "update", tint: "gray", module: "kcm_updates",
+            { id: "softwareupdate", name: "Software Update", glyph: "update", tint: "gray", page: "softwareupdate",
               keywords: ["update", "upgrade", "packages"] },
-            { id: "storage", name: "Storage", glyph: "storage", tint: "gray", keywords: ["disk", "space"] },
+            { id: "storage", name: "Storage", glyph: "storage", tint: "gray", page: "storage", keywords: ["disk", "space"] },
         ],
         [
-            { id: "datetime", name: "Date & Time", glyph: "datetime", tint: "blue", module: "kcm_clock",
+            { id: "datetime", name: "Date & Time", glyph: "datetime", tint: "blue", page: "datetime",
               keywords: ["clock", "time zone", "24-hour"] },
-            { id: "language", name: "Language & Region", glyph: "language", tint: "blue", module: "kcm_regionandlang",
+            { id: "language", name: "Language & Region", glyph: "language", tint: "blue", page: "language",
               keywords: ["language", "region", "formats", "calendar"] },
-            { id: "loginitems", name: "Login Items", glyph: "loginitems", tint: "gray", module: "kcm_autostart",
+            { id: "loginitems", name: "Login Items", glyph: "loginitems", tint: "gray", page: "loginitems",
               keywords: ["startup", "autostart", "login"] },
-            { id: "sharing", name: "Sharing", glyph: "loginitems", tint: "gray", keywords: ["computer name", "remote login"] },
+            { id: "sharing", name: "Sharing", glyph: "users", tint: "gray", page: "sharing", keywords: ["computer name", "remote login"] },
         ],
     ]
     // The pages a pane holds, by its id, and the pane each page is in.
