@@ -8,12 +8,26 @@ populate_ambrosia() {
 	fi
 }
 
+# PackageKit, unlike pacman, carries one section's SigLevel on to the next
+# section that has none. [ambrosia]'s Required then asks a signature of Arch's
+# unsigned databases, and PackageKit drops those repos without a word, so
+# Software Update sees only ours. pacman's own default, said outright, stops it.
+# The installer writes the same; this is for systems installed before that.
+explicit_siglevels() {
+	grep -qx '\[ambrosia\]' etc/pacman.conf 2>/dev/null || return 0
+	sed -i '/^\[\(core\|extra\|multilib\)\]$/{n;/^SigLevel/!i\
+SigLevel = Required DatabaseOptional
+}' etc/pacman.conf
+}
+
 post_install() {
 	if [ -x usr/bin/pacman-key ]; then
 		populate_ambrosia
 	fi
+	explicit_siglevels
 }
 
 post_upgrade() {
 	populate_ambrosia
+	explicit_siglevels
 }

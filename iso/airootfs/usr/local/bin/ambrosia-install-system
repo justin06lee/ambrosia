@@ -51,6 +51,13 @@ block="$ambrosia" awk '/^\[core\]$/ && !done { print ENVIRON["block"] "\n"; done
   /mnt/etc/pacman.conf >/mnt/etc/pacman.conf.new
 mv /mnt/etc/pacman.conf.new /mnt/etc/pacman.conf
 grep -qx '\[ambrosia\]' /mnt/etc/pacman.conf || { echo "no [core] in the new pacman.conf" >&2; exit 1; }
+# PackageKit carries a section's SigLevel on to the next section with none, so
+# [ambrosia]'s Required would make Software Update drop Arch's unsigned
+# databases. pacman's own default, said outright for each (as in
+# packaging/ambrosia-keyring.install).
+sed -i '/^\[\(core\|extra\|multilib\)\]$/{n;/^SigLevel/!i\
+SigLevel = Required DatabaseOptional
+}' /mnt/etc/pacman.conf
 # The image's unsigned database would fail SigLevel = Required until the first
 # sync; without it, the first -Syu just fetches the hosted one.
 rm -f /mnt/var/lib/pacman/sync/ambrosia.*

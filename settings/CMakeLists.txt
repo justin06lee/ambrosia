@@ -10,6 +10,7 @@ endif()
 find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControls2 DBus)
 find_package(KF6WindowSystem REQUIRED)
 find_package(KF6Config REQUIRED)
+find_package(KF6Service REQUIRED)
 find_package(KF6PulseAudioQt REQUIRED)
 find_package(KF6NetworkManagerQt REQUIRED)
 find_package(KF6BluezQt REQUIRED)
@@ -135,7 +136,7 @@ target_include_directories(ambrosia-settings PRIVATE src)
 
 target_link_libraries(ambrosia-settings PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem
-    KF6::ConfigCore KF6::PulseAudioQt KF6::NetworkManagerQt KF6::BluezQt KF6::Screen PkgConfig::PULSE
+    KF6::ConfigCore KF6::Service KF6::PulseAudioQt KF6::NetworkManagerQt KF6::BluezQt KF6::Screen PkgConfig::PULSE
 )
 
 include(GNUInstallDirs)

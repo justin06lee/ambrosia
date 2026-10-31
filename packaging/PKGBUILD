@@ -94,8 +94,8 @@ package_ambrosia-shell() {
   # scopes; dbus: dbus-test-tool holds the app menu view's bus name.
   depends=(ambrosia-theme ambrosia-decoration quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
            qt6-svg qt6-imageformats upower dconf)
-  backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc etc/xdg/ambrosia/breezerc
-          etc/xdg/ambrosia/mimeapps.list)
+  backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc etc/xdg/ambrosia/kwinrulesrc
+          etc/xdg/ambrosia/breezerc etc/xdg/ambrosia/mimeapps.list)
   cd "$_root"
 
   install -d "$pkgdir/usr/share/ambrosia/shell" "$pkgdir/usr/share/plasma/look-and-feel"
@@ -119,7 +119,7 @@ package_ambrosia-shell() {
   # Plasma writes its look-and-feel's defaults into ~/.config/kdedefaults,
   # ahead of /etc/xdg/ambrosia, so the session's colors live in one of ours.
   cp -r session/look-and-feel/. "$pkgdir/usr/share/plasma/look-and-feel/"
-  install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/breezerc session/xdg/mimeapps.list \
+  install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/kwinrulesrc session/xdg/breezerc session/xdg/mimeapps.list \
     -t "$pkgdir/etc/xdg/ambrosia/"
   # The session's GSettings defaults (DCONF_PROFILE=ambrosia); dconf's own
   # pacman hook compiles the database.
@@ -143,7 +143,7 @@ package_ambrosia-settings() {
   # bluez-qt: Bluetooth; bluedevil's agent asks for pairing codes.
   # libkscreen: Displays; powerdevil's brightness service dims them.
   # The QML and art are in the binary.
-  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kwindowsystem kconfig kcmutils hwdata inter-font
+  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kwindowsystem kconfig kservice kcmutils hwdata inter-font
            pulseaudio-qt libpulse plasma-pa networkmanager-qt networkmanager bluez-qt bluez bluedevil libkscreen powerdevil)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-settings"
 }
