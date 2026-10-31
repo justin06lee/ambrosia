@@ -1,6 +1,8 @@
 #include "windowing.h"
 
+#include <KApplicationTrader>
 #include <KConfigGroup>
+#include <KService>
 #include <KSharedConfig>
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -83,7 +85,13 @@ KConfigGroup defaultApplications()
 
 QString currentBrowser()
 {
-    return defaultApplications().readEntry("x-scheme-handler/https", QString());
+    // The user's own choice, or, on a system where they haven't made one yet,
+    // whichever browser their links open in.
+    const QString chosen = defaultApplications().readEntry("x-scheme-handler/https", QString());
+    if (!chosen.isEmpty())
+        return chosen;
+    const KService::Ptr service = KApplicationTrader::preferredService(u"x-scheme-handler/https"_s);
+    return service ? service->storageId() : QString();
 }
 }
 

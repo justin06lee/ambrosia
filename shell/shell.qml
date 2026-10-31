@@ -40,7 +40,16 @@ ShellRoot {
         }
     }
 
-    Dock { screen: Quickshell.screens[0] ?? null }
+    // Made afresh when the first screen changes, as the menu bar is above: a
+    // window whose screen went away doesn't come back on its own.
+    Variants {
+        model: Quickshell.screens.slice(0, 1)
+
+        Dock {
+            required property ShellScreen modelData
+            screen: modelData
+        }
+    }
     Notifications {}
 
     // `ambrosia search`, `ambrosia control-center` (see session/ambrosia):
