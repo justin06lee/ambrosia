@@ -34,6 +34,7 @@ qt_add_qml_module(ambrosia-settings
         src/bluetooth.h src/bluetooth.cpp
         src/nightshift.h src/nightshift.cpp
         src/preferences.h src/preferences.cpp
+        src/windowing.h src/windowing.cpp
         src/network.h src/network.cpp
         src/connectiondetails.h src/connectiondetails.cpp
         src/displays.h src/displays.cpp
@@ -89,6 +90,8 @@ qt_add_qml_module(ambrosia-settings
         qml/WallpaperPage.qml
         qml/WallpaperTile.qml
         qml/WallpaperPicture.qml
+        qml/DockPage.qml
+        qml/HotCornersSheet.qml
         qml/RadioRow.qml
         qml/DetailsSheet.qml
         qml/DisplaysAdvancedSheet.qml

@@ -188,3 +188,70 @@ void Preferences::chooseWallpaperColor()
     });
     present(dialog);
 }
+
+void Preferences::set(const QString &key, const QJsonValue &value)
+{
+    read();
+    m_settings.insert(key, value);
+    write();
+}
+
+int Preferences::dockSize() const
+{
+    return m_settings.value(QStringLiteral("dockSize")).toInt(52);
+}
+
+void Preferences::setDockSize(int size)
+{
+    set(QStringLiteral("dockSize"), size);
+}
+
+qreal Preferences::dockMagnification() const
+{
+    return m_settings.value(QStringLiteral("dockMagnification")).toDouble(0);
+}
+
+void Preferences::setDockMagnification(qreal amount)
+{
+    set(QStringLiteral("dockMagnification"), amount);
+}
+
+QString Preferences::dockPosition() const
+{
+    return m_settings.value(QStringLiteral("dockPosition")).toString(QStringLiteral("bottom"));
+}
+
+void Preferences::setDockPosition(const QString &position)
+{
+    set(QStringLiteral("dockPosition"), position);
+}
+
+bool Preferences::dockAutohide() const
+{
+    return m_settings.value(QStringLiteral("dockAutohide")).toBool(false);
+}
+
+void Preferences::setDockAutohide(bool on)
+{
+    set(QStringLiteral("dockAutohide"), on);
+}
+
+bool Preferences::dockBounce() const
+{
+    return m_settings.value(QStringLiteral("dockBounce")).toBool(true);
+}
+
+void Preferences::setDockBounce(bool on)
+{
+    set(QStringLiteral("dockBounce"), on);
+}
+
+bool Preferences::dockIndicators() const
+{
+    return m_settings.value(QStringLiteral("dockIndicators")).toBool(true);
+}
+
+void Preferences::setDockIndicators(bool on)
+{
+    set(QStringLiteral("dockIndicators"), on);
+}
