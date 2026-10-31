@@ -33,6 +33,24 @@ Singleton {
     property alias dockAutohide: adapter.dockAutohide
     property alias dockBounce: adapter.dockBounce
     property alias dockIndicators: adapter.dockIndicators
+    // The menu bar: "always", "fullscreen" (hidden only under a full-screen
+    // window) or "never"; its glass or none; the status items not shown, by
+    // owner; those of Focus, Sound and Now Playing shown even when idle; and
+    // how the clock reads.
+    property alias menuBarAutohide: adapter.menuBarAutohide
+    property alias menuBarBackground: adapter.menuBarBackground
+    property alias menuBarHidden: adapter.menuBarHidden
+    property alias menuBarAlways: adapter.menuBarAlways
+    property alias clockDate: adapter.clockDate
+    property alias clockWeekday: adapter.clockWeekday
+    property alias clock24: adapter.clock24
+    property alias clockAmPm: adapter.clockAmPm
+    property alias clockSeconds: adapter.clockSeconds
+    // Notifications: banners show what they say, or only that there's one;
+    // the apps heard from so far, each "name<tab>icon"; those turned off.
+    property alias notificationPreviews: adapter.notificationPreviews
+    property alias notificationApps: adapter.notificationApps
+    property alias notificationsOff: adapter.notificationsOff
     // Read once: from here on, a change is one somebody made.
     property bool loaded: false
 
@@ -84,6 +102,18 @@ Singleton {
             property bool dockAutohide: false
             property bool dockBounce: true
             property bool dockIndicators: true
+            property string menuBarAutohide: "fullscreen"
+            property bool menuBarBackground: true
+            property list<string> menuBarHidden: ["bluetooth"]
+            property list<string> menuBarAlways: []
+            property bool clockDate: true
+            property bool clockWeekday: true
+            property bool clock24: false
+            property bool clockAmPm: true
+            property bool clockSeconds: false
+            property bool notificationPreviews: true
+            property list<string> notificationApps: []
+            property list<string> notificationsOff: []
             // How many of migrate()'s steps this file has been through.
             property int migrated: 0
         }

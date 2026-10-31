@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QUrl>
+#include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 
 // What Settings shares with the shell, ~/.config/ambrosia/settings.json: the
@@ -39,6 +40,9 @@ class Preferences : public QObject
     Q_PROPERTY(bool dockAutohide READ dockAutohide WRITE setDockAutohide NOTIFY changed)
     Q_PROPERTY(bool dockBounce READ dockBounce WRITE setDockBounce NOTIFY changed)
     Q_PROPERTY(bool dockIndicators READ dockIndicators WRITE setDockIndicators NOTIFY changed)
+    // All of the file, for what a page only reads and writes as it stands
+    // (the menu bar's, Notifications', Focus'), through set() below.
+    Q_PROPERTY(QVariantMap all READ all NOTIFY changed)
 
 public:
     explicit Preferences(QObject *parent = nullptr);
@@ -66,6 +70,8 @@ public:
     void setDockBounce(bool on);
     bool dockIndicators() const;
     void setDockIndicators(bool on);
+    QVariantMap all() const;
+    Q_INVOKABLE void set(const QString &key, const QVariant &value);
 
     // Where Nectar's day and night are.
     Q_INVOKABLE QString wallpaperFolder() const;
@@ -81,7 +87,6 @@ Q_SIGNALS:
 private:
     void read();
     void write();
-    void set(const QString &key, const QJsonValue &value);
 
     QString m_path;
     QJsonObject m_settings;

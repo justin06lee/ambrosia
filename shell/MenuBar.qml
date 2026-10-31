@@ -1,6 +1,9 @@
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Bluetooth
 import Quickshell.Networking
+import Quickshell.Services.Mpris
+import Quickshell.Services.Pipewire
 import Quickshell.Services.UPower
 import QtQuick
 import Ambrosia
@@ -9,7 +12,10 @@ import Ambrosia
 // on the left; status, search, the control center and the clock on the
 // right. Menus open on press, and once one is open, moving along the titles
 // switches to theirs. Thin glass: the material's tint over the compositor's
-// blur.
+// blur, or none. Which status items show, how the clock reads and whether the
+// bar hides are Settings'; hiding, it slides off and the top edge brings it
+// back. Under a full-screen window KWin covers it, unless it's told never to
+// hide, on the layer above.
 PanelWindow {
     id: bar
 
@@ -20,12 +26,47 @@ PanelWindow {
     readonly property var appTitles: hasAppMenu ? appEntries : []
     readonly property bool appHasWindowMenu: appTitles.some(entry => entry.text === "Window")
 
+    readonly property bool hides: Settings.menuBarAutohide === "always"
+    readonly property bool awake: !hides || hover.hovered || Popups.kind !== "" || Popups.searchOpen
+    property bool asleep: false
+    onAwakeChanged: {
+        if (awake) {
+            sleepSoon.stop();
+            asleep = false;
+        } else {
+            sleepSoon.restart();
+        }
+    }
+    Component.onCompleted: asleep = !awake
+    Timer {
+        id: sleepSoon
+        interval: 350
+        onTriggered: bar.asleep = true
+    }
+    HoverHandler { id: hover }
+    // Asleep, only the top edge of the screen takes the pointer.
+    Item {
+        id: topEdge
+        width: parent.width
+        height: 2
+    }
+
     anchors { top: true; left: true; right: true }
     implicitHeight: Theme.size.menubar.height
+    exclusiveZone: hides ? 0 : Theme.size.menubar.height
     color: "transparent"
-    WlrLayershell.layer: WlrLayer.Top
+    WlrLayershell.layer: Settings.menuBarAutohide === "never" ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: "ambrosia-menubar"
-    BackgroundEffect.blurRegion: Region { item: glass }
+    mask: Region { item: bar.asleep ? topEdge : sliding }
+    BackgroundEffect.blurRegion: Region { item: Settings.menuBarBackground ? glass : null }
+
+    function shows(owner) {
+        return !Settings.menuBarHidden.includes(owner);
+    }
+    // Focus, Sound and Now Playing show while they've something to say, or always.
+    function always(owner) {
+        return Settings.menuBarAlways.includes(owner);
+    }
 
     Loader {
         id: appMenu
@@ -152,6 +193,62 @@ PanelWindow {
         ];
     }
 
+    function bluetoothMenu() {
+        const adapter = Bluetooth.defaultAdapter;
+        const items = [{
+            text: "Bluetooth", checked: adapter?.enabled ?? false, enabled: !!adapter,
+            action: () => adapter.enabled = !adapter.enabled,
+        }];
+        const connected = Bluetooth.devices.values.filter(device => device.connected);
+        if (connected.length > 0) items.push({ separator: true });
+        for (const device of connected) items.push({ text: device.name, checked: true, enabled: false });
+        items.push({ separator: true });
+        items.push({ text: "Bluetooth Settings…", action: () => Session.settings("bluetooth") });
+        return items;
+    }
+
+    function focusMenu() {
+        return [
+            { text: "Do Not Disturb", checked: Settings.doNotDisturb, action: () => Settings.doNotDisturb = !Settings.doNotDisturb },
+            { separator: true },
+            { text: "Focus Settings…", action: () => Session.settings("focus") },
+        ];
+    }
+
+    function soundMenu() {
+        const sinks = Pipewire.nodes.values.filter(node => node.isSink && !node.isStream && node.audio);
+        const items = sinks.map(node => ({
+            text: node.description || node.nickname || node.name,
+            checked: node === Pipewire.defaultAudioSink,
+            action: () => Pipewire.preferredDefaultAudioSink = node,
+        }));
+        if (items.length > 0) items.push({ separator: true });
+        items.push({ text: "Sound Settings…", action: () => Session.settings("sound") });
+        return items;
+    }
+
+    readonly property var player: Mpris.players.values.find(each => each.isPlaying) ?? Mpris.players.values[0] ?? null
+    function nowPlayingMenu() {
+        const player = bar.player;
+        if (!player) return [{ text: "Not Playing", enabled: false }];
+        const items = [
+            { text: player.trackTitle || player.identity, enabled: false },
+            { separator: true },
+            { text: player.isPlaying ? "Pause" : "Play", enabled: player.canTogglePlaying, action: () => player.togglePlaying() },
+            { text: "Next", enabled: player.canGoNext, action: () => player.next() },
+            { text: "Previous", enabled: player.canGoPrevious, action: () => player.previous() },
+        ];
+        return items;
+    }
+    PwObjectTracker { objects: [Pipewire.defaultAudioSink] }
+
+    readonly property string clockFormat: {
+        const date = (Settings.clockWeekday ? "ddd " : "") + (Settings.clockDate ? "MMM d" : "");
+        const time = (Settings.clock24 ? "HH:mm" : "h:mm") + (Settings.clockSeconds ? ":ss" : "")
+            + (!Settings.clock24 && Settings.clockAmPm ? " AP" : "");
+        return date.trim() === "" ? time : date.trim() + "  " + time;
+    }
+
     function clockMenu() {
         return [
             { text: Qt.formatDateTime(clock.date, "dddd, MMMM d, yyyy"), enabled: false },
@@ -192,9 +289,17 @@ PanelWindow {
         }
     }
 
+    Item {
+    id: sliding
+    width: parent.width
+    height: parent.height
+    y: bar.asleep ? -height : 0
+    Behavior on y { NumberAnimation { duration: Theme.fade.base; easing.type: Easing.InOutQuad } }
+
     Rectangle {
         id: glass
         anchors.fill: parent
+        visible: Settings.menuBarBackground
         color: Theme.color.material.thin.tint
 
         // The hairline under the bar.
@@ -237,15 +342,33 @@ PanelWindow {
 
         MenuBarItem {
             owner: "battery"; icon: "battery"; menu: bar.batteryMenu
-            visible: UPower.displayDevice.isLaptopBattery
+            visible: UPower.displayDevice.isLaptopBattery && bar.shows("battery")
         }
         MenuBarItem {
             owner: "wifi"; icon: "wifi"; menu: bar.wifiMenu
-            visible: bar.wifiDevice !== null
+            visible: bar.wifiDevice !== null && bar.shows("wifi")
             iconOpacity: Networking.wifiEnabled && bar.wifiDevice?.connected ? 1 : 0.4
         }
         MenuBarItem {
+            owner: "bluetooth"; icon: "bluetooth"; menu: bar.bluetoothMenu
+            visible: !!Bluetooth.defaultAdapter && bar.shows("bluetooth")
+            iconOpacity: Bluetooth.defaultAdapter?.enabled ? 1 : 0.4
+        }
+        MenuBarItem {
+            owner: "nowplaying"; icon: bar.player?.isPlaying ? "pause" : "play"; menu: bar.nowPlayingMenu
+            visible: bar.shows("nowplaying") && (bar.always("nowplaying") || bar.player !== null)
+        }
+        MenuBarItem {
+            owner: "sound"; icon: Pipewire.defaultAudioSink?.audio?.muted ? "speakerOff" : "speaker"; menu: bar.soundMenu
+            visible: bar.shows("sound") && (bar.always("sound") || Pipewire.nodes.values.some(node => node.isStream && node.audio))
+        }
+        MenuBarItem {
+            owner: "focus"; icon: "moon"; menu: bar.focusMenu
+            visible: bar.shows("focus") && (bar.always("focus") || Settings.doNotDisturb)
+        }
+        MenuBarItem {
             owner: "search"; icon: "search"
+            visible: bar.shows("search")
             active: Popups.searchOpen
             onPressed: Popups.toggleSearch(bar.screen)
         }
@@ -256,13 +379,14 @@ PanelWindow {
         }
         MenuBarItem {
             owner: "clock"; menu: bar.clockMenu
-            text: Qt.formatDateTime(clock.date, "ddd MMM d  h:mm AP")
+            text: Qt.formatDateTime(clock.date, bar.clockFormat)
             leftPadding: Theme.space.s2
         }
+    }
     }
 
     SystemClock {
         id: clock
-        precision: SystemClock.Minutes
+        precision: Settings.clockSeconds ? SystemClock.Seconds : SystemClock.Minutes
     }
 }

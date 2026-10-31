@@ -67,7 +67,7 @@ Sidebar in macOS 26's order, keeping only what maps:
 | Control Center | shell: each module's Show in Menu Bar / Show in Control Center, menu bar autohide |
 | Spotlight | our Search on Super+Space: only the result kinds it has |
 | Privacy & Security | xdg-desktop-portal permission store (camera, mic, screen recording grants for portal apps); disk encryption status |
-| Desktop & Dock | shell (size, magnification, position, autohide, indicators, recent apps), KWin (minimize effect, double-click title bar, hot corners), default web browser (xdg-settings) |
+| Desktop & Dock | shell (size, magnification, position, autohide, indicators, recent apps), KWin (minimize effect, double-click title bar, hot corners), default web browser (mimeapps.list and kdeglobals: xdg-settings fails on Plasma 6) |
 | Displays | libkscreen (resolution as Larger Text…More Space, refresh, rotation, arrangement, mirroring, main display, HDR where supported), brightness (PowerDevil, incl. DDC), Night Shift (KWin Night Light) |
 | Wallpaper | shell: our wallpapers (incl. day/night), photos and folders, fill/fit |
 | Battery (Energy on machines with no battery) | upower (level, health, history), PowerDevil, power-profiles-daemon for Low Power Mode |
