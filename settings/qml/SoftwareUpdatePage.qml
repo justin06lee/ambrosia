@@ -13,6 +13,10 @@ Page {
     readonly property int count: Updates.packages.length
     readonly property bool busy: ["reading", "checking", "installing"].includes(Updates.state)
     Component.onCompleted: Updates.read()
+    onBusyChanged: {
+        if (!busy)
+            About.readVersion();
+    }
 
     Box {
         Item {

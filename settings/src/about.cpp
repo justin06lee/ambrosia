@@ -290,6 +290,12 @@ QString About::volumeSpace() const
     return QStringLiteral("%1 available of %2").arg(bytesText(root.bytesAvailable()), bytesText(root.bytesTotal()));
 }
 
+void About::readVersion()
+{
+    m_systemVersion = packageVersion();
+    Q_EMIT systemVersionChanged();
+}
+
 void About::refresh()
 {
     ++m_spaceTick;

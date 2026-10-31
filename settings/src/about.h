@@ -23,7 +23,7 @@ class About : public QObject
     Q_PROPERTY(QString memory READ memory CONSTANT)
     Q_PROPERTY(QStringList graphics READ graphics CONSTANT)
     Q_PROPERTY(QString systemName READ systemName CONSTANT)
-    Q_PROPERTY(QString systemVersion READ systemVersion CONSTANT)
+    Q_PROPERTY(QString systemVersion READ systemVersion NOTIFY systemVersionChanged)
     Q_PROPERTY(QVariantList displays READ displays NOTIFY displaysChanged)
     Q_PROPERTY(QString volumeName READ volumeName CONSTANT)
     Q_PROPERTY(QString volumeSpace READ volumeSpace NOTIFY volumeSpaceChanged)
@@ -49,8 +49,11 @@ public:
     Q_INVOKABLE void setComputerName(const QString &name);
     // Reads the free space again (the page does when it's shown).
     Q_INVOKABLE void refresh();
+    // Reads the installed version again (after Software Update installs one).
+    Q_INVOKABLE void readVersion();
 
 Q_SIGNALS:
+    void systemVersionChanged();
     void computerNameChanged();
     void displaysChanged();
     void volumeSpaceChanged();
