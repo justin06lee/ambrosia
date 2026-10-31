@@ -164,7 +164,7 @@ Window {
             height: parent.height - y
             focus: true
             enabled: !win.underSheet
-            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, appearance: appearancePage, wallpaper: wallpaperPage, dock: dockPage, menubar: menuBarPage, notifications: notificationsPage, focus: focusPage, network: networkPage, service: servicePage, vpn: vpnPage, displays: displaysPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
+            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, appearance: appearancePage, wallpaper: wallpaperPage, dock: dockPage, menubar: menuBarPage, notifications: notificationsPage, focus: focusPage, softwareupdate: softwareUpdatePage, storage: storagePage, datetime: dateTimePage, language: languagePage, loginitems: loginItemsPage, sharing: sharingPage, network: networkPage, service: servicePage, vpn: vpnPage, displays: displaysPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
             onLoaded: Qt.callLater(App.shown, win)
         }
         Component { id: generalPage; GeneralPage { settings: win } }
@@ -178,6 +178,12 @@ Window {
         Component { id: menuBarPage; MenuBarPage { settings: win } }
         Component { id: notificationsPage; NotificationsPage { settings: win } }
         Component { id: focusPage; FocusPage { settings: win } }
+        Component { id: softwareUpdatePage; SoftwareUpdatePage { settings: win } }
+        Component { id: storagePage; StoragePage { settings: win } }
+        Component { id: dateTimePage; DateTimePage { settings: win } }
+        Component { id: languagePage; LanguagePage { settings: win } }
+        Component { id: loginItemsPage; LoginItemsPage { settings: win } }
+        Component { id: sharingPage; SharingPage { settings: win } }
         Component { id: networkPage; NetworkPage { settings: win } }
         Component { id: servicePage; ServicePage { settings: win } }
         Component { id: vpnPage; VpnPage { settings: win } }
