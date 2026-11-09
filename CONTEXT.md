@@ -164,8 +164,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
    user's ⓘ, Add User…, Privacy's lists) are ours until the Mac's photos:
    run scratch/settings/mac-sheets7.sh when the Mac is unlocked and idle.
    Update Now now asks for an administrator's password (our polkit rule).
-   Next: step 7 (Keyboard, Mouse, Trackpad, Printers & Scanners,
-   Accessibility, Spotlight).
+   Step 7 has begun on branch `feat/settings-step6` (pushed to the private
+   origin, not on master): Keyboard (repeat and delay in the Mac's steps,
+   backlight, Input Sources) and Mouse (KWin's InputDevice settings,
+   double-click speed), built and drawn offscreen on tenet but not yet
+   driven in the VM; land them after that run. Then Trackpad, Printers &
+   Scanners, Accessibility, Spotlight.
 
 ## Needs Justin
 
