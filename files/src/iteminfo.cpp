@@ -12,6 +12,7 @@
 #include <QImageReader>
 #include <QLocale>
 #include <QMimeDatabase>
+#include <QRegularExpression>
 #include <QStandardPaths>
 #include <QSysInfo>
 #include <QThreadPool>
@@ -159,6 +160,12 @@ void ItemInfo::read(bool recount)
     m_fileUrl = path.isEmpty() ? QUrl() : QUrl::fromLocalFile(path);
     const QByteArray native = QFile::encodeName(path);
     m_name = m_url.path() == QLatin1String("/") && m_url.isLocalFile() ? QSysInfo::machineHostName() : m_url.fileName();
+    // An item at the Trash's top is trash:/0-name (the trash's number, then
+    // the name): Quick Look and Get Info show the name alone, as Finder does.
+    if (m_url.scheme() == QLatin1String("trash") && m_url.path().count(QLatin1Char('/')) == 1) {
+        static const QRegularExpression trashNumber(QStringLiteral("^\\d+-"));
+        m_name.remove(trashNumber);
+    }
     struct statx sx;
     if (path.isEmpty() || statx(AT_FDCWD, native.constData(), 0, STATX_BASIC_STATS | STATX_BTIME, &sx) != 0) {
         m_kind = Format::kind(m_name, false);

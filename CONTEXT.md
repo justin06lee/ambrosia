@@ -150,9 +150,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
    2026-11-10 (This Computer, names or contents read without touching Date
    Last Opened, Name/Kind/Date Last Opened), and so is the right-click menu
    with its tag colors and Tags…, with Undo Tags, sidebar tag colors and
-   tags set while Files was off. Next: login autostart on a fresh system
-   (needs the VM), Quick Look full screen and in the Trash, ⌘I on several
-   items.
+   tags set while Files was off. Quick Look full screen and in the Trash and
+   ⌘I on several items are checked. Next: login autostart on a fresh system
+   (the VM), then the plan's "Still short of Finder" list (sidebar
+   Applications and drives, Open With and Compress in the menu, tag rename
+   and delete, Quick Look's black full screen).
 7. Settings (docs/settings/PLAN.md): steps 1–6 are built. Step 6 (Battery/
    Energy, Lock Screen, Login Password, Users & Groups, Privacy & Security)
    was driven for real in the VM on 2026-11-10 (Battery against
@@ -168,6 +170,8 @@ package repo below), and they carry `shell/` and `session/` as they are.
 
 - A new Settings build (step 6) is on master but not published: publishing
   pushes to the public ambrosia-packages repo, held tonight.
+- Files' memory target #13 (≤120 MB): count own memory (USS, met at 119-123
+  MB with the 100k folder) or RSS (a bare Qt Quick window is already 177 MB)?
 
 ## Machines
 

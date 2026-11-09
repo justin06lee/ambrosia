@@ -688,6 +688,27 @@ other kinds in r187, 2026-10-22):
   64 pt: 57.5 pt), corners 6 pt of 64 for pictures and 8.5 for pages, and a
   text page's type smaller and nearer its edges.
 
+**Checked 2026-11-10 on tenet's screen:** Quick Look full screen (its
+green circle; Esc comes back to the panel), Quick Look on a Trash item
+(which showed KIO's "0-build.sh" until then; now the name alone, in Get
+Info too), and ⌘I on six items (a window for each, cascaded). Login
+autostart is wired (`plasma-workspace.target` wants the unit, and it
+runs on tenet), but a fresh system's first login is still unchecked: the
+test VM was held by another lane all night.
+
+**Still short of Finder** (listed 2026-11-10, after search and the
+shortcut menu; v1 scope unless marked):
+- the sidebar's Applications (installed apps as a folder) and its mounted
+  and removable drives with eject, both in the v1 scope above and not built;
+- the shortcut menu's Open With, Compress, Make Alias, Share and Quick
+  Actions, and on empty space Sort By and Show View Options;
+- renaming and deleting a tag, and a Tags row in the gallery's pane;
+- This Computer reaching other drives and the installed apps;
+- a progress window for long copies, and spring-loaded folders;
+- tabs (not v1).
+- Quick Look's full screen as Finder's: black, its bar hidden until the
+  pointer moves (ours keeps the panel's bar and grey margins).
+
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).
 
