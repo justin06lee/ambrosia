@@ -88,6 +88,41 @@ PanelWindow {
         return (length - restLength) / 2 + pad + slot * (icon + gap) + icon / 2 + (slot >= appCount ? 1 + gap : 0);
     }
 
+    // An app dragged along the Dock, as on a Mac: the slot it came from,
+    // the one it would land in (the others make room), and whether it's been
+    // pulled out far enough to come off. Dropped in a new place it's kept
+    // there (a running app's tile becomes a pin); a pin pulled out is
+    // removed. The pins are saved in order in Settings.dock.
+    property int dragFrom: -1
+    property int dragTo: -1
+    property bool dragOut: false
+    readonly property real step: icon + gap
+    function dragShift(slot) {
+        if (dragFrom < 0 || slot === dragFrom) return 0;
+        if (dragOut) return slot > dragFrom ? -step : 0;
+        if (slot > dragFrom && slot <= dragTo) return -step;
+        if (slot < dragFrom && slot >= dragTo) return step;
+        return 0;
+    }
+    function dropApp() {
+        const from = dragFrom, to = dragTo, out = dragOut;
+        dragFrom = dragTo = -1;
+        dragOut = false;
+        const ids = [];
+        for (let row = 0; row < appCount; row++) ids.push(appRepeater.itemAt(row)?.appId ?? "");
+        const id = ids[from];
+        if (!id) return;
+        if (out) {
+            Apps.unpin(id);
+            return;
+        }
+        if (to === from || to < 0) return;
+        ids.splice(to, 0, ids.splice(from, 1)[0]);
+        const order = ids.filter(each => each === id || Apps.isPinned(each));
+        // Pins not on show (their app isn't installed) keep their place at the end.
+        Settings.dock = order.concat(Settings.dock.filter(each => !order.includes(each)));
+    }
+
     // Icons drawn on a whole Dock tile, as macOS draws its own (the Trash,
     // Files), are shown that much bigger than the icon size: an app icon's
     // body is 0.805 of the tile.
@@ -159,8 +194,17 @@ PanelWindow {
                     required property int index
                     readonly property var entry: Apps.entryFor(model.AppId, model.AppName)
                     readonly property string iconName: entry?.icon ?? ""
+                    readonly property string appId: entry?.id ?? (model.AppId ?? "").replace(/\.desktop$/, "")
 
                     slot: index
+                    draggable: true
+                    removable: Apps.isPinned(appId)
+                    onDragMoved: (along, across) => {
+                        dock.dragFrom = index;
+                        dock.dragTo = Math.max(0, Math.min(dock.appCount - 1, Math.round(index + along / dock.step)));
+                        dock.dragOut = removable && across > dock.icon;
+                    }
+                    onDragEnded: dock.dropApp()
                     name: model.AppName || entry?.name || ""
                     iconSource: Quickshell.iconPath(iconName, "application-x-executable")
                     art: dock.tileIcons.includes(iconName) ? dock.tileArt : 1
@@ -295,7 +339,7 @@ PanelWindow {
         property Item over: null
         // The item it points at, kept while it fades out.
         property Item at: null
-        readonly property bool shown: over !== null && !Popups.menuOpen
+        readonly property bool shown: over !== null && !Popups.menuOpen && dock.dragFrom < 0
 
         onOverChanged: {
             if (!over) return;
@@ -398,8 +442,28 @@ PanelWindow {
         // Its place along the Dock, and how big the pointer's nearness makes it.
         property int slot: 0
         property real hop: 0
+        // Dragged along the Dock (apps only), and pulled out of it how far.
+        property bool draggable: false
+        property bool removable: false
+        readonly property bool dragged: dock.dragFrom === slot && draggable
+        property real dragAlong: 0
+        property real dragAcross: 0
+        signal dragMoved(real along, real across)
+        signal dragEnded
+        // Making room for one dragged past it.
+        readonly property real shift: draggable ? dock.dragShift(slot) : 0
+        property real shiftBy: shift
+        Behavior on shiftBy { NumberAnimation { duration: Theme.spring.smooth.duration; easing.type: Easing.OutQuart } }
+        z: dragged ? 10 : 0
+        transform: Translate {
+            readonly property real along: item.shiftBy + (item.dragged ? item.dragAlong : 0)
+            // Away from the Dock's edge, at most what its window has room for.
+            readonly property real across: item.dragged ? Math.min(item.dragAcross, dock.icon + dock.tipRoom) : 0
+            x: dock.vertical ? (dock.side === "left" ? across : -across) : along
+            y: dock.vertical ? along : -across
+        }
         readonly property real zoomTarget: {
-            if (dock.swell <= 0 || !hover.hovered)
+            if (dock.swell <= 0 || !hover.hovered || dock.dragFrom >= 0)
                 return 1;
             const near = Math.min(1, Math.abs(hover.along - dock.restMiddle(slot)) / (dock.icon * 2.5));
             return 1 + dock.swell * Math.cos(near * Math.PI / 2);
@@ -518,10 +582,64 @@ PanelWindow {
                 else if (tip.over === item) tip.over = null;
             }
             onClicked: mouse => {
+                if (moving) {
+                    moving = false;
+                    return;
+                }
                 if (mouse.button === Qt.RightButton) item.menuRequested(mouse.x, mouse.y);
                 else item.clicked();
             }
-            onPressAndHold: item.menuRequested(mouseX, mouseY)
+            onPressAndHold: if (!moving) item.menuRequested(mouseX, mouseY)
+
+            // A press that moves past a few pixels drags the app.
+            property point start
+            property bool moving: false
+            onPressed: mouse => {
+                start = mapToItem(null, mouse.x, mouse.y);
+                moving = false;
+            }
+            onPositionChanged: mouse => {
+                if (!pressed || !item.draggable || !(mouse.buttons & Qt.LeftButton)) return;
+                const at = mapToItem(null, mouse.x, mouse.y);
+                const dx = at.x - start.x, dy = at.y - start.y;
+                if (!moving && Math.hypot(dx, dy) < 6) return;
+                moving = true;
+                item.dragAlong = dock.vertical ? dy : dx;
+                item.dragAcross = dock.side === "left" ? dx : dock.side === "right" ? -dx : -dy;
+                item.dragMoved(item.dragAlong, item.dragAcross);
+            }
+            onReleased: {
+                if (!moving) return;
+                item.dragEnded();
+                item.dragAlong = item.dragAcross = 0;
+            }
+            onCanceled: {
+                if (!moving) return;
+                moving = false;
+                dock.dragFrom = dock.dragTo = -1;
+                dock.dragOut = false;
+                item.dragAlong = item.dragAcross = 0;
+            }
+        }
+
+        // Pulled out of the Dock: it comes off when let go.
+        Rectangle {
+            visible: item.dragged && dock.dragOut
+            anchors.horizontalCenter: lift.horizontalCenter
+            y: lift.y - height - Theme.space.s2
+            width: removeLabel.implicitWidth + 2 * 10
+            height: removeLabel.implicitHeight + 2 * 3
+            radius: Theme.radius.tooltip
+            color: Theme.color.bg.elevated
+            border.width: 0.5
+            border.color: Theme.color.glass.edge
+
+            Label {
+                id: removeLabel
+                anchors.centerIn: parent
+                text: "Remove"
+                style: Theme.text.callout
+            }
         }
     }
 }
