@@ -50,6 +50,7 @@ qt_add_qml_module(ambrosia-settings
         src/accounts.h src/accounts.cpp
         src/privacy.h src/privacy.cpp
         src/keyboard.h src/keyboard.cpp
+        src/mouse.h src/mouse.cpp
     QML_FILES
         qml/SettingsWindow.qml
         qml/MenuBar.qml
@@ -138,6 +139,7 @@ qt_add_qml_module(ambrosia-settings
         qml/PrivacyPage.qml
         qml/PrivacyAppsPage.qml
         qml/KeyboardPage.qml
+        qml/MousePage.qml
     RESOURCES
         art/appearance-dark.svg
         art/appearance-light.svg
