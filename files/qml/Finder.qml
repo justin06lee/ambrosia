@@ -149,6 +149,13 @@ QtObject {
     readonly property int scopePill: 20
     readonly property int popupButton: 21
     readonly property int menuRow: 22
+    // The shortcut menu: its least width, and the row of tag colors (dots,
+    // the gap between them, the row with the line under it that says what a
+    // click does).
+    readonly property int contextMenuWidth: 220
+    readonly property int contextTagDot: 17
+    readonly property int contextTagGap: 9
+    readonly property int contextTagRow: 46
 
     // Quick Look's panel and the Info window
     readonly property int lookRadius: 16

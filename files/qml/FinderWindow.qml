@@ -536,6 +536,59 @@ Window {
             }
         }
     }
+    // The shortcut menu (a right-click): on an item, for the selection (the
+    // item selected first if it wasn't); elsewhere, for the folder. x and y
+    // are in the window.
+    function contextMenu(row, x, y) {
+        if (row >= 0 && !selected[row])
+            select(row, false, false);
+        else if (row < 0)
+            clearSelection();
+        const one = selectedCount === 1 ? folder.nameAt(shownRow) : "";
+        const items = row < 0 ? [
+            { text: "New Folder", enabled: local, run: () => newFolder() },
+            { separator: true },
+            { text: "Get Info", run: () => getInfo() },
+            { separator: true },
+            { text: FileOps.clipboardCount > 1 ? "Paste " + FileOps.clipboardCount + " Items" : "Paste Item",
+              enabled: FileOps.clipboardCount > 0 && local, run: () => paste(false) },
+        ] : [
+            { text: "Open", run: () => openSelection() },
+            { separator: true },
+            { text: inTrash ? "Put Back" : "Move to Trash", run: () => trashSelection() },
+            { separator: true },
+            { text: "Get Info", run: () => getInfo() },
+            { text: "Rename", enabled: selectedCount === 1 && localItems, run: () => renameSelection() },
+            { text: "Duplicate", enabled: local, run: () => duplicate() },
+            { text: one !== "" ? "Quick Look “" + one + "”" : "Quick Look " + selectedCount + " Items", run: () => { if (!lookOpen) toggleLook(); } },
+            { separator: true },
+            { text: one !== "" ? "Copy “" + one + "”" : "Copy " + selectedCount + " Items", run: () => copySelection() },
+        ].concat(localItems ? [
+            { separator: true },
+            { tags: true },
+            { text: "Tags…", run: () => { tagEditor.urls = selectedUrls(); tagEditor.openAt(x, y); } },
+        ] : []);
+        shortcuts.urls = row >= 0 ? selectedUrls() : [];
+        shortcuts.colorOf = "";
+        shortcuts.items = items;
+        shortcuts.openAt(x, y);
+    }
+    // A sidebar tag's menu: its color (Finder's tag color editor).
+    function tagMenu(name, x, y) {
+        shortcuts.urls = [];
+        shortcuts.colorOf = name;
+        shortcuts.items = [{ tags: true }];
+        shortcuts.openAt(x, y);
+    }
+    ContextMenu {
+        id: shortcuts
+        onColorChosen: (color) => Tags.setColor(colorOf, color)
+        onClosed: win.requestActivate()
+    }
+    TagEditor {
+        id: tagEditor
+    }
+
     // Get Info (⌘I): a window for each item selected, or for this folder.
     function getInfo() {
         for (const target of hasSelection ? selectedUrls() : [url])

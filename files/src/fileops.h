@@ -74,4 +74,22 @@ private:
     QList<RedoLabel> m_redoLabels;
     QString m_redone; // the label of the command being redone, until its job finishes
     int m_next = 0;
+
+    // Tags aren't KIO's to undo: their edits are kept here, each with the
+    // KIO command that was last when it was made, so Undo takes back
+    // whichever came last. Redo keeps both kinds in the order undone.
+    struct TagStep {
+        QList<QUrl> urls;
+        QList<QStringList> before, after;
+        quint64 kioBelow = 0; // KIO's command under it (0: none)
+    };
+    QList<TagStep> m_tagUndo;
+    struct RedoStep {
+        bool tags = false;
+        TagStep step;
+    };
+    QList<RedoStep> m_redo;
+    quint64 kioTop() const;
+    bool tagsNext() const;
+    QString tagLabel() const { return QStringLiteral("Tags"); }
 };

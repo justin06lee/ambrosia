@@ -55,6 +55,10 @@ FocusScope {
         TapHandler {
             onDoubleTapped: if (pane.finder.shownRow >= 0) pane.finder.open(pane.finder.shownRow)
         }
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            onTapped: (point) => pane.finder.contextMenu(pane.finder.shownRow, point.scenePosition.x, point.scenePosition.y)
+        }
         DragHandler {
             target: null
             enabled: !pane.finder.renaming
@@ -82,6 +86,10 @@ FocusScope {
 
         function cellAt(point) { return indexAt(point.x + contentX, point.y + contentY); }
 
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            onTapped: (point) => pane.finder.contextMenu(strip.cellAt(point.position), point.scenePosition.x, point.scenePosition.y)
+        }
         TapHandler {
             id: tap
             acceptedModifiers: Qt.KeyboardModifierMask

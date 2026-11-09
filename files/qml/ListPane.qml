@@ -240,6 +240,14 @@ FocusScope {
             interval: 600
             onTriggered: pane.finder.beginRename(row)
         }
+        // The shortcut menu: a right-click, or a Control-click as on a Mac.
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            onTapped: (point) => {
+                renameSoon.stop();
+                pane.finder.contextMenu(hits.rowAt(point.position), point.scenePosition.x, point.scenePosition.y);
+            }
+        }
         // Pressing an item and dragging takes the selection along (the item
         // is selected first if it wasn't).
         DragHandler {

@@ -60,4 +60,7 @@ var glyphs = {
     check: { stroke: "M5.5 12.5l4.2 4.2L18.5 7.5", width: 2.2 },
     chevronUpDown: { stroke: "M8.5 9.5L12 6l3.5 3.5M8.5 14.5L12 18l3.5-3.5", width: 2 },
     overflow: { stroke: "M6.5 6.5l5.5 5.5-5.5 5.5M12.5 6.5l5.5 5.5-5.5 5.5", width: 2 },
+    // In the shortcut menu's tag dots: add the tag, or take it away.
+    plus: { stroke: "M12 6v12M6 12h12", width: 2.6 },
+    close: { stroke: "M7.5 7.5l9 9M16.5 7.5l-9 9", width: 2.6 },
 };

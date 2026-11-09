@@ -659,7 +659,7 @@ struct Index::Core {
     QThread thread;
     QObject *home = nullptr; // on the thread: its timers and the notifier
     QSocketNotifier *notifier = nullptr;
-    QTimer *settle = nullptr, *saveLater = nullptr, *rescanLater = nullptr;
+    QTimer *settle = nullptr, *saveLater = nullptr, *rescanLater = nullptr, *sweepLater = nullptr;
 
     // A folder the index doesn't cover, walked for queries in it.
     mutable std::mutex scratchLock;
@@ -676,6 +676,7 @@ struct Index::Core {
     void walkAll(Tree &t, std::shared_mutex *lk);
     bool load();
     void check();
+    void sweepTags();
     void reread(quint32 e, const std::string &path, qint64 stamp, std::vector<std::pair<quint32, std::string>> &toWalk);
     void listen();
     void events();
@@ -718,8 +719,18 @@ void Index::Core::begin()
         check();
         if (stop)
             return;
-        WriteLock w(&lock);
-        stats.checkMs = clock.nsecsElapsed() / 1e6;
+        {
+            WriteLock w(&lock);
+            stats.checkMs = clock.nsecsElapsed() / 1e6;
+        }
+        // Tags set while Files wasn't running, a little after the start.
+        if (readTags) {
+            sweepLater = new QTimer(home);
+            sweepLater->setSingleShot(true);
+            sweepLater->setInterval(qEnvironmentVariableIsSet("FILES_INDEX_SWEEP_MS") ? qEnvironmentVariableIntValue("FILES_INDEX_SWEEP_MS") : 15000);
+            QObject::connect(sweepLater, &QTimer::timeout, home, [this] { sweepTags(); });
+            sweepLater->start();
+        }
     } else {
         tree.inotify = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
         walkAll(tree, &lock);
@@ -1012,6 +1023,48 @@ void Index::Core::reread(quint32 e, const std::string &path, qint64 stamp, std::
         remove(c);
     tree.folders[e].stamp = stamp;
     dirty = true;
+}
+
+// Tags set while Files wasn't running: an attribute moves no folder's
+// mtime, so check() can't see them. Once after a start from the snapshot,
+// every item's tags are read again (a walk's worth of reads, on this
+// thread at idle I/O, skipping nothing but the rows already gone) and the
+// ones that changed are taken in.
+void Index::Core::sweepTags()
+{
+    std::vector<quint32> dirs;
+    dirs.reserve(tree.folders.size());
+    for (const auto &[e, folder] : tree.folders)
+        dirs.push_back(e);
+    std::sort(dirs.begin(), dirs.end());
+    bool any = false;
+    std::vector<std::pair<quint32, std::string>> found;
+    for (const quint32 e : dirs) {
+        if (stop)
+            return;
+        if (tree.flags[e] & IsGone)
+            continue;
+        const int fd = ::open(tree.path(e).c_str(), O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW);
+        if (fd < 0)
+            continue;
+        found.clear();
+        tree.eachChild(e, [&](quint32 c) {
+            if (tree.flags[c] & IsGone)
+                return;
+            std::string tags = tagsAt(fd, tree.nameOf(c));
+            if (tags != tree.tagSets[tree.tags[c]])
+                found.emplace_back(c, std::move(tags));
+        });
+        ::close(fd);
+        if (!found.empty()) {
+            WriteLock w(&lock);
+            for (const auto &[c, tags] : found)
+                tree.tags[c] = tree.intern(tags);
+            any = true;
+        }
+    }
+    if (any)
+        touched();
 }
 
 // After a snapshot: watch every folder again, and read again the ones

@@ -41,17 +41,26 @@ public:
     Q_INVOKABLE void toggle(const QList<QUrl> &urls, const QString &name);
     Q_INVOKABLE void add(const QList<QUrl> &urls, const QString &name);
     Q_INVOKABLE void remove(const QList<QUrl> &urls, const QString &name);
+    // A tag's color ("red" … "gray", or "" for none), as the sidebar's
+    // tag menu sets it.
+    Q_INVOKABLE void setColor(const QString &name, const QString &color);
+    // Puts each item's tags back as they were (Undo and Redo), without
+    // recording it as an edit.
+    void restore(const QList<QUrl> &urls, const QList<QStringList> &tags);
 
 Q_SIGNALS:
     void listChanged();
     // These items' tags changed.
     void changed(const QList<QUrl> &urls);
+    // An edit to record for Undo: the items and their tags before and after.
+    void edited(const QList<QUrl> &urls, const QList<QStringList> &before, const QList<QStringList> &after);
 
 private:
     explicit Tags(QObject *parent = nullptr);
     void load();
     void save() const;
     void edit(const QList<QUrl> &urls, const QString &name, bool on);
+    static bool write(const QUrl &url, const QStringList &names);
 
     struct Tag {
         QString name;

@@ -90,6 +90,12 @@ Flickable {
                         TapHandler {
                             onTapped: if (row.place !== "") list.finder.go(row.modelData.url)
                         }
+                        // A tag's menu sets its color.
+                        TapHandler {
+                            enabled: row.modelData.color !== undefined
+                            acceptedButtons: Qt.RightButton
+                            onTapped: (point) => list.finder.tagMenu(row.modelData.name, point.scenePosition.x, point.scenePosition.y)
+                        }
                         DropArea {
                             id: drop
                             anchors.fill: parent

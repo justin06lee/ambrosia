@@ -162,31 +162,67 @@ void Tags::edit(const QList<QUrl> &urls, const QString &given, bool on)
         if (tag.name.compare(name, Qt::CaseInsensitive) == 0)
             name = tag.name;
     QList<QUrl> done;
+    QList<QStringList> before, after;
     for (const QUrl &url : urls) {
         if (!url.isLocalFile())
             continue;
-        const QByteArray path = QFile::encodeName(url.toLocalFile());
         QStringList names = read(url.toLocalFile());
         if (names.contains(name) == on)
             continue;
+        const QStringList was = names;
         if (on)
             names << name; // a new tag goes last, and shows first
         else
             names.removeAll(name);
-        const QByteArray value = names.join(QLatin1Char(',')).toUtf8();
-        const int result = value.isEmpty() ? removexattr(path.constData(), key)
-                                           : setxattr(path.constData(), key, value.constData(), value.size(), 0);
-        if (result != 0) {
-            qWarning("Files: couldn't tag %s: %s", path.constData(), strerror(errno));
+        if (!write(url, names))
             continue;
-        }
         done << url;
+        before << was;
+        after << names;
     }
     if (on && colorOf(name).isEmpty() && std::none_of(m_tags.begin(), m_tags.end(), [&](const Tag &t) { return t.name == name; })) {
         m_tags.append({name, QString()});
         save();
         Q_EMIT listChanged();
     }
+    if (!done.isEmpty()) {
+        Q_EMIT changed(done);
+        Q_EMIT edited(done, before, after);
+    }
+}
+
+bool Tags::write(const QUrl &url, const QStringList &names)
+{
+    const QByteArray path = QFile::encodeName(url.toLocalFile());
+    const QByteArray value = names.join(QLatin1Char(',')).toUtf8();
+    const int result = value.isEmpty() ? removexattr(path.constData(), key)
+                                       : setxattr(path.constData(), key, value.constData(), value.size(), 0);
+    if (result != 0 && !(value.isEmpty() && errno == ENODATA)) {
+        qWarning("Files: couldn't tag %s: %s", path.constData(), strerror(errno));
+        return false;
+    }
+    return true;
+}
+
+void Tags::restore(const QList<QUrl> &urls, const QList<QStringList> &tags)
+{
+    QList<QUrl> done;
+    for (qsizetype i = 0; i < urls.size() && i < tags.size(); ++i)
+        if (urls[i].isLocalFile() && write(urls[i], tags[i]))
+            done << urls[i];
     if (!done.isEmpty())
         Q_EMIT changed(done);
+}
+
+void Tags::setColor(const QString &name, const QString &color)
+{
+    for (Tag &tag : m_tags)
+        if (tag.name == name) {
+            if (tag.color == color)
+                return;
+            tag.color = color;
+            save();
+            Q_EMIT listChanged();
+            return;
+        }
 }

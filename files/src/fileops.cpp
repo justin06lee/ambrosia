@@ -1,4 +1,5 @@
 #include "fileops.h"
+#include "tags.h"
 
 #include <KIO/AskUserActionInterface>
 #include <KIO/CopyJob>
@@ -143,16 +144,37 @@ FileOps::FileOps(QObject *parent)
         Q_EMIT undoChanged();
     });
     connect(QGuiApplication::clipboard(), &QClipboard::dataChanged, this, &FileOps::clipboardChanged);
+    // A tag edit is a command too: it empties Redo, as a new command does.
+    connect(Tags::instance(), &Tags::edited, this, [this](const QList<QUrl> &urls, const QList<QStringList> &before, const QList<QStringList> &after) {
+        m_tagUndo.append(TagStep{urls, before, after, kioTop()});
+        m_redo.clear();
+        Q_EMIT undoChanged();
+    });
+}
+
+quint64 FileOps::kioTop() const
+{
+    FileUndoManager *undo = FileUndoManager::self();
+    return undo->isUndoAvailable() ? undo->currentCommandSerialNumber() : 0;
+}
+
+// Whether Undo would take back a tag edit: one was made after KIO's last
+// command still standing.
+bool FileOps::tagsNext() const
+{
+    return !m_tagUndo.isEmpty() && m_tagUndo.last().kioBelow == kioTop();
 }
 
 bool FileOps::canUndo() const
 {
-    return FileUndoManager::self()->isUndoAvailable();
+    return !m_tagUndo.isEmpty() || FileUndoManager::self()->isUndoAvailable();
 }
 
 QString FileOps::undoText() const
 {
     FileUndoManager *undo = FileUndoManager::self();
+    if (tagsNext() || (!undo->isUndoAvailable() && !m_tagUndo.isEmpty()))
+        return QStringLiteral("Undo ") + tagLabel();
     if (!undo->isUndoAvailable())
         return QStringLiteral("Undo");
     return QStringLiteral("Undo ") + m_labels.value(undo->currentCommandSerialNumber(), finderWords(undo->undoText()));
@@ -160,12 +182,14 @@ QString FileOps::undoText() const
 
 bool FileOps::canRedo() const
 {
-    return FileUndoManager::self()->isRedoAvailable();
+    return (!m_redo.isEmpty() && m_redo.last().tags) || FileUndoManager::self()->isRedoAvailable();
 }
 
 QString FileOps::redoText() const
 {
     FileUndoManager *undo = FileUndoManager::self();
+    if (!m_redo.isEmpty() && m_redo.last().tags)
+        return QStringLiteral("Redo ") + tagLabel();
     if (!undo->isRedoAvailable())
         return QStringLiteral("Redo");
     const QString kio = finderWords(undo->redoText());
@@ -187,6 +211,9 @@ int FileOps::start(KJob *job, const QList<QUrl> &results, const QString &label)
     // After the undo manager's own handler, which has pushed the command by
     // then: its serial number names it.
     connect(job, &KJob::result, this, [this, id, results, label](KJob *job) {
+        // A new command: Redo has nothing left of ours either.
+        if (!job->error())
+            m_redo.clear();
         if (!job->error() && !label.isEmpty()) {
             FileUndoManager *undo = FileUndoManager::self();
             m_labels.insert(undo->currentCommandSerialNumber(), label);
@@ -355,8 +382,16 @@ bool FileOps::dropMoves(const QList<QUrl> &urls, const QUrl &dir) const
 void FileOps::undo()
 {
     FileUndoManager *undo = FileUndoManager::self();
+    if (tagsNext() || (!undo->isUndoAvailable() && !m_tagUndo.isEmpty())) {
+        const TagStep step = m_tagUndo.takeLast();
+        Tags::instance()->restore(step.urls, step.before);
+        m_redo.append(RedoStep{true, step});
+        Q_EMIT undoChanged();
+        return;
+    }
     if (!undo->isUndoAvailable())
         return;
+    m_redo.append(RedoStep{false, TagStep{}});
     const QString kio = finderWords(undo->undoText());
     const QString label = m_labels.value(undo->currentCommandSerialNumber(), kio);
     undoUi->ask = label != QLatin1String("New Folder");
@@ -367,8 +402,18 @@ void FileOps::undo()
 void FileOps::redo()
 {
     FileUndoManager *undo = FileUndoManager::self();
+    if (!m_redo.isEmpty() && m_redo.last().tags) {
+        TagStep step = m_redo.takeLast().step;
+        Tags::instance()->restore(step.urls, step.after);
+        step.kioBelow = kioTop();
+        m_tagUndo.append(step);
+        Q_EMIT undoChanged();
+        return;
+    }
     if (!undo->isRedoAvailable())
         return;
+    if (!m_redo.isEmpty())
+        m_redo.removeLast();
     if (!m_redoLabels.isEmpty() && m_redoLabels.last().kio == finderWords(undo->redoText()))
         m_redone = m_redoLabels.takeLast().label;
     undo->redo();

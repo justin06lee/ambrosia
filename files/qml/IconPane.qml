@@ -69,6 +69,14 @@ FocusScope {
                     pane.finder.open(cell);
             }
         }
+        // The shortcut menu: a right-click.
+        TapHandler {
+            acceptedButtons: Qt.RightButton
+            onTapped: (point) => {
+                renameSoon.stop();
+                pane.finder.contextMenu(hits.cellAt(point.position), point.scenePosition.x, point.scenePosition.y);
+            }
+        }
         Timer {
             id: renameSoon
             property int cell: -1

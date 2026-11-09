@@ -528,9 +528,25 @@ this Mac's Finder (references in `out/parity/files/ref/look/`):
   it gives it to all or takes it from all. Get Info shows the tags as
   tokens under the header: Return adds one (a new tag joins the sidebar),
   and ⌫ in the empty field removes the last.
-- **Not yet:** a click on a sidebar tag (it needs the index, step 7), the
-  context menu (Files has none yet), undo for tags, the tag colour editor,
-  and the Tags row in the gallery's preview pane.
+- **The shortcut menu** (a right-click, since 2026-11-10;
+  `qml/ContextMenu.qml`, `qml/TagEditor.qml`): Finder's commands for the
+  items (Open, Move to Trash, Get Info, Rename, Duplicate, Quick Look,
+  Copy) or for the folder (New Folder, Get Info, Paste), drawn in the window
+  because its row of tag colors is more than the shell's menus draw. A
+  color pointed at grows and says "Add Tag “Blue”" or "Remove Tag “Blue”";
+  Tags… opens Finder's popover: the tags all items have as tokens, a field
+  to add one, the rest listed to pick.
+- **Undo for tags:** every tag edit (the menu's colors, Tags…, File > Tags,
+  Get Info) is a command that Edit > Undo Tags takes back and Redo Tags
+  does again, in turn with KIO's file operations (`FileOps`).
+- **Tag colors:** a right-click on a sidebar tag offers Finder's seven
+  colors, kept in tags.json.
+- **Tags set while Files was off** (by Dolphin, or `setfattr`): an
+  attribute moves no folder's mtime, so the snapshot's check misses them;
+  15 s after a start from the snapshot the index reads every item's tags
+  again once, at idle I/O, and takes in what changed.
+- **Not yet:** renaming and deleting a tag, and a Tags row in the
+  gallery's preview pane.
 
 **Slice 7, the index and search** (merged c375c1c; `src/index.cpp`,
 `qml/SearchField.qml`, `qml/ScopeBar.qml`, `qml/PopupMenu.qml`), against

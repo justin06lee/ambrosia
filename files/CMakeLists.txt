@@ -73,6 +73,8 @@ qt_add_qml_module(ambrosia-files
         qml/ScopeBar.qml
         qml/PopupMenu.qml
         qml/PopupButton.qml
+        qml/ContextMenu.qml
+        qml/TagEditor.qml
         qml/Glyph.qml
         qml/glyphs.js
     RESOURCES

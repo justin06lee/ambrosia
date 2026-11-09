@@ -334,6 +334,17 @@ FocusScope {
                 interval: 600
                 onTriggered: owner.finder.beginRename(row)
             }
+            // The shortcut menu, for the column's item (the window moves to
+            // its column first, as a click does).
+            TapHandler {
+                acceptedButtons: Qt.RightButton
+                onTapped: (point) => {
+                    renameSoon.stop();
+                    const row = hits.rowAt(point.position);
+                    const at = col.focused ? col.windowRow(row) : col.take(row);
+                    owner.finder.contextMenu(at, point.scenePosition.x, point.scenePosition.y);
+                }
+            }
             DragHandler {
                 target: null
                 enabled: !owner.finder.renaming
