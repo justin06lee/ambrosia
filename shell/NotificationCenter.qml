@@ -7,7 +7,8 @@ import Ambrosia
 // Focus state (a click switches Do Not Disturb) and Clear All; then the
 // notifications by app, the app heard from last first. An app's several
 // notifications stack, the newest on top; a click on the stack spreads it,
-// with Show Less and a close for the app's whole group above. A click on a
+// with Show Less and a close for the app's whole group above. Under them,
+// the Calendar widget: today and its month. A click on a
 // notification runs it; its close (on hover) clears it. It slides in from
 // the edge, as the banners do, and scrolls when it's taller than the screen.
 Item {
@@ -20,17 +21,15 @@ Item {
     readonly property Region blurArea: Region {
         regions: {
             nc.revision;
-            const list = [focus.blurArea, inView];
+            const list = [focus.blurArea];
             if (clearAll.visible) list.push(clearAll.blurArea);
+            // Only cards in view: a scrolled-off card's glass isn't drawn.
+            const top = flick.mapToItem(null, 0, 0).y, bottom = top + flick.height;
+            for (const area of nc.cardAreas()) {
+                const at = area.item.mapToItem(null, 0, 0).y;
+                if (at < bottom && at + area.item.height > top) list.push(area);
+            }
             return list;
-        }
-    }
-    Region {
-        id: inView
-        item: flick
-        Region {
-            intersection: Intersection.Intersect
-            regions: { nc.revision; return nc.cardAreas(); }
         }
     }
     // Which apps' stacks are spread.
@@ -52,7 +51,7 @@ Item {
             const group = groups.itemAt(i);
             if (group) list.push(...group.areas);
         }
-        if (empty.visible) list.push(empty.blurArea);
+        list.push(calendar.blurArea);
         return list;
     }
     function moved() {
@@ -174,19 +173,117 @@ Item {
                     Group {}
                 }
 
-                NotificationCard {
-                    id: empty
-                    readonly property Region blurArea: Region { item: empty; radius: Theme.radius.panel }
-                    visible: NotificationStore.history.length === 0
-                    width: nc.width
-                    blank: true
-                    implicitHeight: 64
+                // The day and its month, as the Calendar widget under a Mac's notifications.
+                CalendarWidget {
+                    id: calendar
+                    readonly property Region blurArea: Region { item: calendar; radius: Theme.radius.panel }
+                }
+            }
+        }
+    }
 
+    // Today and this month's days, today ringed in red.
+    component CalendarWidget: Item {
+        id: widget
+        readonly property date today: clock.date
+        readonly property date first: new Date(today.getFullYear(), today.getMonth(), 1)
+        readonly property int days: new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
+        // The grid starts on the locale's first day of the week.
+        readonly property int weekStart: Qt.locale().firstDayOfWeek % 7
+        readonly property int lead: (first.getDay() - weekStart + 7) % 7
+        width: nc.width
+        height: 164
+
+        Glass {
+            anchors.fill: parent
+            tint: Theme.color.material.regular.tint
+            radius: Theme.radius.panel
+            shadow: Theme.color.shadow.panel
+        }
+        MouseArea {
+            anchors.fill: parent
+            onClicked: {
+                Popups.close();
+                Session.settings("datetime");
+            }
+        }
+
+        Column {
+            x: Theme.space.s4
+            y: Theme.space.s4
+            width: 120
+            Label {
+                text: Qt.formatDate(widget.today, "dddd").toUpperCase()
+                style: Theme.text.footnote
+                font.weight: Font.DemiBold
+                color: Theme.color.palette.red
+            }
+            Label {
+                text: widget.today.getDate()
+                style: Theme.text.largeTitle
+                font.pixelSize: 40
+                font.weight: Font.Normal
+            }
+            Label {
+                topPadding: Theme.space.s2
+                text: "No events today"
+                style: Theme.text.callout
+                color: Theme.color.label.secondary
+            }
+        }
+
+        Column {
+            id: month
+            anchors { right: parent.right; rightMargin: Theme.space.s4; top: parent.top; topMargin: Theme.space.s4 }
+            spacing: 2
+            Label {
+                text: Qt.formatDate(widget.today, "MMMM").toUpperCase()
+                style: Theme.text.footnote
+                font.weight: Font.DemiBold
+                color: Theme.color.palette.red
+                bottomPadding: 2
+            }
+            Grid {
+                columns: 7
+                columnSpacing: 0
+                rowSpacing: 0
+                Repeater {
+                    model: 7
                     Label {
-                        anchors.centerIn: parent
-                        text: "No Notifications"
-                        style: Theme.text.body
+                        required property int index
+                        width: 22
+                        height: 16
+                        horizontalAlignment: Text.AlignHCenter
+                        text: Qt.locale().standaloneDayName((widget.weekStart + index) % 7, Locale.NarrowFormat)
+                        style: Theme.text.footnote
                         color: Theme.color.label.secondary
+                    }
+                }
+                Repeater {
+                    model: widget.lead + widget.days
+                    Item {
+                        required property int index
+                        readonly property int day: index - widget.lead + 1
+                        readonly property bool isToday: day === widget.today.getDate()
+                        width: 22
+                        height: 17
+                        Rectangle {
+                            visible: parent.isToday
+                            anchors.centerIn: parent
+                            width: 18
+                            height: 18
+                            radius: 9
+                            color: Theme.color.palette.red
+                        }
+                        Label {
+                            visible: parent.day > 0
+                            anchors.centerIn: parent
+                            text: parent.day
+                            style: Theme.text.footnote
+                            font.weight: parent.isToday ? Font.DemiBold : Font.Medium
+                            font.features: ({ "tnum": 1 })
+                            color: parent.isToday ? "white" : Theme.color.label.primary
+                        }
                     }
                 }
             }
