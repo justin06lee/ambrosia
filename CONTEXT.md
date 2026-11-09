@@ -87,15 +87,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
   `./restore.sh` brings it back (makima, services, home) whenever the user
   wants. The restore leaves our quickshell and ambrosia-* packages alone.
   Since 2026-10-20 its pacman.conf lists `[ambrosia]` first (the old one is
-  `/etc/pacman.conf.before-ambrosia`), and it runs the r311 packages with our
-  Quickshell, installed with `pacman -U`, except `ambrosia-keyring` (r306, whose
-  next install edits pacman.conf so PackageKit sees Arch's updates; held with
-  `-Syu`) and `ambrosia-desktop` (r221):
-  r224 on adds power-profiles-daemon, CUPS, Avahi and nss-mdns, which would
-  come from a newer package list than tenet's, a partial upgrade. It hasn't synced since 2026-10-16
-  (no `-Syu` while a GPU training job ran), so its next `pacman -Syu` fetches
-  the hosted repo. gpg prints `release_dotlock: lockfile error` when its
-  keyring is populated, but the key ends up trusted.
+  `/etc/pacman.conf.before-ambrosia`). On 2026-11-09 it had a full
+  `pacman -Syu` (214 packages, r316 of every ambrosia-* package, Arch
+  current; backups in `/var/tmp/ambrosia-syu`), and avahi-daemon, cups.socket
+  and power-profiles-daemon were enabled as the installer does. Kernel 7.2.14
+  is installed but it still runs 7.2.10 until a reboot (the running kernel's
+  modules were put back in `/usr/lib/modules`). Reach it as `ssh tenet`
+  (Tailscale, 100.97.46.114); its LAN address is now 192.168.1.232. gpg
+  prints `release_dotlock: lockfile error` when its keyring is populated, but
+  the key ends up trusted.
 
 ## Next
 
