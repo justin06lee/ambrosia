@@ -153,6 +153,21 @@ package repo below), and they carry `shell/` and `session/` as they are.
    tags set while Files was off. Next: login autostart on a fresh system
    (needs the VM), Quick Look full screen and in the Trash, ⌘I on several
    items.
+7. Settings (docs/settings/PLAN.md): steps 1–6 are built. Step 6 (Battery/
+   Energy, Lock Screen, Login Password, Users & Groups, Privacy & Security)
+   was driven for real in the VM on 2026-11-10 (Battery against
+   scratch/settings/fake-upower.py, as no machine here has a battery); its
+   sheets' layouts (Battery Health, Charging, Options…, Change Password, a
+   user's ⓘ, Add User…, Privacy's lists) are ours until the Mac's photos:
+   run scratch/settings/mac-sheets7.sh when the Mac is unlocked and idle.
+   Update Now now asks for an administrator's password (our polkit rule).
+   Next: step 7 (Keyboard, Mouse, Trackpad, Printers & Scanners,
+   Accessibility, Spotlight).
+
+## Needs Justin
+
+- A new Settings build (step 6) is on master but not published: publishing
+  pushes to the public ambrosia-packages repo, held tonight.
 
 ## Machines
 
