@@ -734,9 +734,10 @@ pair:
 
 - **Packaging and Image:**
   - a new `ambrosia-files` package. It depends on qt6-declarative, kio,
-    kio-extras, solid, kwindowsystem, libjpeg-turbo, poppler-qt6,
-    qt6-multimedia, ripgrep, ffmpegthumbs and kdegraphics-thumbnailers. The
-    last two aren't on tenet yet.
+    kio-extras, kwindowsystem, ffmpeg, taglib, karchive and freetype2.
+    Neither ffmpegthumbs nor kdegraphics-thumbnailers (not even as
+    optdepends: Files makes every thumbnail itself, decision d4c9r), nor
+    ripgrep since contents are read in-process (2026-11-10).
   - ambrosia-desktop then depends on it; Dolphin stays until v1 is accepted.
 - **Shell and Session:**
   - the Dock pin moves from `org.kde.dolphin` to `org.ambrosia.files`, the
