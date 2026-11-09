@@ -119,8 +119,10 @@ interrupted.
 
 Status: accepted
 
-Close, minimize and zoom are three 12px circles in red, yellow and green on the
-left. Glyphs appear on hover, and inactive windows show them gray.
+Close, minimize and zoom are three 14px circles in red, yellow and green on the
+left, measured from macOS 26. Glyphs appear on hover, and inactive windows show
+them gray. Every window gets them: KWin draws them through our own decoration
+plugin, GTK's client-side titlebars through our GTK styling.
 
 **Why:** it's the single strongest signal of the macOS layout people expect,
 and colored circles are a common convention rather than an Apple asset.

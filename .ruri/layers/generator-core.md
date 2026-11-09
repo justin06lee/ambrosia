@@ -13,11 +13,11 @@ Generator Core resolves design/tokens.ts into a concrete sRGB + solved-spring mo
 - **Accent derivation (bg/fg/text/hover/pressed/highlight):** tools/gen/resolve.ts, tools/gen/color.ts
 - **Spring solving (response/damping to constants/curve):** tools/gen/spring.ts, tools/gen/resolve.ts
 - **Dist orchestration (generate all targets):** tools/gen/index.ts, tools/gen/resolve.ts
-- **Window frame target registration (Aurorae traffic lights):** tools/gen/index.ts, tools/gen/targets/aurorae.ts
+- **Window frame target (KWin decoration traffic lights):** tools/gen/index.ts, tools/gen/targets/kdecoration.ts
 
 ## How it works
 
-- **Generate dist from tokens:** tools/gen/index.ts calls resolve() → resolve.ts parses OKLCH via color.ts and solves springs via spring.ts → index.ts passes Resolved model to each formatter in tools/gen/targets/ (including aurorae.ts) → Formatted strings written to dist/ paths (web, gtk, kde, qml, fontconfig, aurorae) plus resolved dump
+- **Generate dist from tokens:** tools/gen/index.ts calls resolve() → resolve.ts parses OKLCH via color.ts and solves springs via spring.ts → index.ts passes Resolved model to each formatter in tools/gen/targets/ (including kdecoration.ts) → Formatted strings written to dist/ paths (web, gtk, kde, qml, fontconfig, kdecoration) plus resolved dump
 - **Derive a concrete color:** parseOklch() parses oklch() string → toLinear + gamut-mapped conversion to RGBA in color.ts → over()/withAlpha() composite translucency → contrast()/ensureContrast() enforce readability for accents and labels
 
 ## Key files
@@ -26,6 +26,7 @@ Generator Core resolves design/tokens.ts into a concrete sRGB + solved-spring mo
 - tools/gen/index.ts — orchestrates generation: resolves once, formats every target, writes dist/
 - tools/gen/color.ts — OKLCH parsing, OKLCH to sRGB with gamut mapping, compositing, contrast, and output formatters
 - tools/gen/spring.ts — solves (response, damping) springs into stiffness/damping, settle duration, and sampled curve
+- tools/gen/targets/kdecoration.ts — KWin window frame colours and light metrics from the Resolved model
 
 ## Rules and traps
 
@@ -36,5 +37,5 @@ Generator Core resolves design/tokens.ts into a concrete sRGB + solved-spring mo
 ## What it talks to
 
 - Design Tokens — sole input: reads design/tokens.ts types and values, never the reverse
-- Theme Targets — sole consumer: every formatter takes the Resolved model from resolve(); aurorae.ts builds the window frame from the same model
+- Theme Targets — sole consumer: every formatter takes the Resolved model from resolve(); kdecoration.ts builds the window frame from it
 - Build and Install — runs the generator to produce dist/ before install and test

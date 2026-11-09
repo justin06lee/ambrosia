@@ -1,0 +1,16 @@
+# Ambrosia session rules for KWin. A user's own kwinrulesrc replaces these.
+
+# Password prompts stay in front, as the Mac's do: clicking the window that
+# asked would otherwise bury the prompt behind it, with that window's control
+# waiting on an answer nobody can see.
+[General]
+count=1
+rules=ambrosia-password-prompt
+
+[ambrosia-password-prompt]
+Description=Password prompts stay in front
+wmclass=polkit-kde-authentication-agent-1
+wmclassmatch=2
+wmclasscomplete=false
+above=true
+aboverule=2

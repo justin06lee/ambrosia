@@ -31,9 +31,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
   - `packaging/PKGBUILD` builds `ambrosia-keyring` (the repo's key and
     address), `ambrosia-theme` (themes, wallpapers, icons), `ambrosia-shell`
     (the QML shell, the session, KDE/KWin defaults), `ambrosia-files` (Files,
-    built with CMake from `files/`; the only x86_64 one) and `ambrosia-desktop`
-    (the meta package: SDDM, portals, NetworkManager, PipeWire, Bluetooth,
-    Konsole, Dolphin, Files, System Settings, GTK skel, os-release).
+    built with CMake from `files/`), `ambrosia-settings` (Settings, from
+    `settings/`; both x86_64) and `ambrosia-desktop` (the meta package: SDDM,
+    portals, NetworkManager, PipeWire, Bluetooth, power-profiles-daemon, CUPS
+    and Avahi, Konsole, Dolphin, Files, Settings, GTK skel, os-release).
   - `packaging/quickshell/PKGBUILD` is our Quickshell build: upstream v0.3.2
     with the DBusMenuSource patch, served from the hosted repo.
   - `session/`: `startambrosia` runs Plasma's session (`startplasma-wayland`)
@@ -86,8 +87,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
   `./restore.sh` brings it back (makima, services, home) whenever the user
   wants. The restore leaves our quickshell and ambrosia-* packages alone.
   Since 2026-10-20 its pacman.conf lists `[ambrosia]` first (the old one is
-  `/etc/pacman.conf.before-ambrosia`), and it runs the r199 packages with our
-  Quickshell, installed with `pacman -U`. It hasn't synced since 2026-10-16
+  `/etc/pacman.conf.before-ambrosia`), and it runs the r311 packages with our
+  Quickshell, installed with `pacman -U`, except `ambrosia-keyring` (r306, whose
+  next install edits pacman.conf so PackageKit sees Arch's updates; held with
+  `-Syu`) and `ambrosia-desktop` (r221):
+  r224 on adds power-profiles-daemon, CUPS, Avahi and nss-mdns, which would
+  come from a newer package list than tenet's, a partial upgrade. It hasn't synced since 2026-10-16
   (no `-Syu` while a GPU training job ran), so its next `pacman -Syu` fetches
   the hosted repo. gpg prints `release_dotlock: lockfile error` when its
   keyring is populated, but the key ends up trusted.
@@ -98,8 +103,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
    (2026-10-20, branch `feat/visual-parity`): glass rims and specular ring,
    menus, Dock tiles and tooltip, banner motion, control center spacing,
    KWin's blur, Breeze's frames and menus. Side-by-side screenshots are in
-   `out/parity/` on the Mac. Windows have traffic lights since 2026-10-20
-   (an Aurorae theme generated from the tokens, `tools/gen/targets/aurorae.ts`).
+   `out/parity/` on the Mac. Windows have traffic lights since 2026-10-20;
+   since 2026-10-28 they're our own KWin decoration plugin (`decoration/`,
+   its sizes and colors from `dist/kdecoration/tokens.h`), with rounded
+   corners all round and all three glyphs on hover, as on a Mac. The glyphs
+   are macOS 26's shapes, fitted at 2x and kept once in the tokens; the frame,
+   Files and GTK's titlebuttons all draw them. GTK 3's lights match too (14
+   wide, 23 apart); GTK 4's CSS is untested, as tenet has no GTK 4 app. A
+   running KWin keeps the plugin it loaded, so a new frame shows after the
+   next login (test it in a nested `kwin_wayland --wayland-display`).
    The Dock's Trash is Mac-style since 2026-10-21: the current macOS
    frosted bin, redrawn by hand and matched 1:1 against a screenshot (empty
    is the full bin without its paper: no empty screenshot to match), full or empty with the home trash
@@ -107,9 +119,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
    Files has its own Finder-style icon (2026-10-21, `assets/icons/`, hicolor
    `org.ambrosia.files`); until Ambrosia's Files app exists, Dolphin's Dock
    pin shows as Files with it (`standIns` in `shell/Dock.qml`).
-   Still apart from the preview: windows' bottom corners (square: Aurorae
-   can't round the app's own content), the buttons' glyphs (on the hovered
-   button only, not all three as on a Mac), Breeze's menu radius and row height (only our own
+   Still apart from the preview: Breeze's menu radius and row height (only our own
    QStyle could change them), real apps' icons (no Ambrosia icon theme),
    per-surface blur and saturation (KWin has one setting for all), and the
    control center's feathered blur edge (KWin's blur regions are hard-edged).
@@ -262,11 +272,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
   look-and-feel touches (Breeze's `breezerc`) go in `/etc/xdg/ambrosia`; the
   window decoration, which it does set, `startambrosia` copies from the
   look-and-feel into `kdedefaults/kwinrc` at every login.
-- **Aurorae makes the window shadow from what the frame paints in its
-  padding**, and slices `decoration.svg` nine ways at the pieces' own sizes;
-  KSvg only takes a prefix whose `-center` element exists. The frame is
-  painted as embedded PNGs at 1x (soft on HiDPI screens); the buttons are
-  vector. Plasma's task model only puts a pinned app's windows at its
+- **KWin rounds a decorated window's content to the decoration's
+  `setBorderRadius`** (KDecoration3, Plasma 6.3+), so the plugin rounds all
+  four corners; the window shadow is the decoration's own image, painted
+  once per mode and focus (`decoration/src/shadow.cpp`). Plasma's task model only puts a pinned app's windows at its
   launcher (`launchInPlace`) with `separateLaunchers: true`.
 - **Quickshell loads QML from a virtual `qrc:/qs-blackhole` base**, so
   relative URLs and `Qt.resolvedUrl` don't point at files. Build file URLs

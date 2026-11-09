@@ -18,6 +18,8 @@ ShellRoot {
     // The shell's look follows its settings.
     Binding { target: Theme; property: "dark"; value: Settings.dark }
     Binding { target: Theme; property: "accentName"; value: Settings.accent }
+    // Up from the start: it applies them and follows the night.
+    readonly property bool nightLight: Appearance.nightLight
 
     // Search takes the keyboard, and with it focus, from the app; menus keep
     // the app active, but its window may change under them. Either way the
@@ -38,7 +40,16 @@ ShellRoot {
         }
     }
 
-    Dock { screen: Quickshell.screens[0] ?? null }
+    // Made afresh when the first screen changes, as the menu bar is above: a
+    // window whose screen went away doesn't come back on its own.
+    Variants {
+        model: Quickshell.screens.slice(0, 1)
+
+        Dock {
+            required property ShellScreen modelData
+            screen: modelData
+        }
+    }
     Notifications {}
 
     // `ambrosia search`, `ambrosia control-center` (see session/ambrosia):

@@ -12,12 +12,14 @@
 #   tools/vm.sh stop          power the VM off
 # The VM's SSH port is forwarded to port 10022 on this machine (2222 is makima's).
 # Needs qemu-base, qemu-hw-display-virtio-vga and -virtio-gpu (without it
-# virtio-vga segfaults), edk2-ovmf and socat.
+# virtio-vga segfaults), edk2-ovmf and socat. VM_MEM, VM_CPUS and VM_DISK size it
+# down or point it at an overlay, on a host with other work to protect.
 set -euo pipefail
 
 root=$(cd "$(dirname "$0")/.." && pwd)
 vm="$root/out/vm"
 monitor="$vm/monitor.sock"
+disk=${VM_DISK:-$vm/disk.qcow2}
 mkdir -p "$vm"
 
 hmp() { printf '%s\n' "$*" | socat - "UNIX-CONNECT:$monitor" >/dev/null; }
@@ -25,13 +27,13 @@ running() { [[ -S "$monitor" ]] && hmp info status 2>/dev/null; }
 
 boot() {
   running && { echo "vm: already running (tools/vm.sh stop)" >&2; exit 1; }
-  [[ -f "$vm/disk.qcow2" ]] || qemu-img create -q -f qcow2 "$vm/disk.qcow2" 40G
+  [[ -f "$disk" ]] || qemu-img create -q -f qcow2 "$disk" 40G
   [[ -f "$vm/vars.fd" ]] || cp /usr/share/edk2/x64/OVMF_VARS.4m.fd "$vm/vars.fd"
   rm -f "$monitor"
-  qemu-system-x86_64 -enable-kvm -machine q35 -cpu host -smp 4 -m 6G \
+  qemu-system-x86_64 -enable-kvm -machine q35 -cpu host -smp "${VM_CPUS:-4}" -m "${VM_MEM:-6G}" \
     -drive if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.4m.fd \
     -drive if=pflash,format=raw,file="$vm/vars.fd" \
-    -drive file="$vm/disk.qcow2",if=virtio,format=qcow2 \
+    -drive file="$disk",if=virtio,format=qcow2 \
     -device virtio-vga,xres=1920,yres=1200 -display none \
     -nic user,model=virtio-net-pci,hostfwd=tcp::10022-:22 \
     -monitor unix:"$monitor",server,nowait \

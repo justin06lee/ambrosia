@@ -50,7 +50,8 @@ Sizes are logical pixels. GTK and KDE take points, so the generator converts
 **Rendering** (shipped as a fontconfig fragment): grayscale antialiasing, slight
 hinting, no LCD filter, embedded bitmaps off, and FreeType stem darkening on.
 Stem darkening is the main reason Mac text looks fuller than Linux text at the
-same size.
+same size. Qt's synthetic bold is off in the session: it would thicken Inter
+Variable's real Bold again, as the variable file reports a Regular weight.
 
 ## Space
 
@@ -232,8 +233,13 @@ and the preview is the visual reference. In brief:
   grid float on a light, untinted blur with soft rounded edges. Toggles that
   are on are solid circles. It fades in place (blur first, then the modules)
   rather than springing.
-- **Windows:** three 12px controls on the left, with glyphs on hover and gray
-  when inactive. The title bar is 40 tall, or 52 with a toolbar.
+- **Windows:** three 14px controls 23 apart on the left, centered in the bar
+  and as far from the left edge as from the top. All three show their glyphs
+  while the pointer is over any of them, and they're gray when the window is
+  inactive. The glyphs are macOS 26's, fitted to its pixels at 2x: a bold ×,
+  a capsule −, and for zoom a square split on its diagonal into two
+  triangles, all filled in black at 50%. The title bar is 32 tall, or 52 with
+  a toolbar (macOS 26).
 - **Sidebar:** 220 wide, flush to the window edge, behind-window glass that
   rounds its own outer corners (a parent's rounded corners don't reliably clip
   a blurred backdrop). It goes opaque when its window is inactive.

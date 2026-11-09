@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=System Settings
+GenericName=Settings
+Comment=Set up this computer
+Icon=org.ambrosia.settings
+Exec=ambrosia-settings
+Categories=Qt;KDE;Settings;
+Keywords=settings;preferences;system;configuration;
+StartupNotify=true
+StartupWMClass=org.ambrosia.settings

@@ -15,34 +15,37 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 4. **Theme Targets** — Per-toolkit formatters turning resolved model into GTK, KDE, QML, fontconfig, web output (`tools/gen/targets/`) → `.ruri/layers/theme-targets.md`
 5. **Build and Install** — Bun, TypeScript, Make orchestration: test, build dist/, per-user Linux install with backups (`./, tools/ · 4 files`) → `.ruri/layers/build-install.md`
 6. **Review Site** — Design review website with live specimens, verdict threads, review server and static build (`site/`) → `.ruri/layers/review-site.md`
-7. **Shell and Session** — Quickshell QML shell (wallpaper, menu bar) and the Ambrosia session: Plasma's services with plasmashell swapped out, KWin/KDE defaults (`shell/, session/, tools/ · 1 file`) → `.ruri/layers/shell-and-session.md`
+7. **Shell and Session** — Quickshell QML shell (wallpaper, menu bar) and the Ambrosia session: Plasma's services with plasmashell swapped out, KWin/KDE defaults (`shell/, session/, tools/ +1 · 1 file`) → `.ruri/layers/shell-and-session.md`
 8. **Packaging and Image** — Arch PKGBUILDs (ambrosia-theme/-shell/-desktop, the Quickshell rebuild), the archiso profile with live desktop and installer, ISO build and VM test scripts (`packaging/, iso/, tools/ · 6 files`) → `.ruri/layers/packaging-and-image.md`
-9. **Files App** — our Finder look-alike file manager: Qt 6 QML front end on the Ambrosia theme, C++20 core with KF6/KIO, in-memory filename index, rg content search, benchmarks (`docs/finder/, files/, files/tools/`) → `.ruri/layers/files-app.md`
+9. **Files App** — our Finder look-alike file manager: Qt 6 QML front end on the Ambrosia theme, C++20 core with KF6/KIO, in-memory filename index, rg content search, benchmarks (`docs/finder/, files/, files/tools/ +7 · 15 files`) → `.ruri/layers/files-app.md`
+10. **Settings App** — our System Settings look-alike: Qt 6 QML window on the Ambrosia theme (sidebar in macOS 26 order, General and About), C++20 core reading hostnamed, /proc, DRM and pacman; panes not built yet open KDE's own modules via kcmshell6 (`settings/, docs/settings/, scratch/settings/ · 4 files`) → `.ruri/layers/settings-app.md`
 
 ## How it flows
 
-- **Token to theme:** design/tokens.ts → tools/gen/resolve.ts → tools/gen/targets/* → dist/ (gtk, kde, aurorae, qml, fontconfig, web, tokens.json) → tools/install.sh
+- **Token to theme:** design/tokens.ts → tools/gen/resolve.ts → tools/gen/targets/* → dist/ (gtk, kde, kdecoration, qml, fontconfig, web, tokens.json) → tools/install.sh; dist/kdecoration/tokens.h → decoration/ (KWin frame plugin, built by the PKGBUILD)
 - **Preview a change:** design/tokens.ts → make build (bun test + bun tools/gen/index.ts) → dist/web/tokens.css → preview/index.html + preview/preview.js
 - **Review design:** design/DESIGN.md + design/DECISIONS.md → site/ (bun run review on :4747) → design/review.json verdicts and replies
-- **Ship it:** tokens + shell/ + session/ + files/ → packaging/PKGBUILD via make publish (tenet builds from git checkout ~/work/ambrosia, pushed from the Mac) → Mac signs packages and database → GitHub release repo ambrosia-packages (database uploaded last, old versions deleted) → installed systems: pacman -Syu; ISO via tools/build-iso.sh, then tools/vm.sh install
+- **Ship it:** tokens + shell/ + session/ + files/ + settings/ → packaging/PKGBUILD via make publish (tenet builds from git checkout ~/work/ambrosia, pushed from the Mac) → Mac signs packages and database → GitHub release repo ambrosia-packages (database uploaded last, old versions deleted) → installed systems: pacman -Syu; ISO via tools/build-iso.sh, then tools/vm.sh install
 
 ## Where things are
 
 - design/ — DESIGN.md rules and tokens.ts values, the single source of truth
 - tools/gen/ — index.ts orchestrator, resolve.ts, color.ts, spring.ts plus tests
-- tools/gen/targets/ — gtk.ts, kde.ts, aurorae.ts (traffic-light window frames), qml.ts, fontconfig.ts, web.ts, shared.ts formatters
+- tools/gen/targets/ — gtk.ts (incl. GTK titlebuttons), kde.ts, kdecoration.ts, qml.ts, fontconfig.ts, web.ts, shared.ts formatters; decoration/ — our KWin window frame plugin (org.ambrosia.decoration, KDecoration3) built on dist/kdecoration/tokens.h, packaged as ambrosia-decoration
 - tools/ — install.sh (per-user theme install with .before-ambrosia backups); remote.sh and publish-repo.sh (sync to and build on tenet over SSH; make publish signs and uploads the repo); repo-check.sh (counts our packages)
 - preview/ — index.html + preview.js mock desktop, styled only from dist/web/tokens.css
 - site/ — review site: spec content, live specimens, verdict threads, server + static build
 - assets/ — banner SVG, nectar day/night wallpapers, Files app icon (assets/icons/org.ambrosia.files.svg, installed as hicolor org.ambrosia.files)
-- dist/ — generated output: gtk-*, kde/, qml/, fontconfig/, web/, aurorae/, tokens.json (never hand-edit)
+- dist/ — generated output: gtk-*, kde/, kdecoration/, qml/, fontconfig/, web/, tokens.json (never hand-edit)
 - Makefile — build, test, review, screenshot targets; remote-build, review-remote and shot-remote run on tenet; package.json / tsconfig.json — bun+typescript toolchain definition
 - CONTEXT.md — handoff sheet: what stands, what's next, machines (tenet), how to build/test, gotchas
 - shell/ — Quickshell QML shell: menu bar and menus on a grabbing popup (MenuView.qml, Overlay.qml), Spotlight, dock (hand-drawn trash-full/empty.svg, no Apple art), control center, notifications, appearance; watchFiles off when installed under /usr
 - session/ — startambrosia (copies decoration settings into ~/.config/kdedefaults/kwinrc at login), systemd units swapping plasmashell, /etc/xdg/ambrosia defaults (kwinrc, breezerc), xdg/mimeapps.list (folders and trash:/ open in Files), look-and-feel defaults, pacman hook ambrosia-shell-restart(.hook) restarting the shell after upgrades
-- packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop, ambrosia-files, and the Quickshell rebuild (DBusMenu shortcut patch; debug packages off)
+- packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop, ambrosia-files (depends include ripgrep, ffmpeg, taglib, karchive, freetype2; makedepends include taglib, karchive, freetype2), and the Quickshell rebuild (DBusMenu shortcut patch; debug packages off)
 - iso/ — archiso profile: live desktop, local [ambrosia] repo, installer scripts
-- files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub), C++20 core with KF6/KIO (foldermodel.cpp, fileops.cpp undoable copy/move/trash with undo/redo labels; Trash drops exposed over DBus), benchmarks in files/bench/; installs /usr/bin/ambrosia-files
+- files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub, PreviewDetails/QuickActions/TagField.qml), C++20 core with KF6/KIO (foldermodel.cpp with timesAt for pane dates and search listing, fileops.cpp undoable copy/move/trash with undo/redo labels, iteminfo.cpp one item's details followed by inode, metadata.cpp Show More metadata, tags.cpp/tags.h colour tags in the attribute Dolphin and Baloo use, index.cpp/index.h in-memory name index kept current by inotify and saved to ~/.cache/ambrosia/files/index, thumbnailer.cpp/h shared-cache thumbnails paused under I/O pressure, rg content search, Trash drops exposed over DBus), benchmarks in files/bench/ and src/searchbench.cpp; installs /usr/bin/ambrosia-files and the resident user unit files/ambrosia-files.service (--background, started with the Ambrosia session, indexes home on first start)
+Colour tags shared with Dolphin/Baloo: dots, tinted folders, menu, sidebar lists; src/previews.cpp/h Finder-style thumbnail sources (video frames, font tiles, office pages, audio covers)
+- settings/ — Settings, Ambrosia's System Settings: Qt Quick window (SettingsWindow, Sidebar, pages, controls; every measure in qml/Look.qml), C++ core (src/app.cpp system facts, src/sound.cpp PulseAudio sound via pulseaudio-qt, src/wifi.cpp Wi-Fi page, KDE modules via kcmshell6, vertical zoom through a KWin script; src/about.cpp); docs/settings/ holds the plan and the measured frame
 
 ## How to run it
 
@@ -66,9 +69,8 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 
 ## What it does
 
-- Single OKLCH token file drives every toolkit theme identically
-- Generates GTK, KDE, Aurorae, QML, fontconfig, web CSS, JSON from tokens
-- Gamut-maps colors to sRGB with contrast-derived accent variants
+- Single OKLCH token file generates GTK, KDE, KWin frame, QML, web, JSON; gamut-mapped to sRGB
+- Derives contrast-checked accent variants from the token file
 - Solves response/damping springs into constants and easing curves
 - Validates contrast, concentric radii, and spacing grid via tests
 - Browser mock desktop preview and review site render spec with live specimens
@@ -80,5 +82,6 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 - Super+Space Spotlight; dock keeps pinned order, separate launchers, Mac-style Trash
 - Control center: pure blur glass, modes, sliding notification banners
 - Honey-bowl Ambrosia branding in menu bar, banner, favicon, preview and review site
-- Finder-style file manager: undoable ops, Finder undo labels, drag-drop, default folder opener
-- Starter apps: Firefox, Kate, Gwenview, Okular, Ark, Discover
+- Finder-style Files: thumbnails, Quick Look, Get Info, Columns with metadata, undo, search
+- Colour tags shared with Dolphin/Baloo: dots, tinted folders, menu, sidebar lists
+- Settings: System Settings look-alike; real Sound and Wi-Fi panes

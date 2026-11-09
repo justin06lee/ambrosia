@@ -16,9 +16,9 @@ Row {
 
     Repeater {
         model: [
-            { color: Theme.windowControls.close, glyph: "M4 4l6 6M10 4l-6 6", act: () => lights.window.close() },
-            { color: Theme.windowControls.minimize, glyph: "M3.5 7h7", act: () => lights.window.showMinimized() },
-            { color: Theme.windowControls.zoom, glyph: "M4.5 3.5h6v6M9.5 10.5h-6v-6",
+            { color: Theme.windowControls.close, rim: Theme.windowControls.closeRim, glyph: Theme.windowGlyphs.close, act: () => lights.window.close() },
+            { color: Theme.windowControls.minimize, rim: Theme.windowControls.minimizeRim, glyph: Theme.windowGlyphs.minimize, act: () => lights.window.showMinimized() },
+            { color: Theme.windowControls.zoom, rim: Theme.windowControls.zoomRim, glyph: Theme.windowGlyphs.zoom,
               act: () => lights.window.visibility === Window.Maximized ? lights.window.showNormal() : lights.window.showMaximized() },
         ]
 
@@ -28,22 +28,22 @@ Row {
             width: Finder.lightSize
             height: width
             radius: width / 2
-            color: lights.active || hover.hovered ? modelData.color : Finder.lightInactive
+            readonly property bool lit: lights.active || hover.hovered
+            color: lit ? modelData.color : Finder.lightInactive
+            // Half a point inside the edge: a deeper shade while lit, black when not.
             border.width: 0.5
-            border.color: Qt.rgba(0, 0, 0, Theme.dark ? 0.25 : 0.12)
+            border.color: lit ? modelData.rim : Qt.rgba(0, 0, 0, Theme.dark ? 0.25 : 0.12)
 
             Shape {
-                // The glyph, on a 14-unit box.
+                // The tokens' glyph, filled on the light's own box (the KWin frame draws the same).
                 anchors.fill: parent
                 visible: hover.hovered
-                scale: light.width / 14
+                scale: light.width / Theme.size.windowControls.diameter
                 transformOrigin: Item.TopLeft
                 preferredRendererType: Shape.CurveRenderer
                 ShapePath {
-                    strokeColor: Qt.rgba(0, 0, 0, 0.55)
-                    strokeWidth: 1.3
-                    fillColor: "transparent"
-                    capStyle: ShapePath.RoundCap
+                    strokeWidth: -1
+                    fillColor: Qt.rgba(0, 0, 0, Theme.windowGlyphs.opacity)
                     PathSvg { path: light.modelData.glyph }
                 }
             }

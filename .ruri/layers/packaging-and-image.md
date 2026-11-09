@@ -3,11 +3,11 @@
 One layer of ambrosia's stack, owning `packaging/, iso/, tools/build-iso.sh, tools/vm.sh, tools/remote.sh, tools/publish-repo.sh, tools/repo-test.sh, tools/repo-check.sh`. The whole stack, and how the layers connect, is in `.ruri/architecture.md`.
 Don't edit this file: ruri writes it. `ruri layer packaging-and-image` prints it with every line numbered, what git says changed in this layer lately and what sessions learned working here; once you have read it that way, put right what your work changed — `ruri layer packaging-and-image add|set|drop <section> …`. Where it and the code disagree, the code is right.
 
-Everything that turns the repo into an installable, updatable distro. packaging/PKGBUILD builds ambrosia-keyring, ambrosia-theme, ambrosia-shell and ambrosia-desktop from the checkout; packaging/quickshell rebuilds Quickshell v0.3.2 with a patch so the menu bar can read apps' real menus, including each item's shortcut, and so apps learn when each menu opens. tools/publish-repo.sh (make publish, on the Mac) builds them on tenet, signs them with a key kept on the Mac, and uploads them to the hosted [ambrosia] pacman repo: the rolling repo release of the public github.com/justin06lee/ambrosia-packages. iso/ is an archiso profile (from Arch's releng) whose live system logs into Ambrosia and carries the packages as a local repo for its installer, which puts [ambrosia] first in the installed system's pacman.conf. Built on an Arch host (tenet), tested in a headless QEMU VM.
+Everything that turns the repo into an installable, updatable distro. packaging/PKGBUILD builds ambrosia-keyring, ambrosia-theme, ambrosia-shell, ambrosia-settings and ambrosia-desktop from the checkout; packaging/quickshell rebuilds Quickshell v0.3.2 with a patch so the menu bar can read apps' real menus, including each item's shortcut, and so apps learn when each menu opens. tools/publish-repo.sh (make publish, on the Mac) builds them on tenet, signs them with a key kept on the Mac, and uploads them to the hosted [ambrosia] pacman repo: the rolling repo release of the public github.com/justin06lee/ambrosia-packages. iso/ is an archiso profile (from Arch's releng) whose live system logs into Ambrosia and carries the packages as a local repo for its installer, which puts [ambrosia] first in the installed system's pacman.conf. Built on an Arch host (tenet), tested in a headless QEMU VM.
 
 ## Where to change what
 
-- **What each package installs and depends on (incl. the Aurorae window frame, ambrosia-shell's upgrade restart hook, and the Files app icon in the hicolor theme):** packaging/PKGBUILD, assets/icons/org.ambrosia.files.svg
+- **What each package installs and depends on (incl. ambrosia-decoration, the KWin window frame plugin built from decoration/; ambrosia-settings and the libraries its Sound, Wi-Fi and Bluetooth panes need, listed in the PKGBUILD; ambrosia-desktop's depends on Settings, power-profiles-daemon, CUPS, Avahi and nss-mdns; ambrosia-shell's upgrade restart hook; the Files icon; ambrosia-files' libraries and runtime tools ripgrep and ffmpeg):** packaging/PKGBUILD, assets/icons/org.ambrosia.files.svg
 - **SDDM defaults on installed systems:** packaging/sddm.conf
 - **Our Quickshell build (pinned upstream commit; DBusMenu patch that reads menus, item shortcuts, and tells apps each menu opened):** packaging/quickshell/dbusmenu-source.patch, packaging/quickshell/PKGBUILD
 - **Image name, compression, file permissions:** iso/profiledef.sh
@@ -18,8 +18,6 @@ Everything that turns the repo into an installable, updatable distro. packaging/
 - **Boot menu entries and kernel params:** iso/efiboot/loader/, iso/syslinux/
 - **VM build / install / screenshot test tooling:** tools/vm.sh
 - **The hosted repo: publishing, signing, the key installed systems trust:** tools/publish-repo.sh, packaging/keyring/, packaging/ambrosia-keyring.install
-- **The system's name (os-release, its logo, the hooks that keep it in /etc):** packaging/os-release/
-- **Testing the hosted repo from a fresh install in the VM:** tools/repo-test.sh, tools/repo-check.sh
 
 ## How it works
 
@@ -31,7 +29,7 @@ Everything that turns the repo into an installable, updatable distro. packaging/
 
 ## Key files
 
-- packaging/PKGBUILD — builds the four ambrosia packages and what each installs
+- packaging/PKGBUILD — builds the five ambrosia packages, what each installs, and their depends and makedepends
 - tools/publish-repo.sh — builds, signs and uploads packages to the hosted repo
 - iso/packages.x86_64 — what's on the live image
 - iso/pacman.conf — package sources at build and on the image
@@ -46,19 +44,16 @@ Everything that turns the repo into an installable, updatable distro. packaging/
 - Any change to dbusmenu-source.patch must update its checksum and bump pkgrel in packaging/quickshell/PKGBUILD, because make publish only rebuilds Quickshell for a version the release lacks.
 - The patch must make Quickshell send DBusMenu AboutToShow on every menu open, not only the first: Qt raises a menu's aboutToShow only from that call, so apps tracking open menus miss every later open otherwise.
 - packaging/PKGBUILD must install ambrosia-shell's pacman restart hook (session/ambrosia-shell-restart.hook); without it, upgraded shell QML waits for the next login to take effect.
-- App icons in assets/icons/ reach installed systems only if packaging/PKGBUILD installs them; a hand copy on tenet is replaced by the next package install, so a hand copy alone is not a fix.
-- Build and work dirs go under ~/work/ambrosia/out on /home (tenet's / has ~25 GB); makepkg's Quickshell source is out/build/quickshell/src/quickshell. mkarchiso needs root, makepkg refuses it.
-- The installer is UEFI-only and needs the internet (pacstrap pulls everything but our packages from Arch mirrors).
-- Ship pipewire-jack, not jack2: the two conflict and broke restore/install when both were pulled in.
-- tools/vm.sh must not forward host port 2222: makima uses it to reach tenet, so the test VM SSH forward lives on 10022.
-- The installer copies live Wi-Fi profiles without interface-name: the live image names the card wlan0 (iwd), the installed system by its predictable name (wlo1).
-- GitHub renames release assets with ':' or '~' (to '.'), so no epochs in our package versions; publish-repo.sh refuses such names. Assets can't be symlinks: ambrosia.db and .files are uploaded as real files.
-- Hand copies on tenet (shell/, /etc/xdg/ambrosia) go only through pacman -U --overwrite, never -Syu; after an install pacman -Qkk must show 0 altered files and no .pacnew.
+- Installing an ambrosia-shell package with pacman restarts the shell at once, which cuts into any demo or recording running on the desktop.
+- Installing ambrosia-desktop on tenet needs a full system upgrade (pacman -Syu) first: its new depends would pull packages from a list newer than tenet's system and partially upgrade it (Avahi, for one).
+- Each package's depends in packaging/PKGBUILD lists every library it links, even when another dependency already pulls it in (ambrosia-files lists kservice for KF6::Service, taglib and karchive for its thumbnailers, and freetype2 for its font tiles).
+- Each package's depends in packaging/PKGBUILD lists every external tool it runs at runtime, even when the build host already has it (ambrosia-files lists ripgrep for content search and ffmpeg for video frames).
 
 ## What it talks to
 
 - Shell and Session — ambrosia-shell ships shell/ and session/, including the pacman restart hook that session/ shell upgrades trigger; the Dock's Files icon (assets/icons/org.ambrosia.files.svg) is installed by the PKGBUILD; the menu bar's shortcut column reads item shortcuts from our patched Quickshell
-- Files app — its active-while-menu-open look depends on the AboutToShow that our patched Quickshell sends on each menu open
-- Theme Targets / Generator Core — the PKGBUILD runs bun tools/gen/index.ts and installs dist/ system-wide, including the generated Aurorae window frames
+- Settings app — ambrosia-settings is built by packaging/PKGBUILD, which lists the libraries for its Sound pane (pulseaudio-qt, libpulse), its Wi-Fi pane (NetworkManager Qt) and its Bluetooth pane; ambrosia-desktop depends on it
+- Files app — its active-while-menu-open look depends on the AboutToShow that our patched Quickshell sends on each menu open; its library dependencies (kservice, taglib, karchive and freetype2 among them) and its runtime tools (ripgrep for content search, ffmpeg for video frames) are listed in packaging/PKGBUILD
+- Theme Targets — the PKGBUILD runs the generator, installs dist/ and builds decoration/ (the KWin frame)
 - tenet (Arch build host) — ssh as justin06lee@192.168.1.172 (root@ for pacman -U); tools/remote.sh pushes HEAD to its bare repo and resets ~/work/ambrosia to it
 - GitHub — gh on the Mac: the private source remote (justin06lee/ambrosia) and the public package repo's repo release (justin06lee/ambrosia-packages)

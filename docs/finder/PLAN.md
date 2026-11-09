@@ -167,7 +167,7 @@ Finder.**
 - **The window draws its own title bar.** Finder's unified toolbar puts the
   traffic lights inside the sidebar and toolbar, so a server-side frame can't
   match it. The window is frameless, with our traffic lights (the same art as
-  the Aurorae frame in `tools/gen/targets/aurorae.ts`), `startSystemMove`
+  the KWin frame in `decoration/`), `startSystemMove`
   and `startSystemResize`, KWindowShadow for the shadow and
   KWindowEffects blur-behind for the glass.
 - **Menus** come from Qt.labs.platform `MenuBar`, which Qt's platform theme
