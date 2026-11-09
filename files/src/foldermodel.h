@@ -7,6 +7,7 @@
 #include <QUrl>
 #include <QtQml/qqmlregistration.h>
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -14,7 +15,6 @@
 #include <vector>
 
 class QFileSystemWatcher;
-class QProcess;
 class QTimer;
 class KJob;
 
@@ -36,9 +36,11 @@ class KJob;
 //
 // A search is a place too: search:?q=TEXT[&in=FOLDER][&mode=name|content]
 // [&kind=KIND], or search:?tag=NAME for a sidebar tag. Names come from the
-// index at once; contents stream in from rg, run in a folder's scope (the
-// whole home only when asked, mode=content: rg reads every file); both are
-// read again when the index sees a change.
+// index at once; contents stream in (rg's rules, read without touching
+// Date Last Opened), in the folder searched or, for
+// the whole computer, in the home's document folders (rg over all of a home
+// reads every file: hours on tenet's disk); both are read again when the
+// index sees a change.
 class FolderModel : public QAbstractListModel
 {
     Q_OBJECT
@@ -59,7 +61,7 @@ class FolderModel : public QAbstractListModel
     // 3:30 PM", 1 "Yesterday, 3:30 PM", 2 "Yesterday" (or "3:30 PM" today).
     Q_PROPERTY(int dateLevel READ dateLevel WRITE setDateLevel NOTIFY dateLevelChanged)
     Q_PROPERTY(bool searching READ searching NOTIFY urlChanged)
-    // rg is still looking through contents.
+    // Contents are still being looked through.
     Q_PROPERTY(bool searchingContents READ searchingContents NOTIFY searchingContentsChanged)
     // How long the index took for the last search's names.
     Q_PROPERTY(double searchMs READ searchMs NOTIFY loaded)
@@ -81,6 +83,8 @@ public:
         ExpandedRole,
         TagsRole, // the colors of its tags, read when asked for
         ThumbRole, // its thumbnail's image source, or ""
+        OpenedRole, // when it was last opened (its access time)
+        OpenedTextRole,
     };
     Q_ENUM(Role)
 
@@ -90,6 +94,7 @@ public:
         quint8 flags = 0;
         qint64 size = -1;
         qint64 mtime = 0;
+        qint64 atime = 0; // Date Last Opened
     };
     enum Flag : quint8 { Dir = 1, Symlink = 2, Hidden = 4, Missing = 8 };
 
@@ -125,7 +130,7 @@ public:
     int dateLevel() const { return m_dateLevel; }
     void setDateLevel(int level);
     bool searching() const { return m_url.scheme() == QLatin1String("search"); }
-    bool searchingContents() const { return m_rg != nullptr; }
+    bool searchingContents() const { return m_contentRunning; }
     double searchMs() const { return m_searchMs; }
 
     Q_INVOKABLE QUrl urlAt(int row) const;
@@ -209,7 +214,7 @@ private:
     void listRemote(bool reread);
     void listSearch(bool reread);
     void statResults(quint64 generation);
-    void searchContents(const QString &text, const QString &dir);
+    void searchContents(const QString &text, const QStringList &dirs);
     void startContents();
     void stopContents();
     void resort();
@@ -241,11 +246,13 @@ private:
     bool m_outline = false;
     KJob *m_job = nullptr;
     mutable QHash<QString, QString> m_kinds; // extension -> kind, GUI thread
-    // Content search: rg's run, and the files it found so far.
-    QProcess *m_rg = nullptr;
-    QTimer *m_rgLater = nullptr; // rg starts once typing pauses
-    QString m_rgFor, m_rgText, m_rgDir;
-    QByteArray m_rgRest;
+    // Content search: its run, and the files it found so far.
+    std::shared_ptr<std::atomic<bool>> m_contentStop;
+    quint64 m_contentRun = 0;
+    bool m_contentRunning = false;
+    QTimer *m_rgLater = nullptr; // contents are looked through once typing pauses
+    QString m_rgFor, m_rgText;
+    QStringList m_rgDirs;
     std::vector<std::string> m_contentHits;
     std::unordered_set<std::string> m_contentSeen;
     double m_searchMs = 0;

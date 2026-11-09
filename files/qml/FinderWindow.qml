@@ -69,7 +69,7 @@ Window {
     property bool searchOpen: false
     property string searchText: ""
     property var searchToken: null // {mode: "name" or "content", text}
-    property string searchScope: "home"
+    property string searchScope: "computer"
     property string searchKind: "any"
     property url searchFolder: startUrl
     readonly property bool searching: url.toString().startsWith("search:")
@@ -182,7 +182,7 @@ Window {
             searchOpen = true;
             searchToken = params.mode ? { mode: params.mode, text: params.q ?? "" } : null;
             searchText = params.mode ? "" : (params.q ?? "");
-            searchScope = params["in"] ? "folder" : "home";
+            searchScope = params["in"] ? "folder" : "computer";
             if (params["in"])
                 searchFolder = Qt.url(params["in"]);
             searchKind = params.kind ?? "any";

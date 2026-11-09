@@ -27,6 +27,7 @@ qt_add_qml_module(ambrosia-files
     SOURCES
         src/app.h src/app.cpp
         src/fileops.h src/fileops.cpp
+        src/contents.h src/contents.cpp
         src/foldermodel.h src/foldermodel.cpp
         src/index.h src/index.cpp
         src/searchbench.cpp

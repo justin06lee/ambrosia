@@ -2,7 +2,7 @@ import QtQuick
 import Ambrosia
 
 // Under the toolbar while searching, Finder's two rows: where to search
-// ("Search: Home “Folder”", the chosen one on a pill) and the Kind
+// ("Search: This Computer “Folder”", the chosen one on a pill) and the Kind
 // criterion ("Kind is Any").
 Item {
     id: bar
@@ -44,7 +44,7 @@ Item {
         }
         Repeater {
             model: [
-                { scope: "home", name: "Home", shown: true },
+                { scope: "computer", name: "This Computer", shown: true },
                 { scope: "folder", name: "“" + bar.folderName + "”", shown: bar.hasFolder },
             ]
             Rectangle {

@@ -19,6 +19,22 @@ FocusScope {
     readonly property real kindX: stripeRight - kindW
     readonly property real sizeX: kindX - sizeW
     readonly property real dateX: sizeX - dateW
+    // Search results take Finder's columns instead: Name, Kind and Date
+    // Last Opened (the Date column's width, with what it shows changed).
+    readonly property bool searchColumns: finder.searching
+    readonly property real openedX: stripeRight - dateW
+    readonly property real kindSearchX: openedX - kindW
+    readonly property real nameEnd: searchColumns ? kindSearchX : dateX
+    readonly property var columns: searchColumns ? [
+        { column: "name", title: "Name", left: 0, textX: Finder.nameText, end: kindSearchX },
+        { column: "kind", title: "Kind", left: kindSearchX, textX: kindSearchX + 8, end: openedX },
+        { column: "opened", title: "Date Last Opened", left: openedX, textX: openedX + 8, end: stripeRight },
+    ] : [
+        { column: "name", title: "Name", left: 0, textX: Finder.nameText, end: dateX },
+        { column: "date", title: "Date Modified", left: dateX, textX: dateX + 8, end: sizeX },
+        { column: "size", title: "Size", left: sizeX, textX: sizeX + 7.5, end: kindX },
+        { column: "kind", title: "Kind", left: kindX, textX: kindX + 8, end: stripeRight },
+    ]
 
     // A divider trades width between the columns either side of it; the
     // first one, between Name and Date Modified, takes it from Name.
@@ -28,6 +44,17 @@ FocusScope {
     function resize(divider, dx) {
         const from = resizeFrom, min = minWidth;
         const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+        if (searchColumns) {
+            if (divider === 1) {
+                const room = stripeRight - from.date - Finder.nameText - min.name;
+                kindW = clamp(from.kind - dx, min.kind, Math.max(min.kind, room));
+            } else {
+                const d = clamp(dx, min.kind - from.kind, from.date - min.date);
+                kindW = from.kind + d;
+                dateW = from.date - d;
+            }
+            return;
+        }
         if (divider === 1) {
             const room = stripeRight - from.kind - from.size - Finder.nameText - min.name;
             dateW = clamp(from.date - dx, min.date, Math.max(min.date, room));
@@ -89,20 +116,15 @@ FocusScope {
         }
 
         Repeater {
-            model: [
-                { column: "name", title: "Name" },
-                { column: "date", title: "Date Modified" },
-                { column: "size", title: "Size" },
-                { column: "kind", title: "Kind" },
-            ]
+            model: pane.columns
             Item {
                 id: column
                 required property var modelData
                 required property int index
                 readonly property bool sorted: pane.model.sortColumn === modelData.column
-                readonly property real textX: [Finder.nameText, pane.dateX + 8, pane.sizeX + 7.5, pane.kindX + 8][index]
-                readonly property real end: [pane.dateX, pane.sizeX, pane.kindX, pane.stripeRight][index]
-                x: index === 0 ? 0 : textX - 8
+                readonly property real textX: modelData.textX
+                readonly property real end: modelData.end
+                x: modelData.left
                 width: end - x
                 height: header.height
 
@@ -307,6 +329,7 @@ FocusScope {
                 required property int index
                 required property string name
                 required property string dateText
+                required property string openedText
                 required property string sizeText
                 required property string kind
                 required property string kindShort
@@ -362,7 +385,7 @@ FocusScope {
                 // Its tags, at the end of the Name column.
                 TagDots {
                     id: dots
-                    x: pane.dateX - 8.5 - width
+                    x: pane.nameEnd - 8.5 - width
                     anchors.verticalCenter: parent.verticalCenter
                     colors: rowItem.tags
                     ring: rowItem.selected ? (pane.finder.looksActive ? Theme.accent.bg : Finder.selectionInactive)
@@ -372,7 +395,7 @@ FocusScope {
                     id: nameLabel
                     visible: !rowItem.renaming
                     x: Finder.nameText + rowItem.indent
-                    width: pane.dateX - x - 8 - (dots.width > 0 ? dots.width + 8 : 0)
+                    width: pane.nameEnd - x - 8 - (dots.width > 0 ? dots.width + 8 : 0)
                     anchors.verticalCenter: parent.verticalCenter
                     text: rowItem.name
                     elide: Text.ElideMiddle
@@ -381,7 +404,7 @@ FocusScope {
                 Loader {
                     active: rowItem.renaming
                     x: nameLabel.x - 5
-                    width: Math.min(item ? item.implicitWidth : 0, pane.dateX - x - 4)
+                    width: Math.min(item ? item.implicitWidth : 0, pane.nameEnd - x - 4)
                     height: Finder.row - 2
                     anchors.verticalCenter: parent.verticalCenter
                     sourceComponent: RenameField {
@@ -391,14 +414,15 @@ FocusScope {
                     }
                 }
                 Label {
-                    x: pane.dateX + 8
+                    x: (pane.searchColumns ? pane.openedX : pane.dateX) + 8
                     width: pane.dateW - 12
                     anchors.verticalCenter: parent.verticalCenter
-                    text: rowItem.dateText
+                    text: pane.searchColumns ? rowItem.openedText : rowItem.dateText
                     elide: Text.ElideRight
                     color: rowItem.softInk
                 }
                 Label {
+                    visible: !pane.searchColumns
                     x: pane.sizeX
                     width: pane.sizeW - 4.5
                     anchors.verticalCenter: parent.verticalCenter
@@ -409,7 +433,7 @@ FocusScope {
                 // Finder cuts a kind in the middle, after trying its short name.
                 Label {
                     id: kindLabel
-                    x: pane.kindX + 8
+                    x: (pane.searchColumns ? pane.kindSearchX : pane.kindX) + 8
                     width: pane.kindW - 12
                     anchors.verticalCenter: parent.verticalCenter
                     text: kindFull.width > width ? rowItem.kindShort : rowItem.kind

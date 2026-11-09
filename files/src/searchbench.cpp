@@ -5,18 +5,19 @@
 //   FILES_BENCH_CONTENT  a folder to time content search (rg) in
 //   FILES_BENCH_TOUCH    a writable folder in the index, to time how soon
 //                        a new, renamed and deleted file shows in searches
+#include "contents.h"
 #include "foldermodel.h"
 #include "index.h"
 
 #include <QCoreApplication>
 #include <QElapsedTimer>
 #include <QFile>
-#include <QProcess>
 #include <QThread>
 #include <QUrl>
 #include <QUrlQuery>
 
 #include <algorithm>
+#include <atomic>
 #include <cstdio>
 #include <functional>
 
@@ -107,7 +108,7 @@ int benchSearch(const QStringList &queries)
                         times[times.size() / 2], times.back(), total);
         }
         // The same keystrokes through a model, as a window sees them: from
-        // the URL changing to the rows (names only, so rg stays out of it).
+        // the URL changing to the rows (names only, so contents stay out of it).
         FolderModel model;
         bool loaded = false;
         QObject::connect(&model, &FolderModel::loaded, [&] { loaded = true; });
@@ -124,34 +125,21 @@ int benchSearch(const QStringList &queries)
             std::printf("keystroke %-20s %6.2f ms to rows (index %5.2f ms)  %d rows\n", qPrintable(QLatin1Char('"') + query.left(n) + QLatin1Char('"')),
                         ms(key), model.searchMs(), model.count());
         }
-        // Contents: rg as the window runs it, to its first file.
+        // Contents, as the window looks through them, to its first file.
         const QString where = qEnvironmentVariable("FILES_BENCH_CONTENT");
         if (!where.isEmpty() && query.size() >= 2) {
-            QProcess rg;
-            rg.setProgram(QStringLiteral("rg"));
-            rg.setArguments({QStringLiteral("--files-with-matches"), QStringLiteral("--null"), QStringLiteral("--fixed-strings"),
-                             QStringLiteral("--ignore-case"), QStringLiteral("--no-messages"), QStringLiteral("--max-filesize"),
-                             QStringLiteral("20M"), QStringLiteral("--threads"), QStringLiteral("4"), QStringLiteral("--"), query, where});
+            std::atomic<bool> stop = false;
             QElapsedTimer run;
             run.start();
-            rg.start();
             double first = -1;
-            QByteArray out;
-            waitFor(
-                [&] {
-                    out += rg.readAllStandardOutput();
-                    if (first < 0 && out.contains('\0'))
-                        first = ms(run);
-                    return rg.state() == QProcess::NotRunning;
-                },
-                10000);
-            if (rg.state() != QProcess::NotRunning) {
-                rg.kill();
-                rg.waitForFinished();
-            }
-            out += rg.readAllStandardOutput();
-            std::printf("contents %-21s first file %7.1f ms, all %7.1f ms, %lld files (in %s)\n", qPrintable(QLatin1Char('"') + query + QLatin1Char('"')),
-                        first, ms(run), qlonglong(out.count('\0')), qPrintable(where));
+            size_t files = 0;
+            Contents::search(query, {where}, stop, 10000, 2000, [&](std::vector<std::string> &&paths) {
+                if (first < 0 && !paths.empty())
+                    first = ms(run);
+                files += paths.size();
+            });
+            std::printf("contents %-21s first file %7.1f ms, all %7.1f ms, %zu files (in %s)\n", qPrintable(QLatin1Char('"') + query + QLatin1Char('"')),
+                        first, ms(run), files, qPrintable(where));
         }
     }
 

@@ -558,13 +558,23 @@ this Mac's Finder (references in `out/parity/files/ref/search/`):
   becomes a NAME or CONTENTS token, which ⌫ takes away. Esc or the clear
   button ends the search, back to the folder; Back and Forward keep the
   search as one place.
-- **The scope bar:** "Search: Home “Folder”" and "Kind is Any", where Kind
+- **The scope bar:** "Search: This Computer “Folder”" (Finder's This Mac,
+  named as the menu bar's About This Computer) and "Kind is Any", where Kind
   uses an in-window pop-up menu with Finder's kinds.
-- **Results** are a `search:` place in the folder model. Rows come straight
-  from the index and their sizes and dates a pass later. Contents stream
-  from rg (`--files-with-matches`, nice 15, idle I/O, 250 ms after typing
-  stops) in a folder's scope, or anywhere for Contains. Over the whole home
-  rg is too heavy for tenet's disk (5.3 s to a first file, I/O pressure 81%).
+- **Results** are a `search:` place in the folder model, in Finder's
+  columns: Name, Kind and Date Last Opened (the access time), each sortable
+  and resizable. Rows come straight from the index and their dates a pass
+  later. As in Finder, a plain query matches names or contents: Name
+  Contains is names only, Contains contents only.
+- **Contents** (`src/contents.cpp`, since 2026-11-10): rg's rules (hidden
+  items, binaries and files over 8 MB left out, `node_modules` skipped) but
+  read in-process with O_NOATIME, because rg's reads set every file's access
+  time, so one search made everything "opened today". On a thread at nice 15
+  and idle I/O, 250 ms after typing stops, streamed, for at most 20 s
+  (`FILES_CONTENTS_LIMIT`). In a folder's scope it reads that folder; for
+  This Computer, the home's Desktop, Documents and Downloads, never all of
+  it: rg over Justin's whole home ran over two hours on tenet's disk at
+  80-85% I/O pressure without finishing (2026-11-10).
 - **A sidebar tag** lists what has it, from the index.
 - **Measured** (`ambrosia-files --bench-search`, Justin's home on tenet,
   warm): 809,919 items in 71,265 folders (2.04M with hidden ones). A query
@@ -573,10 +583,9 @@ this Mac's Finder (references in `out/parity/files/ref/search/`):
   snapshot is 38 MB, loads in 33 to 36 ms and is checked in 0.2 s. A
   change reaches the index in 0.3 ms and a search window in 0.26 s. The
   arrays take 40 MB.
-- **Not yet:** search results keep the list's columns (Finder's are Name,
-  Kind, Date Last Opened); there is no Save (smart folders aren't v1), no
-  + or − criteria rows, no token menu, and no D-Bus Search for the shell's
-  Spotlight. Tags changed while Files isn't running show only once their
+- **Not yet:** no Save (smart folders aren't v1), no + or − criteria rows,
+  no token menu, no D-Bus Search for the shell's Spotlight, and This
+  Computer doesn't reach other drives or the installed apps. Tags changed while Files isn't running show only once their
   folder is read again.
 
 **Slice 8, thumbnails** (`src/thumbnailer.cpp`, `src/previews.cpp`,

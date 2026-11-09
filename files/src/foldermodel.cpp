@@ -1,6 +1,7 @@
 #include "foldermodel.h"
 #include "thumbnailer.h"
 
+#include "contents.h"
 #include "format.h"
 #include "index.h"
 #include "sortkey.h"
@@ -19,8 +20,8 @@
 #include <QFileSystemWatcher>
 #include <QMimeDatabase>
 #include <QPointer>
-#include <QProcess>
 #include <QRegularExpression>
+#include <QStandardPaths>
 #include <QThreadPool>
 #include <QTimer>
 #include <QUrlQuery>
@@ -28,6 +29,7 @@
 #include <QElapsedTimer>
 
 #include <algorithm>
+#include <atomic>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -109,7 +111,7 @@ QString errorText(int error)
 void statRange(int dirfd, Listing &l, size_t begin, size_t end)
 {
     struct statx sx;
-    const unsigned mask = STATX_TYPE | STATX_MODE | STATX_SIZE | STATX_MTIME;
+    const unsigned mask = STATX_TYPE | STATX_MODE | STATX_SIZE | STATX_MTIME | STATX_ATIME;
     for (size_t i = begin; i < end; ++i) {
         Entry &e = l.entries[i];
         const char *name = l.strings.data() + e.name;
@@ -128,10 +130,11 @@ void statRange(int dirfd, Listing &l, size_t begin, size_t end)
             e.flags &= ~FolderModel::Dir;
         e.size = S_ISDIR(sx.stx_mode) ? -1 : qint64(sx.stx_size);
         e.mtime = sx.stx_mtime.tv_sec;
+        e.atime = sx.stx_atime.tv_sec;
     }
 }
 
-enum class Column { Name, Date, Size, Kind };
+enum class Column { Name, Date, Size, Kind, Opened };
 
 Column columnOf(const QString &name)
 {
@@ -141,6 +144,8 @@ Column columnOf(const QString &name)
         return Column::Size;
     if (name == QLatin1String("kind"))
         return Column::Kind;
+    if (name == QLatin1String("opened"))
+        return Column::Opened;
     return Column::Name;
 }
 
@@ -290,6 +295,9 @@ std::vector<quint32> sortedOrder(const Listing &l, const Keys &keys, Column colu
             break;
         case Column::Size:
             c = x.size < y.size ? -1 : x.size > y.size ? 1 : 0;
+            break;
+        case Column::Opened:
+            c = x.atime < y.atime ? -1 : x.atime > y.atime ? 1 : 0;
             break;
         case Column::Kind:
             c = kinds[a].compare(kinds[b], Qt::CaseInsensitive);
@@ -460,6 +468,7 @@ KJob *listWithKio(QObject *context, const QUrl &base, bool showHidden, const std
             e.flags = (u.isDir() ? FolderModel::Dir : 0) | (hidden ? FolderModel::Hidden : 0);
             e.size = u.isDir() ? -1 : u.numberValue(KIO::UDSEntry::UDS_SIZE, -1);
             e.mtime = u.numberValue(KIO::UDSEntry::UDS_MODIFICATION_TIME, 0);
+            e.atime = u.numberValue(KIO::UDSEntry::UDS_ACCESS_TIME, e.mtime);
             const QString target = u.stringValue(KIO::UDSEntry::UDS_URL);
             QUrl url = target.isEmpty() ? base : QUrl(target);
             if (target.isEmpty())
@@ -705,7 +714,7 @@ QString FolderModel::name() const
         const Search s = parseSearch(m_url);
         if (!s.query.tag.isEmpty())
             return s.query.tag;
-        return QStringLiteral("Searching “%1”").arg(s.query.scope.isEmpty() ? QStringLiteral("Home") : QFileInfo(s.query.scope).fileName());
+        return QStringLiteral("Searching “%1”").arg(s.query.scope.isEmpty() ? QStringLiteral("This Computer") : QFileInfo(s.query.scope).fileName());
     }
     if (m_url.isLocalFile() && m_url.path() == QLatin1String("/"))
         return QSysInfo::machineHostName();
@@ -815,15 +824,32 @@ void FolderModel::listRemote(bool reread)
     });
 }
 
+// Where the whole computer's contents are looked through: the home's
+// Desktop, Documents and Downloads. rg over all of a home reads every file
+// in it (over two hours on tenet's disk, holding its I/O pressure at 80%),
+// so contents everywhere else come from a folder's own search.
+static QStringList documentFolders()
+{
+    const QString home = QDir::homePath();
+    QStringList dirs;
+    for (const auto where : {QStandardPaths::DesktopLocation, QStandardPaths::DocumentsLocation, QStandardPaths::DownloadLocation}) {
+        const QString dir = QDir::cleanPath(QStandardPaths::writableLocation(where));
+        if (!dir.isEmpty() && dir != home && !dirs.contains(dir) && QFileInfo(dir).isDir())
+            dirs << dir;
+    }
+    return dirs;
+}
+
 void FolderModel::listSearch(bool reread)
 {
     const Search spec = parseSearch(m_url);
-    // Contents in a folder, or anywhere when asked for: on tenet's disk rg
-    // over the whole home takes seconds to its first file.
+    // Finder's search matches names or contents: names from the index, and
+    // contents from rg in the folder searched, or for the whole computer in
+    // the document folders.
     const QString home = Index::instance()->root();
     const bool inFolder = !spec.query.scope.isEmpty() && QDir::cleanPath(spec.query.scope) != home;
-    if (spec.query.tag.isEmpty() && (spec.mode == QLatin1String("content") || (spec.mode.isEmpty() && inFolder)))
-        searchContents(spec.text, inFolder ? spec.query.scope : home);
+    if (spec.query.tag.isEmpty() && spec.mode != QLatin1String("name"))
+        searchContents(spec.text, inFolder ? QStringList{spec.query.scope} : documentFolders());
     else
         stopContents();
     const bool names = spec.mode != QLatin1String("content");
@@ -899,21 +925,20 @@ void FolderModel::statResults(quint64 generation)
     });
 }
 
-// Files whose contents have the text, from rg in the scope, as they come:
-// one run per text and scope, the last one stopped. rg runs niced, with
-// idle I/O, and skips what it skips by default (hidden and ignored files,
-// binaries), as Spotlight leaves hidden files out.
-void FolderModel::searchContents(const QString &text, const QString &dir)
+// Files whose contents have the text, as they come (Contents::search, with
+// rg's rules but quiet reads): one run per text and scope, the last one
+// stopped, starting once typing pauses.
+void FolderModel::searchContents(const QString &text, const QStringList &dirs)
 {
-    const QString key = text + QLatin1Char('\n') + dir;
+    const QString key = text + QLatin1Char('\n') + dirs.join(QLatin1Char('\n'));
     if (key == m_rgFor)
         return;
     stopContents();
     m_rgFor = key;
-    if (text.size() < 2 || dir.isEmpty())
+    if (text.size() < 2 || dirs.isEmpty())
         return;
     m_rgText = text;
-    m_rgDir = dir;
+    m_rgDirs = dirs;
     if (!m_rgLater) {
         m_rgLater = new QTimer(this);
         m_rgLater->setSingleShot(true);
@@ -925,63 +950,55 @@ void FolderModel::searchContents(const QString &text, const QString &dir)
 
 void FolderModel::startContents()
 {
-    const QString text = m_rgText, dir = m_rgDir;
-    auto *rg = new QProcess(this);
-    m_rg = rg;
-    rg->setProgram(QStringLiteral("rg"));
-    rg->setArguments({QStringLiteral("--files-with-matches"), QStringLiteral("--null"), QStringLiteral("--fixed-strings"),
-                      QStringLiteral("--ignore-case"), QStringLiteral("--no-messages"), QStringLiteral("--max-filesize"), QStringLiteral("20M"),
-                      QStringLiteral("--threads"), QStringLiteral("4"), QStringLiteral("--"), text, dir});
-    rg->setStandardErrorFile(QProcess::nullDevice());
-    rg->setChildProcessModifier([] {
-        setpriority(PRIO_PROCESS, 0, 15);
-        syscall(SYS_ioprio_set, 1 /* IOPRIO_WHO_PROCESS */, 0, 3 << 13 /* IOPRIO_CLASS_IDLE */);
-    });
-    connect(rg, &QProcess::readyReadStandardOutput, this, [this, rg] {
-        if (rg != m_rg)
-            return;
-        m_rgRest += rg->readAllStandardOutput();
-        qsizetype at = 0;
-        for (qsizetype nul; (nul = m_rgRest.indexOf('\0', at)) >= 0; at = nul + 1) {
-            std::string path(m_rgRest.constData() + at, size_t(nul - at));
-            if (m_contentHits.size() < 2000 && m_contentSeen.insert(path).second)
-                m_contentHits.push_back(std::move(path));
-        }
-        m_rgRest.remove(0, at);
-        if (m_contentHits.size() >= 2000)
-            rg->kill();
-        m_rootChanged = true;
-        if (!m_reload->isActive())
-            m_reload->start();
-    });
-    auto done = [this, rg] {
-        if (rg == m_rg) {
-            m_rg = nullptr;
-            Q_EMIT searchingContentsChanged();
-        }
-        rg->deleteLater();
-    };
-    connect(rg, &QProcess::finished, this, done);
-    connect(rg, &QProcess::errorOccurred, this, [done](QProcess::ProcessError error) {
-        if (error == QProcess::FailedToStart)
-            done(); // no rg: names only
-    });
-    rg->start();
+    // On a thread of its own (its priority is lowered for the search), so
+    // the shared pool isn't held up; the stop flag outlives this model.
+    auto stop = std::make_shared<std::atomic<bool>>(false);
+    m_contentStop = stop;
+    const quint64 run = ++m_contentRun;
+    m_contentRunning = true;
+    QPointer<FolderModel> self(this);
+    const QString text = m_rgText;
+    const QStringList dirs = m_rgDirs;
+    const int seconds = qEnvironmentVariableIntValue("FILES_CONTENTS_LIMIT");
+    std::thread([self, stop, run, text, dirs, seconds] {
+        Contents::search(text, dirs, *stop, (seconds > 0 ? seconds : 20) * 1000, 2000, [&](std::vector<std::string> &&paths) {
+            QMetaObject::invokeMethod(
+                qApp, [self, run, paths = std::move(paths)] {
+                    if (!self || run != self->m_contentRun || !self->m_contentRunning)
+                        return;
+                    for (const std::string &path : paths)
+                        if (self->m_contentSeen.insert(path).second)
+                            self->m_contentHits.push_back(path);
+                    self->m_rootChanged = true;
+                    if (!self->m_reload->isActive())
+                        self->m_reload->start();
+                },
+                Qt::QueuedConnection);
+        });
+        QMetaObject::invokeMethod(
+            qApp, [self, run] {
+                if (self && run == self->m_contentRun && self->m_contentRunning) {
+                    self->m_contentRunning = false;
+                    Q_EMIT self->searchingContentsChanged();
+                }
+            },
+            Qt::QueuedConnection);
+    }).detach();
     Q_EMIT searchingContentsChanged();
 }
 
 void FolderModel::stopContents()
 {
     m_rgFor.clear();
-    m_rgRest.clear();
     m_contentHits.clear();
     m_contentSeen.clear();
     if (m_rgLater)
         m_rgLater->stop();
-    if (QProcess *rg = std::exchange(m_rg, nullptr)) {
-        rg->kill(); // finished deletes it
+    if (auto stop = std::exchange(m_contentStop, nullptr))
+        stop->store(true);
+    ++m_contentRun;
+    if (std::exchange(m_contentRunning, false))
         Q_EMIT searchingContentsChanged();
-    }
 }
 
 void FolderModel::resort()
@@ -1131,6 +1148,8 @@ QHash<int, QByteArray> FolderModel::roleNames() const
         {ExpandedRole, "expanded"},
         {TagsRole, "tags"},
         {ThumbRole, "thumb"},
+        {OpenedRole, "opened"},
+        {OpenedTextRole, "openedText"},
     };
 }
 
@@ -1157,6 +1176,10 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return dir ? QStringLiteral("--") : Format::size(e.size);
     case DateTextRole:
         return Format::date(e.mtime, m_dateLevel);
+    case OpenedRole:
+        return e.atime;
+    case OpenedTextRole:
+        return e.atime > 0 ? Format::date(e.atime, m_dateLevel) : QStringLiteral("--");
     case KindRole:
     case KindShortRole: {
         const QString name = displayOf(r);
