@@ -47,7 +47,9 @@ Window {
     visible: false
     color: "transparent"
     flags: Qt.Window | Qt.FramelessWindowHint
-    title: page ? (page.page === "service" ? Network.connected.concat(Network.others).find(s => s.id === anchor)?.name ?? page.name : page.name) : "System Settings"
+    title: page ? (page.page === "service" ? Network.connected.concat(Network.others).find(s => s.id === anchor)?.name ?? page.name
+        : page.page === "privacyapps" ? ({ camera: qsTr("Camera"), microphone: qsTr("Microphone"), screen: qsTr("Screen & System Audio Recording") })[anchor] ?? page.name
+        : page.name) : "System Settings"
 
     readonly property Appearance appearance: Appearance {}
     MenuBar { settings: win }
@@ -164,7 +166,7 @@ Window {
             height: parent.height - y
             focus: true
             enabled: !win.underSheet
-            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, appearance: appearancePage, wallpaper: wallpaperPage, dock: dockPage, menubar: menuBarPage, notifications: notificationsPage, focus: focusPage, softwareupdate: softwareUpdatePage, storage: storagePage, datetime: dateTimePage, language: languagePage, loginitems: loginItemsPage, sharing: sharingPage, network: networkPage, service: servicePage, vpn: vpnPage, displays: displaysPage, sound: soundPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
+            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, appearance: appearancePage, wallpaper: wallpaperPage, dock: dockPage, menubar: menuBarPage, notifications: notificationsPage, focus: focusPage, softwareupdate: softwareUpdatePage, storage: storagePage, datetime: dateTimePage, language: languagePage, loginitems: loginItemsPage, sharing: sharingPage, network: networkPage, service: servicePage, vpn: vpnPage, displays: displaysPage, sound: soundPage, battery: batteryPage, lockscreen: lockScreenPage, password: passwordPage, users: usersPage, privacy: privacyPage, privacyapps: privacyAppsPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
             onLoaded: Qt.callLater(App.shown, win)
         }
         Component { id: generalPage; GeneralPage { settings: win } }
@@ -188,6 +190,12 @@ Window {
         Component { id: servicePage; ServicePage { settings: win } }
         Component { id: vpnPage; VpnPage { settings: win } }
         Component { id: displaysPage; DisplaysPage { settings: win } }
+        Component { id: batteryPage; BatteryPage { settings: win } }
+        Component { id: lockScreenPage; LockScreenPage { settings: win } }
+        Component { id: passwordPage; PasswordPage { settings: win } }
+        Component { id: usersPage; UsersPage { settings: win } }
+        Component { id: privacyPage; PrivacyPage { settings: win } }
+        Component { id: privacyAppsPage; PrivacyAppsPage { settings: win } }
         Component { id: controlsPage; ControlsPage { settings: win } }
 
         Toolbar {

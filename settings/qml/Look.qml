@@ -184,6 +184,7 @@ QtObject {
         black: ["#333333", "#050505"],
         cyan: ["#7dd3f4", "#57bde4"],
         red: ["#ed716d", "#eb4c47"],
+        orange: ["#f9b05a", "#f7922a"],
         pink: ["#ed6b80", "#eb445b"],
         indigo: ["#877df7", "#6055ed"],
     })

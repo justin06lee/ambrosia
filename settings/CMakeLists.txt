@@ -46,6 +46,9 @@ qt_add_qml_module(ambrosia-settings
         src/network.h src/network.cpp
         src/connectiondetails.h src/connectiondetails.cpp
         src/displays.h src/displays.cpp
+        src/power.h src/power.cpp
+        src/accounts.h src/accounts.cpp
+        src/privacy.h src/privacy.cpp
     QML_FILES
         qml/SettingsWindow.qml
         qml/MenuBar.qml
@@ -124,6 +127,15 @@ qt_add_qml_module(ambrosia-settings
         qml/WiFiOtherSheet.qml
         qml/WiFiPrivateSheet.qml
         qml/WiFiAdvancedSheet.qml
+        qml/InfoButton.qml
+        qml/BatteryPage.qml
+        qml/BatteryChart.qml
+        qml/LockScreenPage.qml
+        qml/PasswordPage.qml
+        qml/UserPicture.qml
+        qml/UsersPage.qml
+        qml/PrivacyPage.qml
+        qml/PrivacyAppsPage.qml
     RESOURCES
         art/appearance-dark.svg
         art/appearance-light.svg
@@ -136,7 +148,7 @@ target_include_directories(ambrosia-settings PRIVATE src)
 
 target_link_libraries(ambrosia-settings PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem
-    KF6::ConfigCore KF6::Service KF6::PulseAudioQt KF6::NetworkManagerQt KF6::BluezQt KF6::Screen PkgConfig::PULSE
+    KF6::ConfigCore KF6::Service KF6::PulseAudioQt KF6::NetworkManagerQt KF6::BluezQt KF6::Screen PkgConfig::PULSE crypt
 )
 
 include(GNUInstallDirs)

@@ -204,6 +204,23 @@ var glyphs = {
         fill: circle(15.8, 7.6, 2.7) + "M11.8 19.5A4.6 4.6 0 0 1 20.8 18.3V19.5Z" +
             circle(9, 8.4, 3.2) + "M3 20.5A6 6 0 0 1 15 20.5Z",
     },
+    // Privacy & Security's kinds: a video camera; a microphone on its
+    // stand; a display recording.
+    microphone: {
+        stroke: "M5.4 10.8v1.2a6.6 6.6 0 0 0 13.2 0v-1.2M12 18.6v3.4M8 22h8",
+        fill: rect(8.35, 1.8, 7.3, 13.6, 3.65),
+        width: 1.7,
+    },
+    camera: { fill: rect(2.2, 6.4, 13.4, 11.2, 2.6) + "M16.8 10.6L21.8 7.4V16.6L16.8 13.4Z" },
+    screenRecording: {
+        stroke: rect(2.6, 3.8, 18.8, 13, 2.2) + "M8.6 20.6h6.8M12 16.8v3.8",
+        fill: circle(12, 10.3, 3.1),
+        width: 1.8,
+    },
+    // A user with no picture: head and shoulders, standing on the bottom.
+    person: { fill: circle(12, 9.2, 4.7) + "M3.2 24A8.8 8.2 0 0 1 20.8 24Z" },
+    // Charging, under Battery's chart.
+    bolt: { fill: "M13.6 1.8L4.8 13.6H11.2L10.2 22.2L19.2 10H12.8Z" },
     keyboard: {
         stroke: rect(2.5, 6, 19, 12, 2.5),
         fill: rect(5, 8.6, 2, 2, 0.5) + rect(8.2, 8.6, 2, 2, 0.5) + rect(11.4, 8.6, 2, 2, 0.5) + rect(14.6, 8.6, 2, 2, 0.5) +

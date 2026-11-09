@@ -20,8 +20,8 @@ QtObject {
               keywords: ["devices", "pair", "headphones", "wireless"] },
             { id: "network", name: "Network", glyph: "network", tint: "blue", page: "network",
               keywords: ["ethernet", "vpn", "dns", "proxy", "ip", "internet"] },
-            { id: "battery", name: App.hasBattery ? "Battery" : "Energy", glyph: App.hasBattery ? "battery" : "energy",
-              tint: "green", module: "kcm_powerdevilprofilesconfig",
+            { id: "battery", name: Power.hasBattery ? "Battery" : "Energy", glyph: Power.hasBattery ? "battery" : "energy",
+              tint: "green", page: "battery",
               keywords: ["power", "low power mode", "sleep", "energy", "battery"] },
         ],
         [
@@ -52,13 +52,13 @@ QtObject {
               keywords: ["do not disturb"] },
         ],
         [
-            { id: "lockscreen", name: "Lock Screen", glyph: "lockscreen", tint: "black", module: "kcm_screenlocker",
+            { id: "lockscreen", name: "Lock Screen", glyph: "lockscreen", tint: "black", page: "lockscreen",
               keywords: ["lock", "screen saver", "password", "sleep"] },
-            { id: "privacy", name: "Privacy & Security", glyph: "privacy", tint: "blue",
+            { id: "privacy", name: "Privacy & Security", glyph: "privacy", tint: "blue", page: "privacy",
               keywords: ["camera", "microphone", "screen recording", "permissions"] },
-            { id: "password", name: "Login Password", glyph: "password", tint: "gray", module: "kcm_users",
+            { id: "password", name: "Login Password", glyph: "password", tint: "gray", page: "password",
               keywords: ["password", "change password"] },
-            { id: "users", name: "Users & Groups", glyph: "users", tint: "blue", module: "kcm_users",
+            { id: "users", name: "Users & Groups", glyph: "users", tint: "blue", page: "users",
               keywords: ["accounts", "user", "administrator", "picture"] },
         ],
         [
@@ -110,6 +110,7 @@ QtObject {
         { id: "controls", name: "Controls", glyph: "general", tint: "gray", page: "controls" },
         { id: "network-service", name: "Network", glyph: "network", tint: "blue", page: "service", parent: "network" },
         { id: "network-vpn", name: "VPN", glyph: "network", tint: "blue", page: "vpn", parent: "network" },
+        { id: "privacy-apps", name: "Privacy & Security", glyph: "privacy", tint: "blue", page: "privacyapps", parent: "privacy" },
     ]
 
     function available(pane) {
