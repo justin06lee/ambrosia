@@ -159,6 +159,10 @@ package_ambrosia-desktop() {
     networkmanager plasma-nm bluez bluez-utils bluedevil
     pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber plasma-pa
     plasma-desktop breeze konsole dolphin systemsettings spectacle kinfocenter
+    # GTK 3 apps' menus in the menu bar (gtk-modules in settings.ini). Only
+    # X11 windows can name their menu: KWin has no gtk_shell1, so Wayland
+    # GTK windows keep theirs; GTK 4 has no modules.
+    appmenu-gtk-module
     # The apps a new install starts with, and Discover to get more.
     firefox kate gwenview okular ark kcalc discover packagekit-qt6 flatpak
   )
