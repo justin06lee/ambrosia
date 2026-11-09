@@ -1,0 +1,13 @@
+// Ambrosia: updating the system asks for an administrator's password each
+// time, as the Mac's Update Now does. Arch's own rule
+// (org.freedesktop.packagekit.rules) lets wheel users update with none;
+// polkit runs rules in file name order and the first answer wins, so this
+// one, sorted ahead of it, decides.
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.freedesktop.packagekit.system-update" ||
+        action.id == "org.freedesktop.packagekit.upgrade-system" ||
+        action.id == "org.freedesktop.packagekit.trigger-offline-update" ||
+        action.id == "org.freedesktop.packagekit.trigger-offline-upgrade") {
+        return polkit.Result.AUTH_ADMIN;
+    }
+});
