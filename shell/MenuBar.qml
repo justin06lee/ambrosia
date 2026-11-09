@@ -10,7 +10,7 @@ import Ambrosia
 
 // The menu bar: the Ambrosia menu, the focused app's name and its own menus
 // on the left; status, search, the control center and the clock on the
-// right. Menus open on press, and once one is open, moving along the titles
+// right; the clock opens Notification Center. Menus open on press, and once one is open, moving along the titles
 // switches to theirs. Thin glass: the material's tint over the compositor's
 // blur, or none. Which status items show, how the clock reads and whether the
 // bar hides are Settings'; hiding, it slides off and the top edge brings it
@@ -249,14 +249,6 @@ PanelWindow {
         return date.trim() === "" ? time : date.trim() + "  " + time;
     }
 
-    function clockMenu() {
-        return [
-            { text: Qt.formatDateTime(clock.date, "dddd, MMMM d, yyyy"), enabled: false },
-            { separator: true },
-            { text: "Date & Time Settings…", action: () => Session.settings("datetime") },
-        ];
-    }
-
     // Opens the menu of a menu bar item, or closes it if it's the one open.
     function openFor(item, toggle) {
         if (toggle && Popups.menuOpen && Popups.owner === item.owner) {
@@ -377,8 +369,11 @@ PanelWindow {
             active: Popups.kind === "controlCenter" && Popups.screen === bar.screen
             onPressed: Popups.toggleControlCenter(bar.screen)
         }
+        // The clock opens Notification Center, as on macOS 26.
         MenuBarItem {
-            owner: "clock"; menu: bar.clockMenu
+            owner: "clock"
+            active: Popups.kind === "notificationCenter" && Popups.screen === bar.screen
+            onPressed: Popups.toggleNotificationCenter(bar.screen)
             text: Qt.formatDateTime(clock.date, bar.clockFormat)
             leftPadding: Theme.space.s2
         }

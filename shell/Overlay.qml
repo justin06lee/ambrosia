@@ -3,8 +3,8 @@ import Quickshell.Wayland
 import QtQuick
 import Ambrosia
 
-// A screen's layer for transient UI: menus, the control center and
-// confirmations. While something is open it covers the screen below the menu
+// A screen's layer for transient UI: menus, the control center, the
+// notification center and confirmations. While something is open it covers the screen below the menu
 // bar, so a click anywhere else closes it and goes no further, as on a Mac.
 // The menu bar stays uncovered, so moving along its titles switches menus.
 //
@@ -22,7 +22,7 @@ PopupWindow {
     readonly property bool active: Popups.kind !== "" && Popups.screen === home
 
     // Up while something is open, and while the control center fades out.
-    visible: active || controlCenter.shown
+    visible: active || controlCenter.shown || notificationCenter.shown
     // KWin closes a grabbing popup on its own, as when another window
     // activates; whatever was open on it closes too.
     onVisibleChanged: if (!visible && active) Popups.close()
@@ -51,6 +51,7 @@ PopupWindow {
                 if (menu?.visible) list.push(menu.blurArea);
             }
             if (controlCenter.shown) list.push(controlCenter.blurArea);
+            if (notificationCenter.shown) list.push(notificationCenter.blurArea);
             if (confirm.visible) list.push(confirm.blurArea);
             return list;
         }
@@ -149,6 +150,13 @@ PopupWindow {
             id: controlCenter
             open: overlay.active && Popups.kind === "controlCenter"
             anchors { top: parent.top; right: parent.right; topMargin: Theme.space.s1_5; rightMargin: Theme.space.s2 }
+        }
+
+        NotificationCenter {
+            id: notificationCenter
+            open: overlay.active && Popups.kind === "notificationCenter"
+            anchors { top: parent.top; right: parent.right; topMargin: Theme.space.s1_5; rightMargin: Theme.space.s2 }
+            maxHeight: area.height - Theme.space.s1_5 - Theme.space.s2
         }
 
         ConfirmDialog {

@@ -68,6 +68,19 @@ Singleton {
         windows.sort((a, b) => get(a, TaskManager.AbstractTasksModel.LastActivated) - get(b, TaskManager.AbstractTasksModel.LastActivated));
         for (const window of windows) tasksModel.requestActivate(window);
     }
+    // The app of a desktop entry brought forward, or started if no window of
+    // it is open (a notification's app, clicked in the center).
+    function activateEntry(entryId) {
+        const id = entryId.replace(/\.desktop$/, "");
+        for (let row = 0; row < tasksModel.rowCount(); row++) {
+            const appId = (get(tasksModel.makeModelIndex(row), TaskManager.AbstractTasksModel.AppId) ?? "").replace(/\.desktop$/, "");
+            if (appId === id && windowsOf(row).length > 0) {
+                activate(row);
+                return;
+            }
+        }
+        Session.launch(id);
+    }
     function newWindow(row) {
         tasksModel.requestNewInstance(tasksModel.makeModelIndex(row));
     }

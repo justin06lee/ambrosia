@@ -3,12 +3,12 @@ import Quickshell
 import QtQuick
 
 // What transient UI is open, and on which screen: menus, the control center,
-// a confirmation, the search window. Each screen's Overlay draws whatever is
+// a confirmation, the notification center, the search window. Each screen's Overlay draws whatever is
 // open on it; only one thing is open at a time.
 Singleton {
     id: popups
 
-    // "" (nothing), "menu", "controlCenter" or "confirm".
+    // "" (nothing), "menu", "controlCenter", "notificationCenter" or "confirm".
     property string kind: ""
     property ShellScreen screen: null
 
@@ -69,6 +69,18 @@ Singleton {
         owner = "controlCenter";
         levels = [];
         kind = "controlCenter";
+    }
+
+    function toggleNotificationCenter(screen) {
+        if (kind === "notificationCenter") {
+            close();
+            return;
+        }
+        searchOpen = false;
+        popups.screen = screen;
+        owner = "notificationCenter";
+        levels = [];
+        kind = "notificationCenter";
     }
 
     function confirm(screen, confirmation) {

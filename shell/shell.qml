@@ -52,7 +52,8 @@ ShellRoot {
     }
     Notifications {}
 
-    // `ambrosia search`, `ambrosia control-center` (see session/ambrosia):
+    // `ambrosia search`, `ambrosia control-center`, `ambrosia
+    // notification-center` (see session/ambrosia):
     // what the keyboard shortcuts run.
     IpcHandler {
         target: "shell"
@@ -62,6 +63,9 @@ ShellRoot {
         }
         function controlCenter(): void {
             Popups.toggleControlCenter(Quickshell.screens[0]);
+        }
+        function notificationCenter(): void {
+            Popups.toggleNotificationCenter(Quickshell.screens[0]);
         }
     }
 }
