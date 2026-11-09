@@ -131,6 +131,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
    (Justin's call; the packages are public now, `license=(LicenseRef-TBD)`).
 5. Rebuild the image when the user wants to reflash: the SanDisk still has
    the 2026-10-08 image without this shell.
+6. Files (Finder parity, `docs/finder/PLAN.md`): search is Finder's since
+   2026-11-10 (This Computer, names or contents read without touching Date
+   Last Opened, Name/Kind/Date Last Opened). Next: a right-click menu with
+   Tags, undo for tags, a tag colour editor, tags changed while Files is off;
+   then login autostart, Quick Look full screen and in the Trash, ⌘I on
+   several items.
 
 ## Machines
 
