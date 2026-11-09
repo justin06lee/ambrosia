@@ -13,12 +13,19 @@ shift
 root=$(cd "$(dirname "$0")/.." && pwd)
 rsh=${AMBROSIA_RSH:-ssh -i $HOME/.ssh/id_ed25519_justin -o IdentitiesOnly=yes}
 dir=${AMBROSIA_REMOTE_DIR:-work/ambrosia}
+# Each checkout its own ref, so two at once (one per lane) can't take each
+# other's tree: remote for the default, remote-work-ambrosia-x for work/ambrosia-x.
+ref=remote
+[ "$dir" = work/ambrosia ] || ref=remote-$(printf %s "$dir" | tr / -)
 
-GIT_SSH_COMMAND=$rsh git -C "$root" push -q --force "$host:git/ambrosia.git" HEAD:refs/heads/remote
-$rsh "$host" "cd ~/$dir && git fetch -q origin remote && git reset -q --hard FETCH_HEAD && git clean -fdq" </dev/null
+GIT_SSH_COMMAND=$rsh git -C "$root" push -q --force "$host:git/ambrosia.git" HEAD:refs/heads/$ref
+$rsh "$host" "[ -d ~/$dir/.git ] || git clone -q ~/git/ambrosia.git ~/$dir; cd ~/$dir && git fetch -q origin $ref && git reset -q --hard FETCH_HEAD && git clean -fdq" </dev/null
 # Uncommitted work rides on top (ruri's own notes don't count).
 if [ -n "$(git -C "$root" status --porcelain -- . ':(exclude).ruri')" ]; then
   rsync -az --delete -e "$rsh" --exclude .git --exclude /.ruri --exclude node_modules \
-    --exclude /dist --exclude /out --exclude /scratch "$root/" "$host:$dir/"
+    --exclude /dist --exclude /out --exclude /scratch "$root/" "$host:$dir/" || {
+    # 23: some files' attributes not set: the Mac's rsync can't set a
+    # symlink's mode on Linux (iso/airootfs), which changes nothing.
+    rc=$?; [ $rc -eq 23 ] || exit $rc; }
 fi
 [ $# -eq 0 ] || $rsh "$host" "cd ~/$dir && $*" </dev/null
