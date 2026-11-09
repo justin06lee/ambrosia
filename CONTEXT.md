@@ -134,7 +134,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
    (it did already). Checked headless on tenet (a copy of the shell showing
    the center in a layer window, `scratch/shell/mkview.sh`: menus and the
    center never map on a headless KWin); clicking and dragging in the VM is
-   still to do. Left: GTK apps' menus in the bar (appmenu-gtk-module).
+   still to do. GTK menus: ambrosia-desktop depends on appmenu-gtk-module
+   (tenet's settings.ini already loads it), which reaches the bar for GTK 3
+   windows on X11 only: KWin offers no `gtk_shell1` (checked with
+   wayland-info), so a Wayland GTK window can't name its menu, and GTK 4 has
+   no modules (libadwaita apps have no menu bar anyway). Native GTK menus
+   would need a bridge of our own (match the app's exported menu by PID).
 3. The Mac-first keyboard layer with keyd.
 4. Distro gaps: an SDDM theme of our own, BIOS boot (the installer is
    UEFI-only, though the image boots BIOS), boot menu art, and a license
