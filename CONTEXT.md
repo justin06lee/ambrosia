@@ -123,8 +123,18 @@ package repo below), and they carry `shell/` and `session/` as they are.
    QStyle could change them), real apps' icons (no Ambrosia icon theme),
    per-surface blur and saturation (KWin has one setting for all), and the
    control center's feathered blur edge (KWin's blur regions are hard-edged).
-2. Gaps in the shell: no notification center or Focus icon in the bar, no Dock magnification or drag to reorder, GTK apps' menus don't
-   reach the bar (needs appmenu-gtk-module).
+2. Gaps in the shell (Shell lane, 2026-11-10). **Notification Center** is
+   on the clock, as macOS 26 (`NotificationCenter.qml`, its store
+   `NotificationStore.qml`, one card for it and the banners): past
+   notifications by app as stacks that spread, clear one, an app's or all,
+   the Focus state on top, kept across restarts; Focus holds back banners,
+   not the center. The moon shows in the bar while Do Not Disturb is on.
+   **Dock**: drag an app to reorder, a running app's tile in to keep it, a
+   pin out (Remove) to drop it; magnification follows `dockMagnification`
+   (it did already). Checked headless on tenet (a copy of the shell showing
+   the center in a layer window, `scratch/shell/mkview.sh`: menus and the
+   center never map on a headless KWin); clicking and dragging in the VM is
+   still to do. Left: GTK apps' menus in the bar (appmenu-gtk-module).
 3. The Mac-first keyboard layer with keyd.
 4. Distro gaps: an SDDM theme of our own, BIOS boot (the installer is
    UEFI-only, though the image boots BIOS), boot menu art, and a license
