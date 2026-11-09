@@ -59,6 +59,10 @@ Controls.Popup {
     }
 
     padding: 5
+    // Kept in the window, as a Mac keeps a menu on the screen: a long menu
+    // opened on a row near the top (Lock Screen's Never, its current choice
+    // last) would put its first rows above the window, out of reach.
+    margins: 6
     focus: true
     // Modal, undimmed: a tap handler under a menu (a sheet's Done) would
     // take its clicks too, and a click outside only closes it, as on a Mac.
