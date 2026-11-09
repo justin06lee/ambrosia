@@ -62,7 +62,7 @@ QtObject {
               keywords: ["accounts", "user", "administrator", "picture"] },
         ],
         [
-            { id: "keyboard", name: "Keyboard", glyph: "keyboard", tint: "gray", module: "kcm_keyboard",
+            { id: "keyboard", name: "Keyboard", glyph: "keyboard", tint: "gray", page: "keyboard",
               keywords: ["key repeat", "input sources", "layout", "shortcuts"] },
             { id: "mouse", name: "Mouse", glyph: "mouse", tint: "gray", module: "kcm_mouse", device: "mouse",
               keywords: ["pointer", "tracking speed", "scrolling", "click"] },
