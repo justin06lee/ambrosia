@@ -161,4 +161,29 @@ Page {
             }
         }
     }
+    // The Mac keeps these in a Trackpad Options… sheet; here they are rows.
+    // Three-finger drag is left out: libinput has no such gesture.
+    Box {
+        visible: page.kind === "pointer" && Trackpad.available && Trackpad.canTap
+        FormRow {
+            label: qsTr("Use trackpad for dragging")
+            description: qsTr("Tap, then touch again and move to drag. Needs Tap to click, in Trackpad.")
+            Switch {
+                checked: Trackpad.dragging !== "off"
+                onToggled: Trackpad.dragging = checked ? "off" : "tap"
+            }
+        }
+        FormRow {
+            visible: Trackpad.dragging !== "off"
+            label: qsTr("Dragging style")
+            PopUpButton {
+                items: [
+                    { text: qsTr("Without Drag Lock"), value: "tap" },
+                    { text: qsTr("With Drag Lock"), value: "lock" },
+                ]
+                current: Trackpad.dragging
+                onChosen: (value) => Trackpad.dragging = value
+            }
+        }
+    }
 }

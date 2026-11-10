@@ -6,7 +6,8 @@
 #include <QtQml/qqmlregistration.h>
 
 // Trackpad: every touchpad KWin has, all set alike (KWinInput): tracking
-// speed, where the secondary click is, tap to click and natural scrolling.
+// speed, where the secondary click is, tap to click, natural scrolling and
+// dragging by tapping.
 // What a pad can't do (a click method it lacks, tapping) isn't offered.
 class Trackpad : public QObject
 {
@@ -24,6 +25,11 @@ class Trackpad : public QObject
     Q_PROPERTY(bool canTap READ canTap NOTIFY changed)
     Q_PROPERTY(bool tapToClick READ tapToClick WRITE setTapToClick NOTIFY changed)
     Q_PROPERTY(bool naturalScroll READ naturalScroll WRITE setNaturalScroll NOTIFY changed)
+    // Dragging by tapping (Accessibility's Pointer Control): "off", "tap"
+    // (tap, then touch again and move; it ends when the finger lifts) or
+    // "lock" (it holds until the next tap). libinput only drags this way
+    // while tap to click is on.
+    Q_PROPERTY(QString dragging READ dragging WRITE setDragging NOTIFY changed)
 
 public:
     explicit Trackpad(QObject *parent = nullptr);
@@ -40,6 +46,8 @@ public:
     void setTapToClick(bool on);
     bool naturalScroll() const;
     void setNaturalScroll(bool on);
+    QString dragging() const;
+    void setDragging(const QString &how);
 
 public Q_SLOTS:
     void read();

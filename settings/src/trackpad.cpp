@@ -69,3 +69,15 @@ void Trackpad::setNaturalScroll(bool on)
 {
     setAll("naturalScroll", on);
 }
+
+QString Trackpad::dragging() const
+{
+    if (!m_pads.first("tapAndDrag").toBool())
+        return QStringLiteral("off");
+    return m_pads.first("tapDragLock").toBool() ? QStringLiteral("lock") : QStringLiteral("tap");
+}
+void Trackpad::setDragging(const QString &how)
+{
+    setAll("tapAndDrag", how != QLatin1String("off"));
+    setAll("tapDragLock", how == QLatin1String("lock"));
+}
