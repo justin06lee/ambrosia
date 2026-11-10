@@ -150,11 +150,13 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 
 1. **Design system and theme generator.** Done.
 2. **Packages and installer image.** First cut done: packages, the session, a
-   live image, an unattended-testable installer, and a hosted, signed package
-   repo installed systems update from. Everything after this ships through it.
+   live image, an unattended-testable installer for UEFI and BIOS computers,
+   a login screen of our own, and a hosted, signed package repo installed
+   systems update from. Everything after this ships through it.
 3. **Shell** on KWin and Quickshell: menu bar, Dock, control center,
    notifications and Search work (first cut); next, matching the preview's
-   look, a notification center and the Mac-first keyboard layer (keyd). Built
+   look. The Mac-first keyboard is in: Super is Command in every app,
+   through keyd (`docs/keyboard.md`). Built
    and judged on tenet, the Arch desktop, with a Magic Trackpad.
 4. **Compositor**: a KWin effect for glass refraction and window animations on
    the spring tokens. Window frames are done: our own KWin decoration gives
@@ -164,7 +166,6 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 6. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
    dialogs in other apps match too.
 7. **Onboarding**: a first-party onboarding app in place of the installer
-   script (asking Mac-first or Linux-first), and a login screen and boot
-   splash of our own.
+   script (asking Mac-first or Linux-first), and a boot splash of our own.
 
 Later: an ARM64 build for the Jetson Orin Nano.
