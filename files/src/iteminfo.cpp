@@ -5,6 +5,7 @@
 #include "thumbnailer.h"
 
 #include <KApplicationTrader>
+#include <KDesktopFile>
 
 #include <QDir>
 #include <QFile>
@@ -147,6 +148,8 @@ void ItemInfo::read(bool recount)
     m_created = m_modified = m_modifiedSeconds = m_opened = QStringLiteral("--");
     m_appName.clear();
     m_appIcon.clear();
+    m_entryName.clear();
+    m_entryIcon.clear();
     m_comment.clear();
     m_tags.clear();
     m_access.clear();
@@ -218,11 +221,20 @@ void ItemInfo::read(bool recount)
             if (m_pictureSize.isValid())
                 m_preview = QStringLiteral("image");
         }
+        // An application's desktop entry stands for the application: its
+        // name and icon, not the entry's text.
+        if (KDesktopFile::isDesktopFile(path)) {
+            const KDesktopFile entry(path);
+            if (entry.hasApplicationType()) {
+                m_entryName = entry.readName();
+                m_entryIcon = entry.readIcon();
+            }
+        }
         if (readable && (m_pictureSize.isValid() || mime.name() == u"application/pdf")) {
             for (const Metadata::Row &row : Metadata::read(file, m_name, m_pictureSize))
                 m_details.append(QVariantMap{{QStringLiteral("label"), row.label}, {QStringLiteral("value"), row.value},
                                              {QStringLiteral("more"), row.more}});
-        } else if (readable && mime.inherits(QStringLiteral("text/plain"))) {
+        } else if (readable && m_entryName.isEmpty() && mime.inherits(QStringLiteral("text/plain"))) {
             m_preview = QStringLiteral("text");
             file.seek(0);
             m_text = QString::fromUtf8(file.read(128 * 1024));
@@ -409,5 +421,7 @@ void ItemInfo::setComment(const QString &comment)
 
 QString ItemInfo::thumb() const
 {
+    if (!m_entryIcon.isEmpty())
+        return QStringLiteral("image://icon/") + QString::fromLatin1(QUrl::toPercentEncoding(m_entryIcon, "/"));
     return m_fileUrl.isEmpty() ? QString() : Thumbnailer::source(m_fileUrl, m_name, m_isDir, m_mtime / 1000000000);
 }

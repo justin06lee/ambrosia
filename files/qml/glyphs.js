@@ -47,6 +47,8 @@ var glyphs = {
     search: { stroke: circle(10.5, 10.5, 6.5) + "M15.3 15.3L20.5 20.5", width: 1.9 },
     recents: { stroke: circle(12, 12, 8.75) + "M12 7v5.2l3.4 2.1" },
     shared: { stroke: "M3 7.5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" },
+    // Applications: an A of three strokes.
+    applications: { stroke: "M4.2 19.5L11 5.2M19.8 19.5L12.2 3.5M6.6 14.4h12.6", width: 1.7 },
     desktop: { stroke: rect(3, 4.5, 18, 15, 2.5) + "M3 15h18" },
     documents: { stroke: "M6.5 3.5h7l4.5 4.5v11a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 19V5a1.5 1.5 0 0 1 1.5-1.5zM13.5 3.5V8H18" },
     downloads: { stroke: circle(12, 12, 8.75) + "M12 7.2v9.2M8.4 12.9l3.6 3.6 3.6-3.6" },

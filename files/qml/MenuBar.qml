@@ -39,7 +39,7 @@ Platform.MenuBar {
         Platform.MenuItem {
             text: bar.finder.inTrash ? "Put Back" : "Move to Trash"
             shortcut: "Ctrl+Backspace"
-            enabled: bar.finder.hasSelection
+            enabled: bar.finder.hasSelection && !bar.finder.inApplications
             onTriggered: bar.finder.act("trash", bar.finder.trashSelection)
         }
         Platform.MenuSeparator {}
@@ -131,6 +131,7 @@ Platform.MenuBar {
         Platform.MenuItem { text: "Downloads"; shortcut: "Ctrl+Alt+L"; onTriggered: bar.finder.act("downloads", () => bar.finder.goPlace("downloads")) }
         Platform.MenuItem { text: "Home"; shortcut: "Ctrl+Shift+H"; onTriggered: bar.finder.act("home", () => bar.finder.goPlace("home")) }
         Platform.MenuItem { text: "Computer"; shortcut: "Ctrl+Shift+C"; onTriggered: bar.finder.act("computer", () => bar.finder.goPlace("computer")) }
+        Platform.MenuItem { text: "Applications"; shortcut: "Ctrl+Shift+A"; onTriggered: bar.finder.act("applications", () => bar.finder.goPlace("applications")) }
         Platform.MenuItem { text: "Trash"; onTriggered: bar.finder.act("trash", () => bar.finder.goPlace("trash")) }
     }
     Platform.Menu {

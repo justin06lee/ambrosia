@@ -526,6 +526,8 @@ FocusScope {
         readonly property var times: one ? owner.model.timesAt(owner.finder.current) : ({})
         readonly property bool picture: fileInfo.preview === "image"
         readonly property bool text: fileInfo.preview === "text"
+        // An application shows as its icon, which nothing frames.
+        readonly property bool app: (info.thumb ?? "").startsWith("image://icon/")
         // A document's page (a PDF, an SVG, an office file) is ruled at its
         // edge; a picture's corners are rounded.
         readonly property bool page: !picture || /\.(pdf|svgz?)$/i.test(info.name ?? "")
@@ -608,7 +610,7 @@ FocusScope {
                 // A picture's corners rounded in the column's color; a
                 // page's edge ruled.
                 Rectangle {
-                    visible: big.visible && big.shown
+                    visible: big.visible && big.shown && !preview.app
                     x: big.x - border.width
                     y: big.y - border.width
                     width: big.width + 2 * border.width
@@ -619,7 +621,7 @@ FocusScope {
                     border.color: Finder.content
                 }
                 Rectangle {
-                    visible: big.visible && big.shown && preview.page
+                    visible: big.visible && big.shown && preview.page && !preview.app
                     x: big.x
                     y: big.y
                     width: big.width

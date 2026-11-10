@@ -30,8 +30,8 @@ public:
     QVariantList sections() const;
     QString computer() const;
 
-    // The Go menu's places by name: recents, desktop, documents, downloads,
-    // home, computer, trash.
+    // The Go menu's places by name: recents, applications, desktop,
+    // documents, downloads, home, computer, trash.
     Q_INVOKABLE QUrl place(const QString &name) const;
     // A volume's row was clicked: opened() follows once it is mounted.
     Q_INVOKABLE void open(const QString &volume);

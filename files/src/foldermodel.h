@@ -34,6 +34,10 @@ class KJob;
 // out, new ones put in, and the rest stay put, so a view keeps its place and
 // a window its selection while files are copied, renamed and trashed.
 //
+// applications:/ is a place of its own, Finder's Applications: the installed
+// applications a launcher shows, each one's desktop entry under the
+// application's name and icon. Opening one starts it.
+//
 // A search is a place too: search:?q=TEXT[&in=FOLDER][&mode=name|content]
 // [&kind=KIND], or search:?tag=NAME for a sidebar tag. Names come from the
 // index at once; contents stream in (rg's rules, read without touching
@@ -92,17 +96,18 @@ public:
         quint32 name = 0; // offsets into Listing::strings, NUL-terminated
         quint32 display = 0;
         quint8 flags = 0;
+        quint32 icon = 0; // an application's icon name, in strings too
         qint64 size = -1;
         qint64 mtime = 0;
         qint64 atime = 0; // Date Last Opened
     };
-    enum Flag : quint8 { Dir = 1, Symlink = 2, Hidden = 4, Missing = 8 };
+    enum Flag : quint8 { Dir = 1, Symlink = 2, Hidden = 4, Missing = 8, App = 16 };
 
     struct Listing {
         std::string strings;
         std::vector<Entry> entries;
         std::vector<QUrl> urls; // KIO listings only, parallel to entries
-        bool paths = false;     // search results: each entry's name is its whole path
+        bool paths = false;     // search results and applications: each entry's name is its whole path
         QString error;
     };
 
@@ -130,6 +135,7 @@ public:
     int dateLevel() const { return m_dateLevel; }
     void setDateLevel(int level);
     bool searching() const { return m_url.scheme() == QLatin1String("search"); }
+    bool applications() const { return m_url.scheme() == QLatin1String("applications"); }
     bool searchingContents() const { return m_contentRunning; }
     double searchMs() const { return m_searchMs; }
 
@@ -213,6 +219,7 @@ private:
     void load(bool reread = false);
     void listRemote(bool reread);
     void listSearch(bool reread);
+    void listApps(bool reread);
     void statResults(quint64 generation);
     void searchContents(const QString &text, const QStringList &dirs);
     void startContents();

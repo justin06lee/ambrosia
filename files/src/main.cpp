@@ -23,7 +23,9 @@
 int benchSearch(const QStringList &queries); // searchbench.cpp
 int benchThumbs(const QString &dir);          // thumbbench.cpp
 
-// Theme icons for QML, as image://icon/NAME (the app that opens a file).
+// Theme icons for QML, as image://icon/NAME (the app that opens a file, an
+// application in Applications). One the theme doesn't have is a plain
+// application's; failing that, a 1×1 nothing, which FileIcon reads as none.
 class IconProvider : public QQuickImageProvider
 {
 public:
@@ -34,7 +36,14 @@ public:
     QPixmap requestPixmap(const QString &id, QSize *size, const QSize &requested) override
     {
         const QIcon icon = id.startsWith(QLatin1Char('/')) ? QIcon(id) : QIcon::fromTheme(id);
-        const QPixmap pixmap = icon.pixmap(requested.isValid() ? requested : QSize(32, 32));
+        const QSize wanted = requested.isValid() ? requested : QSize(32, 32);
+        QPixmap pixmap = icon.pixmap(wanted);
+        if (pixmap.isNull())
+            pixmap = QIcon::fromTheme(QStringLiteral("application-x-executable")).pixmap(wanted);
+        if (pixmap.isNull()) {
+            pixmap = QPixmap(1, 1);
+            pixmap.fill(Qt::transparent);
+        }
         if (size)
             *size = pixmap.size();
         return pixmap;

@@ -7,8 +7,10 @@
 #include "sortkey.h"
 #include "tags.h"
 
+#include <KApplicationTrader>
 #include <KIO/ListJob>
 #include <KIO/UDSEntry>
+#include <KService>
 #include <kdirnotify.h>
 
 #include <QCollator>
@@ -590,6 +592,38 @@ std::shared_ptr<Listing> listPaths(const std::vector<std::string> &paths, const 
     return l;
 }
 
+// The installed applications as a listing: the desktop entries a launcher
+// shows (none hidden, none another desktop's), each file under its
+// application's name, with the icon it asks for. No sizes: an entry's own
+// says nothing about its application's.
+std::shared_ptr<Listing> listApplications()
+{
+    auto l = std::make_shared<Listing>();
+    l->paths = true;
+    const KService::List apps = KApplicationTrader::query([](const KService::Ptr &app) {
+        return app->isApplication() && !app->isDeleted() && !app->noDisplay();
+    });
+    std::unordered_set<std::string> seen;
+    for (const KService::Ptr &app : apps) {
+        QString path = app->entryPath();
+        if (QDir::isRelativePath(path))
+            path = QStandardPaths::locate(QStandardPaths::ApplicationsLocation, path);
+        const QByteArray file = QFile::encodeName(path), name = app->name().toUtf8(), icon = app->icon().toUtf8();
+        if (path.isEmpty() || name.isEmpty() || !seen.insert(file.toStdString()).second)
+            continue;
+        Entry e;
+        e.name = addString(*l, file.constData(), file.size());
+        e.display = addString(*l, name.constData(), name.size());
+        e.icon = addString(*l, icon.constData(), icon.size());
+        e.flags = FolderModel::App;
+        l->entries.push_back(e);
+    }
+    statPaths(*l);
+    for (Entry &e : l->entries)
+        e.size = -1;
+    return l;
+}
+
 }
 
 FolderModel::FolderModel(QObject *parent)
@@ -658,7 +692,7 @@ void FolderModel::notified(const QStringList &urls, bool parents)
 
 void FolderModel::changed(const QString &path)
 {
-    if (m_url.isLocalFile() && path == m_url.toLocalFile())
+    if ((m_url.isLocalFile() && path == m_url.toLocalFile()) || applications())
         m_rootChanged = true;
     else
         m_changedPaths.insert(path);
@@ -705,6 +739,11 @@ void FolderModel::setUrl(const QUrl &url)
         m_watcher->removePaths(m_watcher->directories());
     if (m_url.isLocalFile())
         m_watcher->addPath(m_url.toLocalFile());
+    // Applications: the folders desktop entries are installed to.
+    if (applications())
+        for (const QString &dir : QStandardPaths::standardLocations(QStandardPaths::ApplicationsLocation))
+            if (QFileInfo(dir).isDir())
+                m_watcher->addPath(dir);
     load();
 }
 
@@ -722,6 +761,8 @@ QString FolderModel::name() const
         return QStringLiteral("Trash");
     if (m_url.scheme() == QLatin1String("recentlyused"))
         return QStringLiteral("Recents");
+    if (applications())
+        return QStringLiteral("Applications");
     const QString file = m_url.fileName();
     return file.isEmpty() ? m_url.toDisplayString() : file;
 }
@@ -759,6 +800,10 @@ void FolderModel::load(bool reread)
     }
     if (searching()) {
         listSearch(reread);
+        return;
+    }
+    if (applications()) {
+        listApps(reread);
         return;
     }
     if (!m_url.isLocalFile()) {
@@ -821,6 +866,31 @@ void FolderModel::listRemote(bool reread)
                 },
                 Qt::QueuedConnection);
         });
+    });
+}
+
+void FolderModel::listApps(bool reread)
+{
+    const quint64 generation = m_generation;
+    const std::shared_ptr<const Listing> before = reread ? m_listing : nullptr;
+    QPointer<FolderModel> self(this);
+    const QString column = m_sortColumn;
+    const bool ascending = m_ascending;
+    // Off the GUI thread: KService may have its cache to rebuild first.
+    QThreadPool::globalInstance()->start([self, generation, before, column, ascending] {
+        auto listing = listApplications();
+        sortListing(*listing, column, ascending);
+        const auto from = before ? matchListings(*before, *listing) : std::vector<qint32>();
+        QMetaObject::invokeMethod(
+            qApp, [self, listing, generation, before, from] {
+                if (!self)
+                    return;
+                if (before)
+                    self->reapply(listing, generation, before, from);
+                else
+                    self->apply(listing, generation, false);
+            },
+            Qt::QueuedConnection);
     });
 }
 
@@ -1160,6 +1230,7 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     const Row r = rowAt(index.row());
     const Entry &e = entryOf(r);
     const bool dir = e.flags & Dir;
+    const bool app = e.flags & App;
     switch (role) {
     case NameRole:
     case Qt::DisplayRole:
@@ -1173,7 +1244,7 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     case DateRole:
         return e.mtime;
     case SizeTextRole:
-        return dir ? QStringLiteral("--") : Format::size(e.size);
+        return dir || app ? QStringLiteral("--") : Format::size(e.size);
     case DateTextRole:
         return Format::date(e.mtime, m_dateLevel);
     case OpenedRole:
@@ -1182,6 +1253,8 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return e.atime > 0 ? Format::date(e.atime, m_dateLevel) : QStringLiteral("--");
     case KindRole:
     case KindShortRole: {
+        if (app)
+            return QStringLiteral("Application");
         const QString name = displayOf(r);
         const QString ext = dir ? QString() : name.section(QLatin1Char('.'), -1).toLower();
         auto it = m_kinds.find(ext);
@@ -1192,7 +1265,7 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     case IconRole:
         return Format::icon(QString(), dir);
     case BadgeRole:
-        return Format::badge(displayOf(r), dir);
+        return app ? QString() : Format::badge(displayOf(r), dir);
     case DepthRole:
         return int(r.depth);
     case ExpandedRole:
@@ -1202,6 +1275,9 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
         return url.isLocalFile() ? Tags::instance()->colorsOf(Tags::read(url.toLocalFile())) : QStringList();
     }
     case ThumbRole:
+        // An application shows as its icon, from the icon theme.
+        if (app)
+            return QStringLiteral("image://icon/") + QString::fromLatin1(QUrl::toPercentEncoding(QString::fromUtf8(listingOf(r.node).strings.data() + e.icon), "/"));
         return Thumbnailer::source(urlAt(index.row()), displayOf(r), dir, e.mtime);
     }
     return {};

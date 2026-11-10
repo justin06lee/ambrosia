@@ -24,6 +24,9 @@ class ItemInfo : public QObject
     Q_PROPERTY(QUrl url READ url WRITE setUrl NOTIFY urlChanged)
     Q_PROPERTY(bool exists READ exists NOTIFY changed)
     Q_PROPERTY(QString name READ name NOTIFY changed)
+    // What it goes by: its name, or for an application's desktop entry the
+    // application's.
+    Q_PROPERTY(QString title READ title NOTIFY changed)
     Q_PROPERTY(bool isDir READ isDir NOTIFY changed)
     Q_PROPERTY(QString kind READ kind NOTIFY changed)
     Q_PROPERTY(QString badge READ badge NOTIFY changed)
@@ -74,6 +77,7 @@ public:
     void setUrl(const QUrl &url);
     bool exists() const { return m_exists; }
     QString name() const { return m_name; }
+    QString title() const { return m_entryName.isEmpty() ? m_name : m_entryName; }
     bool isDir() const { return m_isDir; }
     QString kind() const { return m_kind; }
     QString badge() const { return m_badge; }
@@ -122,6 +126,7 @@ private:
     QSize m_pictureSize;
     QString m_created, m_modified, m_modifiedSeconds, m_opened;
     QString m_appName, m_appIcon, m_comment, m_access;
+    QString m_entryName, m_entryIcon; // an application's desktop entry: the application's name and icon
     QVariantList m_permissions, m_details;
     QStringList m_tags;
     bool m_isDir = false;

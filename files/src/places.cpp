@@ -93,6 +93,8 @@ QUrl Places::place(const QString &name) const
 {
     if (name == QLatin1String("recents"))
         return QUrl(QStringLiteral("recentlyused:/files"));
+    if (name == QLatin1String("applications"))
+        return QUrl(QStringLiteral("applications:/"));
     if (name == QLatin1String("desktop"))
         return standard(QStandardPaths::DesktopLocation);
     if (name == QLatin1String("documents"))
@@ -111,7 +113,8 @@ QUrl Places::place(const QString &name) const
 QVariantList Places::sections() const
 {
     QVariantList favorites;
-    favorites << item(QStringLiteral("Desktop"), place(QStringLiteral("desktop")), QStringLiteral("desktop"))
+    favorites << item(QStringLiteral("Applications"), place(QStringLiteral("applications")), QStringLiteral("applications"))
+              << item(QStringLiteral("Desktop"), place(QStringLiteral("desktop")), QStringLiteral("desktop"))
               << item(QStringLiteral("Documents"), place(QStringLiteral("documents")), QStringLiteral("documents"))
               << item(QStringLiteral("Downloads"), place(QStringLiteral("downloads")), QStringLiteral("downloads"));
     QVariantList locations;

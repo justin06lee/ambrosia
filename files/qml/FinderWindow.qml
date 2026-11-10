@@ -58,6 +58,8 @@ Window {
     // Where New Folder, Paste and renaming work: folders on this computer.
     readonly property bool local: url.toString().startsWith("file:")
     readonly property bool inTrash: url.toString().startsWith("trash:")
+    // Applications lists what is installed: nothing there goes to the Trash.
+    readonly property bool inApplications: url.toString().startsWith("applications:")
     // Items on this computer, in a folder or found by a search.
     readonly property bool localItems: local || searching
 
@@ -436,7 +438,7 @@ Window {
             run(FileOps.duplicate(selectedUrls()), { select: true });
     }
     function trashSelection() {
-        if (!hasSelection)
+        if (!hasSelection || inApplications)
             return;
         run(inTrash ? FileOps.putBack(selectedUrls()) : FileOps.trash(selectedUrls()));
     }
@@ -566,7 +568,7 @@ Window {
         ] : [
             { text: "Open", run: () => openSelection() },
             { separator: true },
-            { text: inTrash ? "Put Back" : "Move to Trash", run: () => trashSelection() },
+            { text: inTrash ? "Put Back" : "Move to Trash", enabled: !inApplications, run: () => trashSelection() },
             { separator: true },
             { text: "Get Info", run: () => getInfo() },
             { text: "Rename", enabled: selectedCount === 1 && localItems, run: () => renameSelection() },
@@ -996,7 +998,8 @@ Window {
             else return;
             break;
         case Qt.Key_A:
-            if (ctrl) win.act("all", win.selectAll);
+            if (ctrl && shift) win.act("applications", () => win.goPlace("applications"));
+            else if (ctrl) win.act("all", win.selectAll);
             break;
         case Qt.Key_Period:
         case Qt.Key_Greater:

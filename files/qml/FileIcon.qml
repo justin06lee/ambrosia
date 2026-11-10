@@ -40,8 +40,8 @@ Item {
         anchors.fill: parent
         visible: icon.showsThumb
         // Small ones (the list's and columns' rows) as they are, without a
-        // frame.
-        source: icon.thumb === "" ? "" : icon.size >= 24 ? icon.thumb + "/tile" : icon.thumb
+        // frame; an application's icon as it is at any size.
+        source: icon.thumb === "" ? "" : icon.size >= 24 && !icon.thumb.startsWith("image://icon/") ? icon.thumb + "/tile" : icon.thumb
         fillMode: Image.PreserveAspectFit
         // A 1×1 image means none could be made: the art stays.
         sourceSize: Qt.size(Math.ceil(icon.size * Screen.devicePixelRatio), Math.ceil(icon.size * Screen.devicePixelRatio))

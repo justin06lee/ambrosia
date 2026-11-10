@@ -39,7 +39,7 @@ Window {
     visible: true
     color: "transparent"
     flags: Qt.Window | Qt.FramelessWindowHint
-    title: info.name
+    title: info.title
 
     ItemInfo {
         id: info
@@ -124,7 +124,7 @@ Window {
             width: openButton.x - x - 12
             font.pixelSize: 13
             font.weight: 700
-            text: info.name
+            text: info.title
             elide: Text.ElideMiddle
         }
 
@@ -220,6 +220,8 @@ Window {
                 kind: info.isDir ? "folder" : "document"
                 badge: info.badge
                 tint: info.tint
+                // An application's own icon.
+                thumb: info.thumb.startsWith("image://icon/") ? info.thumb : ""
             }
             Label {
                 id: bigName
@@ -228,7 +230,7 @@ Window {
                 width: parent.width - x - 20
                 font.pixelSize: 23
                 font.weight: 700
-                text: info.name
+                text: info.title
                 elide: Text.ElideMiddle
             }
             Label {

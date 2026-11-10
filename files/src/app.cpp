@@ -3,7 +3,10 @@
 #include "index.h"
 #include "thumbnailer.h"
 
+#include <KDesktopFile>
+#include <KIO/ApplicationLauncherJob>
 #include <KIO/OpenUrlJob>
+#include <KService>
 #include <KWindowShadow>
 
 #include <QDir>
@@ -103,6 +106,15 @@ void App::openInfo(const QUrl &url)
 
 void App::openFile(const QUrl &url)
 {
+    // An application (its desktop entry, as Applications lists them) starts.
+    if (url.isLocalFile() && KDesktopFile::isDesktopFile(url.toLocalFile())) {
+        const KService::Ptr app(new KService(url.toLocalFile()));
+        if (app->isValid() && app->isApplication()) {
+            auto *job = new KIO::ApplicationLauncherJob(app);
+            job->start();
+            return;
+        }
+    }
     auto *job = new KIO::OpenUrlJob(url);
     job->start();
 }
