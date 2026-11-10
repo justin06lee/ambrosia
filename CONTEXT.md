@@ -92,7 +92,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
   current; backups in `/var/tmp/ambrosia-syu`), and avahi-daemon, cups.socket
   and power-profiles-daemon were enabled as the installer does. Kernel 7.2.14
   is installed but it still runs 7.2.10 until a reboot (the running kernel's
-  modules were put back in `/usr/lib/modules`). Reach it as `ssh tenet`
+  modules were put back in `/usr/lib/modules`). On 2026-11-11 it got r362
+  of every ambrosia-* package but ambrosia-desktop (still r316: the new one
+  pulls in keyd and switches the login screen, see Needs Justin), from
+  local packages (`pacman -U`). Reach it as `ssh tenet`
   (Tailscale, 100.97.46.114); its LAN address is now 192.168.1.232. gpg
   prints `release_dotlock: lockfile error` when its keyring is populated, but
   the key ends up trusted.
@@ -261,12 +264,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
   Center, Dock and Search, the keyboard layer, the login screen) are not
   published: publishing pushes to the public ambrosia-packages repo. Say
   when.
-- tenet still runs r316. Installing master's ambrosia-desktop there pulls
-  in keyd (off until `systemctl enable --now keyd`, which remaps the live
-  keyboard: Super becomes Command) and switches SDDM to our login screen at
-  its next start. The other packages (settings, shell, files, theme,
-  decoration) can go on without either; say whether tenet should get the
-  keyboard layer and the login screen too.
+- tenet runs r362 of everything but ambrosia-desktop (r316). Installing
+  master's ambrosia-desktop there pulls in keyd (off until
+  `systemctl enable --now keyd`, which remaps the live keyboard: Super
+  becomes Command) and switches SDDM to our login screen at its next start:
+  say whether tenet should get the keyboard layer and the login screen too.
 - Files' memory target #13 (≤120 MB): count own memory (USS, met at 119-123
   MB with the 100k folder) or RSS (a bare Qt Quick window is already 177 MB)?
 
