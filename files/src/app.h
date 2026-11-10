@@ -44,6 +44,7 @@ public:
 
     App(QQmlEngine *engine, const Options &options);
     static App *create(QQmlEngine *, QJSEngine *);
+    static App *instance() { return s_instance; }
 
     bool dark() const;
     QColor accent() const;
@@ -61,6 +62,9 @@ public:
     Q_INVOKABLE void openFile(const QUrl &url);
     // Get Info (⌘I): the item's Info window, brought forward if it's open.
     Q_INVOKABLE void openInfo(const QUrl &url);
+    // The progress window, for the copies and moves in FileOps.jobs: made
+    // when one has run for a second; it closes itself after the last.
+    void openProgress();
     // The keys held now (Qt.AltModifier ...), for what a drop does.
     Q_INVOKABLE int modifiers() const;
     // Gives a frameless Files window KWin's shadow, for its corner radius.
@@ -88,6 +92,7 @@ private:
     Options m_options;
     bool m_first = true;
     QList<QPointer<QQuickWindow>> m_infos;
+    QPointer<QQuickWindow> m_progress;
     static App *s_instance;
 };
 

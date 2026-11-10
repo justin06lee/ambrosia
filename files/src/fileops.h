@@ -1,11 +1,64 @@
 #pragma once
 
+#include <QAbstractListModel>
+#include <QElapsedTimer>
 #include <QHash>
 #include <QObject>
+#include <QPointer>
+#include <QTimer>
 #include <QUrl>
 #include <QtQml/qqmlregistration.h>
 
 class KJob;
+
+// The copies and moves that are taking a while, as Finder's progress window
+// lists them: what each is doing, how far along it is, and how much is
+// done and about how long is left. One shows once it has run for a second.
+class FileJobs : public QAbstractListModel
+{
+    Q_OBJECT
+    QML_ANONYMOUS
+    Q_PROPERTY(int count READ count NOTIFY countChanged)
+    // The window's title: "Copy", or "Move" when its first row is one.
+    Q_PROPERTY(QString title READ title NOTIFY countChanged)
+
+public:
+    // fraction is under 0 until the job knows how much there is.
+    enum Role { TitleRole = Qt::UserRole + 1, DetailRole, FractionRole };
+
+    explicit FileJobs(QObject *parent = nullptr);
+    int rowCount(const QModelIndex &parent = {}) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    QHash<int, QByteArray> roleNames() const override;
+    int count() const { return int(m_shown.size()); }
+    QString title() const;
+
+    // Follows a job until it ends. kind is "Copy" or "Move".
+    void add(KJob *job, const QString &kind, const QString &title);
+    // The row's stop button: what was copied so far stays.
+    Q_INVOKABLE void stop(int row);
+
+Q_SIGNALS:
+    void countChanged();
+    // The first row is there: the window should be too.
+    void wanted();
+
+private:
+    struct Run {
+        QPointer<KJob> job;
+        QString kind, title;
+        qint64 started = 0;         // on m_clock, in ms
+        qint64 bytesAt = 0, at = 0; // the last reading, for the rate
+        double rate = 0;            // bytes a second, smoothed
+    };
+    void tick();
+    void remove(KJob *job);
+    QString detail(const Run &run) const;
+
+    QList<Run> m_waiting, m_shown;
+    QTimer m_tick;
+    QElapsedTimer m_clock;
+};
 
 // Finder's file operations, through KIO: New Folder, rename, Duplicate, Copy
 // and Paste, moves and copies by drag and drop, Move to Trash and Put Back.
@@ -24,6 +77,8 @@ class FileOps : public QObject
     Q_PROPERTY(QString redoText READ redoText NOTIFY undoChanged)
     // How many items Paste would bring (0: the clipboard holds no files).
     Q_PROPERTY(int clipboardCount READ clipboardCount NOTIFY clipboardChanged)
+    // The copies and moves under way, for the progress window.
+    Q_PROPERTY(FileJobs *jobs READ jobs CONSTANT)
 
 public:
     explicit FileOps(QObject *parent = nullptr);
@@ -33,6 +88,7 @@ public:
     bool canRedo() const;
     QString redoText() const;
     int clipboardCount() const;
+    FileJobs *jobs() const { return m_jobs; }
 
     // "untitled folder" (then "untitled folder 2" ...) in dir.
     Q_INVOKABLE int newFolder(const QUrl &dir);
@@ -74,6 +130,7 @@ private:
     QList<RedoLabel> m_redoLabels;
     QString m_redone; // the label of the command being redone, until its job finishes
     int m_next = 0;
+    FileJobs *m_jobs;
 
     // Tags aren't KIO's to undo: their edits are kept here, each with the
     // KIO command that was last when it was made, so Undo takes back

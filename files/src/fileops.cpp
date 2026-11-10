@@ -1,4 +1,6 @@
 #include "fileops.h"
+#include "app.h"
+#include "format.h"
 #include "tags.h"
 
 #include <KIO/AskUserActionInterface>
@@ -17,8 +19,10 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QRegularExpression>
+#include <QSysInfo>
 
 #include <algorithm>
+#include <cmath>
 
 #include <sys/stat.h>
 
@@ -98,6 +102,37 @@ QString itemsText(const QList<QUrl> &urls)
     return QStringLiteral("%1 Items").arg(urls.size());
 }
 
+// The progress window's words for them: "“notes.md”", "3 items".
+QString itemsWords(const QList<QUrl> &urls)
+{
+    if (urls.size() == 1)
+        return QStringLiteral("“%1”").arg(urls.first().fileName());
+    return QStringLiteral("%1 items").arg(urls.size());
+}
+
+// A folder by the name Finder gives it: the computer's for its top.
+QString folderWords(const QUrl &dir)
+{
+    const QString name = dir.adjusted(QUrl::StripTrailingSlash).fileName();
+    return QStringLiteral("“%1”").arg(name.isEmpty() ? QSysInfo::machineHostName() : name);
+}
+
+// "About 5 seconds", "About a minute", "About 2 hours", as Finder rounds.
+QString about(double seconds)
+{
+    if (seconds < 57.5) {
+        const int s = std::max(5, int(std::ceil(seconds / 5.0)) * 5);
+        return QStringLiteral("About %1 seconds").arg(s);
+    }
+    const int minutes = int(std::lround(seconds / 60.0));
+    if (minutes < 2)
+        return QStringLiteral("About a minute");
+    if (minutes < 60)
+        return QStringLiteral("About %1 minutes").arg(minutes);
+    const int hours = int(std::lround(seconds / 3600.0));
+    return hours < 2 ? QStringLiteral("About an hour") : QStringLiteral("About %1 hours").arg(hours);
+}
+
 // What KIO calls a command, in Finder's words, when it isn't one of ours.
 QString finderWords(QString kioText)
 {
@@ -118,9 +153,131 @@ QString finderWords(QString kioText)
 
 }
 
+FileJobs::FileJobs(QObject *parent)
+    : QAbstractListModel(parent)
+{
+    m_tick.setInterval(250);
+    connect(&m_tick, &QTimer::timeout, this, &FileJobs::tick);
+}
+
+int FileJobs::rowCount(const QModelIndex &parent) const
+{
+    return parent.isValid() ? 0 : int(m_shown.size());
+}
+
+QHash<int, QByteArray> FileJobs::roleNames() const
+{
+    return {{TitleRole, "title"}, {DetailRole, "detail"}, {FractionRole, "fraction"}};
+}
+
+QVariant FileJobs::data(const QModelIndex &index, int role) const
+{
+    if (!index.isValid() || index.row() >= m_shown.size())
+        return {};
+    const Run &run = m_shown[index.row()];
+    switch (role) {
+    case TitleRole:
+        return run.title;
+    case DetailRole:
+        return detail(run);
+    case FractionRole: {
+        const double total = run.job ? double(run.job->totalAmount(KJob::Bytes)) : 0;
+        return total > 0 ? std::min(1.0, double(run.job->processedAmount(KJob::Bytes)) / total) : -1.0;
+    }
+    }
+    return {};
+}
+
+QString FileJobs::title() const
+{
+    return m_shown.isEmpty() ? QStringLiteral("Copy") : m_shown.first().kind;
+}
+
+QString FileJobs::detail(const Run &run) const
+{
+    const qint64 total = run.job ? qint64(run.job->totalAmount(KJob::Bytes)) : 0;
+    if (total <= 0)
+        return QStringLiteral("Preparing…");
+    const qint64 done = std::min(total, qint64(run.job->processedAmount(KJob::Bytes)));
+    const QString amount = QStringLiteral("%1 of %2 — ").arg(Format::size(done), Format::size(total));
+    return amount + (run.rate > 0 ? about(double(total - done) / run.rate) : QStringLiteral("Estimating time remaining…"));
+}
+
+void FileJobs::add(KJob *job, const QString &kind, const QString &title)
+{
+    if (!m_clock.isValid())
+        m_clock.start();
+    const qint64 now = m_clock.elapsed();
+    m_waiting.append(Run{job, kind, title, now, 0, now, 0});
+    connect(job, &KJob::finished, this, [this, job] { remove(job); });
+    if (!m_tick.isActive())
+        m_tick.start();
+}
+
+void FileJobs::tick()
+{
+    const qint64 now = m_clock.elapsed();
+    for (int i = 0; i < m_waiting.size();) {
+        const Run &run = m_waiting[i];
+        const qint64 ran = now - run.started;
+        const double total = run.job ? double(run.job->totalAmount(KJob::Bytes)) : 0;
+        // Nearly done at one second: its row would only flash by.
+        const bool ending = total > 0 && double(run.job->processedAmount(KJob::Bytes)) / total > 0.7;
+        if (ran < 1000 || (ending && ran < 2500)) {
+            ++i;
+            continue;
+        }
+        beginInsertRows({}, int(m_shown.size()), int(m_shown.size()));
+        m_shown.append(m_waiting.takeAt(i));
+        endInsertRows();
+        Q_EMIT countChanged();
+        if (m_shown.size() == 1)
+            Q_EMIT wanted();
+    }
+    // How fast each one goes, read a second apart and smoothed.
+    for (Run &run : m_shown) {
+        if (!run.job || now - run.at < 1000)
+            continue;
+        const qint64 done = qint64(run.job->processedAmount(KJob::Bytes));
+        const double rate = double(done - run.bytesAt) * 1000.0 / double(now - run.at);
+        run.rate = run.rate > 0 ? 0.7 * run.rate + 0.3 * rate : rate;
+        run.bytesAt = done;
+        run.at = now;
+    }
+    if (!m_shown.isEmpty())
+        Q_EMIT dataChanged(index(0), index(int(m_shown.size()) - 1), {DetailRole, FractionRole});
+}
+
+void FileJobs::remove(KJob *job)
+{
+    m_waiting.removeIf([job](const Run &run) { return run.job == job; });
+    for (int i = 0; i < m_shown.size(); ++i) {
+        if (m_shown[i].job != job)
+            continue;
+        beginRemoveRows({}, i, i);
+        m_shown.removeAt(i);
+        endRemoveRows();
+        Q_EMIT countChanged();
+        break;
+    }
+    if (m_waiting.isEmpty() && m_shown.isEmpty())
+        m_tick.stop();
+}
+
+void FileJobs::stop(int row)
+{
+    if (row >= 0 && row < m_shown.size() && m_shown[row].job)
+        m_shown[row].job->kill(KJob::EmitResult);
+}
+
 FileOps::FileOps(QObject *parent)
     : QObject(parent)
+    , m_jobs(new FileJobs(this))
 {
+    connect(m_jobs, &FileJobs::wanted, this, [] {
+        if (App *app = App::instance())
+            app->openProgress();
+    });
     FileUndoManager *undo = FileUndoManager::self();
     if (!undoUi) {
         undoUi = new UndoUi;
@@ -275,6 +432,7 @@ int FileOps::duplicate(const QList<QUrl> &urls)
         made << to;
         KIO::CopyJob *job = KIO::copyAs(urls[i], to, KIO::HideProgressInfo);
         FileUndoManager::self()->recordCopyJob(job);
+        m_jobs->add(job, QStringLiteral("Copy"), QStringLiteral("Copying %1 to %2").arg(itemsWords({urls[i]}), folderWords(parentUrl(urls[i]))));
         if (i + 1 < urls.size()) {
             job->setUiDelegate(KIO::createDefaultJobUiDelegate(KJobUiDelegate::AutoHandlingEnabled, nullptr));
             job->start();
@@ -297,6 +455,7 @@ int FileOps::copy(const QList<QUrl> &urls, const QUrl &dir)
         made << childUrl(dir, url.fileName());
     KIO::CopyJob *job = KIO::copy(urls, dir, KIO::HideProgressInfo);
     FileUndoManager::self()->recordCopyJob(job);
+    m_jobs->add(job, QStringLiteral("Copy"), QStringLiteral("Copying %1 to %2").arg(itemsWords(urls), folderWords(dir)));
     return start(job, made, QStringLiteral("Copy of ") + itemsText(urls));
 }
 
@@ -314,6 +473,7 @@ int FileOps::move(const QList<QUrl> &urls, const QUrl &dir)
         made << childUrl(dir, url.fileName());
     KIO::CopyJob *job = KIO::move(moving, dir, KIO::HideProgressInfo);
     FileUndoManager::self()->recordCopyJob(job);
+    m_jobs->add(job, QStringLiteral("Move"), QStringLiteral("Moving %1 to %2").arg(itemsWords(moving), folderWords(dir)));
     return start(job, made, QStringLiteral("Move of ") + itemsText(moving));
 }
 
@@ -323,6 +483,7 @@ int FileOps::trash(const QList<QUrl> &urls)
         return -1;
     KIO::CopyJob *job = KIO::trash(urls, KIO::HideProgressInfo);
     FileUndoManager::self()->recordJob(FileUndoManager::Trash, urls, QUrl(QStringLiteral("trash:/")), job);
+    m_jobs->add(job, QStringLiteral("Move"), QStringLiteral("Moving %1 to the Trash").arg(itemsWords(urls)));
     // Finder calls it a move, since that is what it is.
     return start(job, {}, QStringLiteral("Move of ") + itemsText(urls));
 }

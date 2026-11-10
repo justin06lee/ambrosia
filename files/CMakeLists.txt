@@ -47,6 +47,7 @@ qt_add_qml_module(ambrosia-files
         qml/QuickLook.qml
         qml/InfoWindow.qml
         qml/InfoSection.qml
+        qml/ProgressWindow.qml
         qml/MenuBar.qml
         qml/Finder.qml
         qml/Sidebar.qml

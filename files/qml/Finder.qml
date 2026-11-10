@@ -162,6 +162,14 @@ QtObject {
     readonly property int infoRadius: 16
     readonly property int infoWidth: 400
 
+    // The progress window: a row for each copy or move under way.
+    readonly property int progressWidth: 420
+    readonly property int progressTitleBar: 28
+    readonly property int progressRow: 70
+    readonly property int progressMargin: 20
+    readonly property int progressBar: 6
+    readonly property int progressStop: 16
+
     // Tags: the dots by a name (10 points, each further tag 5 to the left),
     // their fill and rim the same in light and dark; Get Info's tokens.
     readonly property int tagDot: 10
@@ -207,6 +215,8 @@ QtObject {
     readonly property color lookPage: dark ? "#1e1e1e" : "#ffffff"
     readonly property color infoRule: dark ? "#3c3d39" : "#e6e6e6"
     readonly property color infoPage: dark ? "#1e1e1e" : "#ffffff"
+    readonly property color progressTrack: dark ? "#45453f" : "#e4e4e4"
+    readonly property color progressStopFill: dark ? "#8a8a86" : "#a9a9a9"
     readonly property color searchFill: dark ? "#141414" : "#ffffff"
     readonly property color suggestFill: dark ? "#5a5a58" : "#e2e2df"
     readonly property color suggestRule: dark ? "#737371" : "#d2d2d2"

@@ -104,6 +104,22 @@ void App::openInfo(const QUrl &url)
     m_infos << window;
 }
 
+void App::openProgress()
+{
+    if (m_progress)
+        return;
+    QQmlComponent component(m_engine, QStringLiteral("Files"), QStringLiteral("ProgressWindow"));
+    // Over the window being worked in, which keeps the keyboard.
+    auto *focused = qobject_cast<QQuickWindow *>(QGuiApplication::focusWindow());
+    QObject *object = component.createWithInitialProperties({{QStringLiteral("owner"), QVariant::fromValue(focused)}});
+    if (!object) {
+        qWarning().noquote() << component.errorString();
+        return;
+    }
+    m_progress = qobject_cast<QQuickWindow *>(object);
+    connect(m_progress, &QQuickWindow::closing, m_progress, &QObject::deleteLater);
+}
+
 void App::openFile(const QUrl &url)
 {
     // An application (its desktop entry, as Applications lists them) starts.
