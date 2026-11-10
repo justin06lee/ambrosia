@@ -55,10 +55,12 @@ QColor App::accent() const
     return QGuiApplication::palette().color(QPalette::Active, QPalette::Highlight);
 }
 
-void App::openWindow(const QUrl &url)
+void App::openWindow(const QUrl &url, const QString &select)
 {
     QQmlComponent component(m_engine, QStringLiteral("Files"), QStringLiteral("FinderWindow"));
     QVariantMap initial{{QStringLiteral("startUrl"), url}};
+    if (!select.isEmpty())
+        initial.insert(QStringLiteral("reselect"), select);
     if (m_first) {
         if (!m_options.view.isEmpty())
             initial.insert(QStringLiteral("view"), m_options.view);
@@ -159,6 +161,42 @@ QStringList App::Find(const QString &query, int limit)
         items << (dir ? path + QLatin1Char('/') : path) << (dir ? QString() : Thumbnailer::cached(path));
     }
     return items;
+}
+
+void App::showItems(const QStringList &uris)
+{
+    QList<QUrl> folders;
+    for (const QString &uri : uris) {
+        const QUrl item = QUrl(uri).adjusted(QUrl::StripTrailingSlash);
+        const QUrl folder = item.adjusted(QUrl::RemoveFilename | QUrl::StripTrailingSlash);
+        if (!item.isValid() || folders.contains(folder))
+            continue;
+        folders << folder;
+        openWindow(folder, item.fileName());
+    }
+}
+
+FileManager1::FileManager1(App *app)
+    : QObject(app)
+    , m_app(app)
+{
+}
+
+void FileManager1::ShowFolders(const QStringList &uris, const QString &)
+{
+    if (!uris.isEmpty())
+        m_app->Open(uris);
+}
+
+void FileManager1::ShowItems(const QStringList &uris, const QString &)
+{
+    m_app->showItems(uris);
+}
+
+void FileManager1::ShowItemProperties(const QStringList &uris, const QString &)
+{
+    for (const QString &uri : uris)
+        m_app->openInfo(QUrl(uri));
 }
 
 int App::modifiers() const

@@ -53,7 +53,11 @@ public:
     bool active() const { return m_options.active; }
     QString sidebar() const { return m_options.sidebar; }
 
-    Q_INVOKABLE void openWindow(const QUrl &url);
+    // select: the name of an item to select once the folder is read.
+    Q_INVOKABLE void openWindow(const QUrl &url, const QString &select = QString());
+    // Each item's folder in a window, the item selected (one window a
+    // folder): what "Show in Folder" asks through FileManager1 below.
+    void showItems(const QStringList &uris);
     Q_INVOKABLE void openFile(const QUrl &url);
     // Get Info (⌘I): the item's Info window, brought forward if it's open.
     Q_INVOKABLE void openInfo(const QUrl &url);
@@ -85,4 +89,24 @@ private:
     bool m_first = true;
     QList<QPointer<QQuickWindow>> m_infos;
     static App *s_instance;
+};
+
+// org.freedesktop.FileManager1, which apps call for "Show in Folder" (a
+// browser's downloads, the shell's Search): Files answers it while it runs,
+// which is from login, so they show the item here and not in Dolphin.
+class FileManager1 : public QObject
+{
+    Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.freedesktop.FileManager1")
+
+public:
+    explicit FileManager1(App *app);
+
+public Q_SLOTS:
+    Q_SCRIPTABLE void ShowFolders(const QStringList &uris, const QString &startupId);
+    Q_SCRIPTABLE void ShowItems(const QStringList &uris, const QString &startupId);
+    Q_SCRIPTABLE void ShowItemProperties(const QStringList &uris, const QString &startupId);
+
+private:
+    App *m_app;
 };

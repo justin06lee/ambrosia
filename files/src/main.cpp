@@ -179,8 +179,13 @@ int main(int argc, char *argv[])
     engine.addImageProvider(QStringLiteral("folder"), new FolderProvider);
     engine.addImageProvider(QStringLiteral("thumb"), new Thumbnailer);
     App files(&engine, options);
-    if (!oneShot)
+    if (!oneShot) {
         bus.registerObject(QStringLiteral("/org/ambrosia/files"), &files, QDBusConnection::ExportScriptableSlots);
+        // "Show in Folder" from other apps comes here (unless another file
+        // manager already holds the name).
+        bus.registerObject(QStringLiteral("/org/freedesktop/FileManager1"), new FileManager1(&files), QDBusConnection::ExportScriptableSlots);
+        bus.registerService(QStringLiteral("org.freedesktop.FileManager1"));
+    }
     if (!quiet)
         files.Open(urls);
     // The index behind search, warm from the start (a one-shot run starts
