@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Installs Ambrosia from the answers ambrosia-install wrote: erases the disk,
 # installs the packages, makes the account and the boot entry. Run as root.
+# The disk boots the way this computer started: on UEFI, a GPT disk and
+# systemd-boot; on a BIOS, an MBR disk and syslinux. Either way the kernel
+# sits on a FAT partition at /boot, which both boot loaders read.
 set -euo pipefail
 
 # shellcheck source=/dev/null
@@ -11,24 +14,47 @@ step() { printf '\n\033[1m%s\033[0m\n' "$*"; }
 # Partition names: sda1, vda1, but nvme0n1p1 and mmcblk0p1.
 part() { if [[ "$disk" =~ [0-9]$ ]]; then echo "${disk}p$1"; else echo "${disk}$1"; fi; }
 
+firmware=bios
+[[ -d /sys/firmware/efi ]] && firmware=uefi
+
 step "Erasing $disk"
 umount -R /mnt 2>/dev/null || true
 wipefs --all --force "$disk"
 sgdisk --zap-all "$disk"
-sgdisk -n 1:0:+1G -t 1:ef00 -c 1:EFI -n 2:0:0 -t 2:8304 -c 2:Ambrosia "$disk"
+if [[ $firmware == uefi ]]; then
+  sgdisk -n 1:0:+1G -t 1:ef00 -c 1:EFI -n 2:0:0 -t 2:8304 -c 2:Ambrosia "$disk"
+else
+  # An MBR table, which every BIOS starts from (some refuse GPT disks): the
+  # boot partition marked active, then the root. It counts 2^32 sectors, so
+  # on a disk past that (2 TiB at 512 bytes a sector) the root ends there.
+  boot_start=2048
+  boot_size=$(((1 << 30) / $(blockdev --getss "$disk")))
+  root_start=$((boot_start + boot_size))
+  root_size=""
+  if (($(blockdev --getsize64 "$disk") / $(blockdev --getss "$disk") > (1 << 32) - 1)); then
+    root_size="size=$(((1 << 32) - 1 - root_start)), "
+    echo "This disk is larger than a BIOS disk's partition table reaches: Ambrosia takes the first 2 TiB."
+  fi
+  sfdisk --quiet "$disk" <<TABLE
+label: dos
+start=$boot_start, size=$boot_size, type=c, bootable
+start=$root_start, ${root_size}type=83
+TABLE
+fi
 partprobe "$disk"
 udevadm settle
-efi=$(part 1) root=$(part 2)
-mkfs.fat -F 32 -n EFI "$efi"
+boot=$(part 1) root=$(part 2)
+mkfs.fat -F 32 -n "$([[ $firmware == uefi ]] && echo EFI || echo BOOT)" "$boot"
 mkfs.ext4 -F -L Ambrosia "$root"
 mount "$root" /mnt
-mount --mkdir -o fmask=0077,dmask=0077 "$efi" /mnt/boot
+mount --mkdir -o fmask=0077,dmask=0077 "$boot" /mnt/boot
 
 step "Installing Ambrosia"
 # pipewire-jack is named here so pacman doesn't pick jack2 for "jack" first.
 packages=(base linux linux-firmware sudo nano man-db pipewire-jack ambrosia-desktop)
 grep -q GenuineIntel /proc/cpuinfo && packages+=(intel-ucode)
 grep -q AuthenticAMD /proc/cpuinfo && packages+=(amd-ucode)
+[[ $firmware == bios ]] && packages+=(syslinux)
 # Graphics drivers for what's in the machine (VGA and 3D controllers).
 gpus=$(lspci -mm -d ::0300; lspci -mm -d ::0302)
 grep -q '"NVIDIA' <<<"$gpus" && packages+=(nvidia-open nvidia-utils)
@@ -90,18 +116,40 @@ arch-chroot /mnt chown -R sddm:sddm /var/lib/sddm
 arch-chroot /mnt systemctl enable sddm NetworkManager bluetooth systemd-timesyncd fstrim.timer cups.socket avahi-daemon keyd
 
 step "Making it bootable"
-arch-chroot /mnt bootctl install
-cat >/mnt/boot/loader/loader.conf <<LOADER
+options="root=UUID=$(blkid -s UUID -o value "$root") rw quiet loglevel=3"
+if [[ $firmware == uefi ]]; then
+  arch-chroot /mnt bootctl install
+  cat >/mnt/boot/loader/loader.conf <<LOADER
 default ambrosia.conf
 timeout 0
 editor no
 LOADER
-cat >/mnt/boot/loader/entries/ambrosia.conf <<ENTRY
+  cat >/mnt/boot/loader/entries/ambrosia.conf <<ENTRY
 title   Ambrosia
 linux   /vmlinuz-linux
 initrd  /initramfs-linux.img
-options root=UUID=$(blkid -s UUID -o value "$root") rw quiet loglevel=3
+options $options
 ENTRY
+else
+  # syslinux, the new system's own: its loader into /boot/syslinux and the
+  # partition's boot sector, its boot code into the disk's first sector
+  # (the 440 bytes before the partition table). It starts Ambrosia at once,
+  # with no menu, as systemd-boot does; the kernel's names never change, so
+  # neither does this.
+  install -d /mnt/boot/syslinux
+  arch-chroot /mnt extlinux --install /boot/syslinux
+  dd if=/mnt/usr/lib/syslinux/bios/mbr.bin of="$disk" bs=440 count=1 conv=notrunc status=none
+  cat >/mnt/boot/syslinux/syslinux.cfg <<CONFIG
+DEFAULT ambrosia
+PROMPT 0
+TIMEOUT 0
+
+LABEL ambrosia
+    LINUX ../vmlinuz-linux
+    INITRD ../initramfs-linux.img
+    APPEND $options
+CONFIG
+fi
 
 # pacstrap -K leaves the new keyring's gpg-agent running inside /mnt.
 gpgconf --homedir /mnt/etc/pacman.d/gnupg --kill all 2>/dev/null || true

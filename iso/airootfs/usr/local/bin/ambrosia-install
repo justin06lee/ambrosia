@@ -54,11 +54,6 @@ else
   ask --yesno "Ambrosia will be installed on this computer. You'll choose a disk and set up your account; the rest is automatic." \
     --yes-label Continue --no-label Quit || exit 0
 
-  if [[ ! -d /sys/firmware/efi ]]; then
-    ask --error "This computer started in legacy BIOS mode. Ambrosia installs in UEFI mode: restart and choose the UEFI entry for this USB drive."
-    exit 1
-  fi
-
   # The Wi-Fi joined here carries over to the installed system.
   until online; do
     if join_wifi; then

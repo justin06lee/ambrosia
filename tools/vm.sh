@@ -10,6 +10,10 @@
 #   tools/vm.sh key ctrl-alt-f2 ...   press keys (QEMU sendkey names)
 #   tools/vm.sh type 'ls ~'   type text (US layout); end with a newline to press enter
 #   tools/vm.sh stop          power the VM off
+# VM_FIRMWARE=bios makes it a BIOS machine (SeaBIOS) instead of a UEFI one
+# (OVMF), with a disk of its own (disk-bios.qcow2): `live` then shows the
+# image's BIOS boot menu, `install` installs the BIOS way and `installed`
+# boots that.
 # The VM's SSH port is forwarded to port 10022 on this machine (2222 is makima's).
 # Needs qemu-base, qemu-hw-display-virtio-vga and -virtio-gpu (without it
 # virtio-vga segfaults), edk2-ovmf and socat. VM_MEM, VM_CPUS and VM_DISK size it
@@ -19,7 +23,13 @@ set -euo pipefail
 root=$(cd "$(dirname "$0")/.." && pwd)
 vm="$root/out/vm"
 monitor="$vm/monitor.sock"
-disk=${VM_DISK:-$vm/disk.qcow2}
+firmware=${VM_FIRMWARE:-uefi}
+case $firmware in
+  uefi) own_disk=$vm/disk.qcow2 ;;
+  bios) own_disk=$vm/disk-bios.qcow2 ;;
+  *) echo "vm: VM_FIRMWARE is uefi or bios" >&2; exit 1 ;;
+esac
+disk=${VM_DISK:-$own_disk}
 mkdir -p "$vm"
 
 hmp() { printf '%s\n' "$*" | socat - "UNIX-CONNECT:$monitor" >/dev/null; }
@@ -28,11 +38,15 @@ running() { [[ -S "$monitor" ]] && hmp info status 2>/dev/null; }
 boot() {
   running && { echo "vm: already running (tools/vm.sh stop)" >&2; exit 1; }
   [[ -f "$disk" ]] || qemu-img create -q -f qcow2 "$disk" 40G
-  [[ -f "$vm/vars.fd" ]] || cp /usr/share/edk2/x64/OVMF_VARS.4m.fd "$vm/vars.fd"
+  local flash=()
+  if [[ $firmware == uefi ]]; then
+    [[ -f "$vm/vars.fd" ]] || cp /usr/share/edk2/x64/OVMF_VARS.4m.fd "$vm/vars.fd"
+    flash=(-drive if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.4m.fd
+      -drive if=pflash,format=raw,file="$vm/vars.fd")
+  fi
   rm -f "$monitor"
   qemu-system-x86_64 -enable-kvm -machine q35 -cpu host -smp "${VM_CPUS:-4}" -m "${VM_MEM:-6G}" \
-    -drive if=pflash,format=raw,readonly=on,file=/usr/share/edk2/x64/OVMF_CODE.4m.fd \
-    -drive if=pflash,format=raw,file="$vm/vars.fd" \
+    "${flash[@]}" \
     -drive file="$disk",if=virtio,format=qcow2 \
     -device virtio-vga,xres=1920,yres=1200 -display none \
     -nic user,model=virtio-net-pci,hostfwd=tcp::10022-:22 \
@@ -51,7 +65,8 @@ case "${1:-}" in
   live) boot -cdrom "$(iso)" -boot d ;;
   install)
     image=$(iso)
-    rm -f "$vm/disk.qcow2" "$vm/vars.fd"
+    rm -f "$disk"
+    [[ $firmware == bios ]] || rm -f "$vm/vars.fd"
     # Boot the image's kernel directly, to add ambrosia.autoinstall.
     bsdtar -xf "$image" -C "$vm" --strip-components 3 arch/boot/x86_64/vmlinuz-linux arch/boot/x86_64/initramfs-linux.img
     boot -cdrom "$image" -kernel "$vm/vmlinuz-linux" -initrd "$vm/initramfs-linux.img" \
