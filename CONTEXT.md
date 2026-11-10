@@ -257,8 +257,16 @@ package repo below), and they carry `shell/` and `session/` as they are.
 - The image's UEFI boot menu is plain text (systemd-boot draws no pictures).
   A picture there means starting the image with GRUB instead (archiso's
   `uefi.grub`), a boot path not yet proven on tenet's hardware: wanted?
-- A new Settings build (step 6) is on master but not published: publishing
-  pushes to the public ambrosia-packages repo, held tonight.
+- Master's packages (Settings through step 7, the shell's Notification
+  Center, Dock and Search, the keyboard layer, the login screen) are not
+  published: publishing pushes to the public ambrosia-packages repo. Say
+  when.
+- tenet still runs r316. Installing master's ambrosia-desktop there pulls
+  in keyd (off until `systemctl enable --now keyd`, which remaps the live
+  keyboard: Super becomes Command) and switches SDDM to our login screen at
+  its next start. The other packages (settings, shell, files, theme,
+  decoration) can go on without either; say whether tenet should get the
+  keyboard layer and the login screen too.
 - Files' memory target #13 (≤120 MB): count own memory (USS, met at 119-123
   MB with the 100k folder) or RSS (a bare Qt Quick window is already 177 MB)?
 
