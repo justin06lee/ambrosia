@@ -703,15 +703,17 @@ anything mounted in the system's folders), mounted or not, between the
 computer and the Trash. A click opens one, mounting it first; while it is
 mounted its row ends in an eject button, which unmounts it and lets Solid
 eject the media (a stick, a card) or power the drive down (a USB disk). A
-window showing a disk being ejected goes home first; on a disk the path
-bar and the title start at the disk, by its name. Driven in the test VM
+window showing a disk goes home once it is ejected (one in use stays, with
+Finder's alert); on a disk the path bar and the title start at the disk,
+by its name. Driven in the test VM
 with two hot-plugged QEMU USB drives, read back with lsblk and KWin's
 window titles: a stick with removable media (mounted at
 /run/media/test/STICK by its row's click, ejected by its button, its
 media gone) and a disk with fixed media (mounted, ejected while its
-window showed it: the window went home and the drive left the bus). Not
-tried: a disc, a disk something is using (the alert), another internal
-partition, dropping files on a disk's row. Encrypted volumes and network
+window showed it: the window went home and the drive left the bus), and
+a stick held by a process (the alert, still mounted, its window still on
+it). Not tried: a disc, another internal partition, dropping files on a
+disk's row. Encrypted volumes and network
 shares aren't listed.
 
 **Applications in the sidebar (2026-11-10):** the first of Favorites, and
@@ -733,13 +735,34 @@ title, ⌘⌫ leaving the entry. Not tried: a double-click (keys only), an
 entry in a folder made after the window opened, dragging an application
 out. Get Info on one still describes the entry's file.
 
+**The progress window (2026-11-10):** `FileOps.jobs` (`FileJobs` in
+`src/fileops.cpp`) follows every KIO job FileOps starts for a copy, a
+move, a duplicate, a paste, a drop or the Trash, reading the bytes done
+and in all from the job four times a second. One that has run for a
+second (two and a half when it is over 70% done by then, so a row never
+only flashes by) gets a row in `qml/ProgressWindow.qml`: "Copying
+“big.bin” to “Documents”", a bar in the accent color (a piece sliding end
+to end until the job knows its size), "24.9 MB of 50.3 MB — About 10
+seconds", and a ⓧ that kills the job (KIO takes the half-written file
+away; what was already copied stays, and nothing of it is left to undo).
+The window is titled Copy or Move, is as tall as its rows, stays in front
+of the window the copy was started in (its transient parent) and gives
+it the keyboard back, can't be closed while a row runs, and closes
+with the last. Driven in the test VM with a QEMU USB stick whose reads
+were held to 4 MB/s: a 48 MB file pasted into Documents (the window came
+about a second and a half after ⌘V, the folder window stayed active, the
+copy matched byte for byte and the window went with it), the same copy
+stopped by its button (gone within a second, no file or part left), and
+a 6-byte file (no window). Not tried: two jobs at once, a move, the
+Trash, the sliding piece, dark.
+
 **Still short of Finder** (listed 2026-11-10, after search and the
 shortcut menu; v1 scope unless marked):
 - the shortcut menu's Open With, Compress, Make Alias, Share and Quick
   Actions, and on empty space Sort By and Show View Options;
 - renaming and deleting a tag, and a Tags row in the gallery's pane;
 - This Computer reaching other drives and the installed apps;
-- a progress window for long copies, and spring-loaded folders;
+- spring-loaded folders;
 - tabs (not v1).
 - Quick Look's full screen as Finder's: black, its bar hidden until the
   pointer moves (ours keeps the panel's bar and grey margins).
