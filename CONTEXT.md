@@ -145,10 +145,31 @@ package repo below), and they carry `shell/` and `session/` as they are.
    wayland-info), so a Wayland GTK window can't name its menu, and GTK 4 has
    no modules (libadwaita apps have no menu bar anyway). Native GTK menus
    would need a bridge of our own (match the app's exported menu by PID).
-3. The Mac-first keyboard layer with keyd.
-4. Distro gaps: an SDDM theme of our own, BIOS boot (the installer is
-   UEFI-only, though the image boots BIOS), boot menu art, and a license
-   (Justin's call; the packages are public now, `license=(LicenseRef-TBD)`).
+3. **The Mac-first keyboard is built** (Packaging lane, 2026-11-10;
+   `docs/keyboard.md` has the tables, the gaps and what was driven).
+   ambrosia-desktop depends on keyd and carries `/etc/keyd/ambrosia.conf`:
+   Super held is Ctrl for the app, with the system's shortcuts and a Mac's
+   text keys written out; terminals get Ctrl+Shift and Files keeps ⌘ with
+   the arrows, switched by the shell (`shell/KeyLayer.qml` writes the kind
+   of app to `/run/ambrosia-keys`; `ambrosia-keys.service`, as its own user
+   in keyd's group, applies the bindings filed under it). The installer and
+   the live image enable keyd. **It is on only where `keyd.service` is
+   enabled**: an existing system (tenet) changes nothing by upgrading, and
+   gets it with `systemctl enable --now keyd` (Linux-first is `disable`).
+   Driven in the VM from a fresh install. Open: ⌘C in Konsole with nothing
+   selected interrupts (Konsole hands the unused Ctrl+Shift+C to the shell);
+   ⌘Q only where the app has Ctrl+Q; the question at install and the switch
+   in Settings › Keyboard. **Trackpads too**: one nobody has set up comes up
+   with natural scrolling and two-finger secondary click
+   (`session/xdg/kcminputrc`, KWin's `[Libinput][Defaults][Touchpad]`; a
+   value Settings saved wins, setting by setting), from the next login.
+4. Distro gaps. **The login screen is ours** (2026-11-10,
+   `packaging/sddm-theme`, current in ambrosia-desktop's sddm.conf; logged in
+   through it in the VM; it replaces Breeze's at the next start of SDDM once
+   the package is installed, unless System Settings' `kde_settings.conf`
+   names another). Still open: BIOS boot (the installer is UEFI-only, though
+   the image boots BIOS), boot menu art, and a license (Justin's call; the
+   packages are public now, `license=(LicenseRef-TBD)`).
 5. Rebuild the image when the user wants to reflash: the SanDisk still has
    the 2026-10-08 image without this shell.
 6. Files (Finder parity, `docs/finder/PLAN.md`): search is Finder's since
