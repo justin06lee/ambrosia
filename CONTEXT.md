@@ -241,10 +241,19 @@ package repo below), and they carry `shell/` and `session/` as they are.
    latched Shift for real; the others' effect on screen wasn't watched.
    Left out: VoiceOver and speech (no screen reader installed), Invert
    (KWin can't say whether it's on), captions, Voice and Switch Control.
-   Spotlight's pane still waits on the shell: Search finds apps, Settings'
-   panes and sums now (2026-11-11, seen in the VM), but not files, so
-   there is little for it to choose between (next: files through Files'
-   index). Mac-first trackpad
+   Spotlight (2026-11-11) says which kinds of result Search shows: the
+   shell's Search finds apps, Settings' panes, sums, and now files and
+   folders by name, asked of Files' index over D-Bus
+   (`org.ambrosia.Files.Find`; Files runs from login) and drawn with Files'
+   folder and document art (`ambrosia-folder`, `ambrosia-document` in
+   hicolor, from ambrosia-theme) or the thumbnail the cache already has.
+   The pane's switches (Calculator, System Settings; Apps, Files, Folders)
+   write settings.json's `searchOff`. Driven in the VM: names with accents
+   found, Return opened a file in Kate and a folder in Files, each switch
+   read back and seen to drop its kind, light and dark. Left out: what
+   Search doesn't have (history, clipboard, other apps' content, menu
+   items), Files' sheet of file kinds, Search Privacy…, ⌘Return to show an
+   item in Files, and searching inside files. Mac-first trackpad
    defaults (KWin starts a new pad with corner clicks and natural scrolling
    off) are with the Packaging lane. Step 6's Mac photos were taken 2026-11-11
    (`out/settings/mac/sheets/bat-*`, `lock-*`, `pw-change`, `priv-*`) and
