@@ -78,45 +78,48 @@ Page {
                 Accounts.setFullName(page.current.path, fullNameField.text);
             close();
         }
-        Row {
-            spacing: 14
-            Item {
+        // As the Mac's sheet: the picture on top, the name and password in
+        // one box, who administers in the next, Cancel and OK.
+        Item {
+            width: parent.width
+            height: 64
+            UserPicture {
+                anchors.centerIn: parent
                 width: 64
                 height: 64
-                UserPicture {
-                    anchors.fill: parent
-                    source: page.current?.icon ?? ""
-                }
+                source: page.current?.icon ?? ""
                 MouseArea {
                     anchors.fill: parent
                     onClicked: pictureSheet.open = true
-                }
-            }
-            Column {
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: 2
-                Label {
-                    text: page.current ? page.nameOf(page.current) : ""
-                    style: Theme.text.title3
-                }
-                Label {
-                    text: page.current?.name ?? ""
-                    color: Theme.color.label.secondary
                 }
             }
         }
         Box {
             width: parent.width
             FormRow {
-                label: qsTr("Full name")
+                label: qsTr("User name")
                 NameField {
                     id: fullNameField
                     width: 220
                     ring: false
                     activeFocusOnTab: true
-                    Accessible.name: qsTr("Full name")
+                    Accessible.name: qsTr("User name")
                 }
             }
+            FormRow {
+                visible: page.current?.me ?? false
+                label: qsTr("Password")
+                PushButton {
+                    text: qsTr("Change…")
+                    onClicked: {
+                        userSheet.close();
+                        page.settings.choose("password");
+                    }
+                }
+            }
+        }
+        Box {
+            width: parent.width
             FormRow {
                 label: qsTr("Allow this user to administer this computer")
                 Switch {
@@ -140,7 +143,12 @@ Page {
         ]
         trailing: [
             PushButton {
-                text: qsTr("Done")
+                text: qsTr("Cancel")
+                minimumWidth: 70
+                onClicked: userSheet.close()
+            },
+            PushButton {
+                text: qsTr("OK")
                 primary: true
                 minimumWidth: 70
                 onClicked: userSheet.accepted()
