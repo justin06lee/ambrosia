@@ -167,11 +167,27 @@ package repo below), and they carry `shell/` and `session/` as they are.
    `packaging/sddm-theme`, current in ambrosia-desktop's sddm.conf; logged in
    through it in the VM; it replaces Breeze's at the next start of SDDM once
    the package is installed, unless System Settings' `kde_settings.conf`
-   names another). Still open: BIOS boot (the installer is UEFI-only, though
-   the image boots BIOS), boot menu art, and a license (Justin's call; the
-   packages are public now, `license=(LicenseRef-TBD)`).
-5. Rebuild the image when the user wants to reflash: the SanDisk still has
-   the 2026-10-08 image without this shell.
+   names another). **BIOS computers install too** (2026-11-10): the
+   installer makes the disk boot the way the computer started, GPT and
+   systemd-boot on UEFI, an MBR disk and syslinux (the new system's own) on
+   a BIOS, the kernel on a FAT `/boot` either way; `VM_FIRMWARE=bios
+   tools/vm.sh live|install|installed` tests it on SeaBIOS. **The BIOS boot
+   menu has our picture** (`iso/syslinux/splash.svg`, rendered by
+   `tools/build-iso.sh`); the UEFI menu is systemd-boot's text, which can't
+   show one. The installer also puts mdns in nsswitch's hosts line (printers'
+   `.local` names) and ambrosia-desktop brings ipp-usb; on a system installed
+   before this, add `mdns_minimal [NOTFOUND=return]` ahead of `resolve` by
+   hand. Still open: a license (Justin's call; the packages are public now,
+   `license=(LicenseRef-TBD)`).
+5. **The current image is `out/iso/ambrosia-2026.11.10-x86_64.iso`** in
+   tenet's `~/work/ambrosia-packaging` (r352 of every ambrosia-* package,
+   built from local packages, nothing published). Installed from it in the
+   VM both ways on 2026-11-10, UEFI and BIOS: our login screen, the desktop,
+   Settings and Files open, Files running from the first login, keyd and its
+   pipe up. Not tried on real hardware; the SanDisk still has the
+   2026-10-08 image. The Packaging lane's VM scripts are on tenet in
+   `/var/tmp/ambrosia-packaging` (`vm-up.sh uefi|bios` boots an install with
+   root SSH through systemd credentials, under either firmware).
 6. Files (Finder parity, `docs/finder/PLAN.md`): search is Finder's since
    2026-11-10 (This Computer, names or contents read without touching Date
    Last Opened, Name/Kind/Date Last Opened), and so is the right-click menu
@@ -238,6 +254,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
 
 ## Needs Justin
 
+- The image's UEFI boot menu is plain text (systemd-boot draws no pictures).
+  A picture there means starting the image with GRUB instead (archiso's
+  `uefi.grub`), a boot path not yet proven on tenet's hardware: wanted?
 - A new Settings build (step 6) is on master but not published: publishing
   pushes to the public ambrosia-packages repo, held tonight.
 - Files' memory target #13 (≤120 MB): count own memory (USS, met at 119-123
