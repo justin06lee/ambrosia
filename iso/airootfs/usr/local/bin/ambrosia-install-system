@@ -112,6 +112,13 @@ install -d /mnt/var/lib/sddm
 printf '[Last]\nSession=/usr/share/wayland-sessions/ambrosia.desktop\nUser=%s\n' "$user" >/mnt/var/lib/sddm/state.conf
 arch-chroot /mnt chown -R sddm:sddm /var/lib/sddm
 
+# Printers and other computers on the network are found by their .local
+# names (Avahi); glibc only asks for those once nsswitch lists mdns, ahead of
+# resolve, which would answer that there's no such name.
+sed -i '/^hosts:/{/mdns/!s/\<resolve\>/mdns_minimal [NOTFOUND=return] resolve/}' /mnt/etc/nsswitch.conf
+grep -q '^hosts:.*mdns_minimal' /mnt/etc/nsswitch.conf ||
+  sed -i '/^hosts:/s/\<dns\>/mdns_minimal [NOTFOUND=return] dns/' /mnt/etc/nsswitch.conf
+
 # keyd is the Mac-first keyboard: Super as Command, in every app.
 arch-chroot /mnt systemctl enable sddm NetworkManager bluetooth systemd-timesyncd fstrim.timer cups.socket avahi-daemon keyd
 

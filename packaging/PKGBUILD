@@ -156,8 +156,9 @@ package_ambrosia-desktop() {
   arch=(any)
   depends=(
     ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings
-    # Low Power Mode (Battery), and printing (Printers & Scanners).
-    power-profiles-daemon cups avahi nss-mdns
+    # Low Power Mode (Battery), and printing (Printers & Scanners): ipp-usb
+    # for the printers that plug in, started when one does.
+    power-profiles-daemon cups avahi nss-mdns ipp-usb
     sddm xdg-desktop-portal-kde polkit-kde-agent kscreen powerdevil
     networkmanager plasma-nm bluez bluez-utils bluedevil
     pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber plasma-pa
