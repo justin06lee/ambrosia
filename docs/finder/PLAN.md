@@ -696,10 +696,28 @@ autostart is wired (`plasma-workspace.target` wants the unit, and it
 runs on tenet), but a fresh system's first login is still unchecked: the
 test VM was held by another lane all night.
 
+**Other disks in the sidebar (2026-11-10):** Locations lists every volume
+with a file system that isn't the system's own (`src/places.cpp`, through
+Solid: not the disk the system starts from, the one the home is on, or
+anything mounted in the system's folders), mounted or not, between the
+computer and the Trash. A click opens one, mounting it first; while it is
+mounted its row ends in an eject button, which unmounts it and lets Solid
+eject the media (a stick, a card) or power the drive down (a USB disk). A
+window showing a disk being ejected goes home first; on a disk the path
+bar and the title start at the disk, by its name. Driven in the test VM
+with two hot-plugged QEMU USB drives, read back with lsblk and KWin's
+window titles: a stick with removable media (mounted at
+/run/media/test/STICK by its row's click, ejected by its button, its
+media gone) and a disk with fixed media (mounted, ejected while its
+window showed it: the window went home and the drive left the bus). Not
+tried: a disc, a disk something is using (the alert), another internal
+partition, dropping files on a disk's row. Encrypted volumes and network
+shares aren't listed.
+
 **Still short of Finder** (listed 2026-11-10, after search and the
 shortcut menu; v1 scope unless marked):
-- the sidebar's Applications (installed apps as a folder) and its mounted
-  and removable drives with eject, both in the v1 scope above and not built;
+- the sidebar's Applications (installed apps as a folder), in the v1 scope
+  above and not built;
 - the shortcut menu's Open With, Compress, Make Alias, Share and Quick
   Actions, and on empty space Sort By and Show View Options;
 - renaming and deleting a tag, and a Tags row in the gallery's pane;

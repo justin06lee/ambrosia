@@ -196,10 +196,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
    Last Opened, Name/Kind/Date Last Opened), and so is the right-click menu
    with its tag colors and Tags…, with Undo Tags, sidebar tag colors and
    tags set while Files was off. Quick Look full screen and in the Trash and
-   ⌘I on several items are checked. Next: login autostart on a fresh system
+   ⌘I on several items are checked. The sidebar's Locations lists other
+   disks since 2026-11-10 (Solid; a click mounts and opens, the eject button
+   unmounts and ejects the media or powers the drive down): driven in the
+   VM with a hot-plugged QEMU USB stick and USB disk (lsblk and window
+   titles read back); a disc, a busy disk's alert and drops on a disk's row
+   weren't tried. Next: login autostart on a fresh system
    (the VM), then the plan's "Still short of Finder" list (sidebar
-   Applications and drives, Open With and Compress in the menu, tag rename
-   and delete, Quick Look's black full screen).
+   Applications, a copy progress window, Open With and Compress in the
+   menu, tag rename and delete, Quick Look's black full screen).
 7. Settings (docs/settings/PLAN.md): steps 1–6 are built. Step 6 (Battery/
    Energy, Lock Screen, Login Password, Users & Groups, Privacy & Security)
    was driven for real in the VM on 2026-11-10 (Battery against
