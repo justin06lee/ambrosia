@@ -248,7 +248,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
    sections that act here: Zoom (or the lens, with KWin's own keys shown),
    Display (color filters, shake to locate, pointer size), Motion (reduce
    motion, a steady cursor), Audio (flash for an alert), Keyboard (Sticky
-   and Slow Keys), Pointer Control (Mouse Keys). Driven in the VM: every
+   and Slow Keys), Pointer Control (Mouse Keys, and with a trackpad that
+   taps, dragging by tapping with or without drag lock: read back from
+   KWin in the VM, the drag itself not performed). Driven in the VM: every
    switch read back from kwinrc, kaccessrc, kcminputrc and kdeglobals, the
    effects loaded and unloaded in the running KWin, and Sticky Keys
    latched Shift for real; the others' effect on screen wasn't watched.
