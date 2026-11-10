@@ -68,8 +68,8 @@ QtObject {
               keywords: ["pointer", "tracking speed", "scrolling", "click"] },
             { id: "trackpad", name: "Trackpad", glyph: "trackpad", tint: "gray", page: "trackpad", device: "trackpad",
               keywords: ["tap to click", "tracking speed", "scrolling", "gestures"] },
-            { id: "printers", name: "Printers & Scanners", glyph: "printer", tint: "gray",
-              keywords: ["print", "printer"] },
+            { id: "printers", name: "Printers & Scanners", glyph: "printer", tint: "gray", page: "printers",
+              keywords: ["print", "printer", "paper size", "default printer"] },
         ],
     ]
 

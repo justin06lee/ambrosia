@@ -17,6 +17,7 @@ find_package(KF6BluezQt REQUIRED)
 find_package(KF6Screen REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(PULSE REQUIRED IMPORTED_TARGET libpulse)
+pkg_check_modules(CUPS REQUIRED IMPORTED_TARGET cups)
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(ambrosia-settings
@@ -53,6 +54,7 @@ qt_add_qml_module(ambrosia-settings
         src/mouse.h src/mouse.cpp
         src/trackpad.h src/trackpad.cpp
         src/kwininput.h src/kwininput.cpp
+        src/printers.h src/printers.cpp
     QML_FILES
         qml/SettingsWindow.qml
         qml/MenuBar.qml
@@ -143,6 +145,7 @@ qt_add_qml_module(ambrosia-settings
         qml/KeyboardPage.qml
         qml/MousePage.qml
         qml/TrackpadPage.qml
+        qml/PrintersPage.qml
     RESOURCES
         art/appearance-dark.svg
         art/appearance-light.svg
@@ -155,7 +158,7 @@ target_include_directories(ambrosia-settings PRIVATE src)
 
 target_link_libraries(ambrosia-settings PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem
-    KF6::ConfigCore KF6::Service KF6::PulseAudioQt KF6::NetworkManagerQt KF6::BluezQt KF6::Screen PkgConfig::PULSE crypt
+    KF6::ConfigCore KF6::Service KF6::PulseAudioQt KF6::NetworkManagerQt KF6::BluezQt KF6::Screen PkgConfig::PULSE PkgConfig::CUPS crypt
 )
 
 include(GNUInstallDirs)

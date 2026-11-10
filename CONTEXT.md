@@ -180,9 +180,20 @@ package repo below), and they carry `shell/` and `session/` as they are.
    (`scratch/settings/fake-touchpad.py`, uinput): real taps and presses on
    it clicked or didn't as set. No real trackpad has been tried. Its
    gesture demo, tabs and More Gestures are left out (nothing here acts on
-   them). Next: Printers & Scanners, Accessibility, Spotlight; and
-   Mac-first trackpad defaults (KWin starts a new pad with corner clicks
-   and natural scrolling off).
+   them). Printers & Scanners is on CUPS (2026-11-11): its own queues and
+   the printers it finds on the network (which print without being added),
+   the default printer and paper size (yours, `~/.cups/lpoptions`, written
+   by us: lpoptions saves nothing while CUPS has no queue of its own), Add
+   Printer… by address (driverless only), a printer's sheet with a test
+   page and Remove Printer…. Driven in the VM against two `ippeveprinter`
+   printers: found, made default, paper size, added by address as the wheel
+   user with no password, test page received, removed, an unreachable
+   address's error. Still to check there: a removed printer's saved
+   defaults going with it. Left out: scanners, the queue window, Options &
+   Supplies…, sharing, USB printers that need a driver. No real printer
+   has been printed to. Next: Accessibility, Spotlight; and Mac-first
+   trackpad defaults (KWin starts a new pad with corner clicks and natural
+   scrolling off; Packaging lane).
 
 ## Needs Justin
 
