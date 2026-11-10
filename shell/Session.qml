@@ -22,11 +22,14 @@ Singleton {
     function open(url) {
         Quickshell.execDetached(["kioclient", "exec", url]);
     }
-    // Shows a file or folder in the folder it's in, selected, in the file
-    // manager (Files, which answers org.freedesktop.FileManager1).
+    // Shows a file or folder in the folder it's in, selected: in Files,
+    // asked by its own name (another file manager may hold FileManager1's),
+    // or in whichever file manager answers when Files isn't running.
     function reveal(path) {
-        Quickshell.execDetached(["busctl", "--user", "call", "org.freedesktop.FileManager1", "/org/freedesktop/FileManager1",
-            "org.freedesktop.FileManager1", "ShowItems", "ass", "1", "file://" + path.split("/").map(encodeURIComponent).join("/"), ""]);
+        Quickshell.execDetached(["sh", "-c",
+            'for name in org.ambrosia.files org.freedesktop.FileManager1; do busctl --user --auto-start="$2" call "$name"'
+            + ' /org/freedesktop/FileManager1 org.freedesktop.FileManager1 ShowItems ass 1 "$1" "" >/dev/null 2>&1 && break; set -- "$1" yes; done',
+            "sh", "file://" + path.split("/").map(encodeURIComponent).join("/"), "no"]);
     }
     // System Settings (ambrosia-settings), on one of its panes: general,
     // about, wifi, network, bluetooth, sound, battery, datetime…

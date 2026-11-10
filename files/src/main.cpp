@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDBusConnection>
+#include <QDBusConnectionInterface>
 #include <QDBusMessage>
 #include <QDir>
 #include <QFile>
@@ -181,10 +182,12 @@ int main(int argc, char *argv[])
     App files(&engine, options);
     if (!oneShot) {
         bus.registerObject(QStringLiteral("/org/ambrosia/files"), &files, QDBusConnection::ExportScriptableSlots);
-        // "Show in Folder" from other apps comes here (unless another file
-        // manager already holds the name).
+        // "Show in Folder" from other apps comes here. If another file
+        // manager holds the name (a Dolphin started for it earlier), Files
+        // waits in line and has it once that one quits.
         bus.registerObject(QStringLiteral("/org/freedesktop/FileManager1"), new FileManager1(&files), QDBusConnection::ExportScriptableSlots);
-        bus.registerService(QStringLiteral("org.freedesktop.FileManager1"));
+        bus.interface()->registerService(QStringLiteral("org.freedesktop.FileManager1"), QDBusConnectionInterface::QueueService,
+                                         QDBusConnectionInterface::DontAllowReplacement);
     }
     if (!quiet)
         files.Open(urls);
