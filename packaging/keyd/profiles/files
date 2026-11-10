@@ -1,0 +1,8 @@
+# keyd bindings for while Files has the keyboard: ⌘ with the arrows and the
+# brackets is Files' own (enclosing folder, open, back, forward), not text's.
+cmd.up = C-up
+cmd.down = C-down
+cmd.left = C-left
+cmd.right = C-right
+cmd.leftbrace = C-leftbrace
+cmd.rightbrace = C-rightbrace

@@ -1,0 +1,8 @@
+# ⇧⌘, in every app.
+# ⇧⌘3 the screen, ⇧⌘4 a part of it, ⇧⌘5 the screenshot tool (Spectacle).
+3 = S-sysrq
+4 = M-S-sysrq
+5 = sysrq
+# ⇧⌘[ ⇧⌘] the tab before and after.
+leftbrace = C-pageup
+rightbrace = C-pagedown

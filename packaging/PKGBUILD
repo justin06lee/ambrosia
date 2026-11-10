@@ -102,9 +102,10 @@ package_ambrosia-shell() {
   cp -r shell/. "$pkgdir/usr/share/ambrosia/shell/"
 
   install -Dm755 session/startambrosia session/ambrosia -t "$pkgdir/usr/bin/"
-  # The shell's grant to KWin's window list, and Super+Space for Search.
+  # The shell's grant to KWin's window list, Super+Space for Search and
+  # Super+Ctrl+F for full screen.
   install -Dm644 session/org.ambrosia.shell.desktop session/org.ambrosia.search.desktop \
-    -t "$pkgdir/usr/share/applications/"
+    session/org.ambrosia.fullscreen.desktop -t "$pkgdir/usr/share/applications/"
   install -Dm644 session/ambrosia.desktop -t "$pkgdir/usr/share/wayland-sessions/"
   local units="$pkgdir/usr/lib/systemd/user"
   install -Dm644 session/ambrosia-shell.service -t "$units/"
@@ -161,6 +162,8 @@ package_ambrosia-desktop() {
     networkmanager plasma-nm bluez bluez-utils bluedevil
     pipewire pipewire-pulse pipewire-alsa pipewire-jack wireplumber plasma-pa
     plasma-desktop breeze konsole dolphin systemsettings spectacle kinfocenter
+    # The Mac-first keyboard: Super is Command (packaging/keyd).
+    keyd
     # GTK 3 apps' menus in the menu bar (gtk-modules in settings.ini). Only
     # X11 windows can name their menu: KWin has no gtk_shell1, so Wayland
     # GTK windows keep theirs; GTK 4 has no modules.
@@ -168,7 +171,7 @@ package_ambrosia-desktop() {
     # The apps a new install starts with, and Discover to get more.
     firefox kate gwenview okular ark kcalc discover packagekit-qt6 flatpak
   )
-  backup=(etc/sddm.conf.d/10-ambrosia.conf)
+  backup=(etc/sddm.conf.d/10-ambrosia.conf etc/keyd/ambrosia.conf)
   cd "$_root"
 
   # In /etc: sddm's own /usr/lib/sddm/sddm.conf.d/default.conf would sort after
@@ -176,6 +179,22 @@ package_ambrosia-desktop() {
   install -Dm644 packaging/sddm.conf "$pkgdir/etc/sddm.conf.d/10-ambrosia.conf"
   # Updating the system asks for a password, as on a Mac (Arch lets wheel skip it).
   install -Dm644 packaging/polkit/10-ambrosia-packagekit.rules -t "$pkgdir/usr/share/polkit-1/rules.d/"
+
+  # The Mac-first keyboard (docs/keyboard.md): keyd's config, with what every
+  # Command layer shares beside keyd's own layouts; the bindings for each
+  # kind of app, and the service that applies them when the shell names one.
+  # It starts with keyd (keyd.service.wants), which the installer enables.
+  install -Dm644 packaging/keyd/ambrosia.conf -t "$pkgdir/etc/keyd/"
+  install -Dm644 packaging/keyd/command packaging/keyd/command-shift packaging/keyd/command-control \
+    packaging/keyd/command-option -t "$pkgdir/usr/share/keyd/ambrosia/"
+  install -Dm644 packaging/keyd/profiles/* -t "$pkgdir/usr/share/ambrosia/keys/"
+  install -Dm755 packaging/keyd/ambrosia-keys "$pkgdir/usr/lib/ambrosia/keys"
+  install -Dm644 packaging/keyd/ambrosia-keys.socket packaging/keyd/ambrosia-keys.service \
+    -t "$pkgdir/usr/lib/systemd/system/"
+  install -d "$pkgdir/usr/lib/systemd/system/keyd.service.wants"
+  ln -s ../ambrosia-keys.socket "$pkgdir/usr/lib/systemd/system/keyd.service.wants/ambrosia-keys.socket"
+  # A laptop's trackpad still rests while typing through keyd's keyboard.
+  install -Dm644 packaging/keyd/keyd.quirks "$pkgdir/usr/share/libinput/50-ambrosia-keyd.quirks"
 
   # The system's name: our os-release, which a pacman hook keeps in /etc over
   # Arch's (About This Computer and the console read it), and its logo.

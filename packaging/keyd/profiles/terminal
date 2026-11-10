@@ -1,0 +1,4 @@
+# keyd bindings for while a terminal has the keyboard: its own Command and
+# Option layers, from /etc/keyd/ambrosia.conf.
+meta = layer(cmd_terminal)
+leftalt = layer(opt_terminal)

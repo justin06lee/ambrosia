@@ -1,0 +1,25 @@
+#!/bin/sh
+# The system half of the Mac-first keyboard's per-app layers. The shell
+# writes one word down /run/ambrosia-keys when another kind of app takes the
+# keyboard ("terminal", "files", "default"); this puts keyd back as its config
+# has it and applies the bindings filed under that word, /etc/ambrosia/keys
+# before /usr/share/ambrosia/keys. Anyone may write the word; the bindings
+# are root's, and only this service's user is let near keyd's socket.
+exec </run/ambrosia-keys
+while IFS= read -r profile; do
+  set -- reset
+  case $profile in
+    '' | *[!a-z0-9_-]*) continue ;;
+  esac
+  for dir in /etc/ambrosia/keys /usr/share/ambrosia/keys; do
+    [ -r "$dir/$profile" ] || continue
+    while IFS= read -r binding; do
+      case $binding in
+        '' | '#'*) ;;
+        *) set -- "$@" "$binding" ;;
+      esac
+    done <"$dir/$profile"
+    break
+  done
+  keyd bind "$@" >/dev/null 2>&1
+done

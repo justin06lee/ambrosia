@@ -51,6 +51,8 @@ ShellRoot {
         }
     }
     Notifications {}
+    // Which keyboard layer the focused app gets (the Mac-first keyboard).
+    KeyLayer {}
 
     // `ambrosia search`, `ambrosia control-center`, `ambrosia
     // notification-center` (see session/ambrosia):

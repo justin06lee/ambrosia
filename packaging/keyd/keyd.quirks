@@ -1,0 +1,6 @@
+# Keys reach libinput from keyd's virtual keyboard, which it takes for an
+# external one: a laptop's trackpad would no longer rest while typing.
+[Ambrosia keyd virtual keyboard]
+MatchUdevType=keyboard
+MatchName=keyd virtual keyboard
+AttrKeyboardIntegration=internal

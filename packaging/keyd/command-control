@@ -1,0 +1,7 @@
+# ⌃⌘, in every app.
+# ⌃⌘F full screen (the session's shortcut, org.ambrosia.fullscreen.desktop).
+f = C-M-f
+# ⌃⌘Q locks the screen.
+q = M-l
+# ⌃⌘Space the emoji picker.
+space = M-dot

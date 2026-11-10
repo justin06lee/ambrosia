@@ -1,0 +1,10 @@
+# What ⌘ does in every app, whichever Command layer is on (included by
+# /etc/keyd/ambrosia.conf).
+# ⌘Space: Search, the shell's own shortcut on Super.
+space = M-space
+# ⌘Tab between apps, ⌘` between one app's windows.
+tab = swapm(app_switcher, A-tab)
+grave = swapm(window_switcher, A-grave)
+# ⌘M and ⌘H put the window away (KWin's Minimize).
+m = M-pagedown
+h = M-pagedown

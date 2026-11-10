@@ -1,0 +1,3 @@
+# ⌥⌘, in every app.
+# ⌥⌘Esc: force an app to quit (KWin's Kill Window; click the window).
+esc = C-M-esc

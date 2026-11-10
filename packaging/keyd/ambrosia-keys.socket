@@ -1,0 +1,17 @@
+# Rides along with keyd (keyd.service.wants): no keyd, no pipe, and the
+# shell's words go nowhere. Not ordered after keyd: a socket comes up before
+# sockets.target and keyd after it, and systemd would drop this to break the
+# loop; the service that reads the pipe is what waits for keyd.
+[Unit]
+Description=Ambrosia's keyboard layer for the focused app (the pipe the shell writes to)
+PartOf=keyd.service
+
+# Anyone writes; the service, in keyd's group, reads.
+[Socket]
+ListenFIFO=/run/ambrosia-keys
+SocketGroup=keyd
+SocketMode=0662
+RemoveOnStop=yes
+
+[Install]
+WantedBy=keyd.service

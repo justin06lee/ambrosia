@@ -1,0 +1,13 @@
+# Super+Ctrl+F makes the window full screen and back: ⌃⌘F on the Mac-first
+# keyboard, which keyd hands on as exactly this. KWin's own action has no
+# shortcut to start with; this one can be changed in System Settings,
+# Shortcuts, like Search's.
+[Desktop Entry]
+Type=Application
+Name=Full Screen
+Comment=Make the window fill the screen, or bring it back
+Icon=view-fullscreen
+Exec=busctl --user call org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component invokeShortcut s "Window Fullscreen"
+NoDisplay=true
+StartupNotify=false
+X-KDE-Shortcuts=Meta+Ctrl+F

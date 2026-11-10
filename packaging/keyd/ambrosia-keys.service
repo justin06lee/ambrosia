@@ -1,0 +1,21 @@
+[Unit]
+Description=Ambrosia's keyboard layer for the focused app
+PartOf=keyd.service
+After=keyd.service
+
+[Service]
+ExecStart=/usr/lib/ambrosia/keys
+# Its own user, with keyd's group for keyd's socket and nothing else.
+DynamicUser=yes
+SupplementaryGroups=keyd
+ProtectHome=yes
+PrivateNetwork=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_UNIX
+CapabilityBoundingSet=
+SystemCallFilter=@system-service
+# One line per window switch would fill the journal.
+LogLevelMax=notice
