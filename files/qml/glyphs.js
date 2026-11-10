@@ -52,6 +52,14 @@ var glyphs = {
     downloads: { stroke: circle(12, 12, 8.75) + "M12 7.2v9.2M8.4 12.9l3.6 3.6 3.6-3.6" },
     home: { stroke: "M3.5 11.2L12 4l8.5 7.2M6 9.2V19a1 1 0 0 0 1 1h3.4v-5.2h3.2V20H17a1 1 0 0 0 1-1V9.2" },
     drive: { stroke: rect(2.8, 8.5, 18.4, 9.5, 2.8) + "M6.5 14.6h4", fill: circle(17, 14.6, 1) },
+    // A disk that isn't the computer's own, and the button that ejects it.
+    external: {
+        stroke: "M6.1 6.3L3 13.4v3.4A2.2 2.2 0 0 0 5.2 19h13.6a2.2 2.2 0 0 0 2.2-2.2v-3.4l-3.1-7.1A2.2 2.2 0 0 0 15.9 5H8.1a2.2 2.2 0 0 0-2 1.3zM3.2 13.4h17.6",
+        fill: circle(17, 16.2, 1),
+    },
+    eject: {
+        fill: "M12 4.4a1.2 1.2 0 0 1 .95.47l6.4 8.1a1.2 1.2 0 0 1-.95 1.93H5.6a1.2 1.2 0 0 1-.95-1.93l6.4-8.1A1.2 1.2 0 0 1 12 4.4z" + rect(4.6, 16.4, 14.8, 2.8, 1.4),
+    },
     trash: { stroke: "M4.5 6.5h15M9.5 6.5V4.8a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1.7M6.3 6.5l.9 12.6a1.6 1.6 0 0 0 1.6 1.4h6.4a1.6 1.6 0 0 0 1.6-1.4l.9-12.6M10 10v7M14 10v7" },
     disclosure: { stroke: "M10 7.5l4.5 4.5-4.5 4.5", width: 1.8 },
     sortUp: { stroke: "M7.5 14l4.5-4.5 4.5 4.5", width: 1.6 },

@@ -19,9 +19,14 @@ Item {
             return [];
         if (url.toString().indexOf("file://") !== 0)
             return [{ name: finder.title, url: url }];
-        const parts = decodeURIComponent(url.toString().slice(7)).split("/").filter(p => p.length > 0);
-        const list = [{ name: Places.computer, url: "file:///", root: true }];
-        let path = "";
+        // On another disk the path starts at the disk, as Finder's does
+        // (read again whenever the sidebar's disks change).
+        const volume = Places.sections.length > 0 ? Places.volumeOf(url) : ({});
+        const from = volume.url !== undefined ? volume.url.toString().replace(/\/+$/, "") : "file://";
+        const parts = decodeURIComponent(url.toString().slice(from.length)).split("/").filter(p => p.length > 0);
+        const list = [volume.url !== undefined ? { name: volume.name, url: from, root: true, glyph: volume.glyph }
+                                               : { name: Places.computer, url: "file:///", root: true, glyph: "drive" }];
+        let path = decodeURIComponent(from.slice(7));
         for (const part of parts) {
             path += "/" + part;
             list.push({ name: part, url: "file://" + path });
@@ -60,7 +65,7 @@ Item {
                 Glyph {
                     visible: crumb.modelData.root === true
                     anchors.verticalCenter: parent.verticalCenter
-                    name: "drive"
+                    name: crumb.modelData.glyph ?? "drive"
                     size: 14
                     color: Theme.color.label.secondary
                 }

@@ -79,7 +79,7 @@ Window {
     function openSearch() {
         if (!searchOpen) {
             if (!scopeBarShown)
-                searchFolder = local ? url : Places.sections[placeAt.home[0]].items[placeAt.home[1]].url;
+                searchFolder = local ? url : Places.place("home");
             searchOpen = true;
         }
         toolbar.focusSearch();
@@ -212,7 +212,10 @@ Window {
     visible: true
     color: "transparent"
     flags: Qt.Window | Qt.FramelessWindowHint
-    title: folder.name
+    // Another disk's own folder goes by the disk's name (its folder's is
+    // the label, or a string of digits when it has none).
+    readonly property var volume: Places.sections.length > 0 && local ? Places.volumeOf(url) : ({})
+    title: volume.url !== undefined && volume.url.toString().replace(/\/+$/, "") === url.toString().replace(/\/+$/, "") ? volume.name : folder.name
 
     readonly property Appearance appearance: Appearance {}
 
@@ -313,14 +316,22 @@ Window {
             browse(parentOf(url), url);
     }
 
-    // Go menu places, by the sidebar's place for them.
-    readonly property var placeAt: ({
-        recents: [0, 0], desktop: [1, 0], documents: [1, 1], downloads: [1, 2],
-        home: [2, 0], computer: [2, 1], trash: [2, 2],
-    })
+    // The Go menu's places, by name.
     function goPlace(name) {
-        const at = placeAt[name];
-        go(Places.sections[at[0]].items[at[1]].url);
+        go(Places.place(name));
+    }
+    // A disk being ejected: a window showing it goes home first.
+    Connections {
+        target: Places
+        function onEjecting(volume) {
+            const root = volume.toString().replace(/\/+$/, "");
+            const at = (win.searching ? win.searchFolder : win.url).toString();
+            if (at === root || at.startsWith(root + "/")) {
+                if (win.searchOpen)
+                    win.closeSearch();
+                win.goPlace("home");
+            }
+        }
     }
 
     function clearSelection() {

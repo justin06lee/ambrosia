@@ -141,8 +141,9 @@ package_ambrosia-files() {
   # kio-extras: recentlyused:/ for Recents. ambrosia-theme: the Ambrosia QML
   # Theme module and the org.ambrosia.files icon. The QML and art are in the binary.
   # Files makes every thumbnail itself (ffmpeg, taglib, karchive, freetype2)
-  # and searches contents itself: no KIO thumbnailers, no ripgrep.
-  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kio kio-extras kservice kwindowsystem inter-font ffmpeg taglib karchive freetype2)
+  # and searches contents itself: no KIO thumbnailers, no ripgrep. solid
+  # (KIO's own dependency, with udisks2) lists the sidebar's other disks.
+  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kio kio-extras kservice solid kwindowsystem inter-font ffmpeg taglib karchive freetype2)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-files"
 }
 

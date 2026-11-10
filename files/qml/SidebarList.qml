@@ -4,7 +4,8 @@ import Files
 
 // What both sidebars list: Finder's sections (the top items, Favorites,
 // Locations, Tags). A click goes to a place; items dropped on a folder
-// move or copy into it, and on the Trash go to the Trash.
+// move or copy into it, and on the Trash go to the Trash. Another disk is
+// mounted by its first click, and has an eject button while it is.
 Flickable {
     id: list
 
@@ -12,6 +13,17 @@ Flickable {
     // How far the rows sit from the sidebar's left edge, beyond the
     // floating panel's (the flush sidebar starts at the window's edge).
     property real leading: 0
+    // The disk this window asked for, until it is mounted and shown.
+    property string opening: ""
+    Connections {
+        target: Places
+        function onOpened(volume, url) {
+            if (volume !== list.opening)
+                return;
+            list.opening = "";
+            list.finder.go(url);
+        }
+    }
 
     contentHeight: sections.implicitHeight + 16
     clip: true
@@ -48,8 +60,12 @@ Flickable {
                         readonly property bool current: place !== "" && list.finder.url.toString() === place
                         // A folder on this computer, or the Trash.
                         readonly property bool takesDrops: (place.startsWith("file:///") && place !== "file:///") || place.startsWith("trash:")
+                        // Another disk, mounted: its eject button is the row's right end.
+                        readonly property bool ejectable: modelData.ejectable === true
+                        readonly property bool busy: modelData.busy === true
                         width: section.width
                         height: Finder.sidebarRow
+                        opacity: busy && !ejectable ? 0.5 : 1 // being mounted
 
                         Rectangle {
                             anchors.fill: parent
@@ -81,14 +97,45 @@ Flickable {
                         }
                         Label {
                             x: list.leading + Finder.sidebarLabelX - Finder.sidebarInset + 8
-                            width: parent.width - x - 10
+                            width: parent.width - x - (row.ejectable ? eject.width + 12 : 10)
                             anchors.verticalCenter: parent.verticalCenter
                             text: row.modelData.name
                             elide: Text.ElideRight
                             color: drop.containsDrag ? Theme.accent.fg : Theme.color.label.primary
                         }
+                        Item {
+                            id: eject
+                            visible: row.ejectable
+                            x: parent.width - width - 12
+                            anchors.verticalCenter: parent.verticalCenter
+                            width: 20
+                            height: 20
+                            Rectangle {
+                                anchors.fill: parent
+                                radius: width / 2
+                                color: Theme.color.fill.secondary
+                                visible: overEject.hovered && !row.busy
+                            }
+                            Glyph {
+                                anchors.centerIn: parent
+                                name: "eject"
+                                size: 16
+                                color: drop.containsDrag ? Theme.accent.fg : Theme.color.label.secondary
+                                opacity: row.busy ? 0.4 : 1 // being ejected
+                            }
+                            HoverHandler { id: overEject }
+                        }
                         TapHandler {
-                            onTapped: if (row.place !== "") list.finder.go(row.modelData.url)
+                            onTapped: (point) => {
+                                if (row.ejectable && point.position.x >= eject.x - 2) {
+                                    Places.eject(row.modelData.volume);
+                                } else if (row.place !== "") {
+                                    list.finder.go(row.modelData.url);
+                                } else if (row.modelData.volume !== undefined) {
+                                    list.opening = row.modelData.volume;
+                                    Places.open(row.modelData.volume);
+                                }
+                            }
                         }
                         // A tag's menu sets its color.
                         TapHandler {

@@ -10,6 +10,7 @@ endif()
 find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControls2 DBus Concurrent Svg)
 find_package(KF6KIO REQUIRED)
 find_package(KF6Service REQUIRED)
+find_package(KF6Solid REQUIRED)
 find_package(KF6WindowSystem REQUIRED)
 find_package(KF6Archive REQUIRED)
 find_package(taglib 2 REQUIRED CONFIG)
@@ -88,7 +89,7 @@ target_include_directories(ambrosia-files PRIVATE src)
 
 target_link_libraries(ambrosia-files PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Concurrent Qt6::Svg
-    KF6::KIOGui KF6::KIOWidgets KF6::Service KF6::WindowSystem KF6::Archive TagLib::tag Freetype::Freetype
+    KF6::KIOGui KF6::KIOWidgets KF6::Service KF6::Solid KF6::WindowSystem KF6::Archive TagLib::tag Freetype::Freetype
 )
 
 include(GNUInstallDirs)
