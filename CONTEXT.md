@@ -200,9 +200,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
    defaults (KWin starts a new pad with corner clicks and natural scrolling
    off) are with the Packaging lane. Step 6's Mac photos were taken 2026-11-11
    (`out/settings/mac/sheets/bat-*`, `lock-*`, `pw-change`, `priv-*`) and
-   our wording and menus follow them now; a user's ⓘ, Add User… and the
-   lock message's Set… open behind the Mac's password prompt, so those
-   three stay our own design, and Battery Health's ⓘ opened nothing.
+   our wording and menus follow them now, and a user's ⓘ sheet is laid out
+   as the Mac's (`users-info-nosheet.png`: picture on top, User name and
+   Password, the admin switch, Cancel and OK; not yet seen in the VM).
+   Add User… and the lock message's Set… weren't reached (an earlier sheet
+   was still up), and Battery Health's ⓘ opened nothing: those stay our
+   own design.
 
 ## Needs Justin
 
