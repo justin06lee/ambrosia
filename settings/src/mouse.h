@@ -1,12 +1,12 @@
 #pragma once
 
+#include "kwininput.h"
+
 #include <QObject>
-#include <QStringList>
 #include <QtQml/qqmlregistration.h>
 
-// Mouse: every mouse KWin has (its InputDevice objects, which apply a change
-// at once and keep it in kcminputrc), all set alike as the Mac sets its
-// mice; and the double-click speed every app reads (kdeglobals).
+// Mouse: every mouse KWin has, all set alike as the Mac sets its mice
+// (KWinInput), and the double-click speed every app reads (kdeglobals).
 class Mouse : public QObject
 {
     Q_OBJECT
@@ -28,7 +28,7 @@ class Mouse : public QObject
 public:
     explicit Mouse(QObject *parent = nullptr);
 
-    bool available() const { return !m_devices.isEmpty(); }
+    bool available() const { return !m_mice.isEmpty(); }
     qreal speed() const;
     void setSpeed(qreal value);
     bool naturalScroll() const;
@@ -49,9 +49,8 @@ Q_SIGNALS:
     void changed();
 
 private:
-    QVariant first(const char *name) const;
     void setAll(const char *name, const QVariant &value);
 
-    // KWin's InputDevice paths of the mice (pointers that aren't touchpads).
-    QStringList m_devices;
+    // The mice: KWin's pointers that aren't touchpads, tablets or touch screens.
+    KWinInput m_mice{KWinInput::Mice};
 };

@@ -174,8 +174,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
    read back from KWin (`wayland-info` for the repeat, the InputDevice
    properties for the mouse), and the run found double-click speed never
    reaching kdeglobals (fixed). Not seen there: the keyboard backlight row
-   (no such keyboard on the VM or tenet). Next: Trackpad, Printers &
-   Scanners, Accessibility, Spotlight.
+   (no such keyboard on the VM or tenet). Trackpad (tracking speed,
+   secondary click, tap to click, natural scrolling; KWin's touchpad
+   settings) was driven the same day against a virtual clickpad
+   (`scratch/settings/fake-touchpad.py`, uinput): real taps and presses on
+   it clicked or didn't as set. No real trackpad has been tried. Its
+   gesture demo, tabs and More Gestures are left out (nothing here acts on
+   them). Next: Printers & Scanners, Accessibility, Spotlight; and
+   Mac-first trackpad defaults (KWin starts a new pad with corner clicks
+   and natural scrolling off).
 
 ## Needs Justin
 

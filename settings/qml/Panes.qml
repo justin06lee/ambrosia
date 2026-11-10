@@ -66,7 +66,7 @@ QtObject {
               keywords: ["key repeat", "input sources", "layout", "shortcuts"] },
             { id: "mouse", name: "Mouse", glyph: "mouse", tint: "gray", page: "mouse", device: "mouse",
               keywords: ["pointer", "tracking speed", "scrolling", "click"] },
-            { id: "trackpad", name: "Trackpad", glyph: "trackpad", tint: "gray", module: "kcm_touchpad", device: "trackpad",
+            { id: "trackpad", name: "Trackpad", glyph: "trackpad", tint: "gray", page: "trackpad", device: "trackpad",
               keywords: ["tap to click", "tracking speed", "scrolling", "gestures"] },
             { id: "printers", name: "Printers & Scanners", glyph: "printer", tint: "gray",
               keywords: ["print", "printer"] },

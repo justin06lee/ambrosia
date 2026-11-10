@@ -166,7 +166,7 @@ Window {
             height: parent.height - y
             focus: true
             enabled: !win.underSheet
-            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, appearance: appearancePage, wallpaper: wallpaperPage, dock: dockPage, menubar: menuBarPage, notifications: notificationsPage, focus: focusPage, softwareupdate: softwareUpdatePage, storage: storagePage, datetime: dateTimePage, language: languagePage, loginitems: loginItemsPage, sharing: sharingPage, network: networkPage, service: servicePage, vpn: vpnPage, displays: displaysPage, sound: soundPage, battery: batteryPage, lockscreen: lockScreenPage, password: passwordPage, users: usersPage, privacy: privacyPage, privacyapps: privacyAppsPage, keyboard: keyboardPage, mouse: mousePage, controls: controlsPage })[win.page?.page ?? ""] ?? null
+            sourceComponent: ({ general: generalPage, about: aboutPage, wifi: wifiPage, bluetooth: bluetoothPage, appearance: appearancePage, wallpaper: wallpaperPage, dock: dockPage, menubar: menuBarPage, notifications: notificationsPage, focus: focusPage, softwareupdate: softwareUpdatePage, storage: storagePage, datetime: dateTimePage, language: languagePage, loginitems: loginItemsPage, sharing: sharingPage, network: networkPage, service: servicePage, vpn: vpnPage, displays: displaysPage, sound: soundPage, battery: batteryPage, lockscreen: lockScreenPage, password: passwordPage, users: usersPage, privacy: privacyPage, privacyapps: privacyAppsPage, keyboard: keyboardPage, mouse: mousePage, trackpad: trackpadPage, controls: controlsPage })[win.page?.page ?? ""] ?? null
             onLoaded: Qt.callLater(App.shown, win)
         }
         Component { id: generalPage; GeneralPage { settings: win } }
@@ -198,6 +198,7 @@ Window {
         Component { id: privacyAppsPage; PrivacyAppsPage { settings: win } }
         Component { id: keyboardPage; KeyboardPage { settings: win } }
         Component { id: mousePage; MousePage { settings: win } }
+        Component { id: trackpadPage; TrackpadPage { settings: win } }
         Component { id: controlsPage; ControlsPage { settings: win } }
 
         Toolbar {

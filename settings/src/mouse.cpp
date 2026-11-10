@@ -5,18 +5,13 @@
 #include <KConfigGroup>
 #include <KSharedConfig>
 #include <QDBusConnection>
-#include <QDBusInterface>
 #include <QDBusMessage>
-#include <QDBusVariant>
 #include <cmath>
 
 using namespace Qt::StringLiterals;
 
 namespace
 {
-const auto kwin = u"org.kde.KWin"_s;
-const auto device = u"org.kde.KWin.InputDevice"_s;
-
 KConfigGroup kdeGroup()
 {
     static KSharedConfigPtr config = KSharedConfig::openConfig(u"kdeglobals"_s, KConfig::NoGlobals);
@@ -33,44 +28,19 @@ Mouse::Mouse(QObject *parent)
 
 void Mouse::read()
 {
-    m_devices.clear();
-    QDBusInterface manager(kwin, u"/org/kde/KWin/InputDevice"_s, u"org.kde.KWin.InputDeviceManager"_s);
-    const QStringList names = manager.property("devicesSysNames").toStringList();
-    for (const QString &name : names) {
-        const QString path = u"/org/kde/KWin/InputDevice/"_s + name;
-        QDBusInterface each(kwin, path, device);
-        if (each.property("pointer").toBool() && !each.property("touchpad").toBool() && !each.property("tabletTool").toBool()
-            && !each.property("touch").toBool())
-            m_devices.append(path);
-    }
+    m_mice.read();
     Q_EMIT changed();
-}
-
-QVariant Mouse::first(const char *name) const
-{
-    if (m_devices.isEmpty())
-        return {};
-    QDBusInterface each(kwin, m_devices.first(), device);
-    return each.property(name);
 }
 
 void Mouse::setAll(const char *name, const QVariant &value)
 {
-    if (dryRun(qPrintable(u"set every mouse's "_s + QLatin1String(name) + u" (KWin)"_s))) {
-        Q_EMIT changed();
-        return;
-    }
-    for (const QString &path : std::as_const(m_devices)) {
-        QDBusMessage set = QDBusMessage::createMethodCall(kwin, path, u"org.freedesktop.DBus.Properties"_s, u"Set"_s);
-        set.setArguments({device, QLatin1String(name), QVariant::fromValue(QDBusVariant(value))});
-        QDBusConnection::sessionBus().call(set, QDBus::Block, 2000);
-    }
+    m_mice.setAll(name, value);
     Q_EMIT changed();
 }
 
 qreal Mouse::speed() const
 {
-    return (first("pointerAcceleration").toDouble() + 1) / 2;
+    return (m_mice.first("pointerAcceleration", "supportsPointerAcceleration").toDouble() + 1) / 2;
 }
 void Mouse::setSpeed(qreal value)
 {
@@ -78,7 +48,7 @@ void Mouse::setSpeed(qreal value)
 }
 bool Mouse::naturalScroll() const
 {
-    return first("naturalScroll").toBool();
+    return m_mice.first("naturalScroll").toBool();
 }
 void Mouse::setNaturalScroll(bool on)
 {
@@ -86,7 +56,7 @@ void Mouse::setNaturalScroll(bool on)
 }
 bool Mouse::leftHanded() const
 {
-    return first("leftHanded").toBool();
+    return m_mice.first("leftHanded").toBool();
 }
 void Mouse::setLeftHanded(bool on)
 {
@@ -94,7 +64,7 @@ void Mouse::setLeftHanded(bool on)
 }
 qreal Mouse::scrollSpeed() const
 {
-    const double factor = first("scrollFactor").toDouble();
+    const double factor = m_mice.first("scrollFactor").toDouble();
     return factor > 0 ? std::clamp((std::log2(factor) + 2) / 4, 0.0, 1.0) : 0.5;
 }
 void Mouse::setScrollSpeed(qreal value)
@@ -103,7 +73,7 @@ void Mouse::setScrollSpeed(qreal value)
 }
 bool Mouse::acceleration() const
 {
-    return !first("pointerAccelerationProfileFlat").toBool();
+    return !m_mice.first("pointerAccelerationProfileFlat", "supportsPointerAcceleration").toBool();
 }
 void Mouse::setAcceleration(bool on)
 {
