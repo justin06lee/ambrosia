@@ -11,9 +11,9 @@ Page {
     readonly property string kind: settings.anchor
     readonly property var apps: Privacy.apps[kind] ?? []
     readonly property string lead: ({
-        camera: qsTr("Allow the apps below to access your camera."),
-        microphone: qsTr("Allow the apps below to access your microphone."),
-        screen: qsTr("Allow the apps below to record the content of your screen and audio, even while using other apps."),
+        camera: qsTr("Allow the applications below to access your camera."),
+        microphone: qsTr("Allow the applications below to access your microphone."),
+        screen: qsTr("Allow the applications below to record the content of your screen and audio, even while using other apps."),
     })[kind] ?? ""
 
     Component.onCompleted: Privacy.read()
