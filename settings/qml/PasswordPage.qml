@@ -77,7 +77,7 @@ Page {
             width: parent.width
             FormRow {
                 visible: Accounts.passwordSet
-                label: qsTr("Old password")
+                label: qsTr("Old Password")
                 NameField {
                     id: oldField
                     width: 240
@@ -89,7 +89,7 @@ Page {
                 }
             }
             FormRow {
-                label: qsTr("New password")
+                label: qsTr("New Password")
                 NameField {
                     id: newField
                     width: 240
