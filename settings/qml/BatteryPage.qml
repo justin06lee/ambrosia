@@ -167,8 +167,8 @@ Page {
         Box {
             width: parent.width
             FormRow {
-                label: qsTr("Limit charging to %1%").arg(Power.chargeLimitPercent)
-                description: qsTr("Stopping short of full helps the battery last longer when the computer is mostly plugged in.")
+                label: qsTr("Charge Limit")
+                description: qsTr("Your computer will charge to a %1% limit. Stopping short of full helps the battery last longer.").arg(Power.chargeLimitPercent)
                 Switch {
                     checked: Power.chargeLimit
                     onToggled: Power.chargeLimit = !checked
