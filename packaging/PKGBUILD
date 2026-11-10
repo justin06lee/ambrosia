@@ -177,6 +177,9 @@ package_ambrosia-desktop() {
   # In /etc: sddm's own /usr/lib/sddm/sddm.conf.d/default.conf would sort after
   # ours there and reset it. System Settings' kde_settings.conf still wins.
   install -Dm644 packaging/sddm.conf "$pkgdir/etc/sddm.conf.d/10-ambrosia.conf"
+  # The login screen (it draws with ambrosia-theme's QML tokens and wallpapers).
+  install -Dm644 packaging/sddm-theme/Main.qml packaging/sddm-theme/metadata.desktop packaging/sddm-theme/theme.conf \
+    -t "$pkgdir/usr/share/sddm/themes/ambrosia/"
   # Updating the system asks for a password, as on a Mac (Arch lets wheel skip it).
   install -Dm644 packaging/polkit/10-ambrosia-packagekit.rules -t "$pkgdir/usr/share/polkit-1/rules.d/"
 

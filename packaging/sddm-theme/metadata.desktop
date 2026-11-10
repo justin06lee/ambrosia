@@ -1,0 +1,12 @@
+[SddmGreeterTheme]
+Name=Ambrosia
+Description=Ambrosia's login screen: the desktop picture, the time, your picture and a password field
+Author=Ambrosia
+Type=sddm-theme
+Version=1.0
+Website=https://github.com/justin06lee/ambrosia
+MainScript=Main.qml
+ConfigFile=theme.conf
+Theme-Id=ambrosia
+Theme-API=2.0
+QtVersion=6
