@@ -21,15 +21,24 @@ the shell and font rendering all read the same numbers.
 ## Status
 
 The design system, the theme generator, a browser preview of the desktop and a
-design review site exist. The distro pipeline has its first cut: Arch packages,
-an Ambrosia session on KWin, and an installer image that boots a live desktop
-and installs it. The shell works on real hardware: the menu bar with the
-focused app's own menus, Search (Super+Space), the Dock, the control center
-and notification banners. Its look still trails the design preview, and
-compositor effects don't exist yet. The first first-party app, Files (a Finder
-look-alike), browses folders in list and icon views; file operations, Quick
-Look and search come next. Settings (System Settings' window and sidebar, with
-General and About) opens KDE's own modules for the panes it hasn't built yet.
+design review site exist. The distro pipeline works end to end: Arch packages,
+an Ambrosia session on KWin, our login screen, and an installer image that
+boots a live desktop and installs it on UEFI and BIOS computers. The shell
+works on real hardware: the menu bar with the focused app's own menus, Search
+(Super+Space: apps, settings, files and folders, sums), the Dock (drag to
+reorder, magnification, a live Trash), the control center, notification
+banners and Notification Center, and a Mac-first keyboard (Command where a
+Mac has it). Its look still trails the design preview in places, and
+compositor effects don't exist yet.
+
+Two first-party apps are in. Files (a Finder look-alike) has icon, list,
+column and gallery views, Quick Look, Get Info, tags, thumbnails, search by
+name and contents, undoable file operations and the Trash; drives and
+Applications in its sidebar and a copy progress window are still to come.
+Settings (a System Settings look-alike) has every pane of its plan built on
+the system's own services, from Wi-Fi and Bluetooth to Printers &
+Scanners, Accessibility and Spotlight (`docs/settings/PLAN.md` says what each
+leaves out).
 
 ## Quick start
 

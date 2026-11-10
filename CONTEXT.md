@@ -159,9 +159,13 @@ package repo below), and they carry `shell/` and `session/` as they are.
    the live image enable keyd. **It is on only where `keyd.service` is
    enabled**: an existing system (tenet) changes nothing by upgrading, and
    gets it with `systemctl enable --now keyd` (Linux-first is `disable`).
-   Driven in the VM from a fresh install. Open: ⌘C in Konsole with nothing
-   selected interrupts (Konsole hands the unused Ctrl+Shift+C to the shell);
-   ⌘Q only where the app has Ctrl+Q; the question at install and the switch
+   Driven in the VM from a fresh install. Konsole no longer hands ⌘ chords
+   it has no use for to the shell (⌘C with nothing selected interrupted the
+   job): the session's Konsole profile uses a key table of ours
+   (`session/konsole/`, 2026-11-11; in the VM the chords did nothing, copy
+   with a selection and paste worked, a plain Ctrl+C still interrupted; a
+   profile of the user's own must choose the "Ambrosia" key bindings).
+   Open: ⌘Q only where the app has Ctrl+Q; the question at install and the switch
    in Settings › Keyboard. **Trackpads too**: one nobody has set up comes up
    with natural scrolling and two-finger secondary click
    (`session/xdg/kcminputrc`, KWin's `[Libinput][Defaults][Touchpad]`; a
@@ -266,11 +270,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
    (driven in the VM by busctl and from Search; a browser's own Show in
    Folder wasn't tried). Where a Dolphin already holds that name (tenet's
    session has one), Files waits in line for it and Search asks Files by
-   its own name: on master after r369, checked on a private bus on tenet
-   but not yet through the shell in the VM, and not installed on tenet.
-   Left out: what Search doesn't have (history,
-   clipboard, other apps' content, menu items), Files' sheet of file
-   kinds, Search Privacy…, and searching inside files. Mac-first trackpad
+   its own name (on master after r369, driven in the VM through the shell
+   with another program holding the name; not installed on tenet yet).
+   Files' ⓘ opens the Mac's sheet of file kinds (Developer, Documents,
+   Images, Movies, Music, Others, PDFs, Presentations, Spreadsheets): the
+   shell sorts a file by its name's ending and leaves out the kinds turned
+   off (`files:images` in `searchOff`; driven in the VM). Left out: what
+   Search doesn't have (history, clipboard, other apps' content, menu
+   items), Hidden File Types, Search Privacy…, and searching inside files.
+   Mac-first trackpad
    defaults (KWin starts a new pad with corner clicks and natural scrolling
    off) are with the Packaging lane. Step 6's Mac photos were taken 2026-11-11
    (`out/settings/mac/sheets/bat-*`, `lock-*`, `pw-change`, `priv-*`) and
