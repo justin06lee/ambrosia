@@ -5,8 +5,9 @@ import QtQuick
 import Ambrosia
 
 // Search (Super+Space, or the magnifier in the menu bar): type to find an
-// app, arrows to choose, Return to open it, Escape or a click outside to
-// close. It covers the screen while open so the click outside lands here.
+// app or one of System Settings' panes, or a sum to work out; arrows to
+// choose, Return to open it (a sum's answer is copied), Escape or a click
+// outside to close. It covers the screen while open so the click outside lands here.
 PanelWindow {
     id: search
 
@@ -19,30 +20,117 @@ PanelWindow {
     readonly property int rowHeight: Theme.size.row.large
     readonly property int maxRows: 8
 
-    // Apps whose name, generic name or keywords match, best first: names
-    // that start with the query, then words that do, then names containing it.
+    // System Settings' panes, found by name like apps (the names Settings'
+    // sidebar shows; a pane this computer lacks just opens Settings).
+    readonly property var panes: [
+        ["wifi", "Wi‑Fi", "wireless network internet"], ["bluetooth", "Bluetooth", "devices pair"],
+        ["network", "Network", "ethernet vpn"], ["battery", "Battery", "energy power low power mode"],
+        ["general", "General", ""], ["about", "About", "name version serial"],
+        ["softwareupdate", "Software Update", "updates upgrade"], ["storage", "Storage", "disk space"],
+        ["datetime", "Date & Time", "clock time zone"], ["language", "Language & Region", "locale formats"],
+        ["loginitems", "Login Items", "startup autostart"], ["sharing", "Sharing", "remote login ssh"],
+        ["accessibility", "Accessibility", "zoom color filters sticky keys"], ["appearance", "Appearance", "dark light accent"],
+        ["dock", "Desktop & Dock", "magnification hot corners"], ["displays", "Displays", "resolution scale night shift brightness"],
+        ["menubar", "Menu Bar", "clock control center"], ["wallpaper", "Wallpaper", "background picture"],
+        ["notifications", "Notifications", "banners"], ["sound", "Sound", "volume output input alert"],
+        ["focus", "Focus", "do not disturb"], ["lockscreen", "Lock Screen", "screen saver sleep"],
+        ["privacy", "Privacy & Security", "camera microphone"], ["password", "Login Password", "change password"],
+        ["users", "Users & Groups", "accounts"], ["keyboard", "Keyboard", "key repeat shortcuts input sources"],
+        ["mouse", "Mouse", "tracking speed scrolling"], ["trackpad", "Trackpad", "tap to click"],
+        ["printers", "Printers & Scanners", "print paper"],
+    ]
+
+    // How well a query matches: 3 the name starts with it, 2 a word does, 1
+    // it's somewhere in the name or keywords, 0 not at all.
+    function score(q, name, words) {
+        if (name.startsWith(q)) return 3;
+        if (words.some(w => w.split(/[\s&-]+/).some(part => part.startsWith(q)))) return 2;
+        return words.some(w => w.includes(q)) ? 1 : 0;
+    }
+
+    // Arithmetic typed into the field, worked out: numbers with + - * / % ^
+    // and brackets (× ÷ x too). Undefined unless it's a whole sum.
+    function calculate(text) {
+        const src = text.replace(/[×x]/g, "*").replace(/÷/g, "/").replace(/[\s,]/g, "");
+        if (!/^[-+(.\d]/.test(src) || !/\d[-+*/%^]+[-+(.\d]/.test(src) || /[^-+*/%^().\d]/.test(src)) return undefined;
+        let at = 0;
+        const peek = () => src[at];
+        function primary() {
+            if (peek() === "(") {
+                at++;
+                const value = sum();
+                if (peek() !== ")") throw 0;
+                at++;
+                return value;
+            }
+            const match = /^(\d+\.?\d*|\.\d+)/.exec(src.slice(at));
+            if (!match) throw 0;
+            at += match[0].length;
+            return parseFloat(match[0]);
+        }
+        function unary() {
+            if (peek() === "-") { at++; return -unary(); }
+            if (peek() === "+") { at++; return unary(); }
+            const base = primary();
+            if (peek() === "^") { at++; return Math.pow(base, unary()); }
+            return base;
+        }
+        function product() {
+            let value = unary();
+            while (peek() === "*" || peek() === "/" || peek() === "%") {
+                const op = src[at++], right = unary();
+                value = op === "*" ? value * right : op === "/" ? value / right : value % right;
+            }
+            return value;
+        }
+        function sum() {
+            let value = product();
+            while (peek() === "+" || peek() === "-") {
+                const op = src[at++], right = product();
+                value = op === "+" ? value + right : value - right;
+            }
+            return value;
+        }
+        try {
+            const value = sum();
+            if (at !== src.length || !isFinite(value)) return undefined;
+            return String(parseFloat(value.toPrecision(12)));
+        } catch (e) {
+            return undefined;
+        }
+    }
+
+    // What the query finds, best first: a sum's answer, then apps and
+    // Settings' panes by how well their names match (apps before panes).
+    // Each is {name, detail, icon, open()}.
     readonly property var results: {
         const q = query.trim().toLowerCase();
         if (q === "") return [];
-        const scored = [];
+        const found = [];
+        const answer = calculate(q);
+        if (answer !== undefined)
+            found.push({ name: answer, detail: query.trim() + " =", icon: "accessories-calculator", rank: 9, open: () => { Quickshell.clipboardText = answer; } });
         for (const entry of DesktopEntries.applications.values) {
             if (entry.noDisplay) continue;
             const name = entry.name.toLowerCase();
-            const words = [name, entry.genericName.toLowerCase()].concat(entry.keywords.map(k => k.toLowerCase()));
-            let score = 0;
-            if (name.startsWith(q)) score = 3;
-            else if (words.some(w => w.split(/[\s-]+/).some(part => part.startsWith(q)))) score = 2;
-            else if (words.some(w => w.includes(q))) score = 1;
-            if (score > 0) scored.push({ entry, score });
+            const rank = score(q, name, [name, entry.genericName.toLowerCase()].concat(entry.keywords.map(k => k.toLowerCase())));
+            if (rank > 0)
+                found.push({ name: entry.name, detail: entry.genericName || entry.comment, icon: entry.icon, rank: rank + 0.5, open: () => Session.launch(entry.id) });
         }
-        scored.sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name));
-        return scored.slice(0, maxRows).map(s => s.entry);
+        for (const [id, title, keywords] of panes) {
+            const name = title.toLowerCase().replace("‑", "-");
+            const rank = score(q, name, [name].concat(keywords.split(" ")));
+            if (rank > 0)
+                found.push({ name: title, detail: "System Settings", icon: "org.ambrosia.settings", rank, open: () => Session.settings(id) });
+        }
+        found.sort((a, b) => b.rank - a.rank || a.name.localeCompare(b.name));
+        return found.slice(0, maxRows);
     }
 
-    function launch(entry) {
-        if (!entry) return;
+    function launch(result) {
+        if (!result) return;
         Popups.searchOpen = false;
-        Session.launch(entry.id);
+        result.open();
     }
 
     visible: open
@@ -178,7 +266,7 @@ PanelWindow {
                         x: Theme.space.s2
                         anchors.verticalCenter: parent.verticalCenter
                         implicitSize: 32
-                        source: Quickshell.iconPath(result.modelData.icon, "application-x-executable")
+                        source: Quickshell.iconPath(result.modelData.icon, result.modelData.icon === "accessories-calculator" ? "accessories-calculator-symbolic" : "application-x-executable")
                     }
 
                     Column {
@@ -194,7 +282,7 @@ PanelWindow {
                         Label {
                             width: parent.width
                             visible: text !== ""
-                            text: result.modelData.genericName || result.modelData.comment
+                            text: result.modelData.detail
                             style: Theme.text.caption
                             color: result.highlighted ? Theme.accent.fg : Theme.color.label.secondary
                             opacity: result.highlighted ? 0.8 : 1
