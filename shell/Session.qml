@@ -22,6 +22,12 @@ Singleton {
     function open(url) {
         Quickshell.execDetached(["kioclient", "exec", url]);
     }
+    // Shows a file or folder in the folder it's in, selected, in the file
+    // manager (Files, which answers org.freedesktop.FileManager1).
+    function reveal(path) {
+        Quickshell.execDetached(["busctl", "--user", "call", "org.freedesktop.FileManager1", "/org/freedesktop/FileManager1",
+            "org.freedesktop.FileManager1", "ShowItems", "ass", "1", "file://" + path.split("/").map(encodeURIComponent).join("/"), ""]);
+    }
     // System Settings (ambrosia-settings), on one of its panes: general,
     // about, wifi, network, bluetooth, sound, battery, datetime…
     function settings(pane) {

@@ -7,8 +7,8 @@ import Ambrosia
 
 // Search (Super+Space, or the magnifier in the menu bar): type to find an
 // app, one of System Settings' panes, a file or a folder, or a sum to work
-// out; arrows to choose, Return to open it (a sum's answer is copied),
-// Escape or a click outside to close. Settings' Spotlight pane says which
+// out; arrows to choose, Return to open it (a sum's answer is copied;
+// ⌘Return shows a file in its folder), Escape or a click outside to close. Settings' Spotlight pane says which
 // kinds show. It covers the screen while open so the click outside lands here.
 PanelWindow {
     id: search
@@ -191,7 +191,7 @@ PanelWindow {
         for (const file of files) {
             const name = file.path.slice(file.path.lastIndexOf("/") + 1), folded = fold(name);
             if (shown === 6 || off.includes(file.dir ? "folders" : "files") || !words.every(word => folded.includes(word))) continue;
-            found.push({ name, detail: where(file.path.slice(0, file.path.lastIndexOf("/"))), picture: file.thumb,
+            found.push({ name, detail: where(file.path.slice(0, file.path.lastIndexOf("/"))), picture: file.thumb, path: file.path,
                 icon: file.dir ? "ambrosia-folder" : "ambrosia-document", fallback: file.dir ? "folder" : "text-x-generic",
                 rank: Math.max(1, score(wanted, folded, [folded])) - 0.25 - shown++ / 1000, open: () => Session.open(file.path) });
         }
@@ -199,10 +199,12 @@ PanelWindow {
         return found.slice(0, maxRows);
     }
 
-    function launch(result) {
+    // reveal: show a file in its folder instead of opening it (⌘Return).
+    function launch(result, reveal) {
         if (!result) return;
         Popups.searchOpen = false;
-        result.open();
+        if (reveal && result.path) Session.reveal(result.path);
+        else result.open();
     }
 
     visible: open
@@ -286,7 +288,7 @@ PanelWindow {
                         break;
                     case Qt.Key_Return:
                     case Qt.Key_Enter:
-                        search.launch(search.results[search.current]);
+                        search.launch(search.results[search.current], event.modifiers & (Qt.ControlModifier | Qt.MetaModifier));
                         break;
                     default:
                         return;
