@@ -131,11 +131,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
    not the center. The moon shows in the bar while Do Not Disturb is on.
    **Dock**: drag an app to reorder, a running app's tile in to keep it, a
    pin out (Remove) to drop it; magnification follows `dockMagnification`
-   (it did already). Checked headless on tenet (a copy of the shell showing
+   (it did already). Files in the first place stays there, as Finder does:
+   it isn't dragged or removed and nothing drops ahead of it. Checked
+   headless on tenet (a copy of the shell showing
    the center in a layer window, `scratch/shell/mkview.sh`: menus and the
    center never map on a headless KWin) and in the VM (the clock opens it;
-   stacks, the Calendar widget under it, light only). The Dock's drag is
-   still to try in the VM, and the center in dark. GTK menus: ambrosia-desktop depends on appmenu-gtk-module
+   stacks, the Calendar widget under it, light and dark; the Dock's drag
+   reorders and saves, magnification swells the icon under the pointer,
+   2026-11-10). Not tried in the VM: pulling a pin out, dragging a running
+   app in. GTK menus: ambrosia-desktop depends on appmenu-gtk-module
    (tenet's settings.ini already loads it), which reaches the bar for GTK 3
    windows on X11 only: KWin offers no `gtk_shell1` (checked with
    wayland-info), so a Wayland GTK window can't name its menu, and GTK 4 has

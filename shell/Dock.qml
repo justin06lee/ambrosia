@@ -196,12 +196,17 @@ PanelWindow {
                     readonly property string iconName: entry?.icon ?? ""
                     readonly property string appId: entry?.id ?? (model.AppId ?? "").replace(/\.desktop$/, "")
 
+                    // Files in the first place stays there, as Finder does: it
+                    // isn't dragged or removed, and nothing is put before it.
+                    readonly property bool anchored: index === 0 && appId === "org.ambrosia.files"
+
                     slot: index
-                    draggable: true
-                    removable: Apps.isPinned(appId)
+                    draggable: !anchored
+                    removable: !anchored && Apps.isPinned(appId)
                     onDragMoved: (along, across) => {
+                        const first = appRepeater.itemAt(0)?.anchored ? 1 : 0;
                         dock.dragFrom = index;
-                        dock.dragTo = Math.max(0, Math.min(dock.appCount - 1, Math.round(index + along / dock.step)));
+                        dock.dragTo = Math.max(first, Math.min(dock.appCount - 1, Math.round(index + along / dock.step)));
                         dock.dragOut = removable && across > dock.icon;
                     }
                     onDragEnded: dock.dropApp()
@@ -218,11 +223,13 @@ PanelWindow {
                         const items = [];
                         if (appItem.running) items.push({ text: "New Window", action: () => Apps.newWindow(row) });
                         else items.push({ text: "Open", action: () => Apps.activate(row) });
-                        items.push({ separator: true });
-                        items.push({
-                            text: "Keep in Dock", checked: Apps.isPinned(id),
-                            action: () => Apps.isPinned(id) ? Apps.unpin(id) : Apps.pin(id),
-                        });
+                        if (!appItem.anchored) {
+                            items.push({ separator: true });
+                            items.push({
+                                text: "Keep in Dock", checked: Apps.isPinned(id),
+                                action: () => Apps.isPinned(id) ? Apps.unpin(id) : Apps.pin(id),
+                            });
+                        }
                         if (appItem.running) {
                             items.push({ separator: true });
                             items.push({ text: "Quit", action: () => Apps.quit(row) });
