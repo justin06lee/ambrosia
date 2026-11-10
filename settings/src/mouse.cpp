@@ -120,8 +120,15 @@ void Mouse::setDoubleClick(qreal value)
     const int interval = qRound(1000 - std::clamp(value, 0.0, 1.0) * 850);
     if (!dryRun(qPrintable(u"set the double-click interval to %1 ms (kdeglobals)"_s.arg(interval)))) {
         KConfigGroup group = kdeGroup();
-        group.writeEntry("DoubleClickInterval", interval, KConfig::Notify | KConfig::Global);
+        // No KConfig::Global: this file is kdeglobals, opened without the
+        // globals, and such a write would never reach the disk.
+        group.writeEntry("DoubleClickInterval", interval, KConfig::Notify);
         group.sync();
+        // Running apps re-read it on KGlobalSettings' signal, as KDE's module sends:
+        // SettingsChanged (3), SETTINGS_MOUSE (0).
+        QDBusMessage signal = QDBusMessage::createSignal(u"/KGlobalSettings"_s, u"org.kde.KGlobalSettings"_s, u"notifyChange"_s);
+        signal.setArguments({3, 0});
+        QDBusConnection::sessionBus().send(signal);
     }
     Q_EMIT changed();
 }
