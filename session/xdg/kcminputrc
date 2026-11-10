@@ -1,0 +1,12 @@
+# Ambrosia session defaults for input devices. A user's own kcminputrc wins:
+# KWin saves what's changed in Settings there, a group per device.
+
+# A trackpad nobody has set up yet works as a Mac's does: content follows the
+# fingers, and a click with two fingers is the secondary click (libinput's
+# own defaults are the other scrolling direction and a corner of the pad).
+# KWin reads these for every trackpad, as it appears, for each setting the
+# device has no saved value for; a pad that can't click by finger count
+# keeps its own way.
+[Libinput][Defaults][Touchpad]
+NaturalScroll=true
+ClickMethod=2
