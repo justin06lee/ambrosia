@@ -92,7 +92,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
   current; backups in `/var/tmp/ambrosia-syu`), and avahi-daemon, cups.socket
   and power-profiles-daemon were enabled as the installer does. Kernel 7.2.14
   is installed but it still runs 7.2.10 until a reboot (the running kernel's
-  modules were put back in `/usr/lib/modules`). On 2026-11-11 it got r362
+  modules were put back in `/usr/lib/modules`). On 2026-11-11 it got r369
   of every ambrosia-* package but ambrosia-desktop (still r316: the new one
   pulls in keyd and switches the login screen, see Needs Justin), from
   local packages (`pacman -U`). Reach it as `ssh tenet`
@@ -250,10 +250,18 @@ package repo below), and they carry `shell/` and `session/` as they are.
    The pane's switches (Calculator, System Settings; Apps, Files, Folders)
    write settings.json's `searchOff`. Driven in the VM: names with accents
    found, Return opened a file in Kate and a folder in Files, each switch
-   read back and seen to drop its kind, light and dark. Left out: what
-   Search doesn't have (history, clipboard, other apps' content, menu
-   items), Files' sheet of file kinds, Search Privacy…, ⌘Return to show an
-   item in Files, and searching inside files. Mac-first trackpad
+   read back and seen to drop its kind, light and dark. ⌘Return shows a
+   file in its folder, selected: Files answers
+   `org.freedesktop.FileManager1` (ShowItems, ShowFolders,
+   ShowItemProperties), so other apps' Show in Folder comes to Files too
+   (driven in the VM by busctl and from Search; a browser's own Show in
+   Folder wasn't tried). Where a Dolphin already holds that name (tenet's
+   session has one), Files waits in line for it and Search asks Files by
+   its own name: on master after r369, checked on a private bus on tenet
+   but not yet through the shell in the VM, and not installed on tenet.
+   Left out: what Search doesn't have (history,
+   clipboard, other apps' content, menu items), Files' sheet of file
+   kinds, Search Privacy…, and searching inside files. Mac-first trackpad
    defaults (KWin starts a new pad with corner clicks and natural scrolling
    off) are with the Packaging lane. Step 6's Mac photos were taken 2026-11-11
    (`out/settings/mac/sheets/bat-*`, `lock-*`, `pw-change`, `priv-*`) and
@@ -273,7 +281,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
   Center, Dock and Search, the keyboard layer, the login screen) are not
   published: publishing pushes to the public ambrosia-packages repo. Say
   when.
-- tenet runs r362 of everything but ambrosia-desktop (r316). Installing
+- tenet runs r369 of everything but ambrosia-desktop (r316). Installing
   master's ambrosia-desktop there pulls in keyd (off until
   `systemctl enable --now keyd`, which remaps the live keyboard: Super
   becomes Command) and switches SDDM to our login screen at its next start:
