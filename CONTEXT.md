@@ -92,7 +92,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
   current; backups in `/var/tmp/ambrosia-syu`), and avahi-daemon, cups.socket
   and power-profiles-daemon were enabled as the installer does. Kernel 7.2.14
   is installed but it still runs 7.2.10 until a reboot (the running kernel's
-  modules were put back in `/usr/lib/modules`). On 2026-11-11 it got r383
+  modules were put back in `/usr/lib/modules`). On 2026-11-11 it got r385
   of every ambrosia-* package but ambrosia-desktop (still r316: the new one
   pulls in keyd and switches the login screen, see Needs Justin), from
   local packages (`pacman -U`). Reach it as `ssh tenet`
@@ -187,12 +187,24 @@ package repo below), and they carry `shell/` and `session/` as they are.
    hand. Still open: a license (Justin's call; the packages are public now,
    `license=(LicenseRef-TBD)`).
 5. **The current image is `out/iso/ambrosia-2026.11.10-x86_64.iso`** in
-   tenet's `~/work/ambrosia-packaging` (r352 of every ambrosia-* package,
-   built from local packages, nothing published). Installed from it in the
-   VM both ways on 2026-11-10, UEFI and BIOS: our login screen, the desktop,
-   Settings and Files open, Files running from the first login, keyd and its
-   pipe up. Not tried on real hardware; the SanDisk still has the
-   2026-10-08 image. The Packaging lane's VM scripts are on tenet in
+   tenet's `~/work/ambrosia` (r385 of every ambrosia-* package, built from
+   local packages, nothing published). Installed from it in the VM on
+   2026-11-11 (UEFI, unattended, four minutes) and read back: every package
+   at r385 with its files intact, no failed unit, `[ambrosia]` first in
+   pacman.conf, our login screen taking the password, the shell and Files
+   running from the first login, keyd and its pipe up. With real keys
+   (QEMU's keyboard, so through keyd): Search opens Konsole, which is on
+   our profile (⌘C with nothing selected leaves a job alone, Ctrl+C
+   interrupts it, ⌘Q quits), opens Settings at a pane, finds a file and
+   ⌘Return shows it in Files. The BIOS way was last installed from the r352
+   image (2026-11-10, `~/work/ambrosia-packaging`); nothing in it has
+   changed since. Not tried on real hardware; the SanDisk still has the
+   2026-10-08 image. The whole test is one job on tenet, as root, holding
+   the VM lock: `/var/tmp/fresh-all.sh` (image, install to
+   `out/vm/fresh.qcow2`, log in, the checks in `/var/tmp/fresh2b.sh`, power
+   off; 25 minutes; `tools/vm.sh install` alone would delete the Settings
+   VM's firmware variables and its disk's backing file, which the job keeps).
+   The Packaging lane's VM scripts are on tenet in
    `/var/tmp/ambrosia-packaging` (`vm-up.sh uefi|bios` boots an install with
    root SSH through systemd credentials, under either firmware).
 6. Files (Finder parity, `docs/finder/PLAN.md`): search is Finder's since
@@ -215,8 +227,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
    `qml/ProgressWindow.qml`: a bar, the amount done, the time left, a stop
    button): driven in the VM with a stick read at 4 MB/s (a 48 MB paste
    shown and finished, another stopped by its button, a tiny one with no
-   window); two at once, a move and the Trash weren't tried. Next: login
-   autostart on a fresh system (the VM), then the plan's "Still short of
+   window); two at once, a move and the Trash weren't tried. Files runs
+   from the first login of a fresh install (checked in the VM,
+   2026-11-11). Next: the plan's "Still short of
    Finder" list (Open With and Compress in the menu, tag rename and
    delete, spring-loaded folders, Quick Look's black full screen).
 7. Settings (docs/settings/PLAN.md): steps 1–6 are built. Step 6 (Battery/
@@ -306,7 +319,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
   Center, Dock and Search, the keyboard layer, the login screen) are not
   published: publishing pushes to the public ambrosia-packages repo. Say
   when.
-- tenet runs r383 of everything but ambrosia-desktop (r316). Installing
+- tenet runs r385 of everything but ambrosia-desktop (r316). Installing
   master's ambrosia-desktop there pulls in keyd (off until
   `systemctl enable --now keyd`, which remaps the live keyboard: Super
   becomes Command) and switches SDDM to our login screen at its next start:

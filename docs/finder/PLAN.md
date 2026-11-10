@@ -693,8 +693,10 @@ green circle; Esc comes back to the panel), Quick Look on a Trash item
 (which showed KIO's "0-build.sh" until then; now the name alone, in Get
 Info too), and ⌘I on six items (a window for each, cascaded). Login
 autostart is wired (`plasma-workspace.target` wants the unit, and it
-runs on tenet), but a fresh system's first login is still unchecked: the
-test VM was held by another lane all night.
+runs on tenet). **Checked 2026-11-11 on a fresh install in the VM:** at
+the first login `ambrosia-files --background` is running, its unit is
+active, and it holds both `org.ambrosia.files` and
+`org.freedesktop.FileManager1`.
 
 **Other disks in the sidebar (2026-11-10):** Locations lists every volume
 with a file system that isn't the system's own (`src/places.cpp`, through
