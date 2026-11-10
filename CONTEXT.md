@@ -209,21 +209,29 @@ package repo below), and they carry `shell/` and `session/` as they are.
    page and Remove Printer…. Driven in the VM against two `ippeveprinter`
    printers: found, made default, paper size, added by address as the wheel
    user with no password, test page received, removed, an unreachable
-   address's error. Still to check there: a removed printer's saved
-   defaults going with it. Left out: scanners, the queue window, Options &
+   address's error; a removed printer's saved defaults go with it.
+   Left out: scanners, the queue window, Options &
    Supplies…, sharing, USB printers that need a driver. No real printer
-   has been printed to. Next: Accessibility (KWin has what it needs: zoom,
-   magnifier, color filters, shake to locate, sticky, slow and mouse keys,
-   the visual bell; kdeglobals for reduce motion and the cursor's blink).
-   Spotlight's pane waits on the shell: Search only finds apps, so there is
-   nothing for it to choose between yet (files through Files' index, a
-   calculator and Settings' panes would give it rows). Mac-first trackpad
+   has been printed to. Accessibility (2026-11-11) lists the Mac's
+   sections that act here: Zoom (or the lens, with KWin's own keys shown),
+   Display (color filters, shake to locate, pointer size), Motion (reduce
+   motion, a steady cursor), Audio (flash for an alert), Keyboard (Sticky
+   and Slow Keys), Pointer Control (Mouse Keys). Driven in the VM: every
+   switch read back from kwinrc, kaccessrc, kcminputrc and kdeglobals, the
+   effects loaded and unloaded in the running KWin, and Sticky Keys
+   latched Shift for real; the others' effect on screen wasn't watched.
+   Left out: VoiceOver and speech (no screen reader installed), Invert
+   (KWin can't say whether it's on), captions, Voice and Switch Control.
+   Spotlight's pane still waits on the shell: Search finds apps, Settings'
+   panes and sums now (2026-11-11, seen in the VM), but not files, so
+   there is little for it to choose between (next: files through Files'
+   index). Mac-first trackpad
    defaults (KWin starts a new pad with corner clicks and natural scrolling
    off) are with the Packaging lane. Step 6's Mac photos were taken 2026-11-11
    (`out/settings/mac/sheets/bat-*`, `lock-*`, `pw-change`, `priv-*`) and
    our wording and menus follow them now, and a user's ⓘ sheet is laid out
    as the Mac's (`users-info-nosheet.png`: picture on top, User name and
-   Password, the admin switch, Cancel and OK; not yet seen in the VM).
+   Password, the admin switch, Cancel and OK; seen in the VM).
    Add User… and the lock message's Set… weren't reached (an earlier sheet
    was still up), and Battery Health's ⓘ opened nothing: those stay our
    own design.
