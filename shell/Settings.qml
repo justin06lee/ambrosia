@@ -52,7 +52,8 @@ Singleton {
     property alias notificationApps: adapter.notificationApps
     property alias notificationsOff: adapter.notificationsOff
     // Search: the kinds of result turned off, of "apps", "settings",
-    // "calculator", "files" and "folders".
+    // "calculator", "files" and "folders", and kinds of file as
+    // "files:images" (Search.qml's kinds).
     property alias searchOff: adapter.searchOff
     // Read once: from here on, a change is one somebody made.
     property bool loaded: false

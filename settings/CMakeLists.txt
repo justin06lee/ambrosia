@@ -150,6 +150,7 @@ qt_add_qml_module(ambrosia-settings
         qml/AccessibilityPage.qml
         qml/AccessibilityOptionsPage.qml
         qml/SpotlightPage.qml
+        qml/SpotlightFilesSheet.qml
     RESOURCES
         art/appearance-dark.svg
         art/appearance-light.svg

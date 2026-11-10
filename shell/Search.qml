@@ -64,6 +64,28 @@ PanelWindow {
         if (wantsFiles) pause.restart();
         else files = [];
     }
+    // The kind of file a name's ending says it is, as Spotlight's sheet of
+    // file kinds sorts them ("files:images" in searchOff leaves one out).
+    readonly property var kinds: ({
+        developer: "c h cc cpp cxx hpp hh m mm rs go py rb php pl lua js mjs ts jsx tsx java kt swift cs sh bash zsh fish sql html htm css scss json yaml yml toml xml qml cmake mk diff patch",
+        documents: "txt md markdown rtf doc docx odt pages tex epub",
+        images: "png jpg jpeg gif webp heic heif tif tiff bmp svg avif ico raw cr2 nef arw dng psd xcf kra",
+        movies: "mp4 m4v mov mkv webm avi mpg mpeg wmv flv",
+        music: "mp3 m4a flac wav ogg oga opus aac aiff aif wma mid midi",
+        pdfs: "pdf",
+        presentations: "ppt pptx odp key",
+        spreadsheets: "xls xlsx ods csv tsv numbers",
+    })
+    readonly property var kindByEnding: {
+        const map = {};
+        for (const kind in kinds)
+            for (const ending of kinds[kind].split(" ")) map[ending] = kind;
+        return map;
+    }
+    function kindOf(name) {
+        const dot = name.lastIndexOf(".");
+        return (dot > 0 && kindByEnding[name.slice(dot + 1).toLowerCase()]) || "others";
+    }
     // Lower case without accents, as the index folds names.
     function fold(text) {
         return text.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
@@ -88,7 +110,7 @@ PanelWindow {
         id: finder
         property string asked: ""
         command: ["busctl", "--user", "--auto-start=no", "--timeout=2", "--json=short", "call", "org.ambrosia.files", "/org/ambrosia/files",
-            "org.ambrosia.Files", "Find", "si", asked, "12"]
+            "org.ambrosia.Files", "Find", "si", asked, "24"]
         stdout: StdioCollector {
             onStreamFinished: {
                 let found = [];
@@ -191,6 +213,7 @@ PanelWindow {
         for (const file of files) {
             const name = file.path.slice(file.path.lastIndexOf("/") + 1), folded = fold(name);
             if (shown === 6 || off.includes(file.dir ? "folders" : "files") || !words.every(word => folded.includes(word))) continue;
+            if (!file.dir && off.includes("files:" + kindOf(name))) continue;
             found.push({ name, detail: where(file.path.slice(0, file.path.lastIndexOf("/"))), picture: file.thumb, path: file.path,
                 icon: file.dir ? "ambrosia-folder" : "ambrosia-document", fallback: file.dir ? "folder" : "text-x-generic",
                 rank: Math.max(1, score(wanted, folded, [folded])) - 0.25 - shown++ / 1000, open: () => Session.open(file.path) });

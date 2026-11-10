@@ -7,7 +7,7 @@ import Settings
 // (settings.json's searchOff) and goes by them from the next letter typed.
 // Left out: what Search doesn't have (related content, quick keys, a
 // history, the clipboard, other apps' content, iPhone apps, menu items),
-// Files' sheet of file kinds, Search Privacy… and the help button.
+// Search Privacy… and the help button. Files' ⓘ opens its sheet of kinds.
 Page {
     id: page
 
@@ -101,11 +101,28 @@ Page {
                 id: kind
                 required property var modelData
                 label: modelData.name
-                Switch {
-                    checked: !page.off.includes(kind.modelData.kind)
-                    onToggled: page.allow(kind.modelData.kind, !checked)
+                Row {
+                    spacing: 7
+                    // Files' ⓘ: which kinds of file.
+                    InfoButton {
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: kind.modelData.kind === "files"
+                        onClicked: fileKinds.open = true
+                    }
+                    Switch {
+                        anchors.verticalCenter: parent.verticalCenter
+                        checked: !page.off.includes(kind.modelData.kind)
+                        onToggled: page.allow(kind.modelData.kind, !checked)
+                    }
                 }
             }
         }
+    }
+
+    SpotlightFilesSheet {
+        id: fileKinds
+        settings: page.settings
+        off: page.off
+        onAllow: (kind, on) => page.allow(kind, on)
     }
 }
