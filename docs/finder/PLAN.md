@@ -714,10 +714,27 @@ tried: a disc, a disk something is using (the alert), another internal
 partition, dropping files on a disk's row. Encrypted volumes and network
 shares aren't listed.
 
+**Applications in the sidebar (2026-11-10):** the first of Favorites, and
+Go > Applications (⇧⌘A). `applications:/` is a place the model lists
+itself (`src/foldermodel.cpp`, `listApplications`): the desktop entries
+KService would give a launcher (no NoDisplay or Hidden ones, none for
+another desktop), each entry's file under its application's name with the
+icon it names (`image://icon/`, a plain application's when the theme has
+none), Kind "Application", no size, sorted like any folder and shown in all
+four views. Opening one starts it (KIO's ApplicationLauncherJob); the list
+is read again when an entry is installed or removed (a watch on the
+applications folders that exist when it opens). Nothing there goes to the
+Trash, renames or takes tags. Quick Look and the columns' preview show an
+application by its name and icon. Driven in the test VM (158 entries):
+the list and icons in list and icon view, an entry written while the
+window was open found by type-select and started by ⌘O (its Exec left a
+file), a NoDisplay entry not found, Kate started by ⌘↓, ⇧⌘A, Quick Look's
+title, ⌘⌫ leaving the entry. Not tried: a double-click (keys only), an
+entry in a folder made after the window opened, dragging an application
+out. Get Info on one still describes the entry's file.
+
 **Still short of Finder** (listed 2026-11-10, after search and the
 shortcut menu; v1 scope unless marked):
-- the sidebar's Applications (installed apps as a folder), in the v1 scope
-  above and not built;
 - the shortcut menu's Open With, Compress, Make Alias, Share and Quick
   Actions, and on empty space Sort By and Show View Options;
 - renaming and deleting a tag, and a Tags row in the gallery's pane;

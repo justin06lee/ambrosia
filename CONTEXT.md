@@ -200,11 +200,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
    disks since 2026-11-10 (Solid; a click mounts and opens, the eject button
    unmounts and ejects the media or powers the drive down): driven in the
    VM with a hot-plugged QEMU USB stick and USB disk (lsblk and window
-   titles read back); a disc, a busy disk's alert and drops on a disk's row
-   weren't tried. Next: login autostart on a fresh system
-   (the VM), then the plan's "Still short of Finder" list (sidebar
-   Applications, a copy progress window, Open With and Compress in the
-   menu, tag rename and delete, Quick Look's black full screen).
+   titles read back; a disk in use gets Finder's alert and stays); a disc
+   and drops on a disk's row weren't tried. Applications is in the sidebar
+   too (`applications:/`: the desktop entries a launcher shows, by name and
+   icon, in every view; opening one starts it): driven in the VM by keys
+   (a new entry found and started, a NoDisplay one not listed, Kate
+   started, ⇧⌘A); a double-click wasn't tried. Next: login autostart on a
+   fresh system (the VM), then the plan's "Still short of Finder" list (a
+   copy progress window, Open With and Compress in the menu, tag rename
+   and delete, Quick Look's black full screen).
 7. Settings (docs/settings/PLAN.md): steps 1–6 are built. Step 6 (Battery/
    Energy, Lock Screen, Login Password, Users & Groups, Privacy & Security)
    was driven for real in the VM on 2026-11-10 (Battery against
