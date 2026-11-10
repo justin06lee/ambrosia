@@ -191,9 +191,16 @@ package repo below), and they carry `shell/` and `session/` as they are.
    address's error. Still to check there: a removed printer's saved
    defaults going with it. Left out: scanners, the queue window, Options &
    Supplies…, sharing, USB printers that need a driver. No real printer
-   has been printed to. Next: Accessibility, Spotlight; and Mac-first
-   trackpad defaults (KWin starts a new pad with corner clicks and natural
-   scrolling off; Packaging lane).
+   has been printed to. Next: Accessibility (KWin has what it needs: zoom,
+   magnifier, color filters, shake to locate, sticky, slow and mouse keys,
+   the visual bell; kdeglobals for reduce motion and the cursor's blink).
+   Spotlight's pane waits on the shell: Search only finds apps, so there is
+   nothing for it to choose between yet (files through Files' index, a
+   calculator and Settings' panes would give it rows). Mac-first trackpad
+   defaults (KWin starts a new pad with corner clicks and natural scrolling
+   off) are with the Packaging lane. The Mac's Charging sheet and Low Power
+   Mode menu were photographed 2026-11-11 (`out/settings/mac/sheets/bat-*`);
+   the rest of step 6's sheets wait on `mac-sheets7.sh` finishing.
 
 ## Needs Justin
 
