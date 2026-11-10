@@ -198,9 +198,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
    nothing for it to choose between yet (files through Files' index, a
    calculator and Settings' panes would give it rows). Mac-first trackpad
    defaults (KWin starts a new pad with corner clicks and natural scrolling
-   off) are with the Packaging lane. The Mac's Charging sheet and Low Power
-   Mode menu were photographed 2026-11-11 (`out/settings/mac/sheets/bat-*`);
-   the rest of step 6's sheets wait on `mac-sheets7.sh` finishing.
+   off) are with the Packaging lane. Step 6's Mac photos were taken 2026-11-11
+   (`out/settings/mac/sheets/bat-*`, `lock-*`, `pw-change`, `priv-*`) and
+   our wording and menus follow them now; a user's ⓘ, Add User… and the
+   lock message's Set… open behind the Mac's password prompt, so those
+   three stay our own design, and Battery Health's ⓘ opened nothing.
 
 ## Needs Justin
 
