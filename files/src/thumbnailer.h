@@ -21,6 +21,9 @@ public:
     // The source QML shows for an item, or "" when it has none: decided by
     // its name alone, so it costs no I/O. mtime in seconds.
     static QString source(const QUrl &url, const QString &name, bool isDir, qint64 mtime);
+    // The cache's picture of a file if it has one already (the smallest
+    // kept), or "": for callers that show only what's there (Search).
+    static QString cached(const QString &path);
 
     // One thumbnail made on the calling thread, at most box pixels on its
     // longer side, without the cache (for the benchmark); how says which

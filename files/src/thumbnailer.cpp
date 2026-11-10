@@ -753,6 +753,16 @@ QString Thumbnailer::source(const QUrl &url, const QString &name, bool isDir, qi
         + (kind == Kind::Audio ? QStringLiteral("/audio") : QString());
 }
 
+QString Thumbnailer::cached(const QString &path)
+{
+    const QString uri = QUrl::fromLocalFile(path).toString(QUrl::FullyEncoded);
+    const QString name = QString::fromLatin1(QCryptographicHash::hash(uri.toUtf8(), QCryptographicHash::Md5).toHex()) + QStringLiteral(".png");
+    for (const Bucket &bucket : buckets)
+        if (const QString file = cacheRoot() + QLatin1String(bucket.dir) + QLatin1Char('/') + name; QFile::exists(file))
+            return file;
+    return {};
+}
+
 QImage Thumbnailer::make(const QString &path, int box, QString *how)
 {
     QFile file;

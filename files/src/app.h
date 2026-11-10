@@ -70,6 +70,11 @@ public Q_SLOTS:
     // org.ambrosia.Files.Trash: the Dock's Trash hands over what's dropped
     // on it, so Edit > Undo in Files puts it back, as in Finder.
     Q_SCRIPTABLE void Trash(const QStringList &urls);
+    // org.ambrosia.Files.Find: the shell's Search asks the index for the
+    // items whose names have every word of the query, best first, at most
+    // limit of them. Two strings for each: its path (a folder's ends in a
+    // slash), then the thumbnail the cache already holds of it, or "".
+    Q_SCRIPTABLE QStringList Find(const QString &query, int limit);
 
 Q_SIGNALS:
     void appearanceChanged();

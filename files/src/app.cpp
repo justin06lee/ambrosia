@@ -1,5 +1,7 @@
 #include "app.h"
 #include "fileops.h"
+#include "index.h"
+#include "thumbnailer.h"
 
 #include <KIO/OpenUrlJob>
 #include <KWindowShadow>
@@ -15,8 +17,12 @@
 #include <QStyleHints>
 #include <QTimer>
 
+#include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstdio>
+#include <tuple>
+#include <vector>
 
 App *App::s_instance = nullptr;
 
@@ -106,6 +112,53 @@ void App::Trash(const QStringList &urls)
         list << QUrl(url);
     if (auto *ops = m_engine->singletonInstance<FileOps *>("Files", "FileOps"))
         ops->trash(list);
+}
+
+QStringList App::Find(const QString &query, int limit)
+{
+    Index::Query q;
+    q.words = query.split(QLatin1Char(' '), Qt::SkipEmptyParts);
+    q.limit = 2000; // the shallowest matches; the best of them are picked here
+    if (q.words.isEmpty() || limit < 1)
+        return {};
+    const Index::Result found = Index::instance()->find(q);
+    // Best first: the name is the query (with or without its extension),
+    // then starts with it, then has it at a word's start, then anywhere;
+    // nearer the home before deeper, shorter names before longer.
+    const std::string whole = Index::fold(query.simplified());
+    struct Hit {
+        int rank, depth;
+        size_t length, at;
+    };
+    std::vector<Hit> hits;
+    hits.reserve(found.paths.size());
+    for (size_t i = 0; i < found.paths.size(); ++i) {
+        const std::string &path = found.paths[i];
+        const size_t slash = path.rfind('/');
+        const std::string name = Index::fold(QString::fromUtf8(path.c_str() + (slash == std::string::npos ? 0 : slash + 1)));
+        const size_t dot = name.rfind('.');
+        const size_t in = name.find(whole);
+        int rank = 1;
+        if (name == whole || (dot != std::string::npos && dot > 0 && name.compare(0, dot, whole) == 0))
+            rank = 4;
+        else if (in == 0)
+            rank = 3;
+        else if (in != std::string::npos && !std::isalnum(static_cast<unsigned char>(name[in - 1])) && static_cast<unsigned char>(name[in - 1]) < 0x80)
+            rank = 2;
+        hits.push_back({rank, int(std::count(path.begin(), path.end(), '/')), name.size(), i});
+    }
+    const auto better = [&](const Hit &a, const Hit &b) {
+        return std::tie(b.rank, a.depth, a.length, found.paths[a.at]) < std::tie(a.rank, b.depth, b.length, found.paths[b.at]);
+    };
+    const size_t count = std::min(hits.size(), size_t(limit));
+    std::partial_sort(hits.begin(), hits.begin() + std::ptrdiff_t(count), hits.end(), better);
+    QStringList items;
+    for (size_t i = 0; i < count; ++i) {
+        const QString path = QString::fromStdString(found.paths[hits[i].at]);
+        const bool dir = found.dirs[hits[i].at];
+        items << (dir ? path + QLatin1Char('/') : path) << (dir ? QString() : Thumbnailer::cached(path));
+    }
+    return items;
 }
 
 int App::modifiers() const
