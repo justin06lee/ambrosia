@@ -18,12 +18,15 @@ Page {
         const items = [
             { text: qsTr("For 1 minute"), value: 60 },
             { text: qsTr("For 2 minutes"), value: 120 },
+            { text: qsTr("For 3 minutes"), value: 180 },
             { text: qsTr("For 5 minutes"), value: 300 },
             { text: qsTr("For 10 minutes"), value: 600 },
             { text: qsTr("For 20 minutes"), value: 1200 },
             { text: qsTr("For 30 minutes"), value: 1800 },
             { text: qsTr("For 1 hour"), value: 3600 },
+            { text: qsTr("For 1 hour, 30 minutes"), value: 5400 },
             { text: qsTr("For 2 hours"), value: 7200 },
+            { text: qsTr("For 2 hours, 30 minutes"), value: 9000 },
             { text: qsTr("For 3 hours"), value: 10800 },
             { text: qsTr("Never"), value: 0 },
         ];
