@@ -322,10 +322,10 @@ Window {
     function goPlace(name) {
         go(Places.place(name));
     }
-    // A disk being ejected: a window showing it goes home first.
+    // A disk was ejected: a window showing it goes home.
     Connections {
         target: Places
-        function onEjecting(volume) {
+        function onEjected(volume) {
             const root = volume.toString().replace(/\/+$/, "");
             const at = (win.searching ? win.searchFolder : win.url).toString();
             if (at === root || at.startsWith(root + "/")) {

@@ -248,15 +248,19 @@ void Places::eject(const QString &udi)
     auto *access = v->device.as<Solid::StorageAccess>();
     if (mount.isEmpty() || !access)
         return;
-    Q_EMIT ejecting(QUrl::fromLocalFile(mount));
     if (!access->teardown())
         return;
+    m_leaving.insert(udi, mount);
     v->busy = true;
     Q_EMIT sectionsChanged();
 }
 
 void Places::teardownDone(Solid::ErrorType error, const QVariant &data, const QString &udi)
 {
+    // Before anything else: a drive powered down may be off the list by now.
+    const QString left = m_leaving.take(udi);
+    if (error == Solid::NoError && !left.isEmpty())
+        Q_EMIT ejected(QUrl::fromLocalFile(left));
     Volume *v = find(udi);
     if (!v)
         return;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QHash>
 #include <QObject>
 #include <QUrl>
 #include <QVariantList>
@@ -43,8 +44,8 @@ public:
 Q_SIGNALS:
     void sectionsChanged();
     void opened(const QString &volume, const QUrl &url);
-    // A volume is about to go: windows showing it go elsewhere first.
-    void ejecting(const QUrl &url);
+    // A volume was ejected: windows showing it go elsewhere.
+    void ejected(const QUrl &url);
 
 private:
     struct Volume {
@@ -58,5 +59,6 @@ private:
     void teardownDone(Solid::ErrorType error, const QVariant &data, const QString &udi);
 
     QList<Volume> m_volumes;
+    QHash<QString, QString> m_leaving; // volumes being ejected, and where each was mounted
     bool m_watching = false;
 };
