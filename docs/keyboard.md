@@ -106,10 +106,18 @@ folder, ⌘↓ open, ⌘[ back, ⌘] forward): they go on as plain Ctrl.
 - **Shortcuts on Super are out of reach of ⌘**: KWin's Super+arrows (tiling),
   Super+L, Super+W and the rest answer only to what the tables above send.
   Other sessions on the same machine (Plasma) get the same keyboard.
-- **⌘C in Konsole with nothing selected interrupts.** Konsole's Copy is off
-  until there is a selection, and it then hands Ctrl+Shift+C to the shell as
-  Ctrl+C (it does the same on any KDE desktop). With a selection ⌘C copies.
-  Ending this takes a Konsole key table of ours that swallows the chord.
+- **⌘C in Konsole with nothing selected does nothing**, as in the Mac's
+  Terminal. Konsole's Copy is off until there is a selection, and Konsole
+  hands a Ctrl+Shift chord it has no use for to the shell as the plain
+  control character (⌘C interrupted the job, ⌘U would clear the line). The
+  session's Konsole profile (`session/konsole/Ambrosia.profile`, the default
+  through `/etc/xdg/ambrosia/konsolerc`) uses a key table of ours
+  (`ambrosia.keytab`: Konsole's own, plus Ctrl+Shift with any letter doing
+  nothing). A profile of your own gets the same by choosing the "Ambrosia"
+  key bindings in its Keyboard page.
+- **Some ⌘ chords are Konsole's own**, not Terminal's: ⌘D is Select Mode
+  (Esc leaves it), ⌘A, ⌘I and ⌘R watch the tab for activity, silence and
+  the prompt, ⌘P prints, ⌘E and ⌘Z maximize and zoom a split view.
 - **A terminal the desktop doesn't know as one** (no `TerminalEmulator` in
   its desktop file, or run inside another app) gets ⌘C as Ctrl+C, an
   interrupt. Name it in `keys.json`.
