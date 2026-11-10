@@ -1,13 +1,15 @@
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import Quickshell.Io
 import QtQuick
 import Ambrosia
 
 // Search (Super+Space, or the magnifier in the menu bar): type to find an
-// app or one of System Settings' panes, or a sum to work out; arrows to
-// choose, Return to open it (a sum's answer is copied), Escape or a click
-// outside to close. It covers the screen while open so the click outside lands here.
+// app, one of System Settings' panes, a file or a folder, or a sum to work
+// out; arrows to choose, Return to open it (a sum's answer is copied),
+// Escape or a click outside to close. Settings' Spotlight pane says which
+// kinds show. It covers the screen while open so the click outside lands here.
 PanelWindow {
     id: search
 
@@ -17,6 +19,8 @@ PanelWindow {
     readonly property bool open: Popups.searchOpen && Popups.searchScreen === home
     property string query: ""
     property int current: 0
+    // Where the pointer last was over the rows, while open.
+    property var pointer: undefined
     readonly property int rowHeight: Theme.size.row.large
     readonly property int maxRows: 8
 
@@ -44,8 +48,62 @@ PanelWindow {
     // it's somewhere in the name or keywords, 0 not at all.
     function score(q, name, words) {
         if (name.startsWith(q)) return 3;
-        if (words.some(w => w.split(/[\s&-]+/).some(part => part.startsWith(q)))) return 2;
+        if (words.some(w => w.split(/[\s&_.()\[\]-]+/).some(part => part.startsWith(q)))) return 2;
         return words.some(w => w.includes(q)) ? 1 : 0;
+    }
+
+    // Files and folders by name, from Files' index (Files runs from login
+    // with every visible name in the home in memory, so an answer takes a few
+    // milliseconds): asked a moment after the typing pauses, from two
+    // letters on. Each is {path, dir, thumb}, thumb the picture the
+    // thumbnail cache already has of it.
+    property var files: []
+    readonly property string wanted: fold(query.trim())
+    readonly property bool wantsFiles: wanted.length >= 2 && !(Settings.searchOff.includes("files") && Settings.searchOff.includes("folders"))
+    onWantedChanged: {
+        if (wantsFiles) pause.restart();
+        else files = [];
+    }
+    // Lower case without accents, as the index folds names.
+    function fold(text) {
+        return text.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+    // A folder as the line under a name gives it: "Documents › Taxes".
+    readonly property string homeDir: Quickshell.env("HOME") ?? ""
+    function where(folder) {
+        if (folder === homeDir) return homeDir.slice(homeDir.lastIndexOf("/") + 1);
+        return (folder.startsWith(homeDir + "/") ? folder.slice(homeDir.length + 1) : folder).split("/").join(" › ");
+    }
+    function find() {
+        if (finder.running || !wantsFiles) return; // one at a time; it asks again when it's back
+        finder.asked = wanted;
+        finder.running = true;
+    }
+    Timer {
+        id: pause
+        interval: 40
+        onTriggered: search.find()
+    }
+    Process {
+        id: finder
+        property string asked: ""
+        command: ["busctl", "--user", "--auto-start=no", "--timeout=2", "--json=short", "call", "org.ambrosia.files", "/org/ambrosia/files",
+            "org.ambrosia.Files", "Find", "si", asked, "12"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                let found = [];
+                try {
+                    // Two strings each: the path (a folder's ends in a slash), its thumbnail.
+                    const items = JSON.parse(text).data[0];
+                    for (let i = 0; i + 1 < items.length; i += 2)
+                        found.push({ path: items[i].replace(/\/$/, ""), dir: items[i].endsWith("/"), thumb: items[i + 1] });
+                } catch (error) {
+                    // Files isn't running, or is an older one: no files then.
+                }
+                if (search.wantsFiles) search.files = found;
+            }
+        }
+        onExited: if (asked !== search.wanted) search.find()
     }
 
     // Arithmetic typed into the field, worked out: numbers with + - * / % ^
@@ -100,28 +158,42 @@ PanelWindow {
         }
     }
 
-    // What the query finds, best first: a sum's answer, then apps and
-    // Settings' panes by how well their names match (apps before panes).
-    // Each is {name, detail, icon, open()}.
+    // What the query finds, best first: a sum's answer, then apps,
+    // Settings' panes and files by how well their names match (an app before
+    // a pane before a file that match as well; files keep the order Files
+    // gave them, at most six). Each is {name, detail, icon, open()}, with
+    // picture where a file has a thumbnail.
     readonly property var results: {
         const q = query.trim().toLowerCase();
         if (q === "") return [];
+        const off = Settings.searchOff;
         const found = [];
-        const answer = calculate(q);
+        const answer = off.includes("calculator") ? undefined : calculate(q);
         if (answer !== undefined)
             found.push({ name: answer, detail: query.trim() + " =", icon: "accessories-calculator", rank: 9, open: () => { Quickshell.clipboardText = answer; } });
-        for (const entry of DesktopEntries.applications.values) {
+        for (const entry of off.includes("apps") ? [] : DesktopEntries.applications.values) {
             if (entry.noDisplay) continue;
             const name = entry.name.toLowerCase();
             const rank = score(q, name, [name, entry.genericName.toLowerCase()].concat(entry.keywords.map(k => k.toLowerCase())));
             if (rank > 0)
                 found.push({ name: entry.name, detail: entry.genericName || entry.comment, icon: entry.icon, rank: rank + 0.5, open: () => Session.launch(entry.id) });
         }
-        for (const [id, title, keywords] of panes) {
+        for (const [id, title, keywords] of off.includes("settings") ? [] : panes) {
             const name = title.toLowerCase().replace("‑", "-");
             const rank = score(q, name, [name].concat(keywords.split(" ")));
             if (rank > 0)
                 found.push({ name: title, detail: "System Settings", icon: "org.ambrosia.settings", rank, open: () => Session.settings(id) });
+        }
+        // The last answer's files that still match what's typed now, so they
+        // narrow with each letter until the next answer comes.
+        const words = wanted.split(/\s+/);
+        let shown = 0;
+        for (const file of files) {
+            const name = file.path.slice(file.path.lastIndexOf("/") + 1), folded = fold(name);
+            if (shown === 6 || off.includes(file.dir ? "folders" : "files") || !words.every(word => folded.includes(word))) continue;
+            found.push({ name, detail: where(file.path.slice(0, file.path.lastIndexOf("/"))), picture: file.thumb,
+                icon: file.dir ? "ambrosia-folder" : "ambrosia-document", fallback: file.dir ? "folder" : "text-x-generic",
+                rank: Math.max(1, score(wanted, folded, [folded])) - 0.25 - shown++ / 1000, open: () => Session.open(file.path) });
         }
         found.sort((a, b) => b.rank - a.rank || a.name.localeCompare(b.name));
         return found.slice(0, maxRows);
@@ -145,7 +217,9 @@ PanelWindow {
     onOpenChanged: {
         query = "";
         field.text = "";
+        files = [];
         current = 0;
+        pointer = undefined;
         if (open) field.forceActiveFocus();
     }
     onResultsChanged: current = 0
@@ -266,7 +340,9 @@ PanelWindow {
                         x: Theme.space.s2
                         anchors.verticalCenter: parent.verticalCenter
                         implicitSize: 32
-                        source: Quickshell.iconPath(result.modelData.icon, result.modelData.icon === "accessories-calculator" ? "accessories-calculator-symbolic" : "application-x-executable")
+                        source: result.modelData.picture ? "file://" + result.modelData.picture
+                            : Quickshell.iconPath(result.modelData.icon, result.modelData.fallback
+                                ?? (result.modelData.icon === "accessories-calculator" ? "accessories-calculator-symbolic" : "application-x-executable"))
                     }
 
                     Column {
@@ -290,10 +366,20 @@ PanelWindow {
                         }
                     }
 
+                    // The pointer chooses a row only by moving: a row that
+                    // comes up under a resting pointer isn't chosen, or
+                    // Return would open it instead of the best match.
                     MouseArea {
                         anchors.fill: parent
                         hoverEnabled: true
-                        onEntered: search.current = result.index
+                        function point() {
+                            const at = mapToItem(null, mouseX, mouseY);
+                            const moved = search.pointer !== undefined && (at.x !== search.pointer.x || at.y !== search.pointer.y);
+                            search.pointer = at;
+                            if (moved) search.current = result.index;
+                        }
+                        onEntered: point()
+                        onPositionChanged: point()
                         onClicked: search.launch(result.modelData)
                     }
                 }

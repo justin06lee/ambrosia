@@ -51,6 +51,9 @@ Singleton {
     property alias notificationPreviews: adapter.notificationPreviews
     property alias notificationApps: adapter.notificationApps
     property alias notificationsOff: adapter.notificationsOff
+    // Search: the kinds of result turned off, of "apps", "settings",
+    // "calculator", "files" and "folders".
+    property alias searchOff: adapter.searchOff
     // Read once: from here on, a change is one somebody made.
     property bool loaded: false
 
@@ -114,6 +117,7 @@ Singleton {
             property bool notificationPreviews: true
             property list<string> notificationApps: []
             property list<string> notificationsOff: []
+            property list<string> searchOff: []
             // How many of migrate()'s steps this file has been through.
             property int migrated: 0
         }

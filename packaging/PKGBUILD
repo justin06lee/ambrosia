@@ -77,6 +77,14 @@ package_ambrosia-theme() {
   install -Dm644 "$_root"/assets/wallpapers/*.svg -t "$pkgdir/usr/share/ambrosia/wallpapers/"
   # App icons of our own (Files), for the Dock and the apps.
   install -Dm644 "$_root"/assets/icons/*.svg -t "$pkgdir/usr/share/icons/hicolor/scalable/apps/"
+  # Files' folder and document, by name (ambrosia-folder, ambrosia-document)
+  # for the shell's Search; the small page where Files draws its small one.
+  local hicolor="$pkgdir/usr/share/icons/hicolor" art="$_root/files/art" size
+  install -Dm644 "$art/folder.svg" "$hicolor/scalable/places/ambrosia-folder.svg"
+  install -Dm644 "$art/document.svg" "$hicolor/scalable/mimetypes/ambrosia-document.svg"
+  for size in 16x16 16x16@2 32x32 32x32@2; do
+    install -Dm644 "$art/document-small.svg" "$hicolor/$size/mimetypes/ambrosia-document.svg"
+  done
 }
 
 package_ambrosia-decoration() {
