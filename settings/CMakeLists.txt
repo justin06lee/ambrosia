@@ -55,6 +55,7 @@ qt_add_qml_module(ambrosia-settings
         src/trackpad.h src/trackpad.cpp
         src/kwininput.h src/kwininput.cpp
         src/printers.h src/printers.cpp
+        src/access.h src/access.cpp
     QML_FILES
         qml/SettingsWindow.qml
         qml/MenuBar.qml
@@ -146,6 +147,8 @@ qt_add_qml_module(ambrosia-settings
         qml/MousePage.qml
         qml/TrackpadPage.qml
         qml/PrintersPage.qml
+        qml/AccessibilityPage.qml
+        qml/AccessibilityOptionsPage.qml
     RESOURCES
         art/appearance-dark.svg
         art/appearance-light.svg

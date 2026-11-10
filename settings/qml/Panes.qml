@@ -28,8 +28,8 @@ QtObject {
             { id: "general", name: "General", glyph: "general", tint: "gray", page: "general",
               description: "Manage your overall setup and preferences for this computer, such as software updates, the date, language and login items.",
               keywords: ["about", "software update", "date", "time", "language", "region", "login items"] },
-            { id: "accessibility", name: "Accessibility", glyph: "accessibility", tint: "blue", module: "kcm_access",
-              keywords: ["zoom", "sticky keys", "slow keys", "bounce keys", "bell"] },
+            { id: "accessibility", name: "Accessibility", glyph: "accessibility", tint: "blue", page: "accessibility",
+              keywords: ["zoom", "color filters", "pointer size", "reduce motion", "sticky keys", "slow keys", "mouse keys", "flash"] },
             { id: "appearance", name: "Appearance", glyph: "appearance", tint: "black", page: "appearance",
               keywords: ["dark", "light", "accent", "theme", "color"] },
             { id: "dock", name: "Desktop & Dock", glyph: "dock", tint: "black", page: "dock",
@@ -111,6 +111,7 @@ QtObject {
         { id: "network-service", name: "Network", glyph: "network", tint: "blue", page: "service", parent: "network" },
         { id: "network-vpn", name: "VPN", glyph: "network", tint: "blue", page: "vpn", parent: "network" },
         { id: "privacy-apps", name: "Privacy & Security", glyph: "privacy", tint: "blue", page: "privacyapps", parent: "privacy" },
+        { id: "accessibility-options", name: "Accessibility", glyph: "accessibility", tint: "blue", page: "accessibilityoptions", parent: "accessibility" },
     ]
 
     function available(pane) {
