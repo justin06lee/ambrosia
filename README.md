@@ -111,7 +111,7 @@ markdown you can paste into a chat.
 `design/tokens.ts` holds every value: type scale, 4px spacing grid, concentric
 radii, OKLCH colors, glass materials, shadows and spring motion;
 `design/cursors.ts` holds every shape the pointer takes and `design/icons.ts`
-the app icons. `tools/gen`
+the app icons and what goes on folders and files. `tools/gen`
 resolves them once and writes each target from the same resolved model. It
 converts colors to gamut-mapped sRGB, derives each accent's text and fill
 colors to meet contrast targets, and solves the springs. Because of that,
@@ -127,7 +127,7 @@ an accent or a label color is identical in GTK, KDE and the shell.
 | `dist/environment.d/50-ambrosia-fonts.conf` | FreeType stem darkening, for fuller text; no synthetic bold in Qt |
 | `dist/kdecoration/tokens.h` | the KWin window frame (`decoration/`): traffic lights, title, corners, shadow |
 | `dist/qstyle/tokens.h` | the Qt widget style (`style/`): the controls' sizes and the colors a palette has no role for |
-| `dist/icons/Ambrosia/` | the icon theme, over Breeze: our app icons under the names the installed apps ask for, and the pointer (Xcursor files for apps, SVGs for KWin); every other name is a link. `dist/icons/sheet.html` and `dist/cursors/sheet.html` show them all |
+| `dist/icons/Ambrosia/` | the icon theme, over Breeze: our app icons, folders and kinds of file under the names apps ask for, and the pointer (Xcursor files for apps, SVGs for KWin); every other name is a link. `dist/icons/sheet.html` and `dist/cursors/sheet.html` show them all |
 | `dist/web/cursors.css`, `icons.css` | the same pointer and app icons for the preview and the review site |
 | `dist/web/tokens.css` | the preview and any web surface |
 | `dist/tokens.json` | everything resolved, for compositor effects and scripts |
@@ -140,7 +140,7 @@ contrast in both modes, concentric radii, and the spacing grid.
 ```
 CONTEXT.md     where things stand and what's next, for picking the work back up
 design/        DESIGN.md (the rules), DECISIONS.md (the choices), tokens.ts (the values),
-               cursors.ts (the pointer's shapes), icons.ts (app icons),
+               cursors.ts (the pointer's shapes), icons.ts (app icons, folders, files),
                review.json (review verdicts and notes)
 tools/gen/     the generator and its tests
 tools/qmlshot/ draws a QML file into a picture with no window on screen; sheets/ lays pieces
@@ -197,8 +197,9 @@ assets/        banner, icon and the "nectar" day/night wallpapers
    the session's style, and its menus are glass where KWin blurs behind
    them. The
    "Ambrosia" icon theme is begun: the pointer (a Mac's black arrow and white
-   hands, a wheel of our own for busy) and icons for the apps a new install
-   starts with, over Breeze for the rest.
+   hands, a wheel of our own for busy), icons for the apps a new install
+   starts with, and folders and kinds of file as Files draws them, over
+   Breeze for the rest.
 6. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
    dialogs in other apps match too.
 7. **Onboarding**: a first-party onboarding app in place of the installer

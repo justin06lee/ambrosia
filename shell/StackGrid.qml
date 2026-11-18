@@ -7,7 +7,7 @@ import Ambrosia
 Item {
     id: grid
 
-    // Rows of { name, icon: a picture's URL }.
+    // Rows of { name, icon: a picture's URL, spare: one to show if that fails }.
     property var items: []
     // Still reading the folder: say nothing about it being empty yet.
     property bool loading: false
@@ -75,6 +75,8 @@ Item {
                 sourceSize: Qt.size(2 * width, 2 * height)
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
+                // A picture that can't be read wears its kind's icon.
+                onStatusChanged: if (status === Image.Error && thing.modelData.spare) source = thing.modelData.spare
             }
 
             Label {

@@ -37,8 +37,12 @@ StackGrid {
     // A picture is its own icon; anything else wears its kind's, by the
     // icon theme's names (text/plain is text-plain, or text-x-generic).
     function iconFor(kind, path) {
-        if (/^image\/(png|jpeg|gif|webp|bmp|svg\+xml)$/.test(kind))
+        if (stack.pictures.test(kind))
             return "file://" + path.split("/").map(encodeURIComponent).join("/");
+        return stack.kindIcon(kind);
+    }
+    readonly property var pictures: /^image\/(png|jpeg|gif|webp|bmp|svg\+xml)$/
+    function kindIcon(kind) {
         if (kind === "inode/directory") return Quickshell.iconPath("folder", "inode-directory");
         const family = kind.split("/")[0];
         return Quickshell.iconPath(kind.replace("/", "-"), family === "application" ? "unknown" : family + "-x-generic");
@@ -56,7 +60,9 @@ StackGrid {
                 stack.items = text.split("\n").filter(line => line.includes("\t")).map(line => {
                     const tab = line.indexOf("\t");
                     const name = line.slice(tab + 1);
-                    return { name: name, path: folder + "/" + name, icon: stack.iconFor(line.slice(0, tab), folder + "/" + name) };
+                    const kind = line.slice(0, tab);
+                    // `spare` is what a picture that can't be read wears instead.
+                    return { name: name, path: folder + "/" + name, icon: stack.iconFor(kind, folder + "/" + name), spare: stack.kindIcon(kind) };
                 });
                 stack.loading = false;
             }

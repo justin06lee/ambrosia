@@ -7,7 +7,7 @@ import { toCss } from "./color";
 import { resolve } from "./resolve";
 import { adopted } from "../../design/icons";
 import { cursorTheme } from "./targets/cursors";
-import { iconTheme } from "./targets/icons";
+import { ART, iconTheme, type Art } from "./targets/icons";
 import { fontEnvironment, fontconfig } from "./targets/fontconfig";
 import { gtk3, gtk4, titlebuttonGlyphs } from "./targets/gtk";
 import { kdecoration } from "./targets/kdecoration";
@@ -25,7 +25,10 @@ const pointer = cursorTheme(r);
 const drawn = Object.fromEntries(
   await Promise.all(Object.keys(adopted).map(async (name) => [name, await Bun.file(join(root, `assets/icons/${name}.svg`)).text()])),
 );
-const icons = iconTheme(drawn);
+const art = Object.fromEntries(
+  await Promise.all(Object.entries(ART).map(async ([name, path]) => [name, await Bun.file(join(root, path)).text()])),
+) as Art;
+const icons = iconTheme(drawn, art);
 
 const files: Record<string, string | Uint8Array> = {
   "web/tokens.css": web(r),
