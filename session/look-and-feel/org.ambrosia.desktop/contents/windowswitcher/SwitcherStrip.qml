@@ -17,6 +17,9 @@ Item {
     property Component icon
     // What to call a row's app.
     property var nameOf: entry => entry.caption
+    // Whether a row's icon is drawn on a tile of its own (ours are); one
+    // that isn't is set on a plain tile.
+    property var tiledOf: entry => true
     signal chosen(int index)
     signal pointed(int index)
 
@@ -70,13 +73,18 @@ Item {
                     color: Theme.color.fill.primary
                 }
 
-                Loader {
-                    readonly property var entry: app.model
+                AppTile {
                     x: strip.pad
                     y: strip.pad
                     width: strip.iconSize
                     height: strip.iconSize
-                    sourceComponent: strip.icon
+                    tiled: strip.tiledOf(app.model)
+
+                    Loader {
+                        readonly property var entry: app.model
+                        anchors.fill: parent
+                        sourceComponent: strip.icon
+                    }
                 }
 
                 Label {

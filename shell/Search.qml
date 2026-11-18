@@ -199,7 +199,7 @@ PanelWindow {
             const name = entry.name.toLowerCase();
             const rank = score(q, name, [name, entry.genericName.toLowerCase()].concat(entry.keywords.map(k => k.toLowerCase())));
             if (rank > 0)
-                found.push({ name: entry.name, detail: entry.genericName || entry.comment, icon: entry.icon, rank: rank + 0.5, open: () => Session.launch(entry.id) });
+                found.push({ name: entry.name, detail: entry.genericName || entry.comment, icon: entry.icon, app: true, rank: rank + 0.5, open: () => Session.launch(entry.id) });
         }
         for (const [id, title, keywords] of off.includes("settings") ? [] : panes) {
             const name = title.toLowerCase().replace("‑", "-");
@@ -361,14 +361,20 @@ PanelWindow {
                         visible: result.highlighted
                     }
 
-                    IconImage {
+                    // An app's icon without a tile of its own gets a plain one.
+                    AppTile {
                         id: appIcon
                         x: Theme.space.s2
                         anchors.verticalCenter: parent.verticalCenter
-                        implicitSize: 32
-                        source: result.modelData.picture ? "file://" + result.modelData.picture
-                            : Quickshell.iconPath(result.modelData.icon, result.modelData.fallback
-                                ?? (result.modelData.icon === "accessories-calculator" ? "accessories-calculator-symbolic" : "application-x-executable"))
+                        width: 32
+                        height: 32
+                        tiled: !result.modelData.app || Theme.tileIcons.includes(result.modelData.icon)
+                        IconImage {
+                            anchors.fill: parent
+                            source: result.modelData.picture ? "file://" + result.modelData.picture
+                                : Quickshell.iconPath(result.modelData.icon, result.modelData.fallback
+                                    ?? (result.modelData.icon === "accessories-calculator" ? "accessories-calculator-symbolic" : "application-x-executable"))
+                        }
                     }
 
                     Column {

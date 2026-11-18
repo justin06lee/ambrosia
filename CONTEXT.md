@@ -144,7 +144,13 @@ package repo below), and they carry `shell/` and `session/` as they are.
    GTK gets them through the session's dconf defaults and the login screen
    its pointer through sddm.conf. The Dock shows every icon of ours at tile
    size (`Theme.tileIcons`, generated; Settings' icon wasn't on the old
-   list). Drawn on the Mac (`dist/icons/sheet.html`,
+   list). **An app icon that isn't ours sits on a plain tile** (round 10,
+   `shell/AppTile.qml`: the Dock, Search's app results, ⌘Tab; it is only
+   QtQuick and is linked into the switcher's folder like Glass.qml).
+   "Ours" is `Theme.tileIcons`; in ⌘Tab the icon's name comes from the
+   KWin module (`Apps.icon`), or the desktop file's own name where a
+   running KWin still holds an older module. Notifications' icons get no
+   tile yet (theirs may be a picture, not an app). Drawn on the Mac (`dist/icons/sheet.html`,
    `dist/cursors/sheet.html`, the review site's Input and Iconography
    chapters) and **seen on tenet's KWin (2026-11-18)**: the arrow, I-beam
    and pointing hand over Firefox, both resize arrows at a window's edge
@@ -229,7 +235,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
    the new one ran there from a copy under another name
    (`~/.local/share/plasma/look-and-feel/<name>/contents/windowswitcher/`,
    `LayoutName=<name>` in the user's kwinrc), and the installed one shows
-   at the next login. Not looked at: dark mode, the pointer choosing, Q.
+   at the next login. Dark, the pointer choosing and Q were looked at the
+   same day (round 10) and work. In KWin's QML don't chain `?.` into a
+   call (`a?.b?.(x)` threw "of null"): test for the function plainly, as
+   `ask()` does.
    **A right-click on the desktop opens a menu** (round 9, 2026-11-18;
    `shell/Wallpaper.qml`): New Folder (makes "untitled folder", or
    "untitled folder 2"…, in ~/Desktop and asks Files to show it, since
@@ -244,8 +253,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
    picture, seen by `make shell-shots`). **Seen on tenet (2026-11-18)**
    with a bottom Dock: just clear of the Dock's glass and centered on the
    tile, newest first, icons by kind, a picture as its own icon, a long
-   name with spaces cut, Open in Files. Not tried: a left or right Dock,
-   clicking a thing, an empty folder and no folder at all.
+   name with spaces cut, Open in Files; and with the Dock on the left and
+   on the right (round 10). Not tried: clicking a thing, an empty folder
+   and no folder at all.
    **The shell itself can be drawn on the Mac** (pieces since round 5,
    the whole desktop since round 8): `make shell-shots` builds
    `tools/qmlshot` (a Qt Quick window that is never shown, drawn into a
@@ -616,6 +626,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
     said false. `tools/live.sh keys` marks them present again. Why they
     dropped out isn't known (the session was a month old and had been
     upgraded under); locking and `reconfigure` don't do it.
+  - **Wake the display first** (`tools/live.sh ui move 600 400`): locked,
+    it sleeps, KWin draws nothing, and a picture comes out dim with the
+    shell's old windows still fading under the new.
+  - The shell's settings are `~/.config/ambrosia/settings.json`, watched:
+    edit `dockPosition`, `appearance` and `dark` there to see a left Dock
+    or dark mode, from a backup you put back.
   - To hold a key for a picture: `ui.py kdown alt key tab sleep 5 kup alt`
     in the background and `spectacle` meanwhile, both on tenet (an SSH
     round trip is too slow).

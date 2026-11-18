@@ -4,7 +4,8 @@ import "../../../session/look-and-feel/org.ambrosia.desktop/contents/windowswitc
 
 // ⌘Tab's strip with a few apps, and with more than fit at full size, over
 // something like a wallpaper. The icons are the theme's own, as files; in
-// KWin they come from each window.
+// KWin they come from each window. One app's icon isn't ours (a plain disc
+// stands for it): it sits on a plain tile.
 Rectangle {
     id: sheet
 
@@ -26,6 +27,7 @@ Rectangle {
         const keys = Object.keys(names);
         const list = [];
         for (let i = 0; i < count; i++) list.push({ caption: names[keys[i % keys.length]], file: keys[i % keys.length] });
+        list.splice(1, 0, { caption: "Browser", file: "" });
         return list;
     }
 
@@ -34,10 +36,25 @@ Rectangle {
         property int apps
         model: ListModel {}
         Component.onCompleted: sheet.apps(apps).forEach(app => model.append(app))
-        icon: Image {
+        tiledOf: entry => entry.file !== ""
+        icon: Item {
             anchors.fill: parent
-            source: parent ? sheet.icons + parent.entry.file + ".svg" : ""
-            sourceSize: Qt.size(2 * width, 2 * height)
+            readonly property string file: parent ? parent.entry.file : ""
+            Image {
+                anchors.fill: parent
+                visible: parent.file !== ""
+                source: parent.file !== "" ? sheet.icons + parent.file + ".svg" : ""
+                sourceSize: Qt.size(2 * width, 2 * height)
+            }
+            Rectangle {
+                anchors.fill: parent
+                visible: parent.file === ""
+                radius: width / 2
+                gradient: Gradient {
+                    GradientStop { position: 0; color: "#ffb340" }
+                    GradientStop { position: 1; color: "#e8452c" }
+                }
+            }
         }
     }
 
