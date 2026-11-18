@@ -75,6 +75,10 @@ package_ambrosia-theme() {
 
   install -Dm644 "$srcdir/nectar-day.png" "$srcdir/nectar-night.png" -t "$pkgdir/usr/share/ambrosia/wallpapers/"
   install -Dm644 "$_root"/assets/wallpapers/*.svg -t "$pkgdir/usr/share/ambrosia/wallpapers/"
+  # The pointer: Xcursor files, KWin's SVGs and the links for every other
+  # name a shape goes by (cp -a keeps them links).
+  install -d "$pkgdir/usr/share/icons"
+  cp -a cursors/Ambrosia "$pkgdir/usr/share/icons/Ambrosia"
   # App icons of our own (Files), for the Dock and the apps.
   install -Dm644 "$_root"/assets/icons/*.svg -t "$pkgdir/usr/share/icons/hicolor/scalable/apps/"
   # Files' folder and document, by name (ambrosia-folder, ambrosia-document)
@@ -130,14 +134,15 @@ package_ambrosia-shell() {
   # ahead of /etc/xdg/ambrosia, so the session's colors live in one of ours.
   cp -r session/look-and-feel/. "$pkgdir/usr/share/plasma/look-and-feel/"
   install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/kwinrulesrc session/xdg/breezerc session/xdg/mimeapps.list \
-    session/xdg/kcminputrc session/xdg/konsolerc -t "$pkgdir/etc/xdg/ambrosia/"
+    session/xdg/kcminputrc session/xdg/konsolerc session/xdg/klaunchrc -t "$pkgdir/etc/xdg/ambrosia/"
   # Konsole's profile and key table for the session (konsolerc names the
   # profile): Command chords Konsole has no use for don't reach the shell.
   install -Dm644 session/konsole/Ambrosia.profile session/konsole/ambrosia.keytab -t "$pkgdir/usr/share/konsole/"
   # The session's GSettings defaults (DCONF_PROFILE=ambrosia); dconf's own
   # pacman hook compiles the database.
   install -Dm644 session/dconf/profile "$pkgdir/etc/dconf/profile/ambrosia"
-  install -Dm644 session/dconf/ambrosia.d/00-window-controls -t "$pkgdir/etc/dconf/db/ambrosia.d/"
+  install -Dm644 session/dconf/ambrosia.d/00-window-controls session/dconf/ambrosia.d/01-pointer \
+    -t "$pkgdir/etc/dconf/db/ambrosia.d/"
 }
 
 package_ambrosia-files() {

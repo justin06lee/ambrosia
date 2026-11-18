@@ -27,10 +27,17 @@ it is a copy.
 
 ### Always in front of you
 
-1. **The pointer.** Breeze's arrow and hand (`cursorTheme=breeze_cursors`).
-   A Mac's is a black arrow with a white rim and a soft shadow, and every
-   other shape follows it. *In progress, round 1: a pointer theme of our own
-   (`assets/cursors/`), built by the generator.*
+1. **The pointer: built, not yet seen on KWin.** A theme of our own since
+   round 1 (`design/cursors.ts`): a Mac's black arrow with its white rim and
+   soft shadow, white hands, the I-beam, resize arrows, badges for copy,
+   alias and not-allowed, and a wheel in the accent colors for busy. It
+   stays here until it has been looked at on tenet: KWin drawing the SVGs,
+   the wheel turning, an Xwayland app, a GTK app, the login screen. Shapes
+   still Breeze's (through `Inherits`): the skull of Kill Window, the color
+   picker, the pencil. With it, KWin's launch feedback (the app's icon
+   bouncing beside the pointer) is off in the session
+   (`session/xdg/klaunchrc`): the Dock's icon bounces instead, as a Mac's
+   does. Also to look at on tenet.
 2. **Other apps' icons.** Only Files and Settings have icons of ours; every
    other app in the Dock, in Search and in Files' Applications shows Breeze's
    (flat, no tile). A Mac's are all on one rounded tile. Needs an icon theme:
@@ -70,8 +77,8 @@ it is a copy.
 10. **⌘H and ⌘Q.** ⌘H minimizes one window instead of hiding the app; ⌘Q
     only works where the app has Ctrl+Q (`docs/keyboard.md`).
 11. **The Dock's right side.** No minimized windows, no stacks (Downloads is
-    a tile that opens the folder, not a fan or grid), no recent apps, no
-    bounce while an app starts. Seen (VM, 2026-11-10).
+    a tile that opens the folder, not a fan or grid), no recent apps. From
+    the code and `CONTEXT.md`.
 12. **Tiling.** Dragging a window to an edge and the green button's menu
     (Move & Resize, Full Screen on a display) are KWin's quick-tile with its
     own outline. From the code.
@@ -144,3 +151,4 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 1, 2026-11-18 | 1, the pointer | The "Ambrosia" pointer theme: 24 shapes drawn in `design/cursors.ts`, generated as Xcursor files, KWin SVGs and CSS; named by the look-and-feel, the session's GTK defaults and the login screen; in the preview and the review site | On the Mac: every shape looked over on `dist/cursors/sheet.html` (light, dark and mid grounds, hotspots marked) and in the review site's Input chapter; tests for the file format, sizes, hotspots on ink and the names apps ask for. Not on KWin: tenet doesn't take this Mac's key yet |

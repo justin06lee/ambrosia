@@ -43,6 +43,13 @@ mkdir -p "$data/ambrosia/qml"
 cp -R "$dist/qml/Ambrosia" "$data/ambrosia/qml/"
 echo "  $data/ambrosia/qml/Ambrosia"
 
+# The pointer theme, links and all. Choose it in the desktop's settings
+# ("Ambrosia"), or: plasma-apply-cursortheme Ambrosia
+rm -rf "$data/icons/Ambrosia"
+mkdir -p "$data/icons"
+cp -a "$dist/cursors/Ambrosia" "$data/icons/"
+echo "  $data/icons/Ambrosia"
+
 if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
   scheme=AmbrosiaLight
   [ "$mode" = dark ] && scheme=AmbrosiaDark

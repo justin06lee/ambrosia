@@ -44,7 +44,8 @@
         "tools/gen/index.ts",
         "tools/gen/resolve.ts",
         "tools/gen/color.ts",
-        "tools/gen/spring.ts"
+        "tools/gen/spring.ts",
+        "tools/gen/xcursor.ts"
       ]
     },
     {
@@ -433,13 +434,20 @@
           "files": [
             "design/tokens.ts"
           ]
+        },
+        {
+          "name": "The pointer's shapes (arrow, hands, I-beam, resize arrows, badges, the busy wheel), hotspots and other names",
+          "files": [
+            "design/cursors.ts"
+          ]
         }
       ],
       "flows": [],
       "files": [
         "design/tokens.ts — the single source of truth: font/type/tracking, space, radius, OKLCH color pairs, window frame, glass, shadow, springs",
         "design/DESIGN.md — reasoning behind the numbers before retuning values",
-        "design/DECISIONS.md — recorded design decisions behind token choices"
+        "design/DECISIONS.md — recorded design decisions behind token choices",
+        "design/cursors.ts — every pointer shape as paths on a 32-unit canvas (nominal size 24), in groups painted rim-then-ink; pointers(colors) takes the token colors it borrows from the generator"
       ],
       "rules": [
         "Never hand-edit generated output in dist/; change design/tokens.ts and regenerate.",
@@ -449,7 +457,8 @@
         "Window-control colours (traffic lights, light and dark) are measured from macOS 26; light-mode traffic-light colours match the dark-mode ones on the Mac.",
         "Traffic-light edges are a thin darker shade of each light's own colour, not grey.",
         "Menus snap open instantly with no open animation (close fades 120ms); control-center panel is blur-only with no fill, border, or shadow, controls carry their own glass.",
-        "font.ui lists Inter Variable before the static Inter: Qt maps Inter.ttc (13 MB, every cut) once per weight. Weight 700 then needs QT_NO_SYNTHESIZED_BOLD (session font environment), or Qt fakes bold over the variable font's real Bold."
+        "font.ui lists Inter Variable before the static Inter: Qt maps Inter.ttc (13 MB, every cut) once per weight. Weight 700 then needs QT_NO_SYNTHESIZED_BOLD (session font environment), or Qt fakes bold over the variable font's real Bold.",
+        "Pointer shapes are drawn by hand in design/cursors.ts: never extract or trace Apple's cursor images, even though the look (black ink, white rim, soft shadow) follows a Mac's."
       ],
       "edges": [
         "Generator Core — resolves design/tokens.ts: OKLCH to sRGB, contrast, springs, dist orchestration",
@@ -761,6 +770,14 @@
           "files": [
             "tools/gen/targets/kdecoration.ts"
           ]
+        },
+        {
+          "name": "Pointer theme (Xcursor files, KWin's cursors_scalable SVGs, web/cursors.css, the look-over sheet)",
+          "files": [
+            "tools/gen/targets/cursors.ts",
+            "design/cursors.ts",
+            "tools/gen/xcursor.ts"
+          ]
         }
       ],
       "flows": [
@@ -781,7 +798,8 @@
         "tools/gen/targets/qml.ts — Ambrosia QML singleton tree with Theme.dark / Theme.accentName switching",
         "tools/gen/targets/web.ts — --amb-* CSS custom properties for preview/web surfaces",
         "tools/gen/targets/fontconfig.ts — sans-serif/monospace aliases, rasterization defaults, and the session's font environment (FreeType stem darkening, QT_NO_SYNTHESIZED_BOLD)",
-        "tools/gen/targets/kdecoration.ts — dist/kdecoration/tokens.h: the frame's sizes, per-mode colors, window-button shapes, light edge and shadow layers for the decoration plugin"
+        "tools/gen/targets/kdecoration.ts — dist/kdecoration/tokens.h: the frame's sizes, per-mode colors, window-button shapes, light edge and shadow layers for the decoration plugin",
+        "tools/gen/targets/cursors.ts — dist/cursors/Ambrosia (index.theme, cursors/, cursors_scalable/ with metadata.json), dist/web/cursors.css (--amb-cursor-* and --amb-pointer-*), dist/cursors/sheet.html; rasterizes with @resvg/resvg-js"
       ],
       "rules": [
         "Do not edit generated output; every file carries HEADER pointing back to design/tokens.ts via tools/gen.",
@@ -796,7 +814,9 @@
         "Traffic-light colours are the same in light and dark mode, as on macOS; do not give light mode its own set.",
         "The traffic-light edge is a thin darker shade of each light's own colour, not a grey ring; the KWin frame and GTK draw it that way.",
         "GTK lights move to the left only in sessions started after that setting shipped; a running session keeps the old placement, so check on a fresh login.",
-        "Qt fakes bold for weight ≥700 when the face's OS/2 weight class is under 700. Variable fonts report their default instance (Inter Variable says 400), so their real Bold gets thickened again. fontEnvironment() sets QT_NO_SYNTHESIZED_BOLD=1, which startambrosia sources at login. fontconfig's embolden doesn't reach Qt."
+        "Qt fakes bold for weight ≥700 when the face's OS/2 weight class is under 700. Variable fonts report their default instance (Inter Variable says 400), so their real Bold gets thickened again. fontEnvironment() sets QT_NO_SYNTHESIZED_BOLD=1, which startambrosia sources at login. fontconfig's embolden doesn't reach Qt.",
+        "KWin draws cursors_scalable SVGs with Qt's SVG reader, which has no filters: the pointer's shadow is blurred once by resvg and embedded as a PNG <image>; only the web variant uses feGaussianBlur. A test rejects <filter> in the theme's SVGs.",
+        "resvg-js returns premultiplied RGBA, which is what Xcursor wants: don't premultiply again. Pass font.loadSystemFonts false or every render scans the system's fonts."
       ],
       "edges": [
         "Design Tokens — reads type, color, font, shadow token definitions as input vocabulary",
@@ -1240,12 +1260,14 @@
         "tools/gen/index.ts — orchestrates generation: resolves once, formats every target, writes dist/",
         "tools/gen/color.ts — OKLCH parsing, OKLCH to sRGB with gamut mapping, compositing, contrast, and output formatters",
         "tools/gen/spring.ts — solves (response, damping) springs into stiffness/damping, settle duration, and sampled curve",
-        "tools/gen/targets/kdecoration.ts — KWin window frame colours and light metrics from the Resolved model"
+        "tools/gen/targets/kdecoration.ts — KWin window frame colours and light metrics from the Resolved model",
+        "tools/gen/xcursor.ts — writes (and, for tests, reads) Xcursor files: every size and frame of one pointer shape, premultiplied RGBA in"
       ],
       "rules": [
         "Never read design/tokens.ts directly from a target for colors — go through resolve() so derived accents and flattened labels agree everywhere.",
         "Never bypass color.ts gamut mapping and contrast helpers with ad-hoc conversion — out-of-gamut OKLCH and unreadable text result.",
-        "Keep Resolved/ResolvedMode/ResolvedAccent shapes stable — every formatter in tools/gen/targets/ depends on them."
+        "Keep Resolved/ResolvedMode/ResolvedAccent shapes stable — every formatter in tools/gen/targets/ depends on them.",
+        "index.ts writes text or bytes, then the pointer theme's alias symlinks; dist/cursors/Ambrosia must be copied with cp -a so the links stay links."
       ],
       "edges": [
         "Design Tokens — sole input: reads design/tokens.ts types and values, never the reverse",

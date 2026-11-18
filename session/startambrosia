@@ -13,19 +13,24 @@ export XDG_CONFIG_DIRS="/etc/xdg/ambrosia:${XDG_CONFIG_DIRS:-/etc/xdg}"
 # window controls on the left (/etc/dconf/db/ambrosia.d).
 export DCONF_PROFILE=ambrosia
 
-# The look-and-feel's window decoration, kept current in Plasma's copy of its
-# defaults: Plasma rewrites ~/.config/kdedefaults only when the look-and-feel
-# package's name changes, so users from before a new decoration keep the old.
+# The look-and-feel's window decoration and pointer, kept current in Plasma's
+# copy of its defaults: Plasma rewrites ~/.config/kdedefaults only when the
+# look-and-feel package's name changes, so users from before a new decoration
+# or pointer keep the old. One the user picked (their own kwinrc, kcminputrc)
+# still wins.
 lnf=/usr/share/plasma/look-and-feel/org.ambrosia.desktop/contents/defaults
 config=${XDG_CONFIG_HOME:-$HOME/.config}
-for key in library theme; do
-  value=$(kreadconfig6 --file "$lnf" --group kwinrc --group org.kde.kdecoration2 --key "$key")
+keep_current() { # file group key
+  value=$(kreadconfig6 --file "$lnf" --group "$1" --group "$2" --key "$3")
   if [ -n "$value" ]; then
-    kwriteconfig6 --file "$config/kdedefaults/kwinrc" --group org.kde.kdecoration2 --key "$key" "$value"
+    kwriteconfig6 --file "$config/kdedefaults/$1" --group "$2" --key "$3" "$value"
   else
-    kwriteconfig6 --file "$config/kdedefaults/kwinrc" --group org.kde.kdecoration2 --key "$key" --delete
+    kwriteconfig6 --file "$config/kdedefaults/$1" --group "$2" --key "$3" --delete
   fi
-done
+}
+keep_current kwinrc org.kde.kdecoration2 library
+keep_current kwinrc org.kde.kdecoration2 theme
+keep_current kcminputrc Mouse cursorTheme
 # Ambrosia's frame used to be an Aurorae theme the shell wrote into the user's
 # own kwinrc; that copy would outrank the plugin, so it goes. A decoration the
 # user picked stays.
