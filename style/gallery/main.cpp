@@ -340,7 +340,11 @@ int main(int argc, char **argv)
     QAction *unticked = menu.addAction(QStringLiteral("Show Path Bar"));
     unticked->setCheckable(true);
     menu.addSeparator();
-    menu.addAction(QStringLiteral("Move to Trash"))->setEnabled(false);
+    menu.addAction(QStringLiteral("Save As…"))->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
+    menu.addAction(QStringLiteral("Back"))->setShortcut(QKeySequence(Qt::ALT | Qt::Key_Left));
+    QAction *trash = menu.addAction(QStringLiteral("Move to Trash"));
+    trash->setShortcut(QKeySequence(Qt::Key_Delete));
+    trash->setEnabled(false);
     menu.addAction(QStringLiteral("Quit"))->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Q));
     menu.ensurePolished();
     menu.resize(menu.sizeHint());
