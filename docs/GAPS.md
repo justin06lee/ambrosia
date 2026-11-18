@@ -1,0 +1,146 @@
+# What still tells Ambrosia from a Mac
+
+The running list. The goal is a desktop nobody can tell from macOS 26 in look
+and feel; this is everything known to fall short of that, biggest first. Work
+goes in rounds: take the top gap that can be built and checked, build it,
+look at it (a screenshot, or the thing driven for real), commit, strike it
+here, take the next.
+
+**How it's ranked:** by how much of the time the gap is in front of you,
+then by how wrong it looks. The pointer is on screen always; a print dialog
+once a month.
+
+**What each line says:** the gap, where it stands, and how it was (or will
+be) checked. "Seen" means a screenshot or a real run; "from the code" means
+nobody has looked yet since this list began (2026-11-18), and the line may be
+kinder or harsher than the truth. `CONTEXT.md` says where each lane's work
+stands in detail; `docs/finder/PLAN.md`, `docs/settings/PLAN.md` and
+`docs/keyboard.md` keep their own lists, which this one points at rather than
+repeats.
+
+**Not ours to match:** Apple's own drawings, fonts and sounds. Every icon,
+pointer, wallpaper and sound is drawn or made here (DESIGN, the Dock's rules).
+A gap closes when ours sits where the Mac's does and reads the same, not when
+it is a copy.
+
+## Open, biggest first
+
+### Always in front of you
+
+1. **The pointer.** Breeze's arrow and hand (`cursorTheme=breeze_cursors`).
+   A Mac's is a black arrow with a white rim and a soft shadow, and every
+   other shape follows it. *In progress, round 1: a pointer theme of our own
+   (`assets/cursors/`), built by the generator.*
+2. **Other apps' icons.** Only Files and Settings have icons of ours; every
+   other app in the Dock, in Search and in Files' Applications shows Breeze's
+   (flat, no tile). A Mac's are all on one rounded tile. Needs an icon theme:
+   at least the apps a new install starts with (Firefox keeps its own mark,
+   on a tile), the folder and document kinds Files draws already, and the
+   status and action glyphs Qt apps ask for by name. From the code.
+3. **Other Qt apps' controls.** Breeze's widget style draws Konsole, Kate,
+   Dolphin, the file dialog: its buttons, checkboxes, scrollbars, tabs, and
+   menus (radius and row height can't be changed from a color scheme). Needs
+   a QStyle of our own (roadmap 5). From the code.
+4. **GTK apps beyond colors.** GTK 3 and 4 get our colors and the traffic
+   lights; the controls are Adwaita's. GTK 4's CSS has never been looked at
+   (no GTK 4 app on tenet). From the docs.
+5. **Glass.** KWin blurs every surface the same and with hard edges: the
+   design's heavy, saturated blur behind menus and the Dock, the light one
+   behind the control center, its feathered edge, and refraction at the rim
+   all wait for a compositor effect of our own (roadmap 4). Seen (parity pass,
+   2026-10-20).
+
+### Every few minutes: windows and motion
+
+6. **How windows open, close and minimize.** KWin's own effects with their
+   own curves; Settings switches Genie (Magic Lamp) and Scale (Squash) for
+   minimizing, but nothing moves on the spring tokens and a minimized window
+   doesn't land on its Dock tile. From the code.
+7. **⌘Tab.** KWin's switcher, walking windows. A Mac's walks apps: one large
+   icon each on a glass strip, the name under the chosen one, ⌘Q and ⌘H
+   acting on it while it's up. A switcher layout of ours and KWin's
+   one-window-per-app mode get most of it. From the code and
+   `docs/keyboard.md`.
+8. **Mission Control and Spaces.** KWin's Overview is there but unstyled and
+   on no Mac key or gesture (F3, ⌃↑, three fingers up; ⌃← ⌃→ and a swipe
+   between desktops; ⌃↓ for one app's windows). From the code.
+9. **Volume and brightness keys show nothing.** Plasma's own display for
+   them lives in plasmashell, which doesn't run here. A Mac shows a small
+   glass capsule under the menu bar's right end. From the code.
+10. **⌘H and ⌘Q.** ⌘H minimizes one window instead of hiding the app; ⌘Q
+    only works where the app has Ctrl+Q (`docs/keyboard.md`).
+11. **The Dock's right side.** No minimized windows, no stacks (Downloads is
+    a tile that opens the folder, not a fan or grid), no recent apps, no
+    bounce while an app starts. Seen (VM, 2026-11-10).
+12. **Tiling.** Dragging a window to an edge and the green button's menu
+    (Move & Resize, Full Screen on a display) are KWin's quick-tile with its
+    own outline. From the code.
+13. **Screenshots.** ⇧⌘3/4/5 run Spectacle with its own window; a Mac shows
+    a floating toolbar, then a thumbnail in the corner that can be dragged
+    or opens Markup. From `docs/keyboard.md`.
+14. **The desktop itself.** No icons on it, no right-click menu, no widgets,
+    no stacks. From the code.
+15. **Trackpad gestures.** Whatever KWin does out of the box; nothing set
+    to a Mac's (swipe between desktops and full-screen apps, Mission Control,
+    pinch for the apps, two-finger swipe from the right edge for Notification
+    Center). No real trackpad has been tried (`CONTEXT.md`).
+16. **Menu bar extras from apps.** Apps' own status items (the tray) don't
+    show; Sound, Bluetooth and the input source have no item of their own
+    beside Wi-Fi, the battery and the control center. From the code.
+
+### System surfaces
+
+17. **The lock screen.** KDE's locker in Breeze's look; the login screen is
+    ours (`packaging/sddm-theme`) and the two should be one picture. From the
+    code.
+18. **Starting up and shutting down.** No boot picture (Plymouth), kernel
+    text on the way up and down; the image's UEFI menu is text (Needs Justin
+    in `CONTEXT.md`).
+19. **Password prompts.** polkit's and KWallet's dialogs are KDE's. A Mac's
+    is a small sheet with the app's icon and a lock.
+20. **Open and Save.** KDE's file dialog; ours should be Files' own panes, in
+    every app, through the desktop portal (roadmap 6).
+21. **Print, colors, fonts, emoji.** Qt's print dialog and color picker,
+    KDE's emoji picker.
+22. **Force Quit.** ⌥⌘Esc gives KWin's skull pointer to click a window with,
+    not a list of apps.
+23. **Sounds.** No sounds of our own: the alert, the Trash, a screenshot, the
+    volume step.
+24. **The first minutes.** The installer asks with kdialog; a new account
+    lands on the desktop with no welcome (roadmap 7).
+
+### Apps
+
+25. **The apps a Mac comes with.** Ours: Files, Settings. Stand-ins, in
+    Breeze's dress: Konsole (Terminal), Kate (TextEdit), Gwenview and Okular
+    (Preview), KCalc (Calculator), Ark (Archive Utility), Discover (App
+    Store), Spectacle (Screenshot), Firefox (Safari). Nothing yet for
+    Activity Monitor, Disk Utility, Calendar, Notes, Reminders, Music,
+    Photos, Mail, Font Book. Which to build and which to dress is the
+    largest open piece of work on this list.
+26. **Files.** `docs/finder/PLAN.md`, "Still short of Finder": Open With,
+    Compress and Share in the menu, tag rename and delete, spring-loaded
+    folders, tabs, Quick Look's black full screen.
+27. **Settings.** What each pane leaves out is in `docs/settings/PLAN.md`
+    and `CONTEXT.md` (Next, 7): the trackpad's gesture tabs, scanners,
+    VoiceOver, and the sheets still of our own design.
+
+### Feel
+
+28. **Scrolling.** No rubber band at the end of a list and no momentum
+    carried between apps the way a Mac's trackpad does; each toolkit scrolls
+    its own way. Not measured.
+29. **Text.** Inter stands in for San Francisco by decision; how it sets
+    (weight at small sizes, emoji, the system's CJK faces) has only been
+    compared in Settings and Files.
+
+## Closed
+
+Nothing since the list began. What was built before it (the menu bar, Search,
+the Dock, the control center, Notification Center, the window frame, the
+login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
+
+## Rounds
+
+| Round | Gap | What was built | Checked how |
+|---|---|---|---|

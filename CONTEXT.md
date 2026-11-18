@@ -4,6 +4,13 @@ Read this first when picking the project back up. It records where things
 stand, how the work runs, and what's next. The README covers the project
 itself, `design/DESIGN.md` the rules, and `design/DECISIONS.md` the choices.
 
+**The standing goal (Justin, 2026-11-18):** keep building until Ambrosia can't
+be told from macOS in look and feel. Work in rounds: take the biggest visible
+gap, build it, check it with a screenshot, commit, take the next.
+`docs/GAPS.md` is the running list, ranked, with a log of the rounds; keep it
+current. Ask Justin only about architecture (platforms, the base distro, the
+compositor); decide the rest.
+
 ## What this is
 
 A Linux distro on Arch that looks and feels like macOS: glass, springs, one
@@ -312,6 +319,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
 
 ## Needs Justin
 
+- **tenet's door for the Mac mini.** Until tenet takes this Mac's key,
+  nothing of the real shell can be built, run or photographed from here.
+  On the Mac mini: `ssh-copy-id tenet` (asks for the tenet password once),
+  then `ssh -t tenet "sudo sh -c 'tail -n1 /home/justin06lee/.ssh/authorized_keys >> /root/.ssh/authorized_keys'"`
+  for root. Publishing also needs the signing key copied from its backup
+  into `~/.config/ambrosia/gnupg`.
 - The image's UEFI boot menu is plain text (systemd-boot draws no pictures).
   A picture there means starting the image with GRUB instead (archiso's
   `uefi.grub`), a boot path not yet proven on tenet's hardware: wanted?
@@ -329,10 +342,21 @@ package repo below), and they carry `shell/` and `session/` as they are.
 
 ## Machines
 
-- **This Mac:** where the repo lives
-  (`/Volumes/T7/Stockpile/Workspace/github.com/justin06lee/ambrosia`). No Qt or
-  GTK; Docker is installed but its daemon is off. Don't start Docker Desktop
-  without asking.
+- **This Mac** (since 2026-11-16): a Mac mini (M4, 16 GB, macOS 26,
+  `justins-mac-mini-1` on the tailnet); the repo is at
+  `~/code/github.com/justin06lee/ambrosia`. bun and gh are set up; no Qt, GTK,
+  Docker or VM tool. Three things didn't come across from the MacBook and the
+  T7 drive: **tenet doesn't accept this Mac's SSH key yet** (`ssh tenet`
+  reaches it over Tailscale and is refused; `ssh-copy-id tenet` and the same
+  key for root put it right, see Needs Justin), **the signing key**
+  (`~/.config/ambrosia/gnupg`; its backup is on the T7, so nothing can be
+  published from here until it's restored), and the old worktrees
+  (`.worktrees/` on the T7; their branches are all merged). The Makefile's
+  `HOST` and `AMBROSIA_RSH` still name the MacBook's key and tenet's old LAN
+  address: until they change, `make HOST=tenet AMBROSIA_RSH=ssh <target>`.
+- **The MacBook** (8 GB, before 2026-11-16): where the repo used to live
+  (`/Volumes/T7/Stockpile/Workspace/github.com/justin06lee/ambrosia`), with
+  the key tenet knows (`~/.ssh/id_ed25519_justin`).
 - **tenet:** i7-10700, 16 GB, GTX 1660 Ti on nvidia-open, an LG UltraGear
   over HDMI at 2560x1440, now running Ambrosia (one 915 GB root partition).
   **The user gave full permission to run any command on tenet as root**
