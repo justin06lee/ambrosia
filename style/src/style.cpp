@@ -13,11 +13,14 @@
 #include "tokens.h"
 
 #include <QAbstractItemView>
+#include <QAction>
 #include <QApplication>
 #include <QBasicTimer>
 #include <QComboBox>
 #include <QElapsedTimer>
+#include <QHash>
 #include <QHeaderView>
+#include <QKeySequence>
 #include <QLayout>
 #include <QListView>
 #include <QMenu>
@@ -283,6 +286,83 @@ QFont smaller(QFont font)
         font.setPixelSize(qRound(font.pixelSize() * T::caption));
     }
     return font;
+}
+
+// A menu row's shortcut as a Mac prints it: the modifiers as ⌃⌥⇧⌘ in that
+// order, then the key, arrows and editing keys as their symbols. On the
+// Mac-first keyboard (docs/keyboard.md) the Command key reaches an app as
+// Ctrl, so its Ctrl reads ⌘ and its Meta ⌃, as in the shell's menus
+// (shell/MenuView.qml). Text that isn't a shortcut is left as it is.
+QString macShortcut(const QString &text)
+{
+    static QHash<QString, QString> known;
+    const auto found = known.constFind(text);
+    if (found != known.constEnd()) {
+        return *found;
+    }
+    static const QHash<int, QString> glyphs = {
+        {Qt::Key_Up, QStringLiteral("↑")},        {Qt::Key_Down, QStringLiteral("↓")},     {Qt::Key_Left, QStringLiteral("←")},
+        {Qt::Key_Right, QStringLiteral("→")},     {Qt::Key_Return, QStringLiteral("↩")},   {Qt::Key_Enter, QStringLiteral("⌤")},
+        {Qt::Key_Tab, QStringLiteral("⇥")},       {Qt::Key_Backtab, QStringLiteral("⇤")},  {Qt::Key_Backspace, QStringLiteral("⌫")},
+        {Qt::Key_Delete, QStringLiteral("⌦")},    {Qt::Key_Escape, QStringLiteral("⎋")},   {Qt::Key_PageUp, QStringLiteral("⇞")},
+        {Qt::Key_PageDown, QStringLiteral("⇟")},  {Qt::Key_Home, QStringLiteral("↖")},     {Qt::Key_End, QStringLiteral("↘")},
+    };
+    QStringList keys;
+    const QKeySequence sequence = QKeySequence::fromString(text, QKeySequence::NativeText);
+    for (int i = 0; i < sequence.count(); ++i) {
+        const QKeyCombination each = sequence[i];
+        if (each.key() == Qt::Key_unknown) {
+            keys.clear();
+            break;
+        }
+        QString one;
+        if (each.keyboardModifiers() & Qt::MetaModifier) {
+            one += QStringLiteral("⌃");
+        }
+        if (each.keyboardModifiers() & Qt::AltModifier) {
+            one += QStringLiteral("⌥");
+        }
+        if (each.keyboardModifiers() & Qt::ShiftModifier) {
+            one += QStringLiteral("⇧");
+        }
+        if (each.keyboardModifiers() & Qt::ControlModifier) {
+            one += QStringLiteral("⌘");
+        }
+        const auto glyph = glyphs.constFind(each.key());
+        keys << one + (glyph != glyphs.constEnd() ? *glyph : QKeySequence(each.key()).toString(QKeySequence::PortableText));
+    }
+    const QString mac = keys.isEmpty() ? text : keys.join(QLatin1Char(' '));
+    if (known.size() > 1024) {
+        known.clear();
+    }
+    known.insert(text, mac);
+    return mac;
+}
+
+// How much narrower a menu's shortcuts are as a Mac prints them than as Qt
+// measured them: QMenu adds the widest it measured to every row itself.
+int shortcutsSaved(const QMenu *menu, const QFontMetrics &metrics)
+{
+    int measured = 0;
+    int drawn = 0;
+    const QList<QAction *> actions = menu->actions();
+    for (const QAction *action : actions) {
+        if (action->isSeparator() || !action->isVisible()) {
+            continue;
+        }
+        const qsizetype tab = action->text().indexOf(QLatin1Char('\t'));
+        QString shortcut;
+        if (tab >= 0) {
+            shortcut = action->text().mid(tab + 1);
+        } else if (action->isShortcutVisibleInContextMenu() && !action->shortcut().isEmpty()) {
+            shortcut = action->shortcut().toString(QKeySequence::NativeText);
+        }
+        if (!shortcut.isEmpty()) {
+            measured = qMax(measured, metrics.horizontalAdvance(shortcut));
+            drawn = qMax(drawn, metrics.horizontalAdvance(macShortcut(shortcut)));
+        }
+    }
+    return measured - drawn;
 }
 
 // One color laid over another, for where Qt wants a color with no alpha.
@@ -737,6 +817,9 @@ QSize Style::sizeFromContents(ContentsType type, const QStyleOption *option, con
         }
         if (item->reservedShortcutWidth > 0) {
             width += T::menuShortcutGap;
+        }
+        if (const auto *menu = qobject_cast<const QMenu *>(widget)) {
+            width = qMax(width - shortcutsSaved(menu, item->fontMetrics), 0);
         }
         // Room for a submenu's arrow on every row, so the shortcuts line up.
         if (!qobject_cast<const QComboBox *>(widget)) {
@@ -1456,7 +1539,7 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
         painter->drawText(QRectF(x, r.top(), right - x, r.height()), Qt::AlignVCenter | Qt::AlignLeft | Qt::TextSingleLine | Qt::TextHideMnemonic, title);
         if (tab >= 0) {
             painter->setPen(faint);
-            painter->drawText(QRectF(x, r.top(), right - x, r.height()), Qt::AlignVCenter | Qt::AlignRight | Qt::TextSingleLine, item->text.mid(tab + 1));
+            painter->drawText(QRectF(x, r.top(), right - x, r.height()), Qt::AlignVCenter | Qt::AlignRight | Qt::TextSingleLine, macShortcut(item->text.mid(tab + 1)));
         }
         if (item->menuItemType == QStyleOptionMenuItem::SubMenu) {
             chevron(painter, QRectF(right - 8, r.top(), 8, r.height()), item->direction == Qt::RightToLeft ? Qt::LeftArrow : Qt::RightArrow, faint, 3.5);
