@@ -4,7 +4,7 @@ import QtQuick
 import Ambrosia
 
 // A screen's layer for transient UI: menus, the control center, the
-// notification center and confirmations. While something is open it covers the screen below the menu
+// notification center, a Dock stack and confirmations. While something is open it covers the screen below the menu
 // bar, so a click anywhere else closes it and goes no further, as on a Mac.
 // The menu bar stays uncovered, so moving along its titles switches menus.
 //
@@ -53,6 +53,7 @@ PopupWindow {
             if (controlCenter.shown) list.push(controlCenter.blurArea);
             if (notificationCenter.shown) list.push(notificationCenter.blurArea);
             if (confirm.visible) list.push(confirm.blurArea);
+            if (stack.visible) list.push(stack.blurArea);
             return list;
         }
     }
@@ -157,6 +158,19 @@ PopupWindow {
             open: overlay.active && Popups.kind === "notificationCenter"
             anchors { top: parent.top; right: parent.right; topMargin: Theme.space.s1_5; rightMargin: Theme.space.s2 }
             maxHeight: area.height - Theme.space.s1_5 - Theme.space.s2
+        }
+
+        // A Dock stack grows away from the Dock, from the point it was
+        // opened at, and stays on the screen.
+        Stack {
+            id: stack
+            visible: overlay.active && Popups.kind === "stack"
+            request: Popups.stack
+            readonly property string edge: request?.edge ?? "bottom"
+            x: Math.max(Theme.space.s2, Math.min(area.width - width - Theme.space.s2,
+                edge === "left" ? request.x : edge === "right" ? request.x - width : (request?.x ?? 0) - width / 2))
+            y: Math.max(Theme.space.s2, Math.min(area.height - height - Theme.space.s2,
+                edge === "bottom" ? (request?.y ?? 0) - height : (request?.y ?? 0) - height / 2))
         }
 
         ConfirmDialog {

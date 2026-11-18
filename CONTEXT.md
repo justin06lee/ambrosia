@@ -224,6 +224,16 @@ package repo below), and they carry `shell/` and `session/` as they are.
    (KWin.Workspace.windowList() by internalId), dark mode following the
    scheme, ← → and Q, the pointer, a user whose kwinrc already has a
    `[TabBox]` group (theirs wins).
+   **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
+   grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
+   kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the
+   picture, seen by `make shell-shots`). **Not run under Quickshell.** To
+   do on tenet: click Downloads with a bottom, a left and a right Dock (the
+   grid should sit just clear of the Dock's glass, centered on the tile);
+   icons by kind (`Quickshell.iconPath` with names like `application-pdf`,
+   falling back to `text-x-generic`, `unknown`); a picture as its own
+   icon; a name with spaces or a `#`; clicking a thing, the button, away,
+   Escape; an empty folder and no folder at all.
    **Pieces of the shell can be drawn on the Mac** since round 5:
    `make shell-shots` builds `tools/qmlshot` (a Qt Quick window that is
    never shown, drawn once into a picture with the real renderer) and

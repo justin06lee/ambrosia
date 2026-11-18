@@ -82,6 +82,10 @@ export const size = {
   /** What the volume and brightness keys show: a capsule as wide as the
    *  control center's modules, under the menu bar's right end. */
   hud: { width: 276, height: 44, padding: 16, glyph: 18, gap: 12 },
+  /** A Dock stack opened (Downloads): a grid of the folder's newest things,
+   *  so many across and at most so many rows before it scrolls; a cell, the
+   *  icon in it, and the panel's own padding. By eye, not measured yet. */
+  stack: { columns: 4, rows: 4, cell: 96, icon: 56, padding: 16, newest: 24 },
   /** ⌘Tab's strip of apps: an icon, the room round it its highlight takes
    *  (`pad`), the strip's own margin, the row the chosen app's name gets,
    *  and how small icons may get when there are many. By eye from macOS 26,

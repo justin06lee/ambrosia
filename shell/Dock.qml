@@ -264,12 +264,19 @@ PanelWindow {
                 color: Theme.color.separator
             }
 
+            // Downloads: a stack. Clicked, its newest things open as a grid
+            // over the Dock; the menu opens the folder itself.
             DockItem {
+                id: downloads
+                readonly property string folder: Quickshell.env("HOME") + "/Downloads"
                 slot: dock.appCount
                 name: "Downloads"
                 glyph: "download"
                 glyphColor: Theme.accent.text
-                onClicked: Session.open(Quickshell.env("HOME") + "/Downloads")
+                onClicked: dock.openStack(downloads, folder)
+                onMenuRequested: dock.openMenu(downloads, [
+                    { text: "Open in Files", action: () => Session.open(downloads.folder) },
+                ])
             }
 
             DockItem {
@@ -431,6 +438,22 @@ PanelWindow {
         const point = item.mapToItem(null, item.width / 2, 0);
         const screenY = dock.screen.height - dock.height + point.y;
         Popups.openMenu(dock.screen, "dock", items, point.x - 118, screenY - Theme.size.menubar.height - menuHeight - Theme.space.s2);
+    }
+
+    // Opens a stack beside the Dock, in the Overlay's frame (it starts
+    // below the menu bar): from the middle of the tile, a little clear of
+    // the Dock's glass.
+    function openStack(item, folder) {
+        if (dock.vertical) {
+            const point = item.mapToItem(null, 0, item.height / 2);
+            const x = dock.side === "left" ? body.x + body.width + Theme.space.s2
+                : dock.screen.width - dock.width + body.x - Theme.space.s2;
+            Popups.toggleStack(dock.screen, { folder: folder, edge: dock.side, x: x, y: point.y });
+            return;
+        }
+        const point = item.mapToItem(null, item.width / 2, 0);
+        const top = dock.screen.height - dock.height + body.y;
+        Popups.toggleStack(dock.screen, { folder: folder, edge: "bottom", x: point.x, y: top - Theme.size.menubar.height - Theme.space.s2 });
     }
 
     component DockItem: Item {

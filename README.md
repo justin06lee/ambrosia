@@ -26,7 +26,7 @@ an Ambrosia session on KWin, our login screen, and an installer image that
 boots a live desktop and installs it on UEFI and BIOS computers. The shell
 works on real hardware: the menu bar with the focused app's own menus, Search
 (Super+Space: apps, settings, files and folders, sums), the Dock (drag to
-reorder, magnification, a live Trash), the control center, notification
+reorder, magnification, a live Trash, Downloads as a stack), the control center, notification
 banners and Notification Center, and a Mac-first keyboard (Command where a
 Mac has it). Its look still trails the design preview in places, and
 compositor effects don't exist yet.

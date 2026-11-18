@@ -99,9 +99,14 @@ it is a copy.
    Mac's can be dragged. To look at on tenet.
 10. **⌘H and ⌘Q.** ⌘H minimizes one window instead of hiding the app; ⌘Q
     only works where the app has Ctrl+Q (`docs/keyboard.md`).
-11. **The Dock's right side.** No minimized windows, no stacks (Downloads is
-    a tile that opens the folder, not a fan or grid), no recent apps. From
-    the code and `CONTEXT.md`.
+11. **The Dock's right side: Downloads opens as a stack, not yet seen on
+    KWin.** Since round 7 clicking Downloads opens its newest things as a
+    grid on glass over the Dock (pictures as themselves, the rest by kind),
+    with a button for the folder (`shell/Stack.qml`, `StackGrid.qml`). The
+    grid has been looked at; the folder reading and the placing have not
+    run. Still missing: a fan, sorting and the stack's own menu, dragging
+    out of it, minimized windows in the Dock, recent apps. To look at on
+    tenet.
 12. **Tiling.** Dragging a window to an edge and the green button's menu
     (Move & Resize, Full Screen on a display) are KWin's quick-tile with its
     own outline. From the code.
@@ -121,8 +126,15 @@ it is a copy.
 ### System surfaces
 
 17. **The lock screen.** KDE's locker in Breeze's look; the login screen is
-    ours (`packaging/sddm-theme`) and the two should be one picture. From the
-    code.
+    ours (`packaging/sddm-theme`) and the two should be one picture. Read
+    from kscreenlocker's sources (2026-11-18): its QML no longer comes from
+    the look-and-feel package but from a Plasma shell package
+    (`contents/lockscreen/LockScreen.qml`, `X-Plasma-APIVersion` 2, named
+    to the greeter with `--shell`; `org.kde.plasma.desktop` is the
+    fallback), so ours needs a shell package of its own and a way to name
+    it. A broken one falls back to a built-in screen rather than locking
+    the user out. Left for when it can be run: it is the one surface where
+    a mistake keeps someone out of their session.
 18. **Starting up and shutting down.** No boot picture (Plymouth), kernel
     text on the way up and down; the image's UEFI menu is text (Needs Justin
     in `CONTEXT.md`).
@@ -174,6 +186,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 7, 2026-11-18 | 11, the Dock's right side | Downloads as a stack: `shell/StackGrid.qml` (the grid's picture), `shell/Stack.qml` (reads the folder's newest 24 with `ls -t` and `file`, icons by kind from the icon theme, pictures as themselves), a place on the Overlay, `Popups.toggleStack` | On the Mac: the grid full, part full and empty, light and dark (`out/shots/shell-stack-*.png`). Not run under Quickshell |
 | 6, 2026-11-18 | 7, ⌘Tab | A switcher layout of our own in the look-and-feel package (`contents/windowswitcher`): the strip's picture in `SwitcherStrip.qml`, KWin's side in `WindowSwitcher.qml`; kwinrc names it and sets one window an app | On the Mac: the strip with six apps and with fifteen (icons shrink to fit), light and dark (`out/shots/shell-switcher-*.png`); KWin's API read from its sources (TabBoxSwitcher, the model's roles, where a layout is looked for). Not run on KWin |
 | 5, 2026-11-18 | 9, the keys' display | `shell/Hud.qml`: a capsule for the volume and brightness keys, fed by Plasma's own calls to `org.kde.osdService` heard on the bus; `tools/qmlshot` and `make shell-shots`, which draw pieces of the shell on the Mac with Qt's real renderer and no window | On the Mac: the panel in six states, light and dark (`out/shots/shell-hud-*.png`), in the Mac's font (no Inter here). The window, the blur and the listening need Quickshell: not run |
 | 4, 2026-11-18 | 3, Qt apps' controls | The style's second cut: tabs (segmented for a tab view, a quiet row for a window's own, close buttons on the left under the pointer), group boxes, rows of lists, trees and tables (rounded highlight joining chosen neighbors, gray without the focus), tree arrows, table headers, a pop-up button's choices as a menu, flat toolbars, menu bar items, splitters, the focus ring on checkboxes and radios, a busy bar that moves; new `tab`, `box`, `row` tokens | On the Mac: the gallery in light and dark, each new control looked at, and the busy bar caught moving between two grabs. Over Fusion only; what could differ over Breeze is noted in `CONTEXT.md` |

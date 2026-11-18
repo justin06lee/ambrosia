@@ -23,6 +23,8 @@ Singleton {
 
     // The open confirmation: { title, text, accept, action }.
     property var confirmation: null
+    // The Dock stack that is open, while kind is "stack" (see toggleStack).
+    property var stack: null
 
     property bool searchOpen: false
     property ShellScreen searchScreen: null
@@ -57,6 +59,21 @@ Singleton {
     }
     function closeSubmenus(depth) {
         if (levels.length > depth + 1) levels = levels.slice(0, depth + 1);
+    }
+
+    // A Dock stack: { folder, edge: the Dock's side of the screen, x, y: the
+    // point of the Overlay's frame the grid grows away from }.
+    function toggleStack(screen, stack) {
+        if (kind === "stack") {
+            close();
+            return;
+        }
+        searchOpen = false;
+        popups.screen = screen;
+        owner = "dock";
+        levels = [];
+        popups.stack = stack;
+        kind = "stack";
     }
 
     function toggleControlCenter(screen) {
@@ -107,5 +124,6 @@ Singleton {
         owner = "";
         levels = [];
         confirmation = null;
+        stack = null;
     }
 }

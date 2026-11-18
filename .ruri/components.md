@@ -172,3 +172,9 @@ Tags: shell, hud, volume, brightness, qml
 Its files: session/look-and-feel/org.ambrosia.desktop/contents/windowswitcher/SwitcherStrip.qml, session/look-and-feel/org.ambrosia.desktop/contents/windowswitcher/WindowSwitcher.qml
 Reaches into: shell/Glass.qml, shell/Label.qml, session/xdg/kwinrc, design/tokens.ts, tools/qmlshot/sheets/switcher.qml, packaging/PKGBUILD
 Tags: switcher, cmd-tab, kwin, qml, session
+
+## dock-stack — the Downloads stack
+What Downloads in the Dock opens: the folder's newest things as a grid of icons and names on glass just clear of the Dock, with an Open in Files button. StackGrid.qml is the picture (drawn on the Mac by make shell-shots); Stack.qml reads the folder (ls -t, file for kinds), picks icons and opens what is clicked; it sits on the Overlay as Popups kind "stack". Not run under Quickshell yet.
+Its files: shell/Stack.qml, shell/StackGrid.qml
+Reaches into: shell/Dock.qml, shell/Overlay.qml, shell/Popups.qml, shell/Glass.qml, shell/PushButton.qml, design/tokens.ts, tools/qmlshot/sheets/stack.qml
+Tags: shell, dock, stack, downloads, qml
