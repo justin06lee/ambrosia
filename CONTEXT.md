@@ -53,8 +53,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
     look-and-feel package (`session/look-and-feel/`), which carries the
     Ambrosia color scheme.
   - `shell/` (working on real hardware since 2026-10-13): the menu bar (the
-    Ambrosia menu, the focused app's name and its own menus over DBus, Wi-Fi,
-    Search, control center, clock), Search on Super+Space, the Dock, the
+    Ambrosia menu, the focused app's name and its own menus over DBus, apps'
+    own status items (round 12: Quickshell's tray service, each a
+    `MenuBarItem` with a picture; `StatusIcon.qml` draws a mostly gray icon
+    as its shape in the bar's text color; a press opens the app's menu),
+    Wi-Fi, Search, control center, clock), Search on Super+Space, the Dock, the
     control center (every control acts) and notification banners. KWin's
     window list comes through Plasma's task manager model (`Apps.qml`),
     granted by `session/org.ambrosia.shell.desktop`. Menus, the control
@@ -617,6 +620,13 @@ package repo below), and they carry `shell/` and `session/` as they are.
   `tools/shot.sh` or `tools/vm.sh shot` for the real shell.
 
 ## Gotchas
+
+- **A QML Canvas reads pixels back in the screen's units and a frame
+  late.** `getImageData(0, 0, w, h)` takes device pixels (the top-left
+  quarter at 2×), and after `drawImage(anImageItem)` it returned the frame
+  before. `shell/StatusIcon.qml` has the canvas load the icon itself
+  (`loadImage`), reads `size × Screen.devicePixelRatio`, and only counts
+  pixels; the recolor is a `source-in` fill, never a write of pixel data.
 
 - **A name in the icon theme answers for more than itself.** KDE looks a
   name up in one theme at a time, and inside a theme cuts a missing name

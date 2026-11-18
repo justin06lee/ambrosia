@@ -19,6 +19,7 @@ They are stand-ins, not the real thing. What that means for a picture:
 | `org.kde.taskmanager` | The pinned apps, then the ids in `Apps.tasks.shotRunning`; `shotActive` is in front, `shotAttention` and `shotStarting` as named. One row an app, no groups. |
 | `DesktopEntries` | The table of apps in `stubs.cpp`. |
 | An app's menus (`DBusMenuSource`) | `Quickshell.shotMenus["<app id>"]`: rows as titles, `"-"`, or `{ text, children, enabled, shortcut }`. |
+| Apps' status items (`SystemTray`) | None until a sheet sets `SystemTray.shotItems`: `{ id, icon: a picture's URL, status, hasMenu, menu }`, the menu a `DBusMenuSource` of the sheet's. |
 | `NotificationServer` | Nothing arrives until a sheet calls `NotificationStore.server.shotNotify({ appName, summary, body, … })`. |
 | Wi-Fi, Bluetooth, sound, battery, players | Fixed, plausible values (see each module); some take a sheet's own through a `shot…` property. |
 | `SystemClock` | 9:41 on 18 November 2026, always. |
