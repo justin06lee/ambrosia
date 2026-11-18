@@ -26,6 +26,7 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - **Other Qt apps' controls (widget style; make gallery draws them):** style/src/style.cpp, style/gallery/main.cpp
 - **Volume and brightness keys' display (make shell-shots draws it):** shell/Hud.qml, shell/HudPanel.qml
 - **⌘Tab's app switcher (a KWin switcher layout; make shell-shots draws its strip):** session/look-and-feel/org.ambrosia.desktop/contents/windowswitcher/, session/xdg/kwinrc
+- **Downloads stack (grid drawn by make shell-shots):** shell/Stack.qml, shell/StackGrid.qml, shell/Popups.qml, shell/Overlay.qml
 
 ## How it works
 
@@ -39,8 +40,6 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 
 - shell/shell.qml — top-level shell composition, which windows go on which screens
 - shell/MenuBar.qml — menu bar container and menu switching
-- shell/Apps.qml — running-app / menu model for app menus and dock
-- shell/Search.qml — Spotlight: apps, panes, sums, files and folders, ⌘Return reveals in Files
 - shell/Dock.qml — app dock with running dots, Downloads, live Trash, Files icon and context menu
 - assets/icons/org.ambrosia.files.svg — hand-drawn Files icon, used by the Files app and its Dock pin
 - shell/trash-empty.svg — hand-drawn Trash for the dock; trash-full.svg is the full one
