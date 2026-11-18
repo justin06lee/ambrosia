@@ -152,8 +152,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
    QtQuick and is linked into the switcher's folder like Glass.qml).
    "Ours" is `Theme.tileIcons`; in ⌘Tab the icon's name comes from the
    KWin module (`Apps.icon`), or the desktop file's own name where a
-   running KWin still holds an older module. Notifications' icons get no
-   tile yet (theirs may be a picture, not an app). **Folders and kinds of
+   running KWin still holds an older module. A notification's icon gets
+   the tile too when it came by name (round 13, `NotificationStore.plainOf`:
+   the app's icon, or a name notify-send hands over as the picture, which
+   Quickshell turns into `image://icon/<name>`); a picture or a file's
+   path is shown as it is. **Folders and kinds of
    file are in the theme too** (round 11; `places/`, `mimetypes/`,
    `actions/` under `dist/icons/Ambrosia`): built on Files' art
    (`files/art/folder.svg`, `document.svg`, `document-small.svg`,

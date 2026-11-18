@@ -3,15 +3,18 @@ import QtQuick
 import Ambrosia
 
 // One notification on glass, as a banner or in the notification center: its
-// app's icon (or its own picture), the app's name and when it came, what it
-// says, and its actions other than the default one as buttons. A click runs
-// the default; on hover a close button shows at the top left, as on a Mac.
+// app's icon on a tile (or its own picture), the app's name and when it
+// came, what it says, and its actions other than the default one as buttons.
+// A click runs the default; on hover a close button shows at the top left,
+// as on a Mac.
 // Without previews (Settings) it says only that there's one.
 Item {
     id: card
 
     property string appName
     property string iconSource
+    // The icon is an app's with no tile of its own: it gets a plain one.
+    property bool iconPlain: false
     property string summary
     property string body
     // When it came (ms since the epoch), against `now`; 0 is "now".
@@ -68,9 +71,14 @@ Item {
         width: parent.width - Theme.space.s3 - Theme.space.s4
         spacing: Theme.space.s3
 
-        IconImage {
-            implicitSize: 36
-            source: card.iconSource
+        AppTile {
+            width: 36
+            height: 36
+            tiled: !card.iconPlain
+            IconImage {
+                anchors.fill: parent
+                source: card.iconSource
+            }
         }
 
         Column {
