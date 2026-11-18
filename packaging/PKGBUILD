@@ -17,7 +17,7 @@ pkgdesc="A Linux desktop that looks and moves as one thing"
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
-makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kwindowsystem taglib karchive freetype2
+makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kservice kwindowsystem taglib karchive freetype2
              kdecoration kcoreaddons pulseaudio-qt networkmanager-qt bluez-qt libkscreen)
 options=(!debug)
 
@@ -96,16 +96,16 @@ package_ambrosia-theme() {
 }
 
 package_ambrosia-decoration() {
-  pkgdesc="Ambrosia's window frame for KWin: the traffic lights and a centered title on every window"
-  depends=(kwin kdecoration kcoreaddons qt6-base)
+  pkgdesc="Ambrosia's window frame for KWin: the traffic lights and a centered title on every window, and the blur behind KWin's own glass"
+  depends=(kwin kdecoration kcoreaddons kwindowsystem kservice qt6-base qt6-declarative)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-decoration"
 }
 
 package_ambrosia-style() {
   pkgdesc="Ambrosia's Qt widget style: every Qt app's buttons, boxes, sliders and menus as the desktop draws its own"
-  # It stands on Breeze for everything it doesn't draw itself. Installed, it
-  # changes nothing until an app is told to use it (QT_STYLE_OVERRIDE=ambrosia,
-  # or widgetStyle=ambrosia in kdeglobals): the session still names Breeze.
+  # It stands on Breeze for everything it doesn't draw itself. The session's
+  # look-and-feel names it (widgetStyle=ambrosia); anywhere else an app uses it
+  # when told to (QT_STYLE_OVERRIDE=ambrosia).
   depends=(qt6-base breeze)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-style"
 }
@@ -117,7 +117,8 @@ package_ambrosia-shell() {
   # provides it, so pacman won't swap Arch's in and lose the app menus.
   # kde-cli-tools: kstart and kioclient, which start apps in their own
   # scopes; dbus: dbus-test-tool holds the app menu view's bus name.
-  depends=(ambrosia-theme ambrosia-decoration quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
+  # ambrosia-style: the widget style the look-and-feel names.
+  depends=(ambrosia-theme ambrosia-decoration ambrosia-style quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
            qt6-svg qt6-imageformats upower dconf)
   backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc etc/xdg/ambrosia/kwinrulesrc
           etc/xdg/ambrosia/breezerc etc/xdg/ambrosia/mimeapps.list etc/xdg/ambrosia/kcminputrc

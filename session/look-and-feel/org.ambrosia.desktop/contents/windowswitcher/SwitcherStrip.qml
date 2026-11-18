@@ -28,6 +28,8 @@ Item {
     readonly property int cell: iconSize + 2 * pad
     // The highlight's corner follows the icon's, the strip's the highlight's.
     readonly property real corner: iconSize * Theme.radius.iconCorner + pad
+    // The glass's own corner, for whoever blurs behind it.
+    readonly property real radius: corner + margin
 
     implicitWidth: Math.max(1, count) * cell + 2 * margin
     implicitHeight: cell + Theme.size.switcher.label + margin + margin / 2
@@ -35,7 +37,7 @@ Item {
     Glass {
         anchors.fill: parent
         tint: Theme.color.material.thick.tint
-        radius: strip.corner + strip.margin
+        radius: strip.radius
         shadow: Theme.color.shadow.panel
         ring: true
     }

@@ -144,21 +144,16 @@ package repo below), and they carry `shell/` and `session/` as they are.
    GTK gets them through the session's dconf defaults and the login screen
    its pointer through sddm.conf. The Dock shows every icon of ours at tile
    size (`Theme.tileIcons`, generated; Settings' icon wasn't on the old
-   list). **Drawn and checked on the Mac only** (`dist/icons/sheet.html`,
+   list). Drawn on the Mac (`dist/icons/sheet.html`,
    `dist/cursors/sheet.html`, the review site's Input and Iconography
-   chapters): no KWin or KDE app has loaded any of it, so **look at it on
-   tenet or in the VM before publishing**. What was checked against KDE's
-   sources instead (2026-11-18): the SVG pointers' `metadata.json` keys
-   (KWin's `svgcursorreader.cpp`, Breeze's own files), the theme index's
-   KDE keys (Breeze's), `klaunchrc`'s, and each app's `Icon=` name. To look
-   at: KWin drawing the pointer's SVGs (their shadow is an embedded PNG
-   where Breeze's use a blur filter) and the wheel turning; an Xwayland and a GTK app; the login
-   screen (its KWin reads no Ambrosia config, so it may keep Breeze's
-   arrow under a greeter that draws its own); no bouncing icon by the
-   pointer at launch (`session/xdg/klaunchrc`); the Dock, Search and Files'
-   Applications showing our icons; Breeze's one-color
-   icons still following dark mode under our theme (`FollowsColorScheme`).
-   **A Qt widget style is begun** (2026-11-18, `style/`, package
+   chapters) and **seen on tenet's KWin (2026-11-18)**: the arrow, I-beam
+   and pointing hand over Firefox, both resize arrows at a window's edge
+   and corner, and our icons in the Dock, Search and ⌘Tab. Not looked at
+   yet: the wheel turning, an Xwayland app, the login screen (its KWin
+   reads no Ambrosia config, so it may keep Breeze's arrow under a greeter
+   that draws its own), Files' Applications, and Breeze's one-color icons
+   following dark mode under our theme (`FollowsColorScheme`).
+   **Qt apps wear a widget style of ours** (2026-11-18, `style/`, package
    ambrosia-style, key `ambrosia`): a QProxyStyle over Breeze (Fusion where
    Breeze isn't installed) that repaints push buttons, checkboxes, radio
    buttons, text fields, pop-up buttons, steppers, sliders, progress bars,
@@ -182,67 +177,75 @@ package repo below), and they carry `shell/` and `session/` as they are.
    progress bar that moves. `make gallery` builds it and draws every control into
    `out/shots/style-{light,dark}.png` with no display, on the Mac too (it
    has Homebrew's qtbase, cmake and ninja for this since 2026-11-18).
-   **Seen only in that gallery, over Fusion.** It is installed but nothing
-   uses it: the look-and-feel still says `widgetStyle=Breeze`, because a
-   style that misbehaves does so in every Qt app at once. To do on tenet:
-   `QT_STYLE_OVERRIDE=ambrosia kate` (and Konsole, Dolphin, the file
-   dialog, System Settings' modules) over Breeze, where Breeze's own
-   handling of menus (translucency, blur, shadow), tool buttons and combo
-   boxes may draw over or under ours; then name it in the look-and-feel
-   and `startambrosia`. The second cut leans on Qt calling back through
-   the proxy (rows: `CE_ItemViewItem` to `PE_PanelItemViewItem`; tabs'
-   titles: `SE_TabBarTabText`), which QCommonStyle and Fusion do and
-   Breeze may not: look at a tree's selection, a tab widget's pane and a
-   pop-up button's list there first. Not drawn yet: the editable combo's
-   list, dock widgets' title bars, tool boxes, dials, the calendar, scroll
-   bars that hide (a Mac with a mouse shows them always, as ours do).
+   **Seen on tenet over Breeze (2026-11-18) and switched on:** Kate (its
+   window, a context menu, its settings, the file dialog), Konsole, Dolphin
+   and a Qt Quick settings module (`kcmshell6 kcm_mouse`, which draws
+   through the style) all came out clean, so the look-and-feel says
+   `widgetStyle=ambrosia` and `startambrosia` keeps Plasma's copy current
+   for users from before. Fixed from that look: a menu's panel was painted
+   through the helper that dims disabled controls (QMenu hands its panel
+   over with no state), so every menu was 45% see-through by accident; it
+   is glass on purpose now, as solid as breezerc's `MenuOpacity` (the
+   session's says 72) because that setting is also what makes Breeze, under
+   us, ask KWin to blur behind menus, and solid where Breeze isn't
+   underneath (`blurredMenuOpacity`). A chosen row is one color from edge
+   to edge even where a view's own delegate draws it (the file dialog
+   calls `PE_PanelItemViewItem` directly). A push button with a title
+   draws no picture (KDE's apps set one whatever the style hint says).
+   Not drawn yet: the editable combo's list, dock widgets' title bars, tool
+   boxes, dials, the calendar, scroll bars that hide (a Mac with a mouse
+   shows them always, as ours do).
    **The volume and brightness keys have a display** (round 5, 2026-11-18,
    `shell/Hud.qml` and `HudPanel.qml`): a glass capsule under the menu
    bar's right end with a glyph and a level, or the name of the output
    sound moved to. Plasma handles the keys (plasma-pa's kded module,
    PowerDevil) and tells plasmashell's `org.kde.osdService` what to show;
    plasmashell isn't here, so `Hud.qml` runs `busctl --user monitor` for
-   those calls and shows what they say. **The panel has been seen (drawn
-   on the Mac by `make shell-shots`); the listening has never run.** To do
-   on tenet: `quickshell ipc --path … call hud show volume 45` puts it up
-   without the keys (window, place, blur, fade); then the real keys, which
-   need the bus to hand a monitor calls nobody takes (dbus-broker should;
-   unchecked). If it doesn't, fall back to watching Pipewire's default
-   sink and `org.kde.ScreenBrightness`, at the cost of showing for changes
-   the keys didn't make.
+   those calls and shows what they say. **Seen on tenet (2026-11-18):**
+   the volume keys bring it up with the right level, so the bus does hand
+   a monitor calls nobody takes. By hand:
+   `quickshell ipc --path /usr/share/ambrosia/shell call hud -- show volume 45`
+   (the `--` matters: without it quickshell reads "show" as its own
+   `ipc show`). Brightness was only shown that way: tenet's display has no
+   brightness keys.
    **⌘Tab has a switcher of ours** (round 6, 2026-11-18): the
    look-and-feel package's `contents/windowswitcher/` (KWin looks there
    first for the layout kwinrc names, `LayoutName=org.ambrosia.desktop`),
    with `ApplicationsMode=1` so it walks apps. `SwitcherStrip.qml` is the
    picture (seen, by `make shell-shots`); `WindowSwitcher.qml` is KWin's
    side (`KWin.TabBoxSwitcher`, a plain transparent `Window`, icons through
-   Kirigami, the mode from KWin's palette) and **has never been loaded by
-   KWin**. Glass.qml, Label.qml and icons.js are symlinks to the shell's
-   (the PKGBUILD copies with `-L`). To do on tenet: ⌘Tab with three apps
-   open; if KWin logs "Component failed to load" it falls back to its own
-   layout. Look at: the window's place and transparency, icons, the name
-   (KWin.Workspace.windowList() by internalId), dark mode following the
-   scheme, ← → and Q, the pointer, a user whose kwinrc already has a
-   `[TabBox]` group (theirs wins).
+   Kirigami, the mode from KWin's palette). Glass.qml, Label.qml and
+   icons.js are symlinks to the shell's (the PKGBUILD copies with `-L`).
+   **Seen on tenet's KWin (2026-11-18):** hold, Tab on, arrows, let go,
+   with ⌘ and with Alt. Two things it lacked there come from a small QML
+   module of ours that KWin loads (`decoration/qml`, `org.ambrosia.kwin`,
+   in ambrosia-decoration): `BlurBehind` gives KWin's blur the strip's
+   rounded outline (one of KWin's own windows isn't a Wayland client and
+   can't ask as the shell does; `KWindowEffects` can, from C++ only), and
+   `Apps.name()` gives the app's name from its desktop file. KWin's QML
+   has `KWin.Workspace.windows`, not `windowList()`, and warns about any
+   binding that reads it, so the list is read once when the strip opens.
+   **A running KWin keeps the layout it first loaded** (and the module):
+   the new one ran there from a copy under another name
+   (`~/.local/share/plasma/look-and-feel/<name>/contents/windowswitcher/`,
+   `LayoutName=<name>` in the user's kwinrc), and the installed one shows
+   at the next login. Not looked at: dark mode, the pointer choosing, Q.
    **A right-click on the desktop opens a menu** (round 9, 2026-11-18;
    `shell/Wallpaper.qml`): New Folder (makes "untitled folder", or
    "untitled folder 2"…, in ~/Desktop and asks Files to show it, since
-   nothing is drawn on the desktop yet) and Change Wallpaper…. Seen on the
-   Mac through the stand-ins, flow and all. **Not run under Quickshell.**
-   To do on tenet: right-click the desktop (does the background layer get
-   the press under KWin; is the menu at the pointer; does it stay on
-   screen near the right and bottom edges), New Folder twice, Change
-   Wallpaper…, a right-click while another menu is open.
+   nothing is drawn on the desktop yet) and Change Wallpaper…. **Seen on
+   tenet (2026-11-18):** KWin hands the wallpaper's layer the press, the
+   menu opens at the pointer, New Folder makes the folder and Files shows
+   it, Change Wallpaper… opens Settings' pane. Not tried: the screen's
+   edges, a right-click while another menu is open.
    **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
    grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
    kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the
-   picture, seen by `make shell-shots`). **Not run under Quickshell.** To
-   do on tenet: click Downloads with a bottom, a left and a right Dock (the
-   grid should sit just clear of the Dock's glass, centered on the tile);
-   icons by kind (`Quickshell.iconPath` with names like `application-pdf`,
-   falling back to `text-x-generic`, `unknown`); a picture as its own
-   icon; a name with spaces or a `#`; clicking a thing, the button, away,
-   Escape; an empty folder and no folder at all.
+   picture, seen by `make shell-shots`). **Seen on tenet (2026-11-18)**
+   with a bottom Dock: just clear of the Dock's glass and centered on the
+   tile, newest first, icons by kind, a picture as its own icon, a long
+   name with spaces cut, Open in Files. Not tried: a left or right Dock,
+   clicking a thing, an empty folder and no folder at all.
    **The shell itself can be drawn on the Mac** (pieces since round 5,
    the whole desktop since round 8): `make shell-shots` builds
    `tools/qmlshot` (a Qt Quick window that is never shown, drawn into a
@@ -453,12 +456,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
 
 ## Needs Justin
 
-- **tenet's door for the Mac mini.** Until tenet takes this Mac's key,
-  nothing of the real shell can be built, run or photographed from here.
-  On the Mac mini: `ssh-copy-id tenet` (asks for the tenet password once),
-  then `ssh -t tenet "sudo sh -c 'tail -n1 /home/justin06lee/.ssh/authorized_keys >> /root/.ssh/authorized_keys'"`
-  for root. Publishing also needs the signing key copied from its backup
-  into `~/.config/ambrosia/gnupg`.
+- **tenet's session wants a fresh login** (not urgent). Its KWin has run
+  since 2026-10-16, across a system upgrade (it is 6.8.0 in memory, 6.8.2
+  on disk). It keeps the ⌘Tab layout and window frame it loaded, so the
+  blur behind ⌘Tab and anything else KWin-side from 2026-11-18 show after
+  logging out and in. Its own shortcuts (Alt+Tab, Meta+W…) were also dead
+  in the global-shortcut daemon, cause unknown; they were switched back on
+  by hand (see Gotchas), which a login does properly.
+- Publishing needs the signing key copied from its backup into
+  `~/.config/ambrosia/gnupg`.
 - The image's UEFI boot menu is plain text (systemd-boot draws no pictures).
   A picture there means starting the image with GRUB instead (archiso's
   `uefi.grub`), a boot path not yet proven on tenet's hardware: wanted?
@@ -466,11 +472,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
   Center, Dock and Search, the keyboard layer, the login screen) are not
   published: publishing pushes to the public ambrosia-packages repo. Say
   when.
-- tenet runs r385 of everything but ambrosia-desktop (r316). Installing
-  master's ambrosia-desktop there pulls in keyd (off until
-  `systemctl enable --now keyd`, which remaps the live keyboard: Super
-  becomes Command) and switches SDDM to our login screen at its next start:
-  say whether tenet should get the keyboard layer and the login screen too.
+- tenet runs master's packages since 2026-11-18, ambrosia-desktop
+  included. That pulled in keyd, which is **off** (`systemctl enable --now
+  keyd` remaps the live keyboard: Super becomes Command) and makes SDDM use
+  our login screen at its next start: say whether tenet should get the
+  keyboard layer too.
 - Files' memory target #13 (≤120 MB): count own memory (USS, met at 119-123
   MB with the 100k folder) or RSS (a bare Qt Quick window is already 177 MB)?
 
@@ -481,12 +487,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
   `~/code/github.com/justin06lee/ambrosia`. bun and gh are set up, and Homebrew's qtbase, cmake and
   ninja (for `make gallery`, the Qt widget style) and qtdeclarative with
   qtsvg (for `make shell-shots`, pieces of the shell); no Quickshell, KDE,
-  GTK, Inter, Docker or VM tool. Three things didn't come across from the MacBook and the
-  T7 drive: **tenet doesn't accept this Mac's SSH key yet** (`ssh tenet`
-  reaches it over Tailscale and is refused; `ssh-copy-id tenet` and the same
-  key for root put it right, see Needs Justin), **the signing key**
+  GTK, Inter, Docker or VM tool. tenet takes this Mac's key since
+  2026-11-18 (`ssh tenet` is justin06lee, `ssh root@tenet` root). Two things didn't come across from the MacBook and the
+  T7 drive: **the signing key**
   (`~/.config/ambrosia/gnupg`; its backup is on the T7, so nothing can be
-  published from here until it's restored), and the old worktrees
+  published from here until it's restored) and the old worktrees
   (`.worktrees/` on the T7; their branches are all merged). The Makefile
   and `tools/remote.sh` reach tenet by its Tailscale name now
   (`justin06lee@tenet`), with the MacBook's key where it exists and this
@@ -592,6 +597,28 @@ package repo below), and they carry `shell/` and `session/` as they are.
 
 ## Gotchas
 
+- **Looking at a change on tenet's live session** (`tools/live.sh`: run,
+  click, type, photograph, run a KWin script). What cost time on 2026-11-18:
+  - Start an app with `tools/live.sh run <app>` (systemd-run, the session's
+    whole environment). From the SSH shell it lacks
+    `~/.config/kdedefaults` in `XDG_CONFIG_DIRS` and comes up in Breeze's
+    colors and style.
+  - **A running KWin keeps the QML and plugins it loaded**: a changed
+    ⌘Tab layout or frame shows at the next login. To try a layout now,
+    copy it under a new name (see ⌘Tab in Next 1), a new name each edit.
+  - **`kwriteconfig6 --delete` on a key a system file sets leaves
+    `Key[$d]`** in the user's file, which hides the system's value: take
+    the line out by hand.
+  - **KWin's own shortcuts can be dead while every other app's work**
+    (Alt+Tab and Meta+W did nothing; the volume keys did). They were "not
+    present" in the global-shortcut daemon KWin itself hosts:
+    `qdbus6 org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.isActive`
+    said false. `tools/live.sh keys` marks them present again. Why they
+    dropped out isn't known (the session was a month old and had been
+    upgraded under); locking and `reconfigure` don't do it.
+  - To hold a key for a picture: `ui.py kdown alt key tab sleep 5 kup alt`
+    in the background and `spectacle` meanwhile, both on tenet (an SSH
+    round trip is too slow).
 - **Quickshell must be built against the Qt it runs on** (it uses Qt
   internals). When Arch updates qt6-base, bump `pkgrel` in
   `packaging/quickshell/PKGBUILD` and `make publish`.

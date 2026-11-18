@@ -435,9 +435,10 @@ PanelWindow {
             Popups.openMenu(dock.screen, "dock", items, x, point.y - menuHeight / 2);
             return;
         }
+        // Over the middle of the item, a little clear of the Dock's glass.
         const point = item.mapToItem(dock.contentItem, item.width / 2, 0);
-        const screenY = dock.screen.height - dock.height + point.y;
-        Popups.openMenu(dock.screen, "dock", items, point.x - 118, screenY - Theme.size.menubar.height - menuHeight - Theme.space.s2);
+        const top = dock.screen.height - dock.height + body.y;
+        Popups.openMenu(dock.screen, "dock", items, point.x - 118, top - Theme.size.menubar.height - menuHeight - Theme.space.s2);
     }
 
     // Opens a stack beside the Dock, in the Overlay's frame (it starts

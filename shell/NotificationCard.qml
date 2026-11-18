@@ -48,7 +48,9 @@ Item {
         anchors.fill: parent
         tint: Theme.color.material.regular.tint
         radius: Theme.radius.panel
-        shadow: Theme.color.shadow.panel
+        // A blank card peeks out from under another: no shadow of its own,
+        // which would fill the cut round its corners.
+        shadow: card.blank ? null : Theme.color.shadow.panel
     }
 
     MouseArea {

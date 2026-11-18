@@ -27,42 +27,46 @@ it is a copy.
 
 ### Always in front of you
 
-1. **The pointer: built, not yet seen on KWin.** A theme of our own since
-   round 1 (`design/cursors.ts`): a Mac's black arrow with its white rim and
-   soft shadow, white hands, the I-beam, resize arrows, badges for copy,
-   alias and not-allowed, and a wheel in the accent colors for busy. It
-   lives in the same icon theme. It
-   stays here until it has been looked at on tenet: KWin drawing the SVGs,
-   the wheel turning, an Xwayland app, a GTK app, the login screen. Shapes
+1. **The pointer: ours, seen on KWin; a few places not looked at.** A theme
+   of our own since round 1 (`design/cursors.ts`): a Mac's black arrow with
+   its white rim and soft shadow, white hands, the I-beam, resize arrows,
+   badges for copy, alias and not-allowed, and a wheel in the accent colors
+   for busy. It lives in the same icon theme. Seen on tenet (2026-11-18):
+   KWin draws the arrow, the I-beam and the pointing hand over Firefox and
+   both resize arrows at a window's edge and corner. Not looked at yet: the
+   wheel turning, an Xwayland app, the login screen. Shapes
    still Breeze's (through `Inherits`): the skull of Kill Window, the color
    picker, the pencil. With it, KWin's launch feedback (the app's icon
    bouncing beside the pointer) is off in the session
    (`session/xdg/klaunchrc`): the Dock's icon bounces instead, as a Mac's
-   does. Also to look at on tenet.
-2. **Other apps' icons: begun, not yet seen on KWin.** Since round 2 the
+   does.
+2. **Other apps' icons: begun, seen on KWin.** Since round 2 the
    "Ambrosia" icon theme (over Breeze) gives the apps a new install starts
    with an icon of ours on the tile: Terminal, the text editor, the picture
    and document viewers, Calculator, the archiver, the store, Screenshot,
    system information; KDE's settings and Dolphin wear Settings' and Files'.
    The names are the ones those apps' desktop files ask for (read from
-   KDE's sources). To look at on tenet: how the icons sit in the Dock,
-   Search and Files. Still
+   KDE's sources). Seen on tenet (2026-11-18): they sit right in the Dock,
+   in Search's results and in ⌘Tab. Still
    Breeze's or the app's own: every app not on that list (Firefox's mark
    has no tile; the Dock could put one under any icon that lacks it), the
    folders and document kinds in KDE's dialogs (Files draws its own), and
    the one-color status and action icons inside Qt apps.
-3. **Other Qt apps' controls: begun, not yet switched on.** Breeze's widget
-   style draws Konsole, Kate, Dolphin and the file dialog. Since round 3
-   there is a style of ours over it (`style/`, `make gallery`): push
+3. **Other Qt apps' controls: ours, switched on.** Since round 3 there is
+   a style of ours over Breeze (`style/`, `make gallery`): push
    buttons, checkboxes, radio buttons, text fields, pop-ups, steppers,
    sliders, progress and scroll bars, tool buttons, menus and tooltips as
    the Mac draws them; since round 4 also tabs (a tab view's as a
    segmented control, a window's own as a quiet row), group boxes, the
    rows and headers of lists, trees and tables, a pop-up button's menu,
-   toolbars and menu bars. Installed, but the session still names Breeze
-   until real apps have been run under it on tenet. Still Breeze's even
-   then: dock widgets' title bars, tool boxes, dials, the calendar, an
-   editable combo's list. Scroll bars always show, which is a Mac with a
+   toolbars and menu bars. Seen on tenet (2026-11-18) in Kate, Konsole,
+   Dolphin, the file dialog and a settings module (which is Qt Quick drawing
+   through the style), and the session names it since (`widgetStyle=ambrosia`
+   in the look-and-feel). Menus are glass there: as see-through as the
+   session tells Breeze to make its own, which is when KWin blurs behind
+   them. Still Breeze's: dock widgets' title bars, tool boxes, dials, the
+   calendar, an editable combo's list. Menus' shortcuts read Ctrl+X, not ⌘X
+   (the keyboard's list). Scroll bars always show, which is a Mac with a
    mouse; one with a trackpad hides them until you scroll.
 4. **GTK apps beyond colors.** GTK 3 and 4 get our colors and the traffic
    lights; the controls are Adwaita's. GTK 4's CSS has never been looked at
@@ -79,49 +83,52 @@ it is a copy.
    own curves; Settings switches Genie (Magic Lamp) and Scale (Squash) for
    minimizing, but nothing moves on the spring tokens and a minimized window
    doesn't land on its Dock tile. From the code.
-7. **⌘Tab: built, not yet seen on KWin.** Since round 6 KWin's switcher
-   walks apps, one window each, on a glass strip of large icons with the
-   chosen app's name under it (the look-and-feel's `windowswitcher`); ← →
-   move and Q closes the chosen window while it's up. The strip has been
-   looked at; KWin has never loaded it. Short of a Mac's even then: no blur
-   behind it (KWin gives that to Plasma's own dialogs), the name is the
-   desktop file's last word, switching raises one window rather than all
-   the app's, Q closes a window rather than quitting, no ⌘H. To look at on
-   tenet.
+7. **⌘Tab: ours, seen on KWin.** Since round 6 KWin's switcher walks apps,
+   one window each, on a glass strip of large icons with the chosen app's
+   name under it (the look-and-feel's `windowswitcher`); ← → move and Q
+   closes the chosen window while it's up. Seen on tenet (2026-11-18): hold,
+   Tab on, arrows, let go to switch, with ⌘ and with Alt. Since that look it
+   has KWin's blur behind the glass and the app's own name ("System
+   Settings", not the window's title), both from a small module of ours
+   inside KWin (`decoration/qml`, org.ambrosia.kwin). Short of a Mac's:
+   switching raises one window rather than all the app's, Q closes a window
+   rather than quitting, no ⌘H.
 8. **Mission Control and Spaces.** KWin's Overview is there but unstyled and
    on no Mac key or gesture (F3, ⌃↑, three fingers up; ⌃← ⌃→ and a swipe
    between desktops; ⌃↓ for one app's windows). From the code.
-9. **Volume and brightness keys: built, not yet seen on KWin.** Since
-   round 5 they show a glass capsule under the menu bar's right end, where
-   the control center opens: a glyph and a level, or the name of the output
-   sound moved to (`shell/Hud.qml`). The picture has been looked at; the
-   listening for Plasma's calls has never run. It takes no clicks, where a
-   Mac's can be dragged. To look at on tenet.
+9. **Volume and brightness keys: ours, seen on KWin.** Since round 5 they
+   show a glass capsule under the menu bar's right end, where the control
+   center opens: a glyph and a level, or the name of the output sound moved
+   to (`shell/Hud.qml`). Seen on tenet (2026-11-18): the volume keys bring
+   it up with the level they set (the bus monitor does hear Plasma's calls
+   to a name nobody owns). Brightness was only shown by hand: tenet's
+   display has no brightness keys. It takes no clicks, where a Mac's can be
+   dragged.
 10. **⌘H and ⌘Q.** ⌘H minimizes one window instead of hiding the app; ⌘Q
     only works where the app has Ctrl+Q (`docs/keyboard.md`).
-11. **The Dock's right side: Downloads opens as a stack, not yet seen on
-    KWin.** Since round 7 clicking Downloads opens its newest things as a
-    grid on glass over the Dock (pictures as themselves, the rest by kind),
-    with a button for the folder (`shell/Stack.qml`, `StackGrid.qml`). The
-    grid has been looked at; the folder reading and the placing have not
-    run. Still missing: a fan, sorting and the stack's own menu, dragging
-    out of it, minimized windows in the Dock, recent apps. To look at on
-    tenet.
+11. **The Dock's right side: Downloads opens as a stack, seen on KWin.**
+    Since round 7 clicking Downloads opens its newest things as a grid on
+    glass over the Dock (pictures as themselves, the rest by kind), with a
+    button for the folder (`shell/Stack.qml`, `StackGrid.qml`). Seen on
+    tenet (2026-11-18): the folder read newest first, a picture as itself,
+    long names cut, Open in Files. Still missing: a fan, sorting and the
+    stack's own menu, dragging out of it, minimized windows in the Dock,
+    recent apps.
 12. **Tiling.** Dragging a window to an edge and the green button's menu
     (Move & Resize, Full Screen on a display) are KWin's quick-tile with its
     own outline. From the code.
 13. **Screenshots.** ⇧⌘3/4/5 run Spectacle with its own window; a Mac shows
     a floating toolbar, then a thumbnail in the corner that can be dragged
     or opens Markup. From `docs/keyboard.md`.
-14. **The desktop itself: a right-click menu, not yet seen on KWin; the rest
+14. **The desktop itself: a right-click menu, seen on KWin; the rest
     open.** Since round 9 the right button on the desktop opens a menu
     (`shell/Wallpaper.qml`): New Folder, which makes "untitled folder" in
     ~/Desktop and shows it in Files, and Change Wallpaper…. Still no icons
     on the desktop (so the new folder appears in Files, not under the
     pointer), no widgets, no stacks, and none of a Mac's Sort By, Clean Up
-    or Show View Options, which need the icons. To look at on tenet:
-    whether KWin hands the wallpaper's layer the press, and the menu's
-    place.
+    or Show View Options, which need the icons. Seen on tenet
+    (2026-11-18): the menu opens at the pointer and both items do their
+    work.
 15. **Trackpad gestures.** Whatever KWin does out of the box; nothing set
     to a Mac's (swipe between desktops and full-screen apps, Mission Control,
     pinch for the apps, two-finger swipe from the right edge for Notification
@@ -193,6 +200,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| The tenet check, 2026-11-18 | Rounds 1 to 9 | Every round installed on tenet and driven on KWin 6.8 and Quickshell 0.3.2. All nine worked. Fixed from that look: ⌘Tab had no blur and named apps by their window's title (a module of ours inside KWin now gives both: `decoration/qml`); the style's menus were see-through by accident (painted as a disabled control) and are now glass on purpose, where KWin blurs behind them; a chosen row in the file dialog was two colors; KDE's push buttons kept their pictures; the Dock's menu overlapped the Dock's glass; a notification stack's peeking card had square corners; the note on showing the HUD by hand was wrong (`call hud -- show volume 45`). The session names our widget style since | On tenet's live session: pictures of each (`spectacle`), keys and clicks through a virtual keyboard and pointer. ⌘Tab's new files ran there from a test copy: a running KWin keeps the layout it loaded, so the installed one shows at the next login |
 | 9, 2026-11-18 | 14, the desktop | A right-click on the desktop opens its menu at the pointer (`shell/Wallpaper.qml`, on the Overlay like every menu): New Folder (a script names it as a Mac does and Files is asked to show it) and Change Wallpaper… (Settings' pane) | On the Mac, through the stand-ins: a right press on the sheet's desktop opens the menu at the pointer in light and dark (`out/shots/shell-desktop-context-menu-*.png`); choosing New Folder ran the script and asked Files to show `untitled folder 2` by a well-formed URL. Not run under Quickshell or KWin |
 | 8, 2026-11-18 | Tooling, for every shell gap | The shell's own files drawn on the Mac: stand-ins for Quickshell and Plasma (`tools/qmlshot/stubs/`, `stubs.h`), a staged copy of `shell/` with a qmldir for its singletons, `parts/Desk.qml` (the desktop as the shell puts it up) and ten `desktop-*` sheets that open things on it with real pointer and key events. Fixed from the first look: Notification Center's shadows cut by the list's clip, a wrapped card overlapped by the next, the Dock's menus placed from the scene instead of its window | On the Mac: `make shell-shots`, 13 sheets in light and dark, each looked at. The stand-ins are not Quickshell: nothing here has run on it |
 | 7, 2026-11-18 | 11, the Dock's right side | Downloads as a stack: `shell/StackGrid.qml` (the grid's picture), `shell/Stack.qml` (reads the folder's newest 24 with `ls -t` and `file`, icons by kind from the icon theme, pictures as themselves), a place on the Overlay, `Popups.toggleStack` | On the Mac: the grid full, part full and empty, light and dark (`out/shots/shell-stack-*.png`). Not run under Quickshell |
