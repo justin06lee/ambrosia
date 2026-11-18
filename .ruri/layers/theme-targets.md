@@ -17,6 +17,7 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - **Session kdeglobals (light scheme + type-scale fonts as QFont strings):** tools/gen/targets/kde.ts
 - **KWin window frame's tokens (titlebar, lights, corner, rim, edge, shadow) as a C++ header for decoration/:** tools/gen/targets/kdecoration.ts
 - **Pointer theme (Xcursor files, KWin's cursors_scalable SVGs, web/cursors.css, the look-over sheet):** tools/gen/targets/cursors.ts, design/cursors.ts, tools/gen/xcursor.ts
+- **Icon theme (index.theme, apps/scalable, alias links, web/icons.css, the icon sheet):** tools/gen/targets/icons.ts, design/icons.ts
 
 ## How it works
 
@@ -27,11 +28,12 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - tools/gen/targets/shared.ts — shared header, kebab/slug, fontStack, cssShadow, pt helpers, and the window-button symbol shapes
 - tools/gen/targets/gtk.ts — libadwaita CSS vars (gtk4), named colors per mode (gtk3), and GTK's traffic-light sizing and edge
 - tools/gen/targets/kde.ts — opaque .colors sets, translucency flattened onto background
-- tools/gen/targets/qml.ts — Ambrosia QML singleton tree with Theme.dark / Theme.accentName switching
+- tools/gen/targets/qml.ts — Ambrosia QML singleton tree with Theme.dark / Theme.accentName switching, and Theme.tileIcons (the icon theme's tile names, for the Dock)
 - tools/gen/targets/web.ts — --amb-* CSS custom properties for preview/web surfaces
 - tools/gen/targets/fontconfig.ts — sans-serif/monospace aliases, rasterization defaults, and the session's font environment (FreeType stem darkening, QT_NO_SYNTHESIZED_BOLD)
 - tools/gen/targets/kdecoration.ts — dist/kdecoration/tokens.h: the frame's sizes, per-mode colors, window-button shapes, light edge and shadow layers for the decoration plugin
-- tools/gen/targets/cursors.ts — dist/cursors/Ambrosia (index.theme, cursors/, cursors_scalable/ with metadata.json), dist/web/cursors.css (--amb-cursor-* and --amb-pointer-*), dist/cursors/sheet.html; rasterizes with @resvg/resvg-js
+- tools/gen/targets/cursors.ts — the pointer inside dist/icons/Ambrosia (cursors/ Xcursor files, cursors_scalable/ SVGs with metadata.json), dist/web/cursors.css (--amb-cursor-* and --amb-pointer-*), dist/cursors/sheet.html; rasterizes with @resvg/resvg-js
+- tools/gen/targets/icons.ts — dist/icons/Ambrosia: index.theme (Inherits breeze,breeze_cursors,hicolor; FollowsColorScheme), apps/scalable/*.svg, links for other names; tileIconNames() feeds Theme.tileIcons; dist/icons/sheet.html, dist/web/icons.css
 
 ## Rules and traps
 
@@ -50,6 +52,8 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - Qt fakes bold for weight ≥700 when the face's OS/2 weight class is under 700. Variable fonts report their default instance (Inter Variable says 400), so their real Bold gets thickened again. fontEnvironment() sets QT_NO_SYNTHESIZED_BOLD=1, which startambrosia sources at login. fontconfig's embolden doesn't reach Qt.
 - KWin draws cursors_scalable SVGs with Qt's SVG reader, which has no filters: the pointer's shadow is blurred once by resvg and embedded as a PNG <image>; only the web variant uses feGaussianBlur. A test rejects <filter> in the theme's SVGs.
 - resvg-js returns premultiplied RGBA, which is what Xcursor wants: don't premultiply again. Pass font.loadSystemFonts false or every render scans the system's fonts.
+- The pointer and the app icons share one theme folder, dist/icons/Ambrosia (ICON_THEME_ROOT in shared.ts): icons.ts writes its index.theme, cursors.ts only adds cursors/ and cursors_scalable/. The sheets are dist/icons/sheet.html and dist/cursors/sheet.html.
+- App icon SVGs must stay within what Qt's SVG reader draws (no filter, clip-path or mask): a test rejects them. Icon names in design/icons.ts were written from memory of each app's desktop file; check Icon= on a real install.
 
 ## What it talks to
 

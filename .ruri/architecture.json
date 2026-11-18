@@ -440,6 +440,12 @@
           "files": [
             "design/cursors.ts"
           ]
+        },
+        {
+          "name": "App icons for the stand-in apps (Terminal, text editor, viewers, Calculator, archiver, store, Screenshot, system info) and the icon names they answer to",
+          "files": [
+            "design/icons.ts"
+          ]
         }
       ],
       "flows": [],
@@ -447,7 +453,8 @@
         "design/tokens.ts — the single source of truth: font/type/tracking, space, radius, OKLCH color pairs, window frame, glass, shadow, springs",
         "design/DESIGN.md — reasoning behind the numbers before retuning values",
         "design/DECISIONS.md — recorded design decisions behind token choices",
-        "design/cursors.ts — every pointer shape as paths on a 32-unit canvas (nominal size 24), in groups painted rim-then-ink; pointers(colors) takes the token colors it borrows from the generator"
+        "design/cursors.ts — every pointer shape as paths on a 32-unit canvas (nominal size 24), in groups painted rim-then-ink; pointers(colors) takes the token colors it borrows from the generator",
+        "design/icons.ts — app icons as SVG art on a 256 grid (tile 24..232, gradient pair, names); adopted maps Files' and Settings' existing icons to KDE's names"
       ],
       "rules": [
         "Never hand-edit generated output in dist/; change design/tokens.ts and regenerate.",
@@ -778,6 +785,13 @@
             "design/cursors.ts",
             "tools/gen/xcursor.ts"
           ]
+        },
+        {
+          "name": "Icon theme (index.theme, apps/scalable, alias links, web/icons.css, the icon sheet)",
+          "files": [
+            "tools/gen/targets/icons.ts",
+            "design/icons.ts"
+          ]
         }
       ],
       "flows": [
@@ -795,11 +809,12 @@
         "tools/gen/targets/shared.ts — shared header, kebab/slug, fontStack, cssShadow, pt helpers, and the window-button symbol shapes",
         "tools/gen/targets/gtk.ts — libadwaita CSS vars (gtk4), named colors per mode (gtk3), and GTK's traffic-light sizing and edge",
         "tools/gen/targets/kde.ts — opaque .colors sets, translucency flattened onto background",
-        "tools/gen/targets/qml.ts — Ambrosia QML singleton tree with Theme.dark / Theme.accentName switching",
+        "tools/gen/targets/qml.ts — Ambrosia QML singleton tree with Theme.dark / Theme.accentName switching, and Theme.tileIcons (the icon theme's tile names, for the Dock)",
         "tools/gen/targets/web.ts — --amb-* CSS custom properties for preview/web surfaces",
         "tools/gen/targets/fontconfig.ts — sans-serif/monospace aliases, rasterization defaults, and the session's font environment (FreeType stem darkening, QT_NO_SYNTHESIZED_BOLD)",
         "tools/gen/targets/kdecoration.ts — dist/kdecoration/tokens.h: the frame's sizes, per-mode colors, window-button shapes, light edge and shadow layers for the decoration plugin",
-        "tools/gen/targets/cursors.ts — dist/cursors/Ambrosia (index.theme, cursors/, cursors_scalable/ with metadata.json), dist/web/cursors.css (--amb-cursor-* and --amb-pointer-*), dist/cursors/sheet.html; rasterizes with @resvg/resvg-js"
+        "tools/gen/targets/cursors.ts — the pointer inside dist/icons/Ambrosia (cursors/ Xcursor files, cursors_scalable/ SVGs with metadata.json), dist/web/cursors.css (--amb-cursor-* and --amb-pointer-*), dist/cursors/sheet.html; rasterizes with @resvg/resvg-js",
+        "tools/gen/targets/icons.ts — dist/icons/Ambrosia: index.theme (Inherits breeze,breeze_cursors,hicolor; FollowsColorScheme), apps/scalable/*.svg, links for other names; tileIconNames() feeds Theme.tileIcons; dist/icons/sheet.html, dist/web/icons.css"
       ],
       "rules": [
         "Do not edit generated output; every file carries HEADER pointing back to design/tokens.ts via tools/gen.",
@@ -816,7 +831,9 @@
         "GTK lights move to the left only in sessions started after that setting shipped; a running session keeps the old placement, so check on a fresh login.",
         "Qt fakes bold for weight ≥700 when the face's OS/2 weight class is under 700. Variable fonts report their default instance (Inter Variable says 400), so their real Bold gets thickened again. fontEnvironment() sets QT_NO_SYNTHESIZED_BOLD=1, which startambrosia sources at login. fontconfig's embolden doesn't reach Qt.",
         "KWin draws cursors_scalable SVGs with Qt's SVG reader, which has no filters: the pointer's shadow is blurred once by resvg and embedded as a PNG <image>; only the web variant uses feGaussianBlur. A test rejects <filter> in the theme's SVGs.",
-        "resvg-js returns premultiplied RGBA, which is what Xcursor wants: don't premultiply again. Pass font.loadSystemFonts false or every render scans the system's fonts."
+        "resvg-js returns premultiplied RGBA, which is what Xcursor wants: don't premultiply again. Pass font.loadSystemFonts false or every render scans the system's fonts.",
+        "The pointer and the app icons share one theme folder, dist/icons/Ambrosia (ICON_THEME_ROOT in shared.ts): icons.ts writes its index.theme, cursors.ts only adds cursors/ and cursors_scalable/. The sheets are dist/icons/sheet.html and dist/cursors/sheet.html.",
+        "App icon SVGs must stay within what Qt's SVG reader draws (no filter, clip-path or mask): a test rejects them. Icon names in design/icons.ts were written from memory of each app's desktop file; check Icon= on a real install."
       ],
       "edges": [
         "Design Tokens — reads type, color, font, shadow token definitions as input vocabulary",
@@ -935,6 +952,13 @@
           "files": [
             "session/ambrosia-shell.service",
             "session/plasmashell.conf"
+          ]
+        },
+        {
+          "name": "Session defaults for launch feedback, GTK's icon and cursor themes",
+          "files": [
+            "session/xdg/klaunchrc",
+            "session/dconf/ambrosia.d/01-icons"
           ]
         }
       ],
@@ -1267,7 +1291,8 @@
         "Never read design/tokens.ts directly from a target for colors — go through resolve() so derived accents and flattened labels agree everywhere.",
         "Never bypass color.ts gamut mapping and contrast helpers with ad-hoc conversion — out-of-gamut OKLCH and unreadable text result.",
         "Keep Resolved/ResolvedMode/ResolvedAccent shapes stable — every formatter in tools/gen/targets/ depends on them.",
-        "index.ts writes text or bytes, then the pointer theme's alias symlinks; dist/cursors/Ambrosia must be copied with cp -a so the links stay links."
+        "index.ts writes text or bytes, then the icon theme's alias symlinks (other names for an icon or a pointer shape).",
+        "index.ts reads assets/icons/<name>.svg for the icons the theme adopts and hands them to iconTheme(); the theme lives at dist/icons/Ambrosia (not dist/cursors/Ambrosia) and must be copied with cp -a."
       ],
       "edges": [
         "Design Tokens — sole input: reads design/tokens.ts types and values, never the reverse",

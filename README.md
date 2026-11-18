@@ -107,8 +107,9 @@ markdown you can paste into a chat.
 ## How it fits together
 
 `design/tokens.ts` holds every value: type scale, 4px spacing grid, concentric
-radii, OKLCH colors, glass materials, shadows and spring motion, and
-`design/cursors.ts` every shape the pointer takes. `tools/gen`
+radii, OKLCH colors, glass materials, shadows and spring motion;
+`design/cursors.ts` holds every shape the pointer takes and `design/icons.ts`
+the app icons. `tools/gen`
 resolves them once and writes each target from the same resolved model. It
 converts colors to gamut-mapped sRGB, derives each accent's text and fill
 colors to meet contrast targets, and solves the springs. Because of that,
@@ -123,8 +124,8 @@ an accent or a label color is identical in GTK, KDE and the shell.
 | `dist/fontconfig/50-ambrosia.conf` | Inter and JetBrains Mono as system fonts, grayscale AA, slight hinting |
 | `dist/environment.d/50-ambrosia-fonts.conf` | FreeType stem darkening, for fuller text; no synthetic bold in Qt |
 | `dist/kdecoration/tokens.h` | the KWin window frame (`decoration/`): traffic lights, title, corners, shadow |
-| `dist/cursors/Ambrosia/` | the pointer theme: Xcursor files for apps, SVGs for KWin, every other name as a link; `dist/cursors/sheet.html` shows them all |
-| `dist/web/cursors.css` | the same pointer for the preview and the review site |
+| `dist/icons/Ambrosia/` | the icon theme, over Breeze: our app icons under the names the installed apps ask for, and the pointer (Xcursor files for apps, SVGs for KWin); every other name is a link. `dist/icons/sheet.html` and `dist/cursors/sheet.html` show them all |
+| `dist/web/cursors.css`, `icons.css` | the same pointer and app icons for the preview and the review site |
 | `dist/web/tokens.css` | the preview and any web surface |
 | `dist/tokens.json` | everything resolved, for compositor effects and scripts |
 
@@ -136,7 +137,8 @@ contrast in both modes, concentric radii, and the spacing grid.
 ```
 CONTEXT.md     where things stand and what's next, for picking the work back up
 design/        DESIGN.md (the rules), DECISIONS.md (the choices), tokens.ts (the values),
-               cursors.ts (the pointer's shapes), review.json (review verdicts and notes)
+               cursors.ts (the pointer's shapes), icons.ts (app icons),
+               review.json (review verdicts and notes)
 tools/gen/     the generator and its tests
 tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remote.sh,
                publish-repo.sh (the hosted repo), repo-test.sh + repo-check.sh (its VM test)
@@ -174,9 +176,10 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 4. **Compositor**: a KWin effect for glass refraction and window animations on
    the spring tokens. Window frames are done: our own KWin decoration gives
    every app the traffic lights, and GTK's own titlebars match.
-5. **Toolkits**: a Qt widget style and a full GTK theme beyond colors, and an
-   icon set. The pointer theme is drawn and built (a Mac's black arrow and
-   white hands, a wheel of our own for busy); it hasn't been seen on KWin yet.
+5. **Toolkits**: a Qt widget style and a full GTK theme beyond colors. The
+   "Ambrosia" icon theme is begun: the pointer (a Mac's black arrow and white
+   hands, a wheel of our own for busy) and icons for the apps a new install
+   starts with, over Breeze for the rest. Neither has been seen on KWin yet.
 6. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
    dialogs in other apps match too.
 7. **Onboarding**: a first-party onboarding app in place of the installer

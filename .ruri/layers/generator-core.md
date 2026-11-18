@@ -34,7 +34,8 @@ Generator Core resolves design/tokens.ts into a concrete sRGB + solved-spring mo
 - Never read design/tokens.ts directly from a target for colors — go through resolve() so derived accents and flattened labels agree everywhere.
 - Never bypass color.ts gamut mapping and contrast helpers with ad-hoc conversion — out-of-gamut OKLCH and unreadable text result.
 - Keep Resolved/ResolvedMode/ResolvedAccent shapes stable — every formatter in tools/gen/targets/ depends on them.
-- index.ts writes text or bytes, then the pointer theme's alias symlinks; dist/cursors/Ambrosia must be copied with cp -a so the links stay links.
+- index.ts writes text or bytes, then the icon theme's alias symlinks (other names for an icon or a pointer shape).
+- index.ts reads assets/icons/<name>.svg for the icons the theme adopts and hands them to iconTheme(); the theme lives at dist/icons/Ambrosia (not dist/cursors/Ambrosia) and must be copied with cp -a.
 
 ## What it talks to
 

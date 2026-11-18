@@ -20,6 +20,7 @@ Single-file source of truth for ambrosia's look and motion, exporting type scale
 - **Control center module metrics:** design/tokens.ts, design/DESIGN.md
 - **Dock metrics:** design/tokens.ts
 - **The pointer's shapes (arrow, hands, I-beam, resize arrows, badges, the busy wheel), hotspots and other names:** design/cursors.ts
+- **App icons for the stand-in apps (Terminal, text editor, viewers, Calculator, archiver, store, Screenshot, system info) and the icon names they answer to:** design/icons.ts
 
 ## Key files
 
@@ -27,6 +28,7 @@ Single-file source of truth for ambrosia's look and motion, exporting type scale
 - design/DESIGN.md — reasoning behind the numbers before retuning values
 - design/DECISIONS.md — recorded design decisions behind token choices
 - design/cursors.ts — every pointer shape as paths on a 32-unit canvas (nominal size 24), in groups painted rim-then-ink; pointers(colors) takes the token colors it borrows from the generator
+- design/icons.ts — app icons as SVG art on a 256 grid (tile 24..232, gradient pair, names); adopted maps Files' and Settings' existing icons to KDE's names
 
 ## Rules and traps
 
