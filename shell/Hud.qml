@@ -83,8 +83,9 @@ Scope {
     }
 
     // To look at it without the keys:
-    //   quickshell ipc --path /usr/share/ambrosia/shell call hud show volume 45
-    // (volume, brightness, or anything else as a line of text).
+    //   quickshell ipc --path /usr/share/ambrosia/shell call hud -- show volume 45
+    // (volume, brightness, or anything else as a line of text; the -- keeps
+    // quickshell from reading "show" as its own `ipc show`).
     IpcHandler {
         target: "hud"
 

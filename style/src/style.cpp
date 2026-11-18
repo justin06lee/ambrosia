@@ -25,6 +25,8 @@
 #include <QPainterPath>
 #include <QPointer>
 #include <QProgressBar>
+#include <QSettings>
+#include <QStandardPaths>
 #include <QStyleFactory>
 #include <QStyleOption>
 #include <QTabBar>
@@ -100,6 +102,28 @@ QStyle *styleUnderneath(const QString &name)
     }
     QStyle *breeze = QStyleFactory::create(QStringLiteral("breeze"));
     return breeze ? breeze : QStyleFactory::create(QStringLiteral("fusion"));
+}
+
+// How solid a menu's panel is. Breeze, underneath, has KWin blur behind menus
+// when it is told to draw its own see-through (breezerc's MenuOpacity; the
+// session's says 72, the thick material's): then ours is glass of the same
+// opacity. Anywhere else nothing would blur behind it, and it is solid.
+qreal blurredMenuOpacity(const QStyle *underneath)
+{
+    if (!underneath || underneath->objectName().compare(QLatin1String("breeze"), Qt::CaseInsensitive) != 0) {
+        return 1;
+    }
+    static const qreal opacity = [] {
+        const QStringList files = QStandardPaths::locateAll(QStandardPaths::GenericConfigLocation, QStringLiteral("breezerc"));
+        for (const QString &file : files) {
+            const QVariant value = QSettings(file, QSettings::IniFormat).value(QStringLiteral("Style/MenuOpacity"));
+            if (value.isValid()) {
+                return qBound(0.0, value.toDouble() / 100, 1.0);
+            }
+        }
+        return 1.0;
+    }();
+    return opacity;
 }
 
 bool isDark(const QPalette &palette)
@@ -453,6 +477,12 @@ bool isDefaultButton(const QStyleOptionButton *button)
     return (button->features & QStyleOptionButton::DefaultButton) && (button->state & QStyle::State_Active) && enabled(button);
 }
 
+// A push button with a title and a picture: only the title is drawn.
+bool titledWithIcon(const QStyleOptionButton *button)
+{
+    return !button->icon.isNull() && !button->text.isEmpty();
+}
+
 } // namespace
 
 Style::Style(const QString &base)
@@ -629,6 +659,10 @@ QSize Style::sizeFromContents(ContentsType type, const QStyleOption *option, con
     case CT_PushButton: {
         const auto *button = qstyleoption_cast<const QStyleOptionButton *>(option);
         int width = size.width() + 2 * T::pushPadding;
+        if (button && titledWithIcon(button)) {
+            // The room QPushButton left for the picture that isn't drawn.
+            width -= button->iconSize.width() + 4;
+        }
         if (button && (button->features & QStyleOptionButton::HasMenu)) {
             width += T::arrowsWidth - T::pushPadding / 2;
         }
@@ -996,7 +1030,11 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
             painter->fillRect(item->rect, item->backgroundBrush);
         }
         if (item->state & State_Selected) {
-            const QPalette::ColorGroup group = !enabled(item) ? QPalette::Disabled : item->state & State_Active ? QPalette::Active : QPalette::Inactive;
+            // The same rule as the row's start (PE_PanelItemViewRow) and
+            // CE_ItemViewItem: some views' own delegates (the file dialog's)
+            // come straight here.
+            const QColor fill = !enabled(item) ? item->palette.color(QPalette::Disabled, QPalette::Highlight)
+                : emphasized(item, widget) ? item->palette.color(QPalette::Active, QPalette::Highlight) : color(m.rowUnfocused);
             const QStyleOptionViewItem::ViewItemPosition at = item->viewItemPosition;
             bool head = at == QStyleOptionViewItem::Beginning || at == QStyleOptionViewItem::OnlyOne;
             const bool tail = at == QStyleOptionViewItem::End || at == QStyleOptionViewItem::OnlyOne;
@@ -1006,7 +1044,7 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
                 const int column = tree->columnViewportPosition(item->index.column());
                 head = rightToLeft ? item->rect.right() >= column + tree->columnWidth(item->index.column()) - 1 : item->rect.left() <= column;
             }
-            highlight(painter, item->rect, head, tail, joined(widget, item->index), rightToLeft, item->palette.color(group, QPalette::Highlight));
+            highlight(painter, item->rect, head, tail, joined(widget, item->index), rightToLeft, fill);
         }
         painter->restore();
         return;
@@ -1047,11 +1085,20 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
         hairline(painter, option->rect, option->rect.width() > option->rect.height(), color(m.separator));
         return;
     case PE_PanelMenu: {
-        Paint paint(painter, option);
+        // (Not through Paint: a menu hands its panel over with no state at
+        // all, which would dim it as a disabled control's.)
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
         const QRectF r = QRectF(option->rect).adjusted(0.5, 0.5, -0.5, -0.5);
-        painter->setBrush(color(m.menu));
+        QColor panel = color(m.menu);
+        // Glass where the compositor blurs behind it, solid where not.
+        if (widget && widget->isWindow() && widget->testAttribute(Qt::WA_TranslucentBackground)) {
+            panel.setAlphaF(blurredMenuOpacity(baseStyle()));
+        }
+        painter->setBrush(panel);
         painter->setPen(QPen(color(m.menuRim), 1));
         painter->drawRoundedRect(r, T::menuRadius, T::menuRadius);
+        painter->restore();
         return;
     }
     case PE_FrameMenu:
@@ -1097,11 +1144,18 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
         return;
     }
     case CE_PushButtonLabel: {
-        // The default button's title is in the accent's own text color.
+        // The default button's title is in the accent's own text color, and
+        // a button with a title has no picture beside it (KDE's apps give
+        // theirs one whatever SH_DialogButtonBox_ButtonsHaveIcons says).
         const auto *button = qstyleoption_cast<const QStyleOptionButton *>(option);
-        if (button && isDefaultButton(button)) {
+        if (button && (isDefaultButton(button) || titledWithIcon(button))) {
             QStyleOptionButton copy(*button);
-            copy.palette.setColor(QPalette::ButtonText, accentText(option));
+            if (isDefaultButton(button)) {
+                copy.palette.setColor(QPalette::ButtonText, accentText(option));
+            }
+            if (titledWithIcon(button)) {
+                copy.icon = QIcon();
+            }
             QProxyStyle::drawControl(element, &copy, painter, widget);
             return;
         }

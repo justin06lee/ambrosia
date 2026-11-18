@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Window
 import org.kde.kwin as KWin
 import org.kde.kirigami as Kirigami
+import org.ambrosia.kwin as AmbrosiaKWin
 import Ambrosia
 
 // ⌘Tab: the running apps as a row of icons in the middle of the screen, as
@@ -15,17 +16,18 @@ KWin.TabBoxSwitcher {
 
     // An app's name, from its window. KWin's list has the window's title,
     // which is the document's; the window knows its desktop file's name
-    // (org.kde.konsole), and the last word of that is the nearest thing to
-    // the app's name KWin can say.
-    function appName(windowId, caption) {
-        try {
-            const id = String(windowId);
-            const window = KWin.Workspace.windowList().find(w => String(w.internalId) === id);
-            const file = (window?.desktopFileName || window?.resourceClass || "").split(".").pop();
-            if (file) return file.charAt(0).toUpperCase() + file.slice(1);
-        } catch (error) {
-        }
-        return caption;
+    // (org.kde.konsole), and that file has the app's.
+    function appName(windows, windowId, caption) {
+        const id = String(windowId);
+        const window = windows.find(w => String(w.internalId) === id);
+        const file = window?.desktopFileName ?? "";
+        // (A KWin still running from before an upgrade may hold a module
+        // without Apps.)
+        const name = AmbrosiaKWin.Apps?.name(file) ?? "";
+        if (name) return name;
+        // No desktop file: the last word of what the window calls itself.
+        const word = (file || window?.resourceClass || "").split(".").pop();
+        return word ? word.charAt(0).toUpperCase() + word.slice(1) : caption;
     }
 
     Instantiator {
@@ -34,6 +36,11 @@ KWin.TabBoxSwitcher {
         delegate: Window {
             // Room round the strip for its shadow.
             readonly property int room: 64
+            // KWin's windows as they are when this opens. (Read once it is
+            // made: the list says nothing when it changes, and a binding
+            // that read it would be warned about each time.)
+            property var windows: []
+            Component.onCompleted: windows = KWin.Workspace.windows
 
             visible: true
             flags: Qt.ToolTip | Qt.FramelessWindowHint
@@ -48,6 +55,10 @@ KWin.TabBoxSwitcher {
             SystemPalette { id: system }
             Binding { target: Theme; property: "dark"; value: system.window.hslLightness < 0.5 }
 
+            // KWin blurs behind its own windows only where it is told to
+            // (the shell's glass asks as a Wayland client; this can't).
+            AmbrosiaKWin.BlurBehind { item: strip; radius: strip.radius }
+
             SwitcherStrip {
                 id: strip
 
@@ -60,7 +71,7 @@ KWin.TabBoxSwitcher {
                 model: tabBox.model
                 currentIndex: tabBox.currentIndex
                 maxWidth: tabBox.screenGeometry.width * 0.9
-                nameOf: entry => tabBox.appName(entry.windowId, entry.caption)
+                nameOf: entry => tabBox.appName(windows, entry.windowId, entry.caption)
                 icon: Kirigami.Icon {
                     anchors.fill: parent
                     source: parent ? parent.entry.icon : ""

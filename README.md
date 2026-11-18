@@ -148,14 +148,16 @@ tools/qmlshot/ draws a QML file into a picture with no window on screen; sheets/
                the shell's own files loaded over stand-ins for Quickshell and Plasma (stubs/);
                make shell-shots
 tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remote.sh,
+               live.sh (drive and photograph the session logged in on the build box),
                publish-repo.sh (the hosted repo), repo-test.sh + repo-check.sh (its VM test)
 shell/         the shell in QML for Quickshell: wallpaper and the desktop's menu, menu bar and menus, Search,
                Dock, control center, notifications, the volume and brightness keys' display
 session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
                GTK's button layout (dconf), the `ambrosia` command and the shell's desktop files,
                the look-and-feel package with ⌘Tab's app switcher (a KWin switcher layout)
-decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens
-style/         the Qt widget style: other apps' buttons, boxes, sliders and menus, over Breeze;
+decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens;
+               qml/ is a small QML module for our QML inside KWin (the blur behind ⌘Tab, apps' names)
+style/         the Qt widget style the session names: other apps' buttons, boxes, sliders and menus, over Breeze;
                its gallery draws them all into a picture with no display (make gallery)
 files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks (bench/)
                and tools/tenet.sh to build and photograph it on tenet
@@ -191,10 +193,11 @@ assets/        banner, icon and the "nectar" day/night wallpapers
    fields, pop-ups, steppers, sliders, progress and scroll bars, menus,
    tabs, group boxes, the rows and headers of lists, trees and tables, and
    toolbars are drawn as macOS 26 draws them, over Breeze for the rest; it is
-   installed but not yet the session's style. The
+   the session's style, and its menus are glass where KWin blurs behind
+   them. The
    "Ambrosia" icon theme is begun: the pointer (a Mac's black arrow and white
    hands, a wheel of our own for busy) and icons for the apps a new install
-   starts with, over Breeze for the rest. Neither has been seen on KWin yet.
+   starts with, over Breeze for the rest.
 6. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
    dialogs in other apps match too.
 7. **Onboarding**: a first-party onboarding app in place of the installer

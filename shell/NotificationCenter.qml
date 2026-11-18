@@ -1,5 +1,6 @@
 import Quickshell
 import QtQuick
+import QtQuick.Effects
 import Ambrosia
 
 // Notification Center, which the clock opens as on macOS 26: a column down
@@ -405,24 +406,48 @@ Item {
             Repeater {
                 id: peekCards
                 model: group.peeks
-                // Only the strip below the card above shows: glass is see-through.
+                // Only what the card above doesn't cover shows: glass is
+                // see-through. That is the strip below it and, beside its
+                // round corners, a little more: the card above is cut out of
+                // this one.
                 Item {
                     id: peek
                     required property int index
                     readonly property real cardHeight: (cards.count, cards.itemAt(0)?.height ?? 64)
+                    readonly property real corner: Theme.radius.panel
                     z: -index - 1
-                    clip: true
                     x: (index + 1) * Theme.space.s3
-                    y: cardHeight + index * Theme.space.s2
+                    y: cardHeight - corner + index * Theme.space.s2
                     width: stack.width - 2 * x
-                    height: Theme.space.s2
+                    height: Theme.space.s2 + corner
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        maskEnabled: true
+                        maskInverted: true
+                        maskSource: above
+                    }
 
                     NotificationCard {
-                        y: Theme.space.s2 - peek.cardHeight
+                        y: parent.height - peek.cardHeight
                         width: parent.width
                         height: peek.cardHeight
                         blank: true
                         opacity: 1 - 0.2 * (peek.index + 1)
+                    }
+
+                    Item {
+                        id: above
+                        anchors.fill: parent
+                        visible: false
+                        layer.enabled: true
+
+                        Rectangle {
+                            x: -Theme.space.s3
+                            y: peek.corner - peek.cardHeight
+                            width: peek.width + 2 * Theme.space.s3
+                            height: peek.cardHeight
+                            radius: peek.corner
+                        }
                     }
                 }
             }
