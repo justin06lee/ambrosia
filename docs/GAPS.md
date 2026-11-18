@@ -165,7 +165,8 @@ it is a copy.
     color, light or dark, the way a Mac draws a template image; one in
     color is left alone. An item its app marks passive stays out. Seen on
     tenet (2026-11-18) with Discover's update notifier: the glyph in light
-    and dark, its menu. Not seen: an item without a menu, one in color, an
+    and dark, its menu (read ahead of the first press: fetched at the
+    press, it came up a second or two late after the shell started). Not seen: an item without a menu, one in color, an
     Xembed-only tray icon (those need a proxy we don't run). Still missing:
     a way to hide one in Settings (the bar already honors
     `menuBarHidden: ["extra:<id>"]`), reordering by ⌘-drag, and an input

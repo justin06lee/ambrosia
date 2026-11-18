@@ -347,6 +347,9 @@ PanelWindow {
                 menu: modelData.hasMenu ? modelData.menu : null
                 onPressed: modelData.activate()
                 onMiddlePressed: modelData.secondaryActivate()
+                // Held open, so the app's menu is read before the first press
+                // and not during it.
+                QsMenuOpener { menu: modelData.hasMenu ? modelData.menu : null }
             }
         }
         MenuBarItem {
