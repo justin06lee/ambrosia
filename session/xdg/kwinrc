@@ -21,6 +21,16 @@ TopLeft=None
 blurEnabled=true
 # Menus snap open, as the preview's do.
 fadingpopupsEnabled=false
+# A window minimizes into its Dock tile with the Genie effect, a Mac's
+# default (KWin's Magic Lamp; the Dock tells KWin where each app's tile
+# is). Settings' Desktop & Dock switches to Scale (KWin's Squash).
+magiclampEnabled=true
+squashEnabled=false
+
+# The Genie at a Mac's unhurried pace (KWin's own is 250 ms). By eye:
+# there is no recording to measure yet.
+[Effect-magiclamp]
+AnimationDuration=400
 
 # How glass treats what's behind it. KWin has one setting for every surface,
 # where the design asks for a light, untinted blur behind the control center
