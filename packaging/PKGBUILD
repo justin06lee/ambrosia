@@ -145,7 +145,8 @@ package_ambrosia-shell() {
 
   # Plasma writes its look-and-feel's defaults into ~/.config/kdedefaults,
   # ahead of /etc/xdg/ambrosia, so the session's colors live in one of ours.
-  cp -r session/look-and-feel/. "$pkgdir/usr/share/plasma/look-and-feel/"
+  # -L: the window switcher borrows the shell's Glass and Label by symlink.
+  cp -rL session/look-and-feel/. "$pkgdir/usr/share/plasma/look-and-feel/"
   install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/kwinrulesrc session/xdg/breezerc session/xdg/mimeapps.list \
     session/xdg/kcminputrc session/xdg/konsolerc session/xdg/klaunchrc -t "$pkgdir/etc/xdg/ambrosia/"
   # Konsole's profile and key table for the session (konsolerc names the

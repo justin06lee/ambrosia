@@ -79,11 +79,15 @@ it is a copy.
    own curves; Settings switches Genie (Magic Lamp) and Scale (Squash) for
    minimizing, but nothing moves on the spring tokens and a minimized window
    doesn't land on its Dock tile. From the code.
-7. **⌘Tab.** KWin's switcher, walking windows. A Mac's walks apps: one large
-   icon each on a glass strip, the name under the chosen one, ⌘Q and ⌘H
-   acting on it while it's up. A switcher layout of ours and KWin's
-   one-window-per-app mode get most of it. From the code and
-   `docs/keyboard.md`.
+7. **⌘Tab: built, not yet seen on KWin.** Since round 6 KWin's switcher
+   walks apps, one window each, on a glass strip of large icons with the
+   chosen app's name under it (the look-and-feel's `windowswitcher`); ← →
+   move and Q closes the chosen window while it's up. The strip has been
+   looked at; KWin has never loaded it. Short of a Mac's even then: no blur
+   behind it (KWin gives that to Plasma's own dialogs), the name is the
+   desktop file's last word, switching raises one window rather than all
+   the app's, Q closes a window rather than quitting, no ⌘H. To look at on
+   tenet.
 8. **Mission Control and Spaces.** KWin's Overview is there but unstyled and
    on no Mac key or gesture (F3, ⌃↑, three fingers up; ⌃← ⌃→ and a swipe
    between desktops; ⌃↓ for one app's windows). From the code.
@@ -170,6 +174,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 6, 2026-11-18 | 7, ⌘Tab | A switcher layout of our own in the look-and-feel package (`contents/windowswitcher`): the strip's picture in `SwitcherStrip.qml`, KWin's side in `WindowSwitcher.qml`; kwinrc names it and sets one window an app | On the Mac: the strip with six apps and with fifteen (icons shrink to fit), light and dark (`out/shots/shell-switcher-*.png`); KWin's API read from its sources (TabBoxSwitcher, the model's roles, where a layout is looked for). Not run on KWin |
 | 5, 2026-11-18 | 9, the keys' display | `shell/Hud.qml`: a capsule for the volume and brightness keys, fed by Plasma's own calls to `org.kde.osdService` heard on the bus; `tools/qmlshot` and `make shell-shots`, which draw pieces of the shell on the Mac with Qt's real renderer and no window | On the Mac: the panel in six states, light and dark (`out/shots/shell-hud-*.png`), in the Mac's font (no Inter here). The window, the blur and the listening need Quickshell: not run |
 | 4, 2026-11-18 | 3, Qt apps' controls | The style's second cut: tabs (segmented for a tab view, a quiet row for a window's own, close buttons on the left under the pointer), group boxes, rows of lists, trees and tables (rounded highlight joining chosen neighbors, gray without the focus), tree arrows, table headers, a pop-up button's choices as a menu, flat toolbars, menu bar items, splitters, the focus ring on checkboxes and radios, a busy bar that moves; new `tab`, `box`, `row` tokens | On the Mac: the gallery in light and dark, each new control looked at, and the busy bar caught moving between two grabs. Over Fusion only; what could differ over Breeze is noted in `CONTEXT.md` |
 | 3, 2026-11-18 | 3, Qt apps' controls | A Qt widget style (`style/`, ambrosia-style): a proxy over Breeze drawing twelve kinds of control from the Mac's measured sizes (new `controls` tokens), dialog buttons in the Mac's order, no underlined letters; a gallery that draws them with no display | On the Mac, for real: built against Qt 6.12 and rendered by the gallery in light and dark (`out/shots/style-*.png`), each control and state looked at. Over Fusion only: not yet over Breeze, nor in a real app |

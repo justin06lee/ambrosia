@@ -41,7 +41,7 @@ Everywhere:
 |---|---|---|
 | ⌘ + any key not below | the app's Ctrl shortcut: ⌘C ⌘V ⌘X ⌘Z ⇧⌘Z ⌘A ⌘S ⌘F ⌘N ⌘T ⌘W ⌘Q ⌘, … | Ctrl + the key |
 | ⌘Space | Search | Super+Space (the shell's shortcut) |
-| ⌘Tab, ⇧⌘Tab | switch windows, forward and back; ` steps back while it's up | Alt+Tab, Alt held until ⌘ is let go (KWin's switcher) |
+| ⌘Tab, ⇧⌘Tab | switch apps, forward and back, on a strip of their icons; while it's up ` steps back, ← → move, Q closes the chosen app's window | Alt+Tab, Alt held until ⌘ is let go (KWin's switcher, our layout) |
 | ⌘` , ⇧⌘` | the app's next window, and the one before | Alt+` |
 | ⌘M, ⌘H | minimize the window | Super+PgDn (KWin's Minimize) |
 | ⇧⌘3, ⇧⌘4, ⇧⌘5 | picture of the screen, of a part, the screenshot tool | Shift+Print, Super+Shift+Print, Print (Spectacle) |
@@ -95,8 +95,13 @@ folder, ⌘↓ open, ⌘[ back, ⌘] forward): they go on as plain Ctrl.
   shortcut ignores them (most Electron apps have no Ctrl+Q); the Mac's
   quit-anything would have to come from the shell. Files, like Finder, has
   no Quit.
-- **⌘Tab walks windows, not apps**, and ⌘H minimizes one window rather than
-  hiding the app: both are KWin's own actions, the nearest it has.
+- **⌘Tab walks apps, one window each** (KWin's switcher set to one window
+  an app, drawn by the look-and-feel's `windowswitcher`): switching brings
+  that window forward, not all of the app's as a Mac does, and Q while it is
+  up closes that window rather than quitting the app. An app's name there
+  is the last word of its desktop file's name (Konsole, not Terminal).
+  Built and drawn, not yet run on KWin. ⌘H minimizes one window rather than
+  hiding the app: KWin's own action, the nearest it has.
 - **⌘⌫ deletes a word, not the line**: it is the app's Ctrl+Backspace, so
   that in Files it still moves to the Trash. The Mac's would take two
   keystrokes (select to the line's start, delete), which in a list is a

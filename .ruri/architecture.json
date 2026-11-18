@@ -992,6 +992,13 @@
             "shell/Hud.qml",
             "shell/HudPanel.qml"
           ]
+        },
+        {
+          "name": "⌘Tab's app switcher (a KWin switcher layout; make shell-shots draws its strip)",
+          "files": [
+            "session/look-and-feel/org.ambrosia.desktop/contents/windowswitcher/",
+            "session/xdg/kwinrc"
+          ]
         }
       ],
       "flows": [
@@ -1047,8 +1054,6 @@
       "files": [
         "shell/shell.qml — top-level shell composition, which windows go on which screens",
         "shell/MenuBar.qml — menu bar container and menu switching",
-        "shell/MenuBarItem.qml — single menu-bar title item",
-        "shell/MenuView.qml — dropdown menu view",
         "shell/Apps.qml — running-app / menu model for app menus and dock",
         "shell/Search.qml — Spotlight: apps, panes, sums, files and folders, ⌘Return reveals in Files",
         "shell/Dock.qml — app dock with running dots, Downloads, live Trash, Files icon and context menu",

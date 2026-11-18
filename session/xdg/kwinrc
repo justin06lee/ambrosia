@@ -32,6 +32,14 @@ fadingpopupsEnabled=false
 BlurStrength=6
 Saturation=100
 
+# ⌘Tab walks apps, not windows: one icon an app, on a strip of our own (the
+# look-and-feel package's windowswitcher), and the windows behind stay as
+# they are while it is up.
+[TabBox]
+ApplicationsMode=1
+LayoutName=org.ambrosia.desktop
+HighlightWindows=false
+
 # Super alone does nothing: it's Command, held for shortcuts. (Plasma's
 # default opens plasmashell's launcher, which isn't running here.)
 [ModifierOnlyShortcuts]
