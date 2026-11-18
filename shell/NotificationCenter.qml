@@ -145,13 +145,15 @@ Item {
 
         Flickable {
             id: flick
-            // Room above and left for the close buttons, which stand out past a
-            // card's corner.
+            // Room above for the close buttons, which stand out past a card's
+            // corner, and to the sides and below for the cards' shadows: cut
+            // any closer, their edge shows as a straight line.
+            readonly property int bleed: Theme.space.s12
             y: topRow.height + Theme.space.s2 - 8
-            x: -8
-            width: parent.width + 8
-            height: Math.min(column.height + 8, Math.max(0, nc.maxHeight - y))
-            contentHeight: column.height + 8
+            x: -bleed
+            width: parent.width + bleed + Theme.space.s2
+            height: Math.min(column.height + 8 + bleed, Math.max(0, nc.maxHeight - y))
+            contentHeight: column.height + 8 + bleed
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             interactive: contentHeight > height
@@ -159,7 +161,7 @@ Item {
 
             Column {
                 id: column
-                x: 8
+                x: flick.bleed
                 y: 8
                 width: nc.width
                 spacing: Theme.space.s2
@@ -396,7 +398,8 @@ Item {
         Item {
             id: stack
             width: parent.width
-            height: (cards.itemAt(0)?.height ?? 64) + group.peeks * Theme.space.s2
+            // (The count, so it's read again once the card is there.)
+            height: (cards.count, cards.itemAt(0)?.height ?? 64) + group.peeks * Theme.space.s2
             visible: !group.isSpread
 
             Repeater {
@@ -406,7 +409,7 @@ Item {
                 Item {
                     id: peek
                     required property int index
-                    readonly property real cardHeight: cards.itemAt(0)?.height ?? 64
+                    readonly property real cardHeight: (cards.count, cards.itemAt(0)?.height ?? 64)
                     z: -index - 1
                     clip: true
                     x: (index + 1) * Theme.space.s3

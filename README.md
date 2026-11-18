@@ -49,7 +49,7 @@ make remote-build          # the build gate on tenet, the Arch build box (Mac st
 make review-remote         # the review site served from tenet, tunnelled to localhost:4747
 make shot-remote           # the mock desktop photographed in headless Firefox on tenet, into out/shots/
 make gallery               # the Qt widget style's controls drawn into out/shots/ (needs Qt 6, CMake, Ninja)
-make shell-shots           # pieces of the shell drawn into out/shots/ with no window on screen (needs Qt Quick too)
+make shell-shots           # the shell drawn into out/shots/ with no window on screen: the desktop, menus, panels (needs Qt Quick too)
 open preview/index.html    # the mock desktop on its own (xdg-open on Linux)
 ```
 
@@ -144,7 +144,9 @@ design/        DESIGN.md (the rules), DECISIONS.md (the choices), tokens.ts (the
                review.json (review verdicts and notes)
 tools/gen/     the generator and its tests
 tools/qmlshot/ draws a QML file into a picture with no window on screen; sheets/ lays pieces
-               of the shell out in their states (make shell-shots)
+               of the shell out, or opens things on the whole desktop (parts/Desk.qml), with
+               the shell's own files loaded over stand-ins for Quickshell and Plasma (stubs/);
+               make shell-shots
 tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remote.sh,
                publish-repo.sh (the hosted repo), repo-test.sh + repo-check.sh (its VM test)
 shell/         the shell in QML for Quickshell: wallpaper, menu bar and menus, Search,

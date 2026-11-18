@@ -1,0 +1,20 @@
+module Quickshell
+PanelWindow 1.0 PanelWindow.qml
+PopupWindow 1.0 PopupWindow.qml
+Scope 1.0 Scope.qml
+Singleton 1.0 Singleton.qml
+Variants 1.0 Variants.qml
+Region 1.0 Region.qml
+SystemClock 1.0 SystemClock.qml
+QsMenuHandle 1.0 QsMenuHandle.qml
+QsMenuEntry 1.0 QsMenuEntry.qml
+QsMenuOpener 1.0 QsMenuOpener.qml
+QsMenuButtonType 1.0 QsMenuButtonType.qml
+Edges 1.0 Edges.qml
+PopupAdjustment 1.0 PopupAdjustment.qml
+ExclusionMode 1.0 ExclusionMode.qml
+internal ShotContent ShotContent.qml
+internal ShotAnchors ShotAnchors.qml
+internal ShotMargins ShotMargins.qml
+internal ShotRect ShotRect.qml
+internal ShotPopupAnchor ShotPopupAnchor.qml

@@ -428,14 +428,14 @@ PanelWindow {
         // The Overlay starts below the menu bar; menus are placed in its frame.
         const menuHeight = items.reduce((h, entry) => h + (entry.separator ? 2 * Theme.space.s1_5 + 1 : Theme.size.row.compact), 2 * Theme.space.s1_5);
         if (dock.vertical) {
-            const point = item.mapToItem(null, 0, item.height / 2);
+            const point = item.mapToItem(dock.contentItem, 0, item.height / 2);
             const x = dock.side === "left" ? body.x + body.width + Theme.space.s2
                 : dock.screen.width - dock.width + body.x - 236 - Theme.space.s2;
             // A window down this side starts at the Overlay's top, too.
             Popups.openMenu(dock.screen, "dock", items, x, point.y - menuHeight / 2);
             return;
         }
-        const point = item.mapToItem(null, item.width / 2, 0);
+        const point = item.mapToItem(dock.contentItem, item.width / 2, 0);
         const screenY = dock.screen.height - dock.height + point.y;
         Popups.openMenu(dock.screen, "dock", items, point.x - 118, screenY - Theme.size.menubar.height - menuHeight - Theme.space.s2);
     }
@@ -445,13 +445,13 @@ PanelWindow {
     // the Dock's glass.
     function openStack(item, folder) {
         if (dock.vertical) {
-            const point = item.mapToItem(null, 0, item.height / 2);
+            const point = item.mapToItem(dock.contentItem, 0, item.height / 2);
             const x = dock.side === "left" ? body.x + body.width + Theme.space.s2
                 : dock.screen.width - dock.width + body.x - Theme.space.s2;
             Popups.toggleStack(dock.screen, { folder: folder, edge: dock.side, x: x, y: point.y });
             return;
         }
-        const point = item.mapToItem(null, item.width / 2, 0);
+        const point = item.mapToItem(dock.contentItem, item.width / 2, 0);
         const top = dock.screen.height - dock.height + body.y;
         Popups.toggleStack(dock.screen, { folder: folder, edge: "bottom", x: point.x, y: top - Theme.size.menubar.height - Theme.space.s2 });
     }

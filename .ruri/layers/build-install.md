@@ -13,13 +13,14 @@ This layer builds, tests and installs Ambrosia. Bun and TypeScript handle the bu
 - **make package / quickshell / iso targets (Arch):** Makefile
 - **Publish signed Arch package repo (make publish):** Makefile, tools/publish-repo.sh
 - **Running the build gate, review site and screenshots on tenet (make remote-build, review-remote, shot-remote):** Makefile, tools/remote.sh
-- **Drawing pieces of the shell with no window (make shell-shots):** tools/qmlshot/main.cpp, tools/qmlshot/sheets/
+- **Drawing the shell with no window (make shell-shots): the desktop and what opens on it, or one piece:** tools/qmlshot/main.cpp, tools/qmlshot/shots.sh, tools/qmlshot/sheets/, tools/qmlshot/parts/Desk.qml, tools/qmlshot/stubs/, tools/qmlshot/stubs.cpp
 
 ## How it works
 
 - **Install themes:** Resolve dist/ relative to script location → Exit early (success) on non-Linux, pointing at dist/ → Detect GTK mode via gsettings color-scheme (default light) → place() each dist artifact into XDG_CONFIG_HOME / XDG_DATA_HOME, backing up foreign files
 - **Publish package repo:** make publish runs tools/publish-repo.sh → Build the packages under packaging/ → Sign the repo db with the private key, which stays on the Mac → Copy ambrosia.db and ambrosia.files as real files, since release assets cannot be symlinks → Upload to the rolling `repo` release in justin06lee/ambrosia-packages
 - **Remote work:** make remote-build / review-remote / shot-remote (Mac) → tools/remote.sh pushes HEAD to tenet's bare repo ~/git/ambrosia.git → ~/work/ambrosia resets to it, uncommitted changes rsynced on top → the command runs capped there → review-remote tunnels localhost:4747 over ssh; shot-remote (headless Firefox, 1440x900) copies out/shots/<SHOT>.png back
+- **Shell shots:** make shell-shots builds qmlshot → shots.sh stages shell/ as links beside a qmldir naming its singletons, draws the wallpapers from their SVGs → each sheet loads (stand-in windows are items on the sheet's screen) → sheet drives it (Popups calls, shotPointer moves, clicks, typing) → one frame grabbed, light and dark, into out/shots/
 
 ## Key files
 
@@ -40,7 +41,7 @@ This layer builds, tests and installs Ambrosia. Bun and TypeScript handle the bu
 - Heavy work runs on tenet, not the 8 GB Mac: the Mac only edits, runs git and signs. Everything on tenet runs capped (systemd-run --user --scope -p MemoryMax=…, nice 19, ionice -c3, two jobs): it has no swap and hosts mira's gateway.
 - tenet's ~/work/ambrosia is disposable: every tools/remote.sh run resets it hard and cleans untracked files (ignored out/, dist/, node_modules survive), so never edit there.
 - make shot-remote shows layout and colour, not glass: headless Firefox draws no backdrop blur.
-- tools/qmlshot can load only QML that needs nothing but Qt Quick and the Theme: keep a new shell surface's picture in its own file, apart from its Quickshell window, and add a sheet for it.
+- tools/qmlshot loads the shell's own files over stand-ins for Quickshell and Plasma (stubs/README.md): a picture from it doesn't prove Quickshell agrees, shows the Mac's font and not KWin's blur. A new surface gets a sheet in sheets/ (desktop-* ones open things on parts/Desk.qml).
 
 ## What it talks to
 
