@@ -281,6 +281,10 @@ and the preview is the visual reference. In brief:
 - Every app a new install starts with wears an icon of ours (`design/icons.ts`),
   whoever wrote the app: one object or mark, in white or its own few colors,
   on the tile. The shapes are drawn here, never taken from another system's.
+- **Folders and files** are one folder, one page and one tile, whatever app
+  shows them: a special folder has its line glyph pressed into the front, a
+  kind of file is the page with one mark on it. Under 32 px a special folder
+  is the glyph alone, in the text's color.
 
 ## Voice
 

@@ -40,7 +40,7 @@ it is a copy.
    bouncing beside the pointer) is off in the session
    (`session/xdg/klaunchrc`): the Dock's icon bounces instead, as a Mac's
    does.
-2. **Other apps' icons: begun, seen on KWin.** Since round 2 the
+2. **Other apps' icons, folders and files: ours, seen on KWin.** Since round 2 the
    "Ambrosia" icon theme (over Breeze) gives the apps a new install starts
    with an icon of ours on the tile: Terminal, the text editor, the picture
    and document viewers, Calculator, the archiver, the store, Screenshot,
@@ -51,11 +51,28 @@ it is a copy.
    ours (Firefox's fox, Breeze's own) sits on a plain tile of the same
    shape in the Dock, Search and ⌘Tab, as macOS 26 does with icons not
    drawn for it, so a row of apps is a row of tiles (`shell/AppTile.qml`;
-   seen on tenet, light and dark, the Dock on each side). Still Breeze's or
-   the app's own: the art inside those plain tiles, notifications' app
-   icons (no tile), the folders and document kinds in KDE's dialogs and the
-   Downloads stack (Files draws its own), and the one-color status and
-   action icons inside Qt apps.
+   seen on tenet, light and dark, the Dock on each side). Since round 11
+   folders and kinds of file are ours wherever an app asks the theme: KDE's
+   file dialog, Dolphin, the Downloads stack. The folder, the page, the
+   song's tile and the Trash are the art Files and the Dock draw; a special
+   folder (Home, Desktop, Documents, Downloads, Pictures, Music, Videos,
+   Public, Network) has its glyph pressed into the front, a folder given a
+   color is tinted as Files tints a tagged one, and a page carries its
+   kind's mark (lines, `</>`, a red PDF label, a picture, a zip, a green
+   table, an orange slide; a play mark on the song's tile for a film).
+   Under 32 px a special folder is its line glyph alone, in the text's
+   color, which makes a sidebar read as a Mac's does; a list of the home
+   folder at that size shows the same glyphs between blue folders, because
+   KDE asks for one name in both places. Seen on tenet in Dolphin, Kate's
+   file dialog and the stack, light and dark, and at twice the scale.
+   Still Breeze's or the app's own: the art inside those plain tiles,
+   notifications' app icons (no tile), kinds of file not listed in
+   `design/icons.ts` (fonts, disk images, programs, the long tail of text
+   and application types: a whole type's fallback can't be drawn without
+   taking Breeze's action icons with it, see `tools/gen/lookup.ts`),
+   devices, and the one-color status and action icons inside Qt apps (a
+   few of which, asked for by a name ending -symbolic, come out as one of
+   our colored app icons: kate-symbolic, utilities-terminal-symbolic).
 3. **Other Qt apps' controls: ours, switched on.** Since round 3 there is
    a style of ours over Breeze (`style/`, `make gallery`): push
    buttons, checkboxes, radio buttons, text fields, pop-ups, steppers,
@@ -206,6 +223,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 11, 2026-11-18 | 2, folders and files | The icon theme's folders (`places/`: plain, nine special ones with a glyph, eleven colors, the Trash), kinds of file (`mimetypes/`: ten kinds under 178 names) and the line icons a theme with "folder" must bring (`actions/`: New Folder and four more), each with a drawing for under 32 px and @2x folders for doubled screens; `tools/gen/lookup.ts` is KDE's rule for a name a theme lacks, and a test over Breeze's names (`tools/gen/breeze-names.txt`) holds that we take nothing we don't mean to. It found that every settings module in KDE's System Settings wore our gear since round 2 (the names `preferences-system` and `preferences-desktop`): taken out. In the stack, a picture that can't be read wears its kind's icon | On the Mac: `dist/icons/sheet.html` (every drawing at 96, 48, 32, 22 and 16, the small ones on light and dark), the stack's sheet with the theme's icons. On tenet: Dolphin (icons at home and in Downloads with a file of each kind, its sidebar, its shortcut menu's color row and Create New), Kate's file dialog (16 px rows and sidebar), the Downloads stack; Dolphin again in the dark scheme and at twice the scale; KDE's System Settings' own module icons after the package was installed |
 | 10, 2026-11-18 | 2, app icons | A plain tile under any app icon that has none of its own: `shell/AppTile.qml` (only QtQuick, so KWin's switcher uses it too), in the Dock, Search's app results and ⌘Tab; the KWin module tells the switcher which icon an app wears (`Apps.icon`) | On the Mac: the switcher's sheet with a stand-in for another app's icon. On tenet: Firefox on its tile in the Dock, Search and ⌘Tab (from a test copy), light and dark. Looked at along the way: the Dock on the left and right (the stack and a Dock menu beside it), ⌘Tab's pointer and Q, ⌘Tab in dark |
 | The tenet check, 2026-11-18 | Rounds 1 to 9 | Every round installed on tenet and driven on KWin 6.8 and Quickshell 0.3.2. All nine worked. Fixed from that look: ⌘Tab had no blur and named apps by their window's title (a module of ours inside KWin now gives both: `decoration/qml`); the style's menus were see-through by accident (painted as a disabled control) and are now glass on purpose, where KWin blurs behind them; a chosen row in the file dialog was two colors; KDE's push buttons kept their pictures; the Dock's menu overlapped the Dock's glass; a notification stack's peeking card had square corners; the note on showing the HUD by hand was wrong (`call hud -- show volume 45`). The session names our widget style since | On tenet's live session: pictures of each (`spectacle`), keys and clicks through a virtual keyboard and pointer. ⌘Tab's new files ran there from a test copy: a running KWin keeps the layout it loaded, so the installed one shows at the next login |
 | 9, 2026-11-18 | 14, the desktop | A right-click on the desktop opens its menu at the pointer (`shell/Wallpaper.qml`, on the Overlay like every menu): New Folder (a script names it as a Mac does and Files is asked to show it) and Change Wallpaper… (Settings' pane) | On the Mac, through the stand-ins: a right press on the sheet's desktop opens the menu at the pointer in light and dark (`out/shots/shell-desktop-context-menu-*.png`); choosing New Folder ran the script and asked Files to show `untitled folder 2` by a well-formed URL. Not run under Quickshell or KWin |

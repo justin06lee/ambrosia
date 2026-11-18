@@ -25,7 +25,7 @@ GIT_SSH_COMMAND=$rsh git -C "$root" push -q --force "$host:git/ambrosia.git" HEA
 $rsh "$host" "[ -d ~/$dir/.git ] || git clone -q ~/git/ambrosia.git ~/$dir; cd ~/$dir && git fetch -q origin $ref && git reset -q --hard FETCH_HEAD && git clean -fdq" </dev/null
 # Uncommitted work rides on top (ruri's own notes don't count).
 if [ -n "$(git -C "$root" status --porcelain -- . ':(exclude).ruri')" ]; then
-  rsync -az --delete -e "$rsh" --exclude .git --exclude /.ruri --exclude node_modules \
+  rsync -az --delete -e "$rsh" --exclude .git --exclude /.ruri --exclude /.worktrees --exclude node_modules \
     --exclude /dist --exclude /out --exclude /scratch "$root/" "$host:$dir/" || {
     # 23: some files' attributes not set: the Mac's rsync can't set a
     # symlink's mode on Linux (iso/airootfs), which changes nothing.

@@ -150,7 +150,18 @@ package repo below), and they carry `shell/` and `session/` as they are.
    "Ours" is `Theme.tileIcons`; in ⌘Tab the icon's name comes from the
    KWin module (`Apps.icon`), or the desktop file's own name where a
    running KWin still holds an older module. Notifications' icons get no
-   tile yet (theirs may be a picture, not an app). Drawn on the Mac (`dist/icons/sheet.html`,
+   tile yet (theirs may be a picture, not an app). **Folders and kinds of
+   file are in the theme too** (round 11; `places/`, `mimetypes/`,
+   `actions/` under `dist/icons/Ambrosia`): built on Files' art
+   (`files/art/folder.svg`, `document.svg`, `document-small.svg`,
+   `audio.svg`) and the Dock's Trash, with glyphs, colors, marks and every
+   name in `design/icons.ts`. Each has a drawing for 32 px and up and one
+   under it (`small`, with `small@2x` and `@3x` as links for doubled
+   screens); a special folder's small drawing is its line glyph, which KDE
+   recolors with the scheme. **How KDE picks an icon decides what a theme
+   over Breeze may name** (`tools/gen/lookup.ts`, Gotchas): seen on tenet
+   in Dolphin, Kate's file dialog and the stack, light, dark and at 2×.
+   Drawn on the Mac (`dist/icons/sheet.html`,
    `dist/cursors/sheet.html`, the review site's Input and Iconography
    chapters) and **seen on tenet's KWin (2026-11-18)**: the arrow, I-beam
    and pointing hand over Firefox, both resize arrows at a window's edge
@@ -606,6 +617,24 @@ package repo below), and they carry `shell/` and `session/` as they are.
   `tools/shot.sh` or `tools/vm.sh shot` for the real shell.
 
 ## Gotchas
+
+- **A name in the icon theme answers for more than itself.** KDE looks a
+  name up in one theme at a time, and inside a theme cuts a missing name
+  down word by word before it asks the next theme: with "folder" in ours,
+  Breeze's `folder-new` is our folder; with `preferences-desktop`, every
+  settings module was our gear (rounds 2 to 10); a bare `audio-x-generic`
+  would take `audio-volume-high`. So: never name a whole type's fallback
+  (`text-x-generic`, `image-x-generic`, …), spell kinds out, and when a
+  name is added run `bun test`: it replays KDE's rule
+  (`tools/gen/lookup.ts`) over Breeze's names
+  (`tools/gen/breeze-names.txt`, with the command that lists them again)
+  and fails on an action, status or settings icon we'd take. KDE also
+  merges a theme's folders from every data dir: a copy in
+  `~/.local/share/icons/Ambrosia` adds to `/usr/share/icons/Ambrosia`, it
+  doesn't replace it.
+- **`tools/remote.sh` leaves `.worktrees/` behind** (old worktrees, 9 MB,
+  untracked on tenet, so each run cleaned and re-sent them: a sync could
+  take two minutes on a slow link).
 
 - **Looking at a change on tenet's live session** (`tools/live.sh`: run,
   click, type, photograph, run a KWin script). What cost time on 2026-11-18:
