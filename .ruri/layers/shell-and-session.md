@@ -23,6 +23,7 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - **Session start, env, KWin rules:** session/startambrosia, session/ambrosia.desktop, session/xdg/
 - **Swapping plasmashell for the shell:** session/ambrosia-shell.service, session/plasmashell.conf
 - **Session defaults for launch feedback, GTK's icon and cursor themes:** session/xdg/klaunchrc, session/dconf/ambrosia.d/01-icons
+- **Other Qt apps' controls (widget style; make gallery draws them):** style/src/style.cpp, style/gallery/main.cpp
 
 ## How it works
 
@@ -42,8 +43,7 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - shell/Search.qml — Spotlight: apps, panes, sums, files and folders, ⌘Return reveals in Files
 - shell/Dock.qml — app dock with running dots, Downloads, live Trash, Files icon and context menu
 - assets/icons/org.ambrosia.files.svg — hand-drawn Files icon, used by the Files app and its Dock pin
-- shell/trash-empty.svg — hand-drawn empty Trash for the dock
-- shell/trash-full.svg — hand-drawn full Trash for the dock
+- shell/trash-empty.svg — hand-drawn Trash for the dock; trash-full.svg is the full one
 - shell/ControlCenter.qml — quick-settings toggles and sliders
 - shell/Notifications.qml — notification banners, with action buttons and timeouts that respect the app's request
 - shell/Session.qml — launching apps (kstart), opening URLs, settings, sleep, restart, shut down, lock, log out

@@ -56,9 +56,14 @@ it is a copy.
    there is a style of ours over it (`style/`, `make gallery`): push
    buttons, checkboxes, radio buttons, text fields, pop-ups, steppers,
    sliders, progress and scroll bars, tool buttons, menus and tooltips as
-   the Mac draws them. Installed, but the session still names Breeze until
-   real apps have been run under it on tenet. Still Breeze's even then:
-   tabs, group boxes, lists' selection, headers and toolbars.
+   the Mac draws them; since round 4 also tabs (a tab view's as a
+   segmented control, a window's own as a quiet row), group boxes, the
+   rows and headers of lists, trees and tables, a pop-up button's menu,
+   toolbars and menu bars. Installed, but the session still names Breeze
+   until real apps have been run under it on tenet. Still Breeze's even
+   then: dock widgets' title bars, tool boxes, dials, the calendar, an
+   editable combo's list. Scroll bars always show, which is a Mac with a
+   mouse; one with a trackpad hides them until you scroll.
 4. **GTK apps beyond colors.** GTK 3 and 4 get our colors and the traffic
    lights; the controls are Adwaita's. GTK 4's CSS has never been looked at
    (no GTK 4 app on tenet). From the docs.
@@ -162,6 +167,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 4, 2026-11-18 | 3, Qt apps' controls | The style's second cut: tabs (segmented for a tab view, a quiet row for a window's own, close buttons on the left under the pointer), group boxes, rows of lists, trees and tables (rounded highlight joining chosen neighbors, gray without the focus), tree arrows, table headers, a pop-up button's choices as a menu, flat toolbars, menu bar items, splitters, the focus ring on checkboxes and radios, a busy bar that moves; new `tab`, `box`, `row` tokens | On the Mac: the gallery in light and dark, each new control looked at, and the busy bar caught moving between two grabs. Over Fusion only; what could differ over Breeze is noted in `CONTEXT.md` |
 | 3, 2026-11-18 | 3, Qt apps' controls | A Qt widget style (`style/`, ambrosia-style): a proxy over Breeze drawing twelve kinds of control from the Mac's measured sizes (new `controls` tokens), dialog buttons in the Mac's order, no underlined letters; a gallery that draws them with no display | On the Mac, for real: built against Qt 6.12 and rendered by the gallery in light and dark (`out/shots/style-*.png`), each control and state looked at. Over Fusion only: not yet over Breeze, nor in a real app |
 | 2, 2026-11-18 | 2, app icons | The "Ambrosia" icon theme over Breeze: nine app icons drawn in `design/icons.ts` on the tile Files' and Settings' sit on, under the names the installed apps ask for; the pointer moved into it; named by the look-and-feel and the session's GTK defaults; the Dock takes its list of tile icons from the theme | On the Mac: `dist/icons/sheet.html` (each icon at 128, 48, 32 and 20, and in a row at the Dock's size on light and dark glass) and the review site's Iconography chapter; tests for names, links and what Qt's SVG reader can draw. Not on KWin |
 | 1, 2026-11-18 | 1, the pointer | The "Ambrosia" pointer theme: 24 shapes drawn in `design/cursors.ts`, generated as Xcursor files, KWin SVGs and CSS; named by the look-and-feel, the session's GTK defaults and the login screen; in the preview and the review site | On the Mac: every shape looked over on `dist/cursors/sheet.html` (light, dark and mid grounds, hotspots marked) and in the review site's Input chapter; tests for the file format, sizes, hotspots on ink and the names apps ask for. Not on KWin: tenet doesn't take this Mac's key yet |

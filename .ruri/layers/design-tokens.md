@@ -21,6 +21,7 @@ Single-file source of truth for ambrosia's look and motion, exporting type scale
 - **Dock metrics:** design/tokens.ts
 - **The pointer's shapes (arrow, hands, I-beam, resize arrows, badges, the busy wheel), hotspots and other names:** design/cursors.ts
 - **App icons for the stand-in apps (Terminal, text editor, viewers, Calculator, archiver, store, Screenshot, system info) and the icon names they answer to:** design/icons.ts
+- **Controls other Qt apps get (push, field, check, slider, menu, tab, box, row sizes; controlColor):** design/tokens.ts
 
 ## Key files
 

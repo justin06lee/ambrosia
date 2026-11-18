@@ -1,9 +1,10 @@
 // Ambrosia's Qt widget style: every Qt Widgets app's controls as macOS 26
 // draws its own. Push buttons, checkboxes and radio buttons, text fields,
 // pop-up buttons and steppers, sliders, progress bars, scroll bars, menus
-// and tooltips are painted here; everything else is the style underneath
-// (Breeze on an Ambrosia system), so an app never meets a control this
-// doesn't know. Sizes and the colors a palette has no role for come from the
+// and tooltips, tabs, boxes, the rows and headers of lists, trees and
+// tables, toolbars and menu bars are painted here; everything else is the
+// style underneath (Breeze on an Ambrosia system), so an app never meets a
+// control this doesn't know. Sizes and the colors a palette has no role for come from the
 // tokens; the accent, the text and the window come from the app's palette,
 // so the color scheme and the accent the user chose still decide.
 
@@ -12,21 +13,85 @@
 #include "tokens.h"
 
 #include <QAbstractItemView>
+#include <QApplication>
+#include <QBasicTimer>
 #include <QComboBox>
+#include <QElapsedTimer>
+#include <QHeaderView>
+#include <QLayout>
+#include <QListView>
 #include <QMenu>
 #include <QPainter>
 #include <QPainterPath>
+#include <QPointer>
+#include <QProgressBar>
 #include <QStyleFactory>
 #include <QStyleOption>
+#include <QTabBar>
+#include <QTabWidget>
+#include <QTreeView>
 #include <QtMath>
 
 namespace Ambrosia
 {
 
+namespace T = Tokens;
+
+// Keeps the progress bars with no end in sight moving: while one is on
+// screen it is drawn again sixty times a second, and asks here where its
+// lit piece has got to.
+class Pulse : public QObject
+{
+public:
+    using QObject::QObject;
+
+    void watch(QProgressBar *bar)
+    {
+        if (!m_bars.contains(bar)) {
+            m_bars.append(bar);
+        }
+    }
+
+    // How far along its track the lit piece is: 0 to 1 and back, easing at
+    // each end.
+    qreal along()
+    {
+        if (!m_clock.isValid()) {
+            m_clock.start();
+        }
+        if (!m_timer.isActive()) {
+            m_timer.start(16, this);
+        }
+        const qreal t = (m_clock.elapsed() % period) / qreal(period);
+        const qreal there = t < 0.5 ? 2 * t : 2 - 2 * t;
+        return there * there * (3 - 2 * there);
+    }
+
+protected:
+    void timerEvent(QTimerEvent *) override
+    {
+        bool any = false;
+        m_bars.removeAll(nullptr);
+        for (const QPointer<QProgressBar> &bar : std::as_const(m_bars)) {
+            if (bar->isVisible() && bar->minimum() == bar->maximum()) {
+                bar->update();
+                any = true;
+            }
+        }
+        if (!any) {
+            m_timer.stop();
+        }
+    }
+
+private:
+    static constexpr int period = 2400;
+    QList<QPointer<QProgressBar>> m_bars;
+    QBasicTimer m_timer;
+    QElapsedTimer m_clock;
+};
+
 namespace
 {
-
-namespace T = Tokens;
 
 QStyle *styleUnderneath(const QString &name)
 {
@@ -160,6 +225,177 @@ void arrows(QPainter *painter, const QRectF &rect, const QColor &color)
     chevron(painter, QRectF(c.x() - 4, c.y() + 1.5, 8, 5), Qt::DownArrow, color, 3, 1.5);
 }
 
+// A rectangle round at only some of its corners.
+QPainterPath rounded(const QRectF &r, qreal topLeft, qreal topRight, qreal bottomRight, qreal bottomLeft)
+{
+    QPainterPath path;
+    path.moveTo(r.left() + topLeft, r.top());
+    path.lineTo(r.right() - topRight, r.top());
+    if (topRight > 0) {
+        path.arcTo(r.right() - 2 * topRight, r.top(), 2 * topRight, 2 * topRight, 90, -90);
+    }
+    path.lineTo(r.right(), r.bottom() - bottomRight);
+    if (bottomRight > 0) {
+        path.arcTo(r.right() - 2 * bottomRight, r.bottom() - 2 * bottomRight, 2 * bottomRight, 2 * bottomRight, 0, -90);
+    }
+    path.lineTo(r.left() + bottomLeft, r.bottom());
+    if (bottomLeft > 0) {
+        path.arcTo(r.left(), r.bottom() - 2 * bottomLeft, 2 * bottomLeft, 2 * bottomLeft, 270, -90);
+    }
+    path.lineTo(r.left(), r.top() + topLeft);
+    if (topLeft > 0) {
+        path.arcTo(r.left(), r.top(), 2 * topLeft, 2 * topLeft, 180, -90);
+    }
+    path.closeSubpath();
+    return path;
+}
+
+// A font for a table's header or a menu's heading: the same face, smaller.
+QFont smaller(QFont font)
+{
+    if (font.pointSizeF() > 0) {
+        font.setPointSizeF(font.pointSizeF() * T::caption);
+    } else {
+        font.setPixelSize(qRound(font.pixelSize() * T::caption));
+    }
+    return font;
+}
+
+// One color laid over another, for where Qt wants a color with no alpha.
+QColor over(const QColor &top, const QColor &under)
+{
+    const qreal a = top.alphaF();
+    return QColor::fromRgbF(top.redF() * a + under.redF() * (1 - a), top.greenF() * a + under.greenF() * (1 - a), top.blueF() * a + under.blueF() * (1 - a));
+}
+
+// A box round a group of controls: a faint fill and a hairline.
+void panel(QPainter *painter, const QRectF &rect, const T::Mode &m)
+{
+    painter->setBrush(color(m.box));
+    painter->setPen(QPen(color(m.separator), 1));
+    painter->drawRoundedRect(rect.adjusted(0.5, 0.5, -0.5, -0.5), T::boxRadius, T::boxRadius);
+    painter->setPen(Qt::NoPen);
+}
+
+// A hairline through the middle of `rect`, along it or across it.
+void hairline(QPainter *painter, const QRectF &rect, bool flatwise, const QColor &color, qreal inset = 0)
+{
+    painter->save();
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    if (flatwise) {
+        painter->fillRect(QRectF(rect.left() + inset, qFloor(rect.center().y()), rect.width() - 2 * inset, 1), color);
+    } else {
+        painter->fillRect(QRectF(qFloor(rect.center().x()), rect.top() + inset, 1, rect.height() - 2 * inset), color);
+    }
+    painter->restore();
+}
+
+bool upright(QTabBar::Shape shape)
+{
+    return shape == QTabBar::RoundedWest || shape == QTabBar::RoundedEast || shape == QTabBar::TriangularWest || shape == QTabBar::TriangularEast;
+}
+
+// Which side of its pane a tab bar is on, whatever the shape of its tabs.
+QTabBar::Shape side(QTabBar::Shape shape)
+{
+    switch (shape) {
+    case QTabBar::RoundedSouth:
+    case QTabBar::TriangularSouth:
+        return QTabBar::RoundedSouth;
+    case QTabBar::RoundedWest:
+    case QTabBar::TriangularWest:
+        return QTabBar::RoundedWest;
+    case QTabBar::RoundedEast:
+    case QTabBar::TriangularEast:
+        return QTabBar::RoundedEast;
+    default:
+        return QTabBar::RoundedNorth;
+    }
+}
+
+// A tab view's pane: the box its pages are in. The tabs sit half over its
+// edge, as a Mac's do; a window's own tabs (document mode) have no box.
+QRect tabPane(const QStyleOptionTabWidgetFrame *frame)
+{
+    const int overlap = frame->lineWidth <= 0 ? 0 : int(T::tabHeight) / 2;
+    QRect r = frame->rect;
+    switch (side(frame->shape)) {
+    case QTabBar::RoundedSouth:
+        r.setBottom(r.bottom() - qMax(frame->tabBarSize.height() - overlap, 0));
+        break;
+    case QTabBar::RoundedWest:
+        r.setLeft(r.left() + qMax(frame->tabBarSize.width() - overlap, 0));
+        break;
+    case QTabBar::RoundedEast:
+        r.setRight(r.right() - qMax(frame->tabBarSize.width() - overlap, 0));
+        break;
+    default:
+        r.setTop(r.top() + qMax(frame->tabBarSize.height() - overlap, 0));
+        break;
+    }
+    return r;
+}
+
+// A chosen row is in the accent color only where the keyboard is: in the
+// window in front, in the list that has the focus. Anywhere else it is gray.
+bool emphasized(const QStyleOption *option, const QWidget *widget)
+{
+    if (!widget) {
+        return option->state & QStyle::State_Active;
+    }
+    // A list that popped up (a combo's, a completion's) leaves the focus
+    // with what opened it.
+    const Qt::WindowType type = widget->window()->windowType();
+    if (type == Qt::Popup || type == Qt::ToolTip) {
+        return true;
+    }
+    if (!widget->isActiveWindow()) {
+        return false;
+    }
+    const QWidget *focus = QApplication::focusWidget();
+    return widget->hasFocus() || (focus && widget->isAncestorOf(focus));
+}
+
+// Whether the rows over and under this one are chosen too: the highlight
+// then runs on into theirs, square where they meet.
+struct Joined {
+    bool above = false;
+    bool below = false;
+};
+
+Joined joined(const QWidget *widget, const QModelIndex &index)
+{
+    Joined j;
+    const auto *view = qobject_cast<const QAbstractItemView *>(widget);
+    if (!view || !index.isValid() || !view->selectionModel()) {
+        return j;
+    }
+    QModelIndex up, down;
+    if (const auto *tree = qobject_cast<const QTreeView *>(view)) {
+        up = tree->indexAbove(index);
+        down = tree->indexBelow(index);
+    } else if (const auto *list = qobject_cast<const QListView *>(view);
+               list && list->viewMode() == QListView::ListMode && list->flow() == QListView::TopToBottom && !list->isWrapping() && list->spacing() == 0) {
+        up = index.siblingAtRow(index.row() - 1);
+        down = index.siblingAtRow(index.row() + 1);
+    }
+    j.above = up.isValid() && view->selectionModel()->isSelected(up.siblingAtColumn(index.column()));
+    j.below = down.isValid() && view->selectionModel()->isSelected(down.siblingAtColumn(index.column()));
+    return j;
+}
+
+// A row's highlight: round at the ends of the row (`head` where it starts,
+// `tail` where it ends), square where it meets a chosen neighbor.
+void highlight(QPainter *painter, const QRectF &rect, bool head, bool tail, Joined j, bool rightToLeft, const QColor &color)
+{
+    if (rightToLeft) {
+        std::swap(head, tail);
+    }
+    const qreal r = T::rowRadius;
+    painter->setRenderHint(QPainter::Antialiasing);
+    painter->fillPath(rounded(rect, head && !j.above ? r : 0, tail && !j.above ? r : 0, tail && !j.below ? r : 0, head && !j.below ? r : 0), color);
+}
+
 // A button's face: the accent for a window's default button, the control
 // color for the rest.
 void face(QPainter *painter, const QRectF &rect, const QStyleOption *option, bool isDefault)
@@ -200,6 +436,18 @@ QRectF box(const QRect &rect)
     return QRectF(rect.center().x() + 0.5 - T::checkSize / 2, rect.center().y() + 0.5 - T::checkSize / 2, T::checkSize, T::checkSize);
 }
 
+// How far into its pane a tab view's pages start: past the half of the tabs
+// that hangs into it, and a little air.
+constexpr int tabClear = int(T::tabHeight) / 2 + 4;
+
+// A table header's title keeps this far from its section's ends, and the
+// arrow that says which way it is sorted takes this much of the far one.
+constexpr int headerPadding = 6;
+constexpr int headerArrow = 12;
+
+// The room a checkbox keeps round its box for the focus ring.
+constexpr int ringRoom = 2;
+
 bool isDefaultButton(const QStyleOptionButton *button)
 {
     return (button->features & QStyleOptionButton::DefaultButton) && (button->state & QStyle::State_Active) && enabled(button);
@@ -209,6 +457,7 @@ bool isDefaultButton(const QStyleOptionButton *button)
 
 Style::Style(const QString &base)
     : QProxyStyle(styleUnderneath(base))
+    , m_pulse(new Pulse(this))
 {
     setObjectName(QStringLiteral("ambrosia"));
 }
@@ -220,22 +469,68 @@ void Style::polish(QWidget *widget)
     if (qobject_cast<QMenu *>(widget) || widget->inherits("QTipLabel")) {
         widget->setAttribute(Qt::WA_TranslucentBackground);
     }
-    if (widget->inherits("QScrollBar") || widget->inherits("QAbstractSlider")) {
+    if (widget->inherits("QScrollBar") || widget->inherits("QAbstractSlider") || qobject_cast<QTabBar *>(widget)) {
         widget->setAttribute(Qt::WA_Hover);
+    }
+    if (auto *bar = qobject_cast<QProgressBar *>(widget)) {
+        m_pulse->watch(bar);
+    }
+    // A pop-up button's list is a menu: round, and the menu's color behind
+    // its rows rather than a list's white.
+    const QWidget *parent = widget->parentWidget();
+    const auto popsUp = [](const QWidget *container) {
+        const auto *combo = container && container->inherits("QComboBoxPrivateContainer") ? qobject_cast<const QComboBox *>(container->parentWidget()) : nullptr;
+        return combo && !combo->isEditable();
+    };
+    if (popsUp(widget)) {
+        widget->setAttribute(Qt::WA_TranslucentBackground);
+        // Qt fills each row from edge to edge before it is drawn: kept a
+        // pixel in, the rows leave the panel's rim alone.
+        if (widget->layout()) {
+            widget->layout()->setContentsMargins(1, 0, 1, 0);
+        }
+    }
+    if (auto *view = qobject_cast<QAbstractItemView *>(widget); view && popsUp(parent)) {
+        view->viewport()->setAutoFillBackground(false);
     }
 }
 
 int Style::pixelMetric(PixelMetric metric, const QStyleOption *option, const QWidget *widget) const
 {
     switch (metric) {
+    // A checkbox's own room is its box and the focus ring's two pixels all
+    // round it, which Qt wouldn't let it draw outside.
     case PM_IndicatorWidth:
     case PM_IndicatorHeight:
     case PM_ExclusiveIndicatorWidth:
     case PM_ExclusiveIndicatorHeight:
-        return T::checkSize;
+        return T::checkSize + 2 * ringRoom;
     case PM_CheckBoxLabelSpacing:
     case PM_RadioButtonLabelSpacing:
-        return T::checkGap;
+        return T::checkGap - ringRoom;
+    case PM_TabBarTabHSpace:
+        return 2 * T::tabPadding;
+    case PM_TabBarTabVSpace:
+        return 6;
+    case PM_TabBarTabShiftHorizontal:
+    case PM_TabBarTabShiftVertical:
+    case PM_TabBarTabOverlap:
+    case PM_TabBarBaseHeight:
+        return 0;
+    case PM_TabBarBaseOverlap:
+        // What a tab bar on its own asks is how thick the line under it is.
+        if (qobject_cast<const QTabBar *>(widget)) {
+            return 1;
+        }
+        if (const auto *tabs = qobject_cast<const QTabWidget *>(widget); tabs && tabs->documentMode()) {
+            return 0;
+        }
+        return int(T::tabHeight) / 2;
+    case PM_TabCloseIndicatorWidth:
+    case PM_TabCloseIndicatorHeight:
+        return T::tabClose;
+    case PM_MenuBarPanelWidth:
+        return 0;
     case PM_ButtonDefaultIndicator:
     case PM_ButtonShiftHorizontal:
     case PM_ButtonShiftVertical:
@@ -284,9 +579,48 @@ int Style::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *
         return true;
     case SH_ComboBox_ListMouseTracking:
         return true;
-    default:
-        return QProxyStyle::styleHint(hint, option, widget, returnData);
+    // A pop-up button's choices open as a menu over it, the current one
+    // ticked; a combo that can be typed in drops a list.
+    case SH_ComboBox_Popup: {
+        const auto *combo = qstyleoption_cast<const QStyleOptionComboBox *>(option);
+        return combo && !combo->editable;
     }
+    case SH_ComboBox_PopupFrameStyle: {
+        // The menu's panel is its edge.
+        const auto *combo = qstyleoption_cast<const QStyleOptionComboBox *>(option);
+        if (combo && !combo->editable) {
+            return 0; // QFrame::NoFrame
+        }
+        break;
+    }
+    // A tab view's tabs sit in the middle of its top edge; a window's own
+    // start at the left and close from the left.
+    case SH_TabBar_Alignment: {
+        const auto *tabs = qobject_cast<const QTabWidget *>(widget);
+        if (!tabs && widget) {
+            tabs = qobject_cast<const QTabWidget *>(widget->parentWidget());
+        }
+        return int(tabs && !tabs->documentMode() ? Qt::AlignCenter : Qt::AlignLeft);
+    }
+    case SH_TabBar_CloseButtonPosition:
+        return QTabBar::LeftSide;
+    case SH_TabBar_ElideMode:
+        return Qt::ElideRight;
+    // A chosen row is chosen from edge to edge.
+    case SH_ItemView_ShowDecorationSelected:
+        return true;
+    case SH_Table_GridLineColor:
+        if (option) {
+            return int(over(color(mode(option->palette).separator), option->palette.color(QPalette::Base)).rgba());
+        }
+        break;
+    // Dragging out a selection draws a tinted rectangle, not an outline.
+    case SH_RubberBand_Mask:
+        return false;
+    default:
+        break;
+    }
+    return QProxyStyle::styleHint(hint, option, widget, returnData);
 }
 
 QSize Style::sizeFromContents(ContentsType type, const QStyleOption *option, const QSize &size, const QWidget *widget) const
@@ -319,6 +653,35 @@ QSize Style::sizeFromContents(ContentsType type, const QStyleOption *option, con
         }
         return QProxyStyle::sizeFromContents(type, option, size, widget);
     }
+    case CT_TabBarTab: {
+        const auto *tab = qstyleoption_cast<const QStyleOptionTab *>(option);
+        if (!tab) {
+            break;
+        }
+        const int across = tab->documentMode ? T::tabDocument : T::tabHeight;
+        return upright(tab->shape) ? QSize(qMax(size.width(), across), size.height()) : QSize(size.width(), qMax(size.height(), across));
+    }
+    case CT_TabWidget: {
+        // The pane's hairline, and the half of the tabs that hangs into it
+        // (see SE_TabWidgetTabContents).
+        const auto *frame = qstyleoption_cast<const QStyleOptionTabWidgetFrame *>(option);
+        if (!frame || frame->lineWidth <= 0) {
+            return size;
+        }
+        return upright(frame->shape) ? size + QSize(2 + tabClear, 2) : size + QSize(2, 2 + tabClear);
+    }
+    case CT_HeaderSection: {
+        const auto *header = qstyleoption_cast<const QStyleOptionHeader *>(option);
+        const QSize base = QProxyStyle::sizeFromContents(type, option, size, widget);
+        if (header && header->orientation == Qt::Horizontal) {
+            return QSize(base.width(), qMax<int>(base.height(), T::rowHeader));
+        }
+        return base;
+    }
+    case CT_ItemViewItem: {
+        const QSize base = QProxyStyle::sizeFromContents(type, option, size, widget);
+        return QSize(base.width(), qMax<int>(base.height(), T::rowHeight));
+    }
     case CT_MenuItem: {
         const auto *item = qstyleoption_cast<const QStyleOptionMenuItem *>(option);
         if (!item) {
@@ -328,6 +691,13 @@ QSize Style::sizeFromContents(ContentsType type, const QStyleOption *option, con
             return QSize(10, item->text.isEmpty() ? T::menuRule : T::menuRow);
         }
         int width = size.width() + 2 * T::menuRowPadding;
+        int height = size.height() + 4;
+        // A pop-up button's list asks with the size of the list, not of
+        // the row's text, and has no margin of its own beside its rows.
+        if (qobject_cast<const QComboBox *>(widget)) {
+            width = item->fontMetrics.horizontalAdvance(item->text) + 2 * T::menuRowPadding + 2 * (T::menuMargin - 1);
+            height = item->fontMetrics.height() + 4;
+        }
         if (item->maxIconWidth > 0 || item->menuHasCheckableItems) {
             width += T::menuIcon + T::menuGap;
         }
@@ -335,8 +705,10 @@ QSize Style::sizeFromContents(ContentsType type, const QStyleOption *option, con
             width += T::menuShortcutGap;
         }
         // Room for a submenu's arrow on every row, so the shortcuts line up.
-        width += T::menuIcon;
-        return QSize(width, qMax<int>(size.height() + 4, T::menuRow));
+        if (!qobject_cast<const QComboBox *>(widget)) {
+            width += T::menuIcon;
+        }
+        return QSize(width, qMax<int>(height, T::menuRow));
     }
     default:
         break;
@@ -356,9 +728,86 @@ QRect Style::subElementRect(SubElement element, const QStyleOption *option, cons
         }
         return option->rect.adjusted(T::fieldPadding, 0, -T::fieldPadding, 0);
     }
-    default:
-        return QProxyStyle::subElementRect(element, option, widget);
+    case SE_TabWidgetTabPane:
+        if (const auto *frame = qstyleoption_cast<const QStyleOptionTabWidgetFrame *>(option)) {
+            return tabPane(frame);
+        }
+        break;
+    case SE_TabWidgetTabContents: {
+        const auto *frame = qstyleoption_cast<const QStyleOptionTabWidgetFrame *>(option);
+        if (!frame) {
+            break;
+        }
+        const QRect pane = tabPane(frame);
+        if (frame->lineWidth <= 0) {
+            return pane;
+        }
+        // Inside the pane's hairline, clear of the tabs if there are any.
+        const bool tabs = (upright(frame->shape) ? frame->tabBarSize.width() : frame->tabBarSize.height()) > T::tabHeight / 2;
+        const int clear = tabs ? tabClear : 0;
+        switch (side(frame->shape)) {
+        case QTabBar::RoundedSouth:
+            return pane.adjusted(1, 1, -1, -1 - clear);
+        case QTabBar::RoundedWest:
+            return pane.adjusted(1 + clear, 1, -1, -1);
+        case QTabBar::RoundedEast:
+            return pane.adjusted(1, 1, -1 - clear, -1);
+        default:
+            return pane.adjusted(1, 1 + clear, -1, -1);
+        }
     }
+    case SE_TabWidgetTabBar: {
+        const auto *frame = qstyleoption_cast<const QStyleOptionTabWidgetFrame *>(option);
+        if (!frame) {
+            break;
+        }
+        // In the middle of the pane's edge; a window's own tabs fill it.
+        const QRect r = frame->rect;
+        const bool document = frame->lineWidth <= 0;
+        const QSize bar = frame->tabBarSize;
+        if (upright(frame->shape)) {
+            const int height = document ? r.height() : qMin(bar.height(), r.height());
+            const int x = side(frame->shape) == QTabBar::RoundedWest ? r.left() : r.right() + 1 - bar.width();
+            return QRect(x, r.top() + (r.height() - height) / 2, bar.width(), height);
+        }
+        const int before = frame->leftCornerWidgetSize.width();
+        const int room = r.width() - before - frame->rightCornerWidgetSize.width();
+        const int width = document ? room : qMin(bar.width(), room);
+        const int y = side(frame->shape) == QTabBar::RoundedSouth ? r.bottom() + 1 - bar.height() : r.top();
+        return visualRect(frame->direction, r, QRect(r.left() + before + (room - width) / 2, y, width, bar.height()));
+    }
+    case SE_TabBarTabText: {
+        // A window's tab has its title in its middle, whatever room the
+        // close button keeps at one end; a title too long for that sits as
+        // near the middle as the button lets it.
+        QRect r = QProxyStyle::subElementRect(element, option, widget);
+        const auto *tab = qstyleoption_cast<const QStyleOptionTab *>(option);
+        if (tab && tab->documentMode && tab->icon.isNull() && !upright(tab->shape)) {
+            const int before = r.left() - tab->rect.left();
+            const int after = tab->rect.right() - r.right();
+            const int width = qMax(tab->rect.width() - 2 * qMax(before, after), qMin(r.width(), tab->fontMetrics.horizontalAdvance(tab->text) + 2));
+            if (before > after) {
+                r.setWidth(width);
+            } else {
+                r.setLeft(r.right() + 1 - width);
+            }
+        }
+        return r;
+    }
+    case SE_HeaderLabel: {
+        const auto *header = qstyleoption_cast<const QStyleOptionHeader *>(option);
+        if (!header) {
+            break;
+        }
+        const int arrow = header->sortIndicator != QStyleOptionHeader::None ? headerArrow : 0;
+        return visualRect(header->direction, header->rect, header->rect.adjusted(headerPadding, 0, -headerPadding - arrow, 0));
+    }
+    case SE_HeaderArrow:
+        return visualRect(option->direction, option->rect, QRect(option->rect.right() + 1 - headerPadding - headerArrow, option->rect.top(), headerArrow, option->rect.height()));
+    default:
+        break;
+    }
+    return QProxyStyle::subElementRect(element, option, widget);
 }
 
 void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const
@@ -391,7 +840,8 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
         }
         return;
     }
-    case PE_IndicatorCheckBox: {
+    case PE_IndicatorCheckBox:
+    case PE_IndicatorItemViewItemCheck: {
         Paint paint(painter, option);
         const QRectF r = box(option->rect);
         const bool on = option->state & (State_On | State_NoChange);
@@ -400,6 +850,9 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
             ground = ground.darker(108);
         }
         fill(painter, r, T::checkRadius, ground);
+        if (element == PE_IndicatorCheckBox && ringed(option)) {
+            ring(painter, r.adjusted(-ringRoom, -ringRoom, ringRoom, ringRoom), T::checkRadius + ringRoom, option);
+        }
         if (on) {
             QPainterPath mark;
             if (option->state & State_NoChange) {
@@ -425,6 +878,9 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
         if (on) {
             painter->setBrush(accentText(option));
             painter->drawEllipse(r.center(), 3, 3);
+        }
+        if (ringed(option)) {
+            ring(painter, r.adjusted(-ringRoom, -ringRoom, ringRoom, ringRoom), T::checkSize / 2 + ringRoom, option);
         }
         return;
     }
@@ -459,6 +915,136 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
     }
     case PE_PanelScrollAreaCorner:
         // Where two scroll bars meet there is nothing.
+        return;
+    case PE_FrameGroupBox: {
+        Paint paint(painter, option);
+        panel(painter, option->rect, m);
+        return;
+    }
+    case PE_FrameTabWidget: {
+        // A window's own tabs (document mode) have no box round the page.
+        const auto *frame = qstyleoption_cast<const QStyleOptionTabWidgetFrame *>(option);
+        if (frame && frame->lineWidth <= 0) {
+            return;
+        }
+        Paint paint(painter, option);
+        panel(painter, option->rect, m);
+        return;
+    }
+    case PE_FrameTabBarBase: {
+        // A line between a window's tabs and its page; a tab view's tabs
+        // sit on their pane and need none.
+        const auto *base = qstyleoption_cast<const QStyleOptionTabBarBase *>(option);
+        if (base && base->documentMode) {
+            painter->fillRect(base->rect, color(m.separator));
+        }
+        return;
+    }
+    case PE_IndicatorTabClose: {
+        Paint paint(painter, option);
+        // Only on the tab the pointer is over, as a Mac shows it.
+        if (const auto *bar = widget ? qobject_cast<const QTabBar *>(widget->parentWidget()) : nullptr) {
+            const int under = bar->underMouse() || widget->underMouse() ? bar->tabAt(bar->mapFromGlobal(QCursor::pos())) : -1;
+            if (under < 0 || !bar->tabRect(under).contains(widget->geometry().center())) {
+                return;
+            }
+        }
+        const QPointF c = QRectF(option->rect).center();
+        if (option->state & (State_Raised | State_Sunken)) {
+            fill(painter, QRectF(c.x() - T::tabClose / 2, c.y() - T::tabClose / 2, T::tabClose, T::tabClose), 4, color(option->state & State_Sunken ? m.facePressed : m.face));
+        }
+        painter->setPen(QPen(color(m.textSecondary), 1.4, Qt::SolidLine, Qt::RoundCap));
+        painter->drawLine(QPointF(c.x() - 3, c.y() - 3), QPointF(c.x() + 3, c.y() + 3));
+        painter->drawLine(QPointF(c.x() + 3, c.y() - 3), QPointF(c.x() - 3, c.y() + 3));
+        return;
+    }
+    case PE_IndicatorTabTearLeft:
+    case PE_IndicatorTabTearRight:
+        return;
+    case PE_PanelItemViewRow: {
+        const auto *item = qstyleoption_cast<const QStyleOptionViewItem *>(option);
+        if (!item) {
+            break;
+        }
+        painter->save();
+        if (item->features & QStyleOptionViewItem::Alternate) {
+            painter->fillRect(item->rect, item->palette.brush(enabled(item) ? QPalette::Active : QPalette::Disabled, QPalette::AlternateBase));
+        }
+        // A tree draws this under the arrows at the start of a row, where
+        // the chosen row's highlight begins; everywhere else the highlight
+        // is the item's own (PE_PanelItemViewItem).
+        const auto *tree = qobject_cast<const QTreeView *>(widget);
+        const QPoint middle = item->rect.center();
+        if (tree && !item->rect.isEmpty() && tree->columnAt(middle.x()) == tree->header()->logicalIndex(0)) {
+            const QModelIndex index = tree->indexAt(middle);
+            const bool before = item->direction == Qt::RightToLeft ? item->rect.left() > tree->visualRect(index).right() : item->rect.right() < tree->visualRect(index).left();
+            if (before && index.isValid() && tree->selectionModel() && tree->selectionModel()->isSelected(index)) {
+                highlight(painter, item->rect, true, false, joined(tree, index), item->direction == Qt::RightToLeft, emphasized(item, widget) ? accent(item) : color(m.rowUnfocused));
+            }
+        }
+        painter->restore();
+        return;
+    }
+    case PE_PanelItemViewItem: {
+        const auto *item = qstyleoption_cast<const QStyleOptionViewItem *>(option);
+        if (!item) {
+            break;
+        }
+        painter->save();
+        if (item->backgroundBrush.style() != Qt::NoBrush) {
+            painter->setBrushOrigin(item->rect.topLeft());
+            painter->fillRect(item->rect, item->backgroundBrush);
+        }
+        if (item->state & State_Selected) {
+            const QPalette::ColorGroup group = !enabled(item) ? QPalette::Disabled : item->state & State_Active ? QPalette::Active : QPalette::Inactive;
+            const QStyleOptionViewItem::ViewItemPosition at = item->viewItemPosition;
+            bool head = at == QStyleOptionViewItem::Beginning || at == QStyleOptionViewItem::OnlyOne;
+            const bool tail = at == QStyleOptionViewItem::End || at == QStyleOptionViewItem::OnlyOne;
+            const bool rightToLeft = item->direction == Qt::RightToLeft;
+            if (const auto *tree = qobject_cast<const QTreeView *>(widget); tree && head && item->index.isValid()) {
+                // Past a tree's arrows the highlight has begun already.
+                const int column = tree->columnViewportPosition(item->index.column());
+                head = rightToLeft ? item->rect.right() >= column + tree->columnWidth(item->index.column()) - 1 : item->rect.left() <= column;
+            }
+            highlight(painter, item->rect, head, tail, joined(widget, item->index), rightToLeft, item->palette.color(group, QPalette::Highlight));
+        }
+        painter->restore();
+        return;
+    }
+    case PE_IndicatorBranch: {
+        // No lines down a tree: an arrow where a row can open, and that is all.
+        if (!(option->state & State_Children)) {
+            return;
+        }
+        Paint paint(painter, option);
+        const bool lit = (option->state & State_Selected) && emphasized(option, widget);
+        const Qt::ArrowType arrow = option->state & State_Open ? Qt::DownArrow : option->direction == Qt::RightToLeft ? Qt::LeftArrow : Qt::RightArrow;
+        chevron(painter, option->rect, arrow, lit ? accentText(option) : color(m.textSecondary), 3.5);
+        return;
+    }
+    case PE_IndicatorHeaderArrow: {
+        // Up for the smallest first, as a Mac has it; Qt calls that one down.
+        const auto *header = qstyleoption_cast<const QStyleOptionHeader *>(option);
+        if (!header || header->sortIndicator == QStyleOptionHeader::None) {
+            return;
+        }
+        Paint paint(painter, option);
+        chevron(painter, option->rect, header->sortIndicator == QStyleOptionHeader::SortDown ? Qt::UpArrow : Qt::DownArrow, color(m.textSecondary), 3, 1.4);
+        return;
+    }
+    case PE_PanelToolBar:
+    case PE_PanelMenuBar:
+    case PE_PanelStatusBar:
+    case PE_FrameStatusBarItem:
+    case PE_IndicatorToolBarHandle:
+        // Bars are the window itself: no bevel, no edge, no grip.
+        return;
+    case PE_IndicatorToolBarSeparator:
+        // Across a toolbar that runs along, and the other way about.
+        hairline(painter, option->rect, !(option->state & State_Horizontal), color(m.separator), 5);
+        return;
+    case PE_IndicatorDockWidgetResizeHandle:
+        hairline(painter, option->rect, option->rect.width() > option->rect.height(), color(m.separator));
         return;
     case PE_PanelMenu: {
         Paint paint(painter, option);
@@ -543,7 +1129,10 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
         // With no end in sight, a third of the track is lit.
         qreal share = busy ? 1.0 / 3 : qBound(0.0, qreal(bar->progress - bar->minimum) / qMax(1, bar->maximum - bar->minimum), 1.0);
         qreal lit = share <= 0 ? 0 : qMax<qreal>(T::sliderTrack, length * share);
-        qreal from = busy ? (length - lit) / 2 : 0;
+        // It runs up and down the track while a widget is there to redraw;
+        // drawn once, with none, it rests in the middle.
+        const bool moving = busy && qobject_cast<const QProgressBar *>(widget);
+        qreal from = moving ? (length - lit) * m_pulse->along() : busy ? (length - lit) / 2 : 0;
         const bool backwards = bar->invertedAppearance != (flatwise && bar->direction == Qt::RightToLeft);
         if (backwards) {
             from = length - lit - from;
@@ -557,7 +1146,186 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
         return;
     }
     case CE_MenuEmptyArea:
+    case CE_MenuBarEmptyArea:
+    case CE_ToolBar:
+    case CE_SizeGrip:
         return;
+    case CE_MenuBarItem: {
+        // A title; a soft face behind it while its menu is open.
+        const auto *item = qstyleoption_cast<const QStyleOptionMenuItem *>(option);
+        if (!item) {
+            break;
+        }
+        Paint paint(painter, option);
+        if ((item->state & State_Selected) && enabled(item)) {
+            fill(painter, QRectF(item->rect).adjusted(1, 2, -1, -2), T::menuRowRadius, color(item->state & State_Sunken ? m.facePressed : m.face));
+        }
+        if (item->text.isEmpty() && !item->icon.isNull()) {
+            item->icon.paint(painter, item->rect, Qt::AlignCenter, enabled(item) ? QIcon::Normal : QIcon::Disabled);
+            return;
+        }
+        painter->setFont(item->font);
+        painter->setPen(item->palette.color(QPalette::Active, QPalette::WindowText));
+        painter->drawText(item->rect, Qt::AlignCenter | Qt::TextSingleLine | Qt::TextHideMnemonic, item->text);
+        return;
+    }
+    case CE_Splitter:
+        hairline(painter, option->rect, option->rect.width() > option->rect.height(), color(m.separator));
+        return;
+    case CE_RubberBand: {
+        // The rectangle dragged out over icons: a gray wash and its edge.
+        Paint paint(painter, option);
+        QColor wash = color(m.textSecondary);
+        wash.setAlphaF(0.18);
+        QColor edge = color(m.textSecondary);
+        edge.setAlphaF(0.55);
+        painter->setBrush(wash);
+        painter->setPen(QPen(edge, 1));
+        painter->drawRect(QRectF(option->rect).adjusted(0.5, 0.5, -0.5, -0.5));
+        return;
+    }
+    case CE_TabBarTabShape: {
+        const auto *tab = qstyleoption_cast<const QStyleOptionTab *>(option);
+        if (!tab) {
+            break;
+        }
+        Paint paint(painter, option);
+        const bool standing = upright(tab->shape);
+        const bool chosen = tab->state & State_Selected;
+        const bool first = tab->position == QStyleOptionTab::Beginning || tab->position == QStyleOptionTab::OnlyOneTab;
+        const bool last = tab->position == QStyleOptionTab::End || tab->position == QStyleOptionTab::OnlyOneTab;
+        const QRectF r = tab->rect;
+        // A rule between two tabs when neither is the chosen one.
+        const auto rule = [&](const QRectF &in) {
+            if (chosen || last || tab->selectedPosition == QStyleOptionTab::NextIsSelected) {
+                return;
+            }
+            const bool atLeft = !standing && tab->direction == Qt::RightToLeft;
+            const QRectF edge = standing ? QRectF(in.left(), in.bottom() - 1, in.width(), 1) : QRectF(atLeft ? in.left() : in.right() - 1, in.top(), 1, in.height());
+            hairline(painter, edge, standing, color(m.fieldBorder), standing ? in.width() / 4 : in.height() / 4);
+        };
+        if (tab->documentMode) {
+            // A window's own tabs: titles in a row, the one in front on a face.
+            const QRectF pill = r.adjusted(2, 3, -2, -3);
+            if (chosen) {
+                fill(painter, pill, T::tabRadius, color(m.facePressed));
+            } else if ((tab->state & State_MouseOver) && enabled(tab)) {
+                fill(painter, pill, T::tabRadius, color(m.face));
+            }
+            rule(r);
+            if (ringed(tab)) {
+                ring(painter, pill, T::tabRadius, tab);
+            }
+            return;
+        }
+        // A segmented control: each tab draws its own piece of the track,
+        // and the chosen one a segment in the accent color over it (gray in
+        // a window behind).
+        bool head = first;
+        bool tail = last;
+        if (!standing && tab->direction == Qt::RightToLeft) {
+            std::swap(head, tail);
+        }
+        const qreal a = head ? T::tabRadius : 0;
+        const qreal b = tail ? T::tabRadius : 0;
+        painter->fillPath(standing ? rounded(r, a, a, b, b) : rounded(r, a, b, b, a), color(m.face));
+        if (chosen) {
+            if (tab->state & State_Active) {
+                fill(painter, r, T::tabRadius, accent(tab));
+            } else {
+                fill(painter, r, T::tabRadius, color(m.facePressed));
+                fill(painter, r, T::tabRadius, color(m.face));
+            }
+        }
+        rule(r);
+        if (ringed(tab)) {
+            ring(painter, r, T::tabRadius, tab);
+        }
+        return;
+    }
+    case CE_TabBarTabLabel: {
+        // The chosen segment's title is in the accent's own text color.
+        const auto *tab = qstyleoption_cast<const QStyleOptionTab *>(option);
+        if (tab && !tab->documentMode && (tab->state & State_Selected) && (tab->state & State_Active) && enabled(tab)) {
+            QStyleOptionTab copy(*tab);
+            copy.palette.setColor(QPalette::WindowText, accentText(tab));
+            copy.palette.setColor(QPalette::ButtonText, accentText(tab));
+            QProxyStyle::drawControl(element, &copy, painter, widget);
+            return;
+        }
+        break;
+    }
+    case CE_HeaderSection: {
+        // A table's header is part of the table: its ground, a hairline
+        // under it, and a short rule between one title and the next.
+        const auto *header = qstyleoption_cast<const QStyleOptionHeader *>(option);
+        if (!header) {
+            break;
+        }
+        const QRectF r = header->rect;
+        painter->save();
+        painter->fillRect(r, header->palette.color(QPalette::Base));
+        if (header->state & State_Sunken) {
+            painter->fillRect(r, color(m.face));
+        }
+        const QColor line = color(m.separator);
+        if (header->orientation == Qt::Horizontal) {
+            painter->fillRect(QRectF(r.left(), r.bottom() - 1, r.width(), 1), line);
+            if (header->position != QStyleOptionHeader::End && header->position != QStyleOptionHeader::OnlyOneSection) {
+                const qreal x = header->direction == Qt::RightToLeft ? r.left() : r.right() - 1;
+                painter->fillRect(QRectF(x, r.top() + 6, 1, r.height() - 13), line);
+            }
+        } else {
+            const qreal x = header->direction == Qt::RightToLeft ? r.left() : r.right() - 1;
+            painter->fillRect(QRectF(x, r.top(), 1, r.height()), line);
+        }
+        painter->restore();
+        return;
+    }
+    case CE_HeaderEmptyArea: {
+        const QRectF r = option->rect;
+        painter->fillRect(r, option->palette.color(QPalette::Base));
+        if (option->state & State_Horizontal) {
+            painter->fillRect(QRectF(r.left(), r.bottom() - 1, r.width(), 1), color(m.separator));
+        } else {
+            painter->fillRect(QRectF(option->direction == Qt::RightToLeft ? r.left() : r.right() - 1, r.top(), 1, r.height()), color(m.separator));
+        }
+        return;
+    }
+    case CE_HeaderLabel: {
+        // Small and quiet; the column the table is sorted by, bold.
+        const auto *header = qstyleoption_cast<const QStyleOptionHeader *>(option);
+        if (!header) {
+            break;
+        }
+        const bool sorted = header->sortIndicator != QStyleOptionHeader::None;
+        QStyleOptionHeader copy(*header);
+        copy.state.setFlag(State_On, false);
+        copy.palette.setColor(QPalette::ButtonText, sorted ? header->palette.color(QPalette::Active, QPalette::Text) : color(m.textSecondary));
+        painter->save();
+        QFont font = smaller(painter->font());
+        font.setBold(sorted);
+        painter->setFont(font);
+        copy.fontMetrics = QFontMetrics(font);
+        QProxyStyle::drawControl(element, &copy, painter, widget);
+        painter->restore();
+        return;
+    }
+    case CE_ItemViewItem: {
+        // Where the keyboard isn't, a chosen row is gray and its text stays
+        // the color it was.
+        const auto *item = qstyleoption_cast<const QStyleOptionViewItem *>(option);
+        if (item && (item->state & State_Selected) && !emphasized(item, widget)) {
+            QStyleOptionViewItem copy(*item);
+            for (const auto group : {QPalette::Active, QPalette::Inactive, QPalette::Disabled}) {
+                copy.palette.setColor(group, QPalette::Highlight, color(m.rowUnfocused));
+                copy.palette.setColor(group, QPalette::HighlightedText, item->palette.color(group == QPalette::Disabled ? group : QPalette::Active, QPalette::Text));
+            }
+            QProxyStyle::drawControl(element, &copy, painter, widget);
+            return;
+        }
+        break;
+    }
     case CE_MenuItem: {
         const auto *item = qstyleoption_cast<const QStyleOptionMenuItem *>(option);
         if (!item) {
@@ -565,7 +1333,10 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
         }
         painter->save();
         painter->setRenderHint(QPainter::Antialiasing);
-        const QRectF r = item->rect;
+        // A pop-up button's list draws its rows edge to edge; a menu has
+        // made them a margin already.
+        const int margin = qobject_cast<const QComboBox *>(widget) ? T::menuMargin - 1 : 0;
+        const QRectF r = QRectF(item->rect).adjusted(margin, 0, -margin, 0);
         const bool usable = enabled(item);
         const bool lit = (item->state & State_Selected) && usable;
 
@@ -576,9 +1347,8 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
                 painter->drawLine(QPointF(r.left() + T::menuRowPadding, y), QPointF(r.right() - T::menuRowPadding, y));
             } else {
                 // A titled rule is a heading for the rows under it.
-                QFont heading = item->font;
+                QFont heading = smaller(item->font);
                 heading.setBold(true);
-                heading.setPointSizeF(heading.pointSizeF() * 0.85);
                 painter->setFont(heading);
                 painter->setPen(color(m.textSecondary));
                 painter->drawText(r.adjusted(T::menuRowPadding, 0, -T::menuRowPadding, 0), Qt::AlignVCenter | Qt::AlignLeft | Qt::TextSingleLine, item->text);
@@ -661,6 +1431,48 @@ QRect Style::subControlRect(ComplexControl control, const QStyleOptionComplex *o
             return visualRect(option->direction, r, QRect(r.right() + 1 - arrow, r.top(), arrow, r.height()));
         case SC_ComboBoxEditField:
             return visualRect(option->direction, r, r.adjusted(padding, 0, -arrow - 2, 0));
+        case SC_ComboBoxListBoxPopup:
+            // A pop-up button's menu is wider than the button by its margin
+            // and the column of ticks, so each choice's text opens right
+            // over the button's own.
+            if (combo && !combo->editable) {
+                return visualRect(option->direction, r, r.adjusted(-(1 + T::menuMargin + T::menuIcon + T::menuGap), 0, 0, 0));
+            }
+            break;
+        default:
+            break;
+        }
+        break;
+    }
+    case CC_GroupBox: {
+        // The heading over the box's top left corner, bold, its checkbox
+        // before it; the box under them.
+        const auto *group = qstyleoption_cast<const QStyleOptionGroupBox *>(option);
+        if (!group) {
+            break;
+        }
+        const bool checkable = group->subControls & SC_GroupBoxCheckBox;
+        const bool titled = checkable || !group->text.isEmpty();
+        const bool flat = group->features & QStyleOptionFrame::Flat;
+        const int check = pixelMetric(PM_IndicatorWidth, option, widget);
+        QFont bold = widget ? widget->font() : QApplication::font();
+        bold.setBold(true);
+        const QFontMetrics metrics(bold);
+        const int line = titled ? qMax(metrics.height(), checkable ? check : 0) : 0;
+        const QRect frame = r.adjusted(0, titled ? line + T::boxTitleGap : 0, 0, 0);
+        const int start = flat ? 0 : T::boxTitle;
+        switch (subControl) {
+        case SC_GroupBoxFrame:
+            return frame;
+        case SC_GroupBoxContents:
+            return flat ? frame.adjusted(0, T::boxPadding, 0, 0) : frame.adjusted(T::boxPadding, T::boxPadding, -T::boxPadding, -T::boxPadding);
+        case SC_GroupBoxCheckBox:
+            return visualRect(option->direction, r, QRect(r.left() + start - ringRoom, r.top() + (line - check) / 2, check, check));
+        case SC_GroupBoxLabel: {
+            const int x = r.left() + start + (checkable ? check - ringRoom + pixelMetric(PM_CheckBoxLabelSpacing, option, widget) : 0);
+            const int width = qMin(metrics.horizontalAdvance(group->text) + 2, r.right() + 1 - x);
+            return visualRect(option->direction, r, QRect(x, r.top(), width, line));
+        }
         default:
             break;
         }
@@ -775,6 +1587,43 @@ void Style::drawComplexControl(ComplexControl control, const QStyleOptionComplex
                 ring(painter, option->rect, T::pushRadius, option);
             }
             arrows(painter, arrow, option->palette.color(QPalette::ButtonText));
+        }
+        return;
+    }
+    case CC_GroupBox: {
+        const auto *group = qstyleoption_cast<const QStyleOptionGroupBox *>(option);
+        if (!group) {
+            break;
+        }
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
+        if (group->subControls & SC_GroupBoxFrame) {
+            const QRect frame = subControlRect(CC_GroupBox, option, SC_GroupBoxFrame, widget);
+            if (group->features & QStyleOptionFrame::Flat) {
+                // A flat one is a heading and a rule.
+                painter->fillRect(QRect(frame.left(), frame.top(), frame.width(), 1), color(m.separator));
+            } else {
+                panel(painter, frame, m);
+            }
+        }
+        if ((group->subControls & SC_GroupBoxLabel) && !group->text.isEmpty()) {
+            const QRect label = subControlRect(CC_GroupBox, option, SC_GroupBoxLabel, widget);
+            QFont bold = painter->font();
+            bold.setBold(true);
+            painter->setFont(bold);
+            painter->setPen(group->textColor.isValid() ? group->textColor : group->palette.color(enabled(group) ? QPalette::Active : QPalette::Disabled, QPalette::WindowText));
+            const QString title = QFontMetrics(bold).elidedText(group->text, Qt::ElideRight, label.width(), Qt::TextHideMnemonic);
+            painter->drawText(label, int(Qt::AlignVCenter | visualAlignment(group->direction, Qt::AlignLeft)) | Qt::TextSingleLine | Qt::TextHideMnemonic, title);
+        }
+        painter->restore();
+        if (group->subControls & SC_GroupBoxCheckBox) {
+            QStyleOptionButton check;
+            check.QStyleOption::operator=(*group);
+            check.rect = subControlRect(CC_GroupBox, option, SC_GroupBoxCheckBox, widget);
+            if (!(group->activeSubControls & SC_GroupBoxCheckBox)) {
+                check.state.setFlag(State_Sunken, false);
+            }
+            drawPrimitive(PE_IndicatorCheckBox, &check, painter, widget);
         }
         return;
     }

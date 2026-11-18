@@ -14,10 +14,13 @@
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGridLayout>
+#include <QGroupBox>
+#include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
+#include <QMenuBar>
 #include <QPainter>
 #include <QProgressBar>
 #include <QPushButton>
@@ -25,7 +28,11 @@
 #include <QSlider>
 #include <QSpinBox>
 #include <QStyleFactory>
+#include <QTabBar>
+#include <QTabWidget>
+#include <QToolBar>
 #include <QToolButton>
+#include <QTreeWidget>
 
 namespace T = Ambrosia::Tokens;
 
@@ -123,7 +130,8 @@ int main(int argc, char **argv)
     auto *checkedOff = new QCheckBox(QStringLiteral("Disabled"));
     checkedOff->setChecked(true);
     checkedOff->setEnabled(false);
-    line(QStringLiteral("Checkboxes"), {check, checked, mixed, checkedOff});
+    auto *checkRinged = new QCheckBox(QStringLiteral("Focused"));
+    line(QStringLiteral("Checkboxes"), {check, checked, mixed, checkedOff, checkRinged});
 
     auto *radioA = new QRadioButton(QStringLiteral("One"));
     auto *radioB = new QRadioButton(QStringLiteral("The other"));
@@ -197,6 +205,100 @@ int main(int argc, char **argv)
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel | QDialogButtonBox::Apply);
     line(QStringLiteral("A dialog's buttons"), {buttons});
 
+    // A tab view, its page a box of controls; beside it a window's own tabs.
+    auto *tabs = new QTabWidget;
+    auto *page = new QWidget;
+    auto *pageRows = new QVBoxLayout(page);
+    auto *natural = new QCheckBox(QStringLiteral("Natural scrolling"));
+    natural->setChecked(true);
+    pageRows->addWidget(natural);
+    pageRows->addWidget(new QCheckBox(QStringLiteral("Tap to click")));
+    pageRows->addStretch();
+    tabs->addTab(page, QStringLiteral("Point && Click"));
+    tabs->addTab(new QWidget, QStringLiteral("Scroll && Zoom"));
+    tabs->addTab(new QWidget, QStringLiteral("More Gestures"));
+    tabs->setFixedSize(360, 118);
+    auto *documents = new QTabBar;
+    documents->setDocumentMode(true);
+    documents->setTabsClosable(true);
+    documents->setExpanding(true);
+    for (const QString &title : {QStringLiteral("ambrosia"), QStringLiteral("~/Downloads"), QStringLiteral("zsh")}) {
+        documents->addTab(title);
+    }
+    documents->setCurrentIndex(1);
+    documents->setFixedWidth(400);
+    line(QStringLiteral("Tabs"), {tabs, documents});
+
+    auto *group = new QGroupBox(QStringLiteral("Show scroll bars"));
+    auto *groupRows = new QVBoxLayout(group);
+    auto *always = new QRadioButton(QStringLiteral("Always"));
+    always->setChecked(true);
+    groupRows->addWidget(always);
+    groupRows->addWidget(new QRadioButton(QStringLiteral("When scrolling")));
+    auto *switched = new QGroupBox(QStringLiteral("Show in the menu bar"));
+    switched->setCheckable(true);
+    auto *switchedRows = new QVBoxLayout(switched);
+    auto *percent = new QCheckBox(QStringLiteral("Battery percentage"));
+    percent->setChecked(true);
+    switchedRows->addWidget(percent);
+    switchedRows->addWidget(new QCheckBox(QStringLiteral("Seconds in the clock")));
+    auto *flat = new QGroupBox(QStringLiteral("A flat one"));
+    flat->setFlat(true);
+    auto *flatRows = new QVBoxLayout(flat);
+    flatRows->addWidget(new QCheckBox(QStringLiteral("Under a rule")));
+    flatRows->addStretch();
+    line(QStringLiteral("Boxes"), {group, switched, flat});
+
+    // A tree with the focus (pasted in below, as the field is), and a list
+    // whose chosen row is where the keyboard isn't.
+    auto *tree = new QTreeWidget;
+    tree->setHeaderLabels({QStringLiteral("Name"), QStringLiteral("Date Modified"), QStringLiteral("Size")});
+    tree->setAlternatingRowColors(true);
+    tree->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    tree->setSortingEnabled(true);
+    const auto entry = [](QTreeWidgetItem *parent, const QString &name, const QString &date, const QString &size) {
+        auto *item = new QTreeWidgetItem(parent, {name, date, size});
+        item->setTextAlignment(2, Qt::AlignRight | Qt::AlignVCenter);
+        return item;
+    };
+    QTreeWidgetItem *design = entry(tree->invisibleRootItem(), QStringLiteral("design"), QStringLiteral("Today at 09:41"), QStringLiteral("--"));
+    QTreeWidgetItem *cursors = entry(design, QStringLiteral("cursors.ts"), QStringLiteral("Today at 09:12"), QStringLiteral("31 KB"));
+    QTreeWidgetItem *icons = entry(design, QStringLiteral("icons.ts"), QStringLiteral("Yesterday at 18:30"), QStringLiteral("24 KB"));
+    entry(design, QStringLiteral("tokens.ts"), QStringLiteral("Yesterday at 16:02"), QStringLiteral("42 KB"));
+    entry(tree->invisibleRootItem(), QStringLiteral("dist"), QStringLiteral("Today at 09:40"), QStringLiteral("--"))->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
+    QTreeWidgetItem *readme = entry(tree->invisibleRootItem(), QStringLiteral("README.md"), QStringLiteral("12 November 2026"), QStringLiteral("9 KB"));
+    tree->sortByColumn(0, Qt::AscendingOrder);
+    design->setExpanded(true);
+    cursors->setSelected(true);
+    icons->setSelected(true);
+    readme->setSelected(true);
+    tree->setCurrentItem(icons, 0, QItemSelectionModel::NoUpdate);
+    tree->setColumnWidth(0, 170);
+    tree->setColumnWidth(1, 150);
+    tree->setFixedSize(430, 28 + 6 * 24 + 2);
+    tree->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    auto *places = new QListWidget;
+    places->addItems({QStringLiteral("Recents"), QStringLiteral("Applications"), QStringLiteral("Desktop"), QStringLiteral("Documents"), QStringLiteral("Downloads")});
+    places->setCurrentRow(3);
+    places->setFixedSize(150, 28 + 6 * 24 + 2);
+    line(QStringLiteral("Trees, lists"), {tree, places});
+
+    auto *menuBar = new QMenuBar;
+    menuBar->setNativeMenuBar(false);
+    for (const QString &title : {QStringLiteral("File"), QStringLiteral("Edit"), QStringLiteral("View"), QStringLiteral("Window"), QStringLiteral("Help")}) {
+        menuBar->addMenu(title);
+    }
+    auto *toolBar = new QToolBar;
+    toolBar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+    toolBar->addAction(QStringLiteral("Back"));
+    toolBar->addAction(QStringLiteral("Forward"));
+    toolBar->addSeparator();
+    QAction *split = toolBar->addAction(QStringLiteral("Split"));
+    split->setCheckable(true);
+    split->setChecked(true);
+    toolBar->addAction(QStringLiteral("Share"));
+    line(QStringLiteral("Menu bar, toolbar"), {menuBar, toolBar});
+
     window.show();
     window.activateWindow();
     for (int i = 0; i < 50 && !window.isActiveWindow(); ++i) {
@@ -207,10 +309,23 @@ int main(int argc, char **argv)
     focused->setFocus(Qt::ShortcutFocusReason);
     app.processEvents();
     const QPixmap controls = window.grab();
-    // A second picture of the field with the focus, which the button had.
-    typing->setFocus(Qt::ShortcutFocusReason);
+    // Only one thing has the focus at a time: the others that should show
+    // it are drawn again with it, and pasted over themselves.
+    QList<std::pair<QWidget *, QPixmap>> withFocus;
+    for (QWidget *w : std::initializer_list<QWidget *>{typing, checkRinged, tree}) {
+        w->setFocus(Qt::ShortcutFocusReason);
+        app.processEvents();
+        withFocus.append({w, w->grab()});
+    }
+
+    // The list a pop-up button opens.
+    popup->setCurrentIndex(1);
+    popup->showPopup();
     app.processEvents();
-    const QPixmap typingNow = typing->grab();
+    QWidget *choices = popup->view()->window();
+    const QPixmap choicesShot = choices->grab();
+    const QSize choicesSize = choices->size();
+    popup->hidePopup();
 
     QMenu menu;
     menu.addAction(QStringLiteral("New Window"))->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_N));
@@ -236,15 +351,17 @@ int main(int argc, char **argv)
     // `ratio` pixels to each.
     const qreal ratio = controls.devicePixelRatio();
     const int gap = 24;
-    const QSize size(window.width() + menu.width() + 2 * gap, qMax(window.height(), menu.height() + 2 * gap));
+    const QSize size(window.width() + qMax(menu.width(), choicesSize.width()) + 2 * gap, qMax(window.height(), menu.height() + choicesSize.height() + 3 * gap));
     QImage sheet(size * ratio, QImage::Format_ARGB32_Premultiplied);
     sheet.setDevicePixelRatio(ratio);
     sheet.fill(app.palette().color(QPalette::Window));
     QPainter painter(&sheet);
     painter.drawPixmap(0, 0, controls);
-    // The field with the focus goes where the same field is in the window.
-    painter.drawPixmap(typing->mapTo(&window, QPoint(0, 0)), typingNow);
+    for (const auto &[w, shot] : std::as_const(withFocus)) {
+        painter.drawPixmap(w->mapTo(&window, QPoint(0, 0)), shot);
+    }
     painter.drawPixmap(window.width() + gap, gap, menuShot);
+    painter.drawPixmap(window.width() + gap, menu.height() + 2 * gap, choicesShot);
     painter.end();
     if (!sheet.save(args.at(1))) {
         qWarning("couldn't write %s", qPrintable(args.at(1)));

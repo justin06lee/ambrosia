@@ -182,8 +182,9 @@ assets/        banner, icon and the "nectar" day/night wallpapers
    every app the traffic lights, and GTK's own titlebars match.
 5. **Toolkits**: a full GTK theme beyond colors, and a Qt widget style, which
    is begun (`style/`): push buttons, checkboxes, radio buttons, text
-   fields, pop-ups, steppers, sliders, progress and scroll bars, and menus
-   are drawn as macOS 26 draws them, over Breeze for the rest; it is
+   fields, pop-ups, steppers, sliders, progress and scroll bars, menus,
+   tabs, group boxes, the rows and headers of lists, trees and tables, and
+   toolbars are drawn as macOS 26 draws them, over Breeze for the rest; it is
    installed but not yet the session's style. The
    "Ambrosia" icon theme is begun: the pointer (a Mac's black arrow and white
    hands, a wheel of our own for busy) and icons for the apps a new install

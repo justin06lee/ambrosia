@@ -167,7 +167,19 @@ package repo below), and they carry `shell/` and `session/` as they are.
    sizes (`controls` and `controlColor` in the tokens, the numbers
    Settings' Look.qml carries), takes the accent and text from the app's
    palette, lays dialog buttons out the Mac's way and drops underlined
-   letters. `make gallery` builds it and draws every control into
+   letters. Its second cut (round 4, the same day) adds: a tab view's tabs
+   as a segmented control in the middle of its pane's top edge, and a
+   window's own tabs (Qt's document mode: Konsole, Kate, Dolphin) as a
+   quiet row with the chosen one on a face and a close button that shows
+   under the pointer, on the left; group boxes as a bold heading over a
+   faint rounded box; lists', trees' and tables' rows 24 tall with a
+   rounded highlight that joins chosen neighbors and is gray where the
+   keyboard isn't (a list without the focus, a window behind); tree arrows
+   in place of branch lines; table headers small, the sorted column bold
+   with its arrow; a pop-up button's choices as a menu over the button with
+   the current one ticked; flat toolbars, menu bar items, splitters and
+   status bars; the focus ring on checkboxes and radio buttons; a busy
+   progress bar that moves. `make gallery` builds it and draws every control into
    `out/shots/style-{light,dark}.png` with no display, on the Mac too (it
    has Homebrew's qtbase, cmake and ninja for this since 2026-11-18).
    **Seen only in that gallery, over Fusion.** It is installed but nothing
@@ -177,9 +189,13 @@ package repo below), and they carry `shell/` and `session/` as they are.
    dialog, System Settings' modules) over Breeze, where Breeze's own
    handling of menus (translucency, blur, shadow), tool buttons and combo
    boxes may draw over or under ours; then name it in the look-and-feel
-   and `startambrosia`. Not drawn yet: tabs, group boxes, item views'
-   selection, headers, toolbars, the editable combo's list, a busy bar
-   that moves, scroll bars that hide.
+   and `startambrosia`. The second cut leans on Qt calling back through
+   the proxy (rows: `CE_ItemViewItem` to `PE_PanelItemViewItem`; tabs'
+   titles: `SE_TabBarTabText`), which QCommonStyle and Fusion do and
+   Breeze may not: look at a tree's selection, a tab widget's pane and a
+   pop-up button's list there first. Not drawn yet: the editable combo's
+   list, dock widgets' title bars, tool boxes, dials, the calendar, scroll
+   bars that hide (a Mac with a mouse shows them always, as ours do).
    Still apart from the preview: Breeze's menu radius and row height (ours once
    the style above is switched on), real apps' icons (no Ambrosia icon theme),
    per-surface blur and saturation (KWin has one setting for all), and the
