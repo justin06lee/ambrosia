@@ -26,6 +26,11 @@ fadingpopupsEnabled=false
 # is). Settings' Desktop & Dock switches to Scale (KWin's Squash).
 magiclampEnabled=true
 squashEnabled=false
+# A window swells open and closes at once, as a Mac's does: an effect of
+# ours (session/kwin-effects/ambrosia_windows) in place of KWin's Scale,
+# which shrinks a closing window away.
+scaleEnabled=false
+ambrosia_windowsEnabled=true
 
 # The Genie at a Mac's unhurried pace (KWin's own is 250 ms). By eye:
 # there is no recording to measure yet.
