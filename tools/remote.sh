@@ -1,17 +1,20 @@
 #!/usr/bin/env sh
 # Runs a command in Ambrosia's checkout on the Arch build host (tenet), e.g.
-# `tools/remote.sh justin06lee@192.168.1.172 make package`. The checkout is a
+# `tools/remote.sh justin06lee@tenet make package`. The checkout is a
 # real git clone there (~/work/ambrosia, from the bare repo ~/git/ambrosia.git):
 # this pushes HEAD to it and checks that out, then copies over any uncommitted
 # changes, so the command sees exactly this working tree. Heavy commands
 # belong under a cap there (see CONTEXT.md): tenet has no swap.
-# AMBROSIA_RSH is the transport (default: ssh with the Mac's tenet key);
+# AMBROSIA_RSH is the transport (default: ssh, with the MacBook's tenet key
+# where there is one);
 # AMBROSIA_REMOTE_DIR the checkout, relative to the remote home.
 set -eu
 host=${1:?usage: tools/remote.sh user@host [command...]}
 shift
 root=$(cd "$(dirname "$0")/.." && pwd)
-rsh=${AMBROSIA_RSH:-ssh -i $HOME/.ssh/id_ed25519_justin -o IdentitiesOnly=yes}
+rsh=${AMBROSIA_RSH:-ssh}
+key=$HOME/.ssh/id_ed25519_justin
+if [ -z "${AMBROSIA_RSH:-}" ] && [ -f "$key" ]; then rsh="ssh -i $key -o IdentitiesOnly=yes"; fi
 dir=${AMBROSIA_REMOTE_DIR:-work/ambrosia}
 # Each checkout its own ref, so two at once (one per lane) can't take each
 # other's tree: remote for the default, remote-work-ambrosia-x for work/ambrosia-x.

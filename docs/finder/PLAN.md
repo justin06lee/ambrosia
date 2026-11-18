@@ -803,8 +803,7 @@ always from the main checkout (packaging trap gyv6e).
 
 - `make files` builds.
 - `make bench-files` runs the benchmarks on the local machine.
-- On tenet: `AMBROSIA_RSH=ssh tools/remote.sh root@192.168.1.172 make
-  bench-files`.
+- On tenet: `tools/remote.sh root@tenet make bench-files`.
   - Always under `nice 19 ionice -c3`, in a headless `kwin_wayland --virtual`,
     so Justin's screen is never touched.
   - Never on the GPU; video decodes in software.

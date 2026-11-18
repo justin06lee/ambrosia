@@ -378,9 +378,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
   key for root put it right, see Needs Justin), **the signing key**
   (`~/.config/ambrosia/gnupg`; its backup is on the T7, so nothing can be
   published from here until it's restored), and the old worktrees
-  (`.worktrees/` on the T7; their branches are all merged). The Makefile's
-  `HOST` and `AMBROSIA_RSH` still name the MacBook's key and tenet's old LAN
-  address: until they change, `make HOST=tenet AMBROSIA_RSH=ssh <target>`.
+  (`.worktrees/` on the T7; their branches are all merged). The Makefile
+  and `tools/remote.sh` reach tenet by its Tailscale name now
+  (`justin06lee@tenet`), with the MacBook's key where it exists and this
+  Mac's usual one otherwise.
 - **The MacBook** (8 GB, before 2026-11-16): where the repo used to live
   (`/Volumes/T7/Stockpile/Workspace/github.com/justin06lee/ambrosia`), with
   the key tenet knows (`~/.ssh/id_ed25519_justin`).
@@ -408,11 +409,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
   headless Firefox on tenet into `out/shots/preview.png` (`PAGE='preview/index.html?theme=dark'`
   or a URL such as the review site's, `SHOT=name`); it shows layout and
   colour but not the glass blur. `qmllint` is
-  `tools/remote.sh justin06lee@192.168.1.172 '/usr/lib/qt6/bin/qmllint shell/*.qml'`.
+  `tools/remote.sh justin06lee@tenet '/usr/lib/qt6/bin/qmllint shell/*.qml'`.
   `open preview/index.html` opens the preview
   (`?theme=dark&accent=honey&open=cc|view-menu`; D and A switch theme and
   accent).
-- **tenet, from the Mac:** `tools/remote.sh justin06lee@192.168.1.172 <cmd>`
+- **tenet, from the Mac:** `tools/remote.sh justin06lee@tenet <cmd>`
   pushes HEAD to tenet's bare repo, checks it out in `~/work/ambrosia`, lays
   any uncommitted changes over it (rsync, without `.git`, `.ruri` and `out/`),
   and runs `<cmd>` there. Put heavy commands under the cap (below).

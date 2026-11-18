@@ -4,7 +4,7 @@
 # `repo` release of github.com/justin06lee/ambrosia-packages, which installed
 # systems use as [ambrosia] (packaging/keyring/ambrosia-mirrorlist).
 #
-#   tools/publish-repo.sh [user@host]     (default tenet, justin06lee@192.168.1.172;
+#   tools/publish-repo.sh [user@host]     (default justin06lee@tenet;
 #                                         or `make publish`)
 #
 # Every run publishes new ambrosia-* packages from the checkout. Our Quickshell
@@ -18,9 +18,11 @@
 # AMBROSIA_REMOTE_DIR change the transport and the checkout, as for remote.sh.
 set -euo pipefail
 
-host=${1:-justin06lee@192.168.1.172}
+host=${1:-justin06lee@tenet}
 root=$(cd "$(dirname "$0")/.." && pwd)
-rsh=${AMBROSIA_RSH:-ssh -i $HOME/.ssh/id_ed25519_justin -o IdentitiesOnly=yes}
+rsh=${AMBROSIA_RSH:-ssh}
+key=$HOME/.ssh/id_ed25519_justin
+if [ -z "${AMBROSIA_RSH:-}" ] && [ -f "$key" ]; then rsh="ssh -i $key -o IdentitiesOnly=yes"; fi
 dir=${AMBROSIA_REMOTE_DIR:-work/ambrosia}
 release=(-R justin06lee/ambrosia-packages)
 tag=repo

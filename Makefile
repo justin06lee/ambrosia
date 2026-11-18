@@ -12,8 +12,11 @@
 # and `make shot-remote` photographs a page there into out/shots/. All three
 # use tenet's own checkout (tools/remote.sh) and run capped there.
 
-HOST ?= justin06lee@192.168.1.172
-AMBROSIA_RSH ?= ssh -i $(HOME)/.ssh/id_ed25519_justin -o IdentitiesOnly=yes
+# tenet by its Tailscale name, which holds whatever network either is on. The
+# MacBook has a key of its own for it; any other Mac uses its usual one.
+HOST ?= justin06lee@tenet
+TENET_KEY := $(wildcard $(HOME)/.ssh/id_ed25519_justin)
+AMBROSIA_RSH ?= ssh$(if $(TENET_KEY), -i $(TENET_KEY) -o IdentitiesOnly=yes)
 export AMBROSIA_RSH
 # tenet has no swap and runs other projects' services.
 CAP = systemd-run --user --scope --quiet -p MemoryMax=6G nice -n 19 ionice -c3
