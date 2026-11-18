@@ -4,13 +4,14 @@ import Quickshell.Bluetooth
 import Quickshell.Networking
 import Quickshell.Services.Mpris
 import Quickshell.Services.Pipewire
+import Quickshell.Services.SystemTray
 import Quickshell.Services.UPower
 import QtQuick
 import Ambrosia
 
 // The menu bar: the Ambrosia menu, the focused app's name and its own menus
-// on the left; status, search, the control center and the clock on the
-// right; the clock opens Notification Center. Menus open on press, and once one is open, moving along the titles
+// on the left; apps' own status items, then status, search, the control
+// center and the clock on the right; the clock opens Notification Center. Menus open on press, and once one is open, moving along the titles
 // switches to theirs. Thin glass: the material's tint over the compositor's
 // blur, or none. Which status items show, how the clock reads and whether the
 // bar hides are Settings'; hiding, it slides off and the top edge brings it
@@ -332,6 +333,25 @@ PanelWindow {
     Row {
         anchors { right: parent.right; rightMargin: Theme.space.s2; verticalCenter: parent.verticalCenter }
 
+        // Apps' own status items, left of ours as on a Mac. One is a menu
+        // there: a press opens the app's menu where it has one, and does
+        // what the app does on a click where it has none (the middle button
+        // always does). An item its app calls passive has nothing to say.
+        Repeater {
+            model: SystemTray.items
+            MenuBarItem {
+                required property var modelData
+                owner: "extra:" + modelData.id
+                image: modelData.icon
+                visible: modelData.status !== Status.Passive && bar.shows(owner)
+                menu: modelData.hasMenu ? modelData.menu : null
+                onPressed: modelData.activate()
+                onMiddlePressed: modelData.secondaryActivate()
+                // Held open, so the app's menu is read before the first press
+                // and not during it.
+                QsMenuOpener { menu: modelData.hasMenu ? modelData.menu : null }
+            }
+        }
         MenuBarItem {
             owner: "battery"; icon: "battery"; menu: bar.batteryMenu
             visible: UPower.displayDevice.isLaptopBattery && bar.shows("battery")

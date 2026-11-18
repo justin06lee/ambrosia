@@ -156,9 +156,21 @@ it is a copy.
     to a Mac's (swipe between desktops and full-screen apps, Mission Control,
     pinch for the apps, two-finger swipe from the right edge for Notification
     Center). No real trackpad has been tried (`CONTEXT.md`).
-16. **Menu bar extras from apps.** Apps' own status items (the tray) don't
-    show; Sound, Bluetooth and the input source have no item of their own
-    beside Wi-Fi, the battery and the control center. From the code.
+16. **Menu bar extras from apps: there, seen on KWin.** Since round 12 an
+    app's own status item (the tray) sits in the menu bar, left of ours
+    (`shell/MenuBar.qml`, `StatusIcon.qml`). A press opens the app's menu on
+    our glass, as a Mac's status items are menus; an item with no menu does
+    what its app does on a click, and the middle button always does. An
+    icon that is mostly gray is drawn as its shape in the bar's own text
+    color, light or dark, the way a Mac draws a template image; one in
+    color is left alone. An item its app marks passive stays out. Seen on
+    tenet (2026-11-18) with Discover's update notifier: the glyph in light
+    and dark, its menu (read ahead of the first press: fetched at the
+    press, it came up a second or two late after the shell started). Not seen: an item without a menu, one in color, an
+    Xembed-only tray icon (those need a proxy we don't run). Still missing:
+    a way to hide one in Settings (the bar already honors
+    `menuBarHidden: ["extra:<id>"]`), reordering by ⌘-drag, and an input
+    source item.
 
 ### System surfaces
 
@@ -223,6 +235,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 12, 2026-11-18 | 16, menu bar extras | Apps' status items in the menu bar through Quickshell's tray service: a `MenuBarItem` can carry a picture; `shell/StatusIcon.qml` tells a glyph from a picture by its pixels and draws a glyph in the bar's text color; a press opens the app's own menu (the path the focused app's menus already take). A stand-in tray for the Mac (`stubs/Quickshell/Services/SystemTray`) and a sheet | On the Mac: `out/shots/shell-desktop-extras-*.png` (a white glyph with a blue dot comes out dark on the light bar and white on the dark one, a colored mark stays, a passive item stays out, the menu opens under its item). On tenet: Discover's notifier in the bar in light and dark, its menu opened and closed by pressing the item |
 | 11, 2026-11-18 | 2, folders and files | The icon theme's folders (`places/`: plain, nine special ones with a glyph, eleven colors, the Trash), kinds of file (`mimetypes/`: ten kinds under 178 names) and the line icons a theme with "folder" must bring (`actions/`: New Folder and four more), each with a drawing for under 32 px and @2x folders for doubled screens; `tools/gen/lookup.ts` is KDE's rule for a name a theme lacks, and a test over Breeze's names (`tools/gen/breeze-names.txt`) holds that we take nothing we don't mean to. It found that every settings module in KDE's System Settings wore our gear since round 2 (the names `preferences-system` and `preferences-desktop`): taken out. In the stack, a picture that can't be read wears its kind's icon | On the Mac: `dist/icons/sheet.html` (every drawing at 96, 48, 32, 22 and 16, the small ones on light and dark), the stack's sheet with the theme's icons. On tenet: Dolphin (icons at home and in Downloads with a file of each kind, its sidebar, its shortcut menu's color row and Create New), Kate's file dialog (16 px rows and sidebar), the Downloads stack; Dolphin again in the dark scheme and at twice the scale; KDE's System Settings' own module icons after the package was installed |
 | 10, 2026-11-18 | 2, app icons | A plain tile under any app icon that has none of its own: `shell/AppTile.qml` (only QtQuick, so KWin's switcher uses it too), in the Dock, Search's app results and ⌘Tab; the KWin module tells the switcher which icon an app wears (`Apps.icon`) | On the Mac: the switcher's sheet with a stand-in for another app's icon. On tenet: Firefox on its tile in the Dock, Search and ⌘Tab (from a test copy), light and dark. Looked at along the way: the Dock on the left and right (the stack and a Dock menu beside it), ⌘Tab's pointer and Q, ⌘Tab in dark |
 | The tenet check, 2026-11-18 | Rounds 1 to 9 | Every round installed on tenet and driven on KWin 6.8 and Quickshell 0.3.2. All nine worked. Fixed from that look: ⌘Tab had no blur and named apps by their window's title (a module of ours inside KWin now gives both: `decoration/qml`); the style's menus were see-through by accident (painted as a disabled control) and are now glass on purpose, where KWin blurs behind them; a chosen row in the file dialog was two colors; KDE's push buttons kept their pictures; the Dock's menu overlapped the Dock's glass; a notification stack's peeking card had square corners; the note on showing the HUD by hand was wrong (`call hud -- show volume 45`). The session names our widget style since | On tenet's live session: pictures of each (`spectacle`), keys and clicks through a virtual keyboard and pointer. ⌘Tab's new files ran there from a test copy: a running KWin keeps the layout it loaded, so the installed one shows at the next login |

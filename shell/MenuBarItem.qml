@@ -2,8 +2,8 @@ import Quickshell
 import QtQuick
 import Ambrosia
 
-// One menu bar entry: a title or an icon on a capsule that lights on hover
-// and while its menu is open. With a `menu` (a list of MenuView entries, a
+// One menu bar entry: a title, an icon of ours or a picture (an app's own
+// status icon) on a capsule that lights on hover and while its menu is open. With a `menu` (a list of MenuView entries, a
 // function returning one, or an app's QsMenuHandle) it opens that menu on
 // press; without one it just emits pressed().
 Item {
@@ -13,16 +13,20 @@ Item {
     property var menu: null
     property string text
     property string icon
+    // A picture's source, for an icon that isn't one of ours.
+    property string image
+    readonly property bool pictured: icon !== "" || image !== ""
     property real iconSize: Theme.size.menubar.icon
     property real iconOpacity: 1
     property bool bold
     property bool active: Popups.menuOpen && Popups.owner === owner && Popups.screen === QsWindow.window?.screen
-    property real padding: icon ? 7 : Theme.size.menubar.itemPadding
+    property real padding: pictured ? 7 : Theme.size.menubar.itemPadding
     property real leftPadding: padding
     signal pressed
+    signal middlePressed
 
     implicitHeight: 22
-    implicitWidth: (icon ? iconSize : label.implicitWidth) + leftPadding + padding
+    implicitWidth: (pictured ? iconSize : label.implicitWidth) + leftPadding + padding
 
     Rectangle {
         anchors.fill: parent
@@ -38,7 +42,7 @@ Item {
 
     Label {
         id: label
-        visible: !item.icon
+        visible: !item.pictured
         x: item.leftPadding
         anchors.verticalCenter: parent.verticalCenter
         text: item.text
@@ -54,13 +58,23 @@ Item {
         opacity: item.iconOpacity
     }
 
+    StatusIcon {
+        visible: item.image !== ""
+        anchors.centerIn: parent
+        source: item.image
+        size: item.iconSize
+        opacity: item.iconOpacity
+    }
+
     MouseArea {
         id: area
         anchors.fill: parent
         hoverEnabled: true
-        onPressed: {
-            if (item.menu) QsWindow.window.openFor(item, true);
-            else item.pressed();
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+        onPressed: mouse => {
+            if (mouse.button === Qt.MiddleButton) item.middlePressed();
+            else if (item.menu) QsWindow.window.openFor(item, true);
+            else if (mouse.button === Qt.LeftButton) item.pressed();
         }
         // With a menu open, the title under the pointer opens its own.
         onEntered: {

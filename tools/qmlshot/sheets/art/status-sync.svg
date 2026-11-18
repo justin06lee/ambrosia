@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24">
+<!-- A stand-in for an app's one-color status icon, as a dark panel's theme
+     would hand it over: white, with a dot of color. -->
+<path d="M5.2 9.5a7 7 0 0 1 12.6-2.3M18.8 14.5a7 7 0 0 1-12.6 2.3M18.2 3.4v3.9h-3.9M5.8 20.6v-3.9h3.9" fill="none" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="12" cy="12" r="2.2" fill="#0a84ff"/>
+</svg>
