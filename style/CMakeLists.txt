@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
 project(ambrosia-style VERSION 0.1.0 LANGUAGES CXX)
 
-# Ambrosia's Qt widget style: the buttons, boxes, sliders and menus of every
-# Qt Widgets app (Konsole, Kate, Dolphin, the file dialog), drawn as macOS 26
-# draws its own. It stands on Breeze, or on Fusion where Breeze isn't
+# Ambrosia's Qt widget style: the buttons, boxes, sliders, menus, tabs and
+# lists of every Qt Widgets app (Konsole, Kate, Dolphin, the file dialog),
+# drawn as macOS 26 draws its own. It stands on Breeze, or on Fusion where Breeze isn't
 # installed, and repaints one kind of control at a time. Sizes and colors
 # come from the tokens, through dist/qstyle/tokens.h (bun tools/gen/index.ts).
 #

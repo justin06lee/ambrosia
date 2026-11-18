@@ -115,6 +115,21 @@ export const controls = {
   /** A tool button's hover, and a tooltip. */
   tool: { radius: 6 },
   tooltip: { radius: 6, padding: 6 },
+  /** A segmented control, which is what a tab view's tabs are (Settings'
+   *  Segmented.qml): its height and corner, the room either side of a title.
+   *  A window's own tabs (Qt's document mode) are taller; `close` is the
+   *  button on one of those. */
+  tab: { height: 24, radius: 6, padding: 12, document: 28, close: 16 },
+  /** A box round a group of controls, and a tab view's pane. Settings' boxes
+   *  have corners of 10; other apps put lists edge to edge inside theirs, so
+   *  8 here. `padding` is what the box adds to the app's own margins,
+   *  `title` how far in its heading starts and `titleGap` the room under it. */
+  box: { radius: 8, padding: 4, title: 10, titleGap: 6 },
+  /** A row of a list, a tree or a table and its highlight's corner (Files'
+   *  rowRadius); a table's header (Settings' tableHeader). */
+  row: { height: 24, radius: 6, header: 28 },
+  /** How much smaller a table's header and a menu's heading are set. */
+  caption: 0.85,
   /** Anything disabled is this opaque. */
   disabled: 0.45,
 } as const;
@@ -138,6 +153,11 @@ export const controlColor = {
   /** A scroll bar's thumb, at rest and under the pointer. */
   scroller: { light: "oklch(0.18 0.006 85 / 0.35)", dark: white(0.35) },
   scrollerHover: { light: "oklch(0.18 0.006 85 / 0.55)", dark: white(0.55) },
+  /** A box's fill, over the window. */
+  box: { light: "oklch(0.18 0.006 85 / 0.035)", dark: white(0.04) },
+  /** A chosen row where the keyboard isn't: in a list without the focus, or
+   *  a window behind (Files' selectionInactive). */
+  rowUnfocused: { light: "oklch(0.893 0 0)", dark: "oklch(0.39 0.008 100)" },
 } as const;
 
 // Color ----------------------------------------------------------------------

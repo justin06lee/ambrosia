@@ -448,6 +448,12 @@
           "files": [
             "design/icons.ts"
           ]
+        },
+        {
+          "name": "Controls other Qt apps get (push, field, check, slider, menu, tab, box, row sizes; controlColor)",
+          "files": [
+            "design/tokens.ts"
+          ]
         }
       ],
       "flows": [],
@@ -963,6 +969,13 @@
             "session/xdg/klaunchrc",
             "session/dconf/ambrosia.d/01-icons"
           ]
+        },
+        {
+          "name": "Other Qt apps' controls (widget style; make gallery draws them)",
+          "files": [
+            "style/src/style.cpp",
+            "style/gallery/main.cpp"
+          ]
         }
       ],
       "flows": [
@@ -1024,8 +1037,7 @@
         "shell/Search.qml — Spotlight: apps, panes, sums, files and folders, ⌘Return reveals in Files",
         "shell/Dock.qml — app dock with running dots, Downloads, live Trash, Files icon and context menu",
         "assets/icons/org.ambrosia.files.svg — hand-drawn Files icon, used by the Files app and its Dock pin",
-        "shell/trash-empty.svg — hand-drawn empty Trash for the dock",
-        "shell/trash-full.svg — hand-drawn full Trash for the dock",
+        "shell/trash-empty.svg — hand-drawn Trash for the dock; trash-full.svg is the full one",
         "shell/ControlCenter.qml — quick-settings toggles and sliders",
         "shell/Notifications.qml — notification banners, with action buttons and timeouts that respect the app's request",
         "shell/Session.qml — launching apps (kstart), opening URLs, settings, sleep, restart, shut down, lock, log out",

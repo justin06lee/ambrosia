@@ -6,6 +6,8 @@
 namespace Ambrosia
 {
 
+class Pulse;
+
 class Style : public QProxyStyle
 {
     Q_OBJECT
@@ -25,6 +27,9 @@ public:
     int styleHint(StyleHint hint, const QStyleOption *option = nullptr, const QWidget *widget = nullptr, QStyleHintReturn *returnData = nullptr) const override;
     void polish(QWidget *widget) override;
     using QProxyStyle::polish;
+
+private:
+    Pulse *m_pulse;
 };
 
 } // namespace Ambrosia
