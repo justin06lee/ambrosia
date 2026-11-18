@@ -17,7 +17,9 @@ remapped and nothing else here runs.
 - **⌘ held is Ctrl** for the app. `⌘C` reaches it as the `Ctrl+C` its menus
   document, `⇧⌘Z` as `Ctrl+Shift+Z`, a ⌘-click as a Ctrl-click, in any app,
   with nothing to list per app. The menu bar draws an app's `Ctrl` as ⌘ for
-  the same reason, and Files binds `Ctrl` where Finder has ⌘.
+  the same reason, as do the menus inside Qt apps (the widget style,
+  `macShortcut` in `style/src/style.cpp`), and Files binds `Ctrl` where
+  Finder has ⌘.
 - **Ctrl, Shift and the right Alt (AltGr) are untouched.** `Ctrl+C` still
   interrupts in a terminal.
 - **What ⌘ does that isn't Ctrl is written out** in `/etc/keyd/ambrosia.conf`

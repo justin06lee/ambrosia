@@ -185,7 +185,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
    sizes (`controls` and `controlColor` in the tokens, the numbers
    Settings' Look.qml carries), takes the accent and text from the app's
    palette, lays dialog buttons out the Mac's way and drops underlined
-   letters. Its second cut (round 4, the same day) adds: a tab view's tabs
+   letters. A menu row's shortcut is printed with the Mac's glyphs (round
+   14, `macShortcut`: Ctrl is ⌘, Meta ⌃, as in the shell's menus; the
+   menu's width is corrected for what QMenu measured, `shortcutsSaved`;
+   Qt on a Mac prints glyphs by itself, so look at this in a gallery
+   drawn on tenet). Its second cut (round 4, the same day) adds: a tab view's tabs
    as a segmented control in the middle of its pane's top edge, and a
    window's own tabs (Qt's document mode: Konsole, Kate, Dolphin) as a
    quiet row with the chosen one on a face and a close button that shows
