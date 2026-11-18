@@ -134,7 +134,7 @@ package_ambrosia-shell() {
   # ahead of /etc/xdg/ambrosia, so the session's colors live in one of ours.
   cp -r session/look-and-feel/. "$pkgdir/usr/share/plasma/look-and-feel/"
   install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/kwinrulesrc session/xdg/breezerc session/xdg/mimeapps.list \
-    session/xdg/kcminputrc session/xdg/konsolerc -t "$pkgdir/etc/xdg/ambrosia/"
+    session/xdg/kcminputrc session/xdg/konsolerc session/xdg/klaunchrc -t "$pkgdir/etc/xdg/ambrosia/"
   # Konsole's profile and key table for the session (konsolerc names the
   # profile): Command chords Konsole has no use for don't reach the shell.
   install -Dm644 session/konsole/Ambrosia.profile session/konsole/ambrosia.keytab -t "$pkgdir/usr/share/konsole/"

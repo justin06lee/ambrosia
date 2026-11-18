@@ -34,7 +34,10 @@ it is a copy.
    stays here until it has been looked at on tenet: KWin drawing the SVGs,
    the wheel turning, an Xwayland app, a GTK app, the login screen. Shapes
    still Breeze's (through `Inherits`): the skull of Kill Window, the color
-   picker, the pencil.
+   picker, the pencil. With it, KWin's launch feedback (the app's icon
+   bouncing beside the pointer) is off in the session
+   (`session/xdg/klaunchrc`): the Dock's icon bounces instead, as a Mac's
+   does. Also to look at on tenet.
 2. **Other apps' icons.** Only Files and Settings have icons of ours; every
    other app in the Dock, in Search and in Files' Applications shows Breeze's
    (flat, no tile). A Mac's are all on one rounded tile. Needs an icon theme:
@@ -74,8 +77,8 @@ it is a copy.
 10. **⌘H and ⌘Q.** ⌘H minimizes one window instead of hiding the app; ⌘Q
     only works where the app has Ctrl+Q (`docs/keyboard.md`).
 11. **The Dock's right side.** No minimized windows, no stacks (Downloads is
-    a tile that opens the folder, not a fan or grid), no recent apps, no
-    bounce while an app starts. Seen (VM, 2026-11-10).
+    a tile that opens the folder, not a fan or grid), no recent apps. From
+    the code and `CONTEXT.md`.
 12. **Tiling.** Dragging a window to an edge and the green button's menu
     (Move & Resize, Full Screen on a display) are KWin's quick-tile with its
     own outline. From the code.

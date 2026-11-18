@@ -1,0 +1,11 @@
+# Ambrosia session defaults for launch feedback. A user's own klaunchrc wins.
+
+# Nothing rides beside the pointer while an app starts (KWin's default is the
+# app's icon, bouncing there): on a Mac the app's Dock icon bounces instead,
+# and so does ours (shell/Dock.qml).
+[FeedbackStyle]
+BusyCursor=false
+
+[BusyCursorSettings]
+Bouncing=false
+Blinking=false
