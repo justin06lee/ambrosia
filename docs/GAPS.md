@@ -87,9 +87,12 @@ it is a copy.
 8. **Mission Control and Spaces.** KWin's Overview is there but unstyled and
    on no Mac key or gesture (F3, ⌃↑, three fingers up; ⌃← ⌃→ and a swipe
    between desktops; ⌃↓ for one app's windows). From the code.
-9. **Volume and brightness keys show nothing.** Plasma's own display for
-   them lives in plasmashell, which doesn't run here. A Mac shows a small
-   glass capsule under the menu bar's right end. From the code.
+9. **Volume and brightness keys: built, not yet seen on KWin.** Since
+   round 5 they show a glass capsule under the menu bar's right end, where
+   the control center opens: a glyph and a level, or the name of the output
+   sound moved to (`shell/Hud.qml`). The picture has been looked at; the
+   listening for Plasma's calls has never run. It takes no clicks, where a
+   Mac's can be dragged. To look at on tenet.
 10. **⌘H and ⌘Q.** ⌘H minimizes one window instead of hiding the app; ⌘Q
     only works where the app has Ctrl+Q (`docs/keyboard.md`).
 11. **The Dock's right side.** No minimized windows, no stacks (Downloads is
@@ -167,6 +170,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 5, 2026-11-18 | 9, the keys' display | `shell/Hud.qml`: a capsule for the volume and brightness keys, fed by Plasma's own calls to `org.kde.osdService` heard on the bus; `tools/qmlshot` and `make shell-shots`, which draw pieces of the shell on the Mac with Qt's real renderer and no window | On the Mac: the panel in six states, light and dark (`out/shots/shell-hud-*.png`), in the Mac's font (no Inter here). The window, the blur and the listening need Quickshell: not run |
 | 4, 2026-11-18 | 3, Qt apps' controls | The style's second cut: tabs (segmented for a tab view, a quiet row for a window's own, close buttons on the left under the pointer), group boxes, rows of lists, trees and tables (rounded highlight joining chosen neighbors, gray without the focus), tree arrows, table headers, a pop-up button's choices as a menu, flat toolbars, menu bar items, splitters, the focus ring on checkboxes and radios, a busy bar that moves; new `tab`, `box`, `row` tokens | On the Mac: the gallery in light and dark, each new control looked at, and the busy bar caught moving between two grabs. Over Fusion only; what could differ over Breeze is noted in `CONTEXT.md` |
 | 3, 2026-11-18 | 3, Qt apps' controls | A Qt widget style (`style/`, ambrosia-style): a proxy over Breeze drawing twelve kinds of control from the Mac's measured sizes (new `controls` tokens), dialog buttons in the Mac's order, no underlined letters; a gallery that draws them with no display | On the Mac, for real: built against Qt 6.12 and rendered by the gallery in light and dark (`out/shots/style-*.png`), each control and state looked at. Over Fusion only: not yet over Breeze, nor in a real app |
 | 2, 2026-11-18 | 2, app icons | The "Ambrosia" icon theme over Breeze: nine app icons drawn in `design/icons.ts` on the tile Files' and Settings' sit on, under the names the installed apps ask for; the pointer moved into it; named by the look-and-feel and the session's GTK defaults; the Dock takes its list of tile icons from the theme | On the Mac: `dist/icons/sheet.html` (each icon at 128, 48, 32 and 20, and in a row at the Dock's size on light and dark glass) and the review site's Iconography chapter; tests for names, links and what Qt's SVG reader can draw. Not on KWin |

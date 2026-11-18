@@ -156,7 +156,13 @@ Reaches into: assets/icons/org.ambrosia.files.svg, assets/icons/org.ambrosia.set
 Tags: icons, theme, dock, generator
 
 ## qt-widget-style — the Qt controls
-Ambrosia's Qt widget style (key "ambrosia", package ambrosia-style): a QProxyStyle over Breeze (Fusion elsewhere) that draws other apps' push buttons, checkboxes, radios, text fields, pop-ups, steppers, sliders, progress and scroll bars, tool buttons, menus and tooltips as macOS 26 does, from the controls tokens (dist/qstyle/tokens.h) and the app's palette. `make gallery` renders every control with no display. Installed but not the session's style yet: never run over Breeze or in a real app.
+Ambrosia's Qt widget style (key "ambrosia", package ambrosia-style): a QProxyStyle over Breeze (Fusion elsewhere) that draws other apps' push buttons, checkboxes, radios, text fields, pop-ups and their menus, steppers, sliders, progress and scroll bars, tool buttons, menus, tooltips, tabs (segmented for a tab view, a quiet row for a window's own), group boxes, rows and headers of lists, trees and tables, toolbars and menu bars as macOS 26 does, from the controls tokens (dist/qstyle/tokens.h) and the app's palette. make gallery renders every control with no display. Installed but not the session's style yet: never run over Breeze or in a real app.
 Its files: style/src/style.cpp, style/src/style.h, style/src/plugin.cpp, style/gallery/main.cpp, style/CMakeLists.txt
 Reaches into: design/tokens.ts, tools/gen/targets/qstyle.ts, packaging/PKGBUILD, Makefile
 Tags: qt, style, controls, widgets, menu
+
+## shell-hud — the volume and brightness display
+What the volume and brightness keys show: a glass capsule under the menu bar's right end with a glyph and a level, or the name of the output sound moved to; gone a second and a half after the last press. HudPanel.qml is the picture (drawn on the Mac by make shell-shots); Hud.qml is its window and listens with busctl monitor for Plasma's calls to org.kde.osdService. The listening and the window have not run on KWin yet.
+Its files: shell/Hud.qml, shell/HudPanel.qml
+Reaches into: shell/Glass.qml, shell/Icon.qml, shell/Label.qml, shell/shell.qml, design/tokens.ts, tools/qmlshot/sheets/hud.qml
+Tags: shell, hud, volume, brightness, qml

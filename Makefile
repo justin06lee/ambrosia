@@ -7,7 +7,8 @@
 #
 # On the Mac: `make publish` builds the packages on tenet, signs them and
 # uploads them to the hosted [ambrosia] repo (tools/publish-repo.sh).
-# `make gallery` draws the Qt widget style's controls into out/shots/.
+# `make gallery` draws the Qt widget style's controls into out/shots/, and
+# `make shell-shots` pieces of the shell (tools/qmlshot).
 # `make remote-build` runs the build gate on tenet instead of the Mac, and
 # `make review-remote` serves the review site from tenet on localhost:4747,
 # and `make shot-remote` photographs a page there into out/shots/. All three
@@ -22,7 +23,7 @@ export AMBROSIA_RSH
 # tenet has no swap and runs other projects' services.
 CAP = systemd-run --user --scope --quiet -p MemoryMax=6G nice -n 19 ionice -c3
 
-.PHONY: all build install update clean package quickshell iso publish remote-build review-remote shot-remote gallery
+.PHONY: all build install update clean package quickshell iso publish remote-build review-remote shot-remote gallery shell-shots
 
 all: install
 
@@ -90,6 +91,24 @@ gallery: node_modules
 	out/build/style/ambrosia-style-gallery out/shots/style-dark.png --dark
 	out/build/style/ambrosia-style-gallery out/shots/style-base.png --base
 	@echo out/shots/style-light.png out/shots/style-dark.png out/shots/style-base.png
+
+# Pieces of the shell drawn with no window on screen, where Quickshell and
+# KWin don't run: each sheet in tools/qmlshot/sheets/ lays one out in its
+# states, into out/shots/shell-<sheet>-{light,dark}.png. Needs Qt 6 with Qt
+# Quick (on the Mac: brew install qtdeclarative). Only what needs nothing but
+# Qt Quick and the Theme can be on a sheet; a Mac draws the text in its own
+# font, having no Inter.
+shell-shots: node_modules
+	bun tools/gen/index.ts >/dev/null
+	cmake -S tools/qmlshot -B out/build/qmlshot -G Ninja $(if $(shell command -v brew),-DCMAKE_PREFIX_PATH=$(shell brew --prefix 2>/dev/null)) >/dev/null
+	cmake --build out/build/qmlshot
+	mkdir -p out/shots
+	@for sheet in tools/qmlshot/sheets/*.qml; do \
+		name=$$(basename $$sheet .qml); \
+		out/build/qmlshot/qmlshot $$sheet out/shots/shell-$$name-light.png --import dist/qml || exit 1; \
+		out/build/qmlshot/qmlshot $$sheet out/shots/shell-$$name-dark.png --import dist/qml --dark || exit 1; \
+		echo out/shots/shell-$$name-light.png out/shots/shell-$$name-dark.png; \
+	done
 
 clean:
 	rm -rf dist out

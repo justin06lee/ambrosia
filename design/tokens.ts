@@ -79,6 +79,9 @@ export const size = {
   menubar: { height: 28, itemPadding: 10, icon: 16 },
   dock: { icon: 52, padding: 16, gap: 16, margin: 6, indicator: 4, badge: 18 },
   controlCenter: { unit: 60, gap: 12, padding: 14, columns: 4, toggle: 36, track: 6 },
+  /** What the volume and brightness keys show: a capsule as wide as the
+   *  control center's modules, under the menu bar's right end. */
+  hud: { width: 276, height: 44, padding: 16, glyph: 18, gap: 12 },
   // macOS 26: a titled window's bar is 32, a toolbar 52. The controls sit
   // centered in either, as far from the left edge as from the top.
   titlebar: { height: 32, toolbar: 52 },
@@ -389,6 +392,9 @@ export const fadeCurve = [0.3, 0, 0, 1] as const;
  */
 export const choreography = {
   controlCenter: { blurIn: 60, fadeIn: 100, fadeInDelay: 16, lightUpDelay: 70, lightUp: 160, fadeOut: 200 },
+  /** The keys' display comes at once, stays this long after the last
+   *  press, and fades. Not measured yet: by eye, until there is a recording. */
+  hud: { fadeIn: 80, linger: 1500, fadeOut: 300 },
 };
 
 export const input = {

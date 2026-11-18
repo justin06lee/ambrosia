@@ -196,6 +196,29 @@ package repo below), and they carry `shell/` and `session/` as they are.
    pop-up button's list there first. Not drawn yet: the editable combo's
    list, dock widgets' title bars, tool boxes, dials, the calendar, scroll
    bars that hide (a Mac with a mouse shows them always, as ours do).
+   **The volume and brightness keys have a display** (round 5, 2026-11-18,
+   `shell/Hud.qml` and `HudPanel.qml`): a glass capsule under the menu
+   bar's right end with a glyph and a level, or the name of the output
+   sound moved to. Plasma handles the keys (plasma-pa's kded module,
+   PowerDevil) and tells plasmashell's `org.kde.osdService` what to show;
+   plasmashell isn't here, so `Hud.qml` runs `busctl --user monitor` for
+   those calls and shows what they say. **The panel has been seen (drawn
+   on the Mac by `make shell-shots`); the listening has never run.** To do
+   on tenet: `quickshell ipc --path … call hud show volume 45` puts it up
+   without the keys (window, place, blur, fade); then the real keys, which
+   need the bus to hand a monitor calls nobody takes (dbus-broker should;
+   unchecked). If it doesn't, fall back to watching Pipewire's default
+   sink and `org.kde.ScreenBrightness`, at the cost of showing for changes
+   the keys didn't make.
+   **Pieces of the shell can be drawn on the Mac** since the same round:
+   `make shell-shots` builds `tools/qmlshot` (a Qt Quick window that is
+   never shown, drawn once into a picture with the real renderer) and
+   draws each sheet in `tools/qmlshot/sheets/` in light and dark. A sheet
+   can use whatever of `shell/` needs only Qt Quick and the Theme (Glass,
+   Icon, Label, PushButton, HudPanel); anything importing Quickshell
+   can't be loaded. New shell surfaces should keep their picture in a file
+   of its own, apart from the window and the services, so they can be
+   looked at here.
    Still apart from the preview: Breeze's menu radius and row height (ours once
    the style above is switched on), real apps' icons (no Ambrosia icon theme),
    per-surface blur and saturation (KWin has one setting for all), and the
@@ -412,8 +435,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
 - **This Mac** (since 2026-11-16): a Mac mini (M4, 16 GB, macOS 26,
   `justins-mac-mini-1` on the tailnet); the repo is at
   `~/code/github.com/justin06lee/ambrosia`. bun and gh are set up, and Homebrew's qtbase, cmake and
-  ninja (for `make gallery`, the Qt widget style); no QML, KDE, GTK, Docker
-  or VM tool. Three things didn't come across from the MacBook and the
+  ninja (for `make gallery`, the Qt widget style) and qtdeclarative with
+  qtsvg (for `make shell-shots`, pieces of the shell); no Quickshell, KDE,
+  GTK, Inter, Docker or VM tool. Three things didn't come across from the MacBook and the
   T7 drive: **tenet doesn't accept this Mac's SSH key yet** (`ssh tenet`
   reaches it over Tailscale and is refused; `ssh-copy-id tenet` and the same
   key for root put it right, see Needs Justin), **the signing key**
