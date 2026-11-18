@@ -94,6 +94,8 @@ class ShotShell : public QObject
     Q_PROPERTY(QJSValue shotRun READ shotRun WRITE setShotRun NOTIFY shotRunChanged)
     Q_PROPERTY(QVariantMap shotFiles MEMBER m_files NOTIFY shotFilesChanged)
     Q_PROPERTY(QVariantMap shotMenus MEMBER m_menus NOTIFY shotMenusChanged)
+    // Every command the shell would have started detached, in order.
+    Q_PROPERTY(QVariantList shotDetached MEMBER m_detached NOTIFY shotDetachedChanged)
 
 public:
     ShotShell(const QString &shellDir, const QString &iconsDir, const QString &wallpapersDir);
@@ -109,7 +111,11 @@ public:
     Q_INVOKABLE QVariant env(const QString &name) const;
     // An icon of the generated theme, or nothing: no other theme is here.
     Q_INVOKABLE QString iconPath(const QString &name, const QVariant &fallback = {}) const;
-    Q_INVOKABLE void execDetached(const QVariant &) const {}
+    Q_INVOKABLE void execDetached(const QVariant &command)
+    {
+        m_detached << command;
+        Q_EMIT shotDetachedChanged();
+    }
     Q_INVOKABLE QString statePath(const QString &name) const { return QStringLiteral("/shot/state/") + name; }
     Q_INVOKABLE QString dataPath(const QString &name) const { return QStringLiteral("/shot/data/") + name; }
     Q_INVOKABLE QString cachePath(const QString &name) const { return QStringLiteral("/shot/cache/") + name; }
@@ -119,8 +125,10 @@ Q_SIGNALS:
     void shotRunChanged();
     void shotFilesChanged();
     void shotMenusChanged();
+    void shotDetachedChanged();
 
 private:
+    QVariantList m_detached;
     QString m_shellDir;
     QString m_iconsDir;
     QString m_wallpapersDir;

@@ -17,7 +17,7 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - **Shared shell primitives (popups, glass, buttons, overlay):** shell/Popups.qml, shell/Glass.qml, shell/PushButton.qml, shell/Overlay.qml
 - **Line icons (same paths as the preview sprite):** shell/icons.js, shell/Icon.qml
 - **Text in the type scale:** shell/Label.qml
-- **Desktop wallpaper: what Settings chose, each change faded in, Nectar if a picture won't load:** shell/Wallpaper.qml
+- **Desktop wallpaper (what Settings chose, faded in, Nectar if a picture won't load) and the desktop's right-click menu (New Folder, Change Wallpaper…):** shell/Wallpaper.qml
 - **Which windows/screens the shell puts up:** shell/shell.qml
 - **Window traffic lights (close, minimise, zoom in window frames):** decoration/src/button.cpp
 - **Session start, env, KWin rules:** session/startambrosia, session/ambrosia.desktop, session/xdg/

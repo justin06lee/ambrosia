@@ -49,9 +49,9 @@ Reaches into: shell/Glass.qml, shell/Popups.qml, session/ambrosia
 Tags: shell, search, launcher, qml
 
 ## shell-menus — the menus
-Menu panels for the menu bar, apps' own DBus menus, submenus and the Dock's right-click menus: thick glass with a top-lit rim and specular ring, accent highlight, checkmarks, a right-aligned shortcut column in Mac glyphs (an app's Ctrl as ⌘, ⇧⌘F, ⌘↑, ⌘[), keyboard navigation; KWin keeps the app's window active while one is open. Leading, trailing and doubled separators from apps are dropped. One slot per depth on each screen's Overlay (a grabbing popup of the menu bar).
+Menu panels for the menu bar, apps' own DBus menus, submenus, the Dock's right-click menus and the desktop's (New Folder, Change Wallpaper…, opened from Wallpaper.qml): thick glass with a top-lit rim and specular ring, accent highlight, checkmarks, a right-aligned shortcut column in Mac glyphs (an app's Ctrl as ⌘, ⇧⌘F, ⌘↑, ⌘[), keyboard navigation; KWin keeps the app's window active while one is open. Leading, trailing and doubled separators from apps are dropped. One slot per depth on each screen's Overlay (a grabbing popup of the menu bar). Drawn on the Mac by make shell-shots (desktop-menu, desktop-context-menu, desktop-dock-menu).
 Its files: shell/MenuView.qml
-Reaches into: shell/Glass.qml, shell/MenuBar.qml, shell/Overlay.qml, shell/Popups.qml
+Reaches into: shell/Glass.qml, shell/MenuBar.qml, shell/Overlay.qml, shell/Popups.qml, shell/Wallpaper.qml, tools/qmlshot/sheets/desktop-menu.qml
 Tags: shell, menu, qml
 
 ## shell-notifications — notification banners
@@ -178,3 +178,9 @@ What Downloads in the Dock opens: the folder's newest things as a grid of icons 
 Its files: shell/Stack.qml, shell/StackGrid.qml
 Reaches into: shell/Dock.qml, shell/Overlay.qml, shell/Popups.qml, shell/Glass.qml, shell/PushButton.qml, design/tokens.ts, tools/qmlshot/sheets/stack.qml
 Tags: shell, dock, stack, downloads, qml
+
+## shell-notification-center — Notification Center
+What the clock opens: Do Not Disturb and Clear All capsules, every notification heard as glass cards grouped by app (a stack with the next ones peeking under, spread on a click), and a calendar card, sliding in from the right on the screen's Overlay and scrolling when taller than the screen. NotificationCard is shared with the banners. Drawn on the Mac by make shell-shots (desktop-notifications); the list's clip leaves room for the cards' shadows.
+Its files: shell/NotificationCenter.qml, shell/NotificationCard.qml
+Reaches into: shell/NotificationStore.qml, shell/Overlay.qml, shell/Glass.qml, shell/Popups.qml, tools/qmlshot/sheets/desktop-notifications.qml
+Tags: shell, notification, center, calendar, qml

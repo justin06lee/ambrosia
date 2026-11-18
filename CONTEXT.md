@@ -224,6 +224,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
    (KWin.Workspace.windowList() by internalId), dark mode following the
    scheme, ← → and Q, the pointer, a user whose kwinrc already has a
    `[TabBox]` group (theirs wins).
+   **A right-click on the desktop opens a menu** (round 9, 2026-11-18;
+   `shell/Wallpaper.qml`): New Folder (makes "untitled folder", or
+   "untitled folder 2"…, in ~/Desktop and asks Files to show it, since
+   nothing is drawn on the desktop yet) and Change Wallpaper…. Seen on the
+   Mac through the stand-ins, flow and all. **Not run under Quickshell.**
+   To do on tenet: right-click the desktop (does the background layer get
+   the press under KWin; is the menu at the pointer; does it stay on
+   screen near the right and bottom edges), New Folder twice, Change
+   Wallpaper…, a right-click while another menu is open.
    **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
    grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
    kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the
