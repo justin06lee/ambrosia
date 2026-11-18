@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<!-- A stand-in for another app's icon, as most Linux apps draw theirs: a
+     shape in color with no tile behind it. -->
+<path d="M36 70a18 18 0 0 1 18-18h148a18 18 0 0 1 18 18v116a18 18 0 0 1-18 18H54a18 18 0 0 1-18-18z" fill="#3a8df6"/>
+<path d="M36 74l82 62a16 16 0 0 0 20 0l82-62v-4a18 18 0 0 0-18-18H54a18 18 0 0 0-18 18z" fill="#7cb8ff"/>
+</svg>

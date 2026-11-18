@@ -79,8 +79,12 @@ Scope {
                     NumberAnimation { property: "x"; to: banners.offscreen; duration: Theme.exit.smooth.duration; easing.type: Easing.OutQuart }
                     NumberAnimation { property: "opacity"; to: 0; duration: Theme.fade.fast }
                 }
+                // One pushed down while still arriving has its arrival cut
+                // short: this finishes it, or it would stay faint and aside.
                 displaced: Transition {
                     NumberAnimation { property: "y"; duration: Theme.spring.smooth.duration; easing.type: Easing.OutQuart }
+                    NumberAnimation { property: "x"; to: 0; duration: Theme.spring.smooth.duration; easing.type: Easing.OutQuart }
+                    NumberAnimation { property: "opacity"; to: 1; duration: Theme.fade.base }
                 }
 
                 delegate: NotificationCard {
@@ -93,6 +97,7 @@ Scope {
                     width: banners.bannerWidth
                     appName: notification?.appName || entry?.name || ""
                     iconSource: notification ? NotificationStore.iconOf(notification, entry) : ""
+                    iconPlain: notification ? NotificationStore.plainOf(notification, entry) : false
                     summary: notification?.summary ?? ""
                     body: notification?.body ?? ""
                     // Its actions other than the default one (a click on the banner).

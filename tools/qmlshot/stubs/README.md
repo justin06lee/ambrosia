@@ -12,7 +12,7 @@ They are stand-ins, not the real thing. What that means for a picture:
 |---|---|
 | `PanelWindow`, `PopupWindow` | An item on the sheet's screen (`Quickshell.screens[0].shotHost`), held to the edges it anchors to and stacked by its layer. Masks, exclusive zones and keyboard modes are kept and ignored. |
 | `BackgroundEffect.blurRegion` | A blur of what the sheet names as lying under the windows (`shotBackdrop`, the wallpaper), cut to the region's shape. KWin's blur is a different one and blurs other windows too. |
-| `Quickshell.iconPath` | An icon of the generated Ambrosia theme, or nothing: Breeze isn't here, so files' kinds and other apps' icons come out blank. |
+| `Quickshell.iconPath` | An icon of the generated Ambrosia theme, else a stand-in of that name in `sheets/art/` (`other-app`: an icon that isn't ours), else nothing: Breeze isn't here, so other apps' icons come out blank. |
 | `Quickshell.execDetached` | Starts nothing; what it was asked to start is listed in `Quickshell.shotDetached`, for a sheet to look at. |
 | `Process` | Never started. A sheet answers for a command with `Quickshell.shotRun = command => "what it printed"`; unanswered, it never ends. |
 | `FileView` | Never opened. Holds `Quickshell.shotFiles["name.json"]` or nothing; says it loaded; writes nowhere. So Settings are their defaults until a sheet sets them. |

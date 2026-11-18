@@ -470,6 +470,7 @@ Item {
                 width: nc.width
                 appName: modelData.app
                 iconSource: modelData.icon
+                iconPlain: modelData.plain ?? NotificationStore.plainSource(modelData.icon)
                 summary: notification?.summary ?? modelData.summary
                 body: notification?.body ?? modelData.body
                 time: modelData.time

@@ -7,6 +7,7 @@ import "../../../out/build/qmlshot/shell"
 Desk {
     then: () => {
         const server = NotificationStore.server;
+        server.shotNotify({ appName: "Post", appIcon: "other-app", summary: "Ada Lovelace", body: "The notes from Tuesday are in the shared folder now." });
         server.shotNotify({ appName: "Discover", desktopEntry: "org.kde.discover", summary: "Updates Available", body: "12 packages can be updated." });
         server.shotNotify({ appName: "Files", desktopEntry: "org.ambrosia.files", summary: "Copy finished", body: "ambrosia-2026.11.10-x86_64.iso was copied to Backups." });
         server.shotNotify({ appName: "Files", desktopEntry: "org.ambrosia.files", summary: "Trash emptied", body: "34 items were erased." });

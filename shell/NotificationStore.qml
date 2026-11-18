@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Notifications
 import QtQuick
+import Ambrosia
 
 // Every notification the shell has heard, for the banners and the
 // notification center. The shell is the session's notification server
@@ -25,7 +26,7 @@ Singleton {
     id: store
 
     // What the center lists, newest first: { key, nid, app, entry, icon,
-    // summary, body, time, urgent }. nid is the live notification's id, or
+    // plain, summary, body, time, urgent }. nid is the live notification's id, or
     // -1 once it's gone (it came from before a restart, or was let go).
     property var history: []
     // The notifications with a banner up, newest first, as { nid }.
@@ -77,6 +78,27 @@ Singleton {
         return (icon ? Quickshell.iconPath(icon, true) : "") || Quickshell.iconPath(entry?.icon ?? "", "dialog-information");
     }
 
+    // Whether that is an icon by name with no tile of its own, to be set on
+    // a plain one (AppTile). A picture, the notification's or a file, is not.
+    function plainOf(notification, entry) {
+        const icon = notification.appIcon;
+        // notify-send hands an icon's name over as the picture.
+        if (notification.image) return plainSource(notification.image);
+        if (icon.startsWith("/") || icon.includes("://")) return false;
+        const name = icon && Quickshell.iconPath(icon, true) ? icon : entry?.icon ?? "";
+        return !Theme.tileIcons.includes(name);
+    }
+
+    // The same from a source alone, for what was heard before `plain` was
+    // kept: Quickshell's source for an icon by name is image://icon/<name>.
+    function plainSource(source) {
+        const themed = "image://icon/";
+        if (!source.startsWith(themed)) return false;
+        const name = source.slice(themed.length).split("?")[0];
+        // A file's path comes the same way: a picture.
+        return !name.startsWith("/") && !Theme.tileIcons.includes(name);
+    }
+
     function heard(notification) {
         const entry = entryOf(notification);
         const app = notification.appName || entry?.name || "";
@@ -98,7 +120,7 @@ Singleton {
         if (!notification.transient) {
             const record = {
                 key: nextKey++, nid: nid, app: app, entry: entry?.id ?? notification.desktopEntry ?? "",
-                icon: iconOf(notification, entry), summary: notification.summary, body: notification.body,
+                icon: iconOf(notification, entry), plain: plainOf(notification, entry), summary: notification.summary, body: notification.body,
                 time: Date.now(), urgent: urgent,
             };
             history = [record].concat(history).slice(0, keepRecords);

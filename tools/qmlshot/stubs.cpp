@@ -174,6 +174,11 @@ QString ShotShell::iconPath(const QString &name, const QVariant &fallback) const
                 return QStringLiteral("file://") + path;
             }
         }
+        // An app of someone else's, as a sheet stands in for it.
+        const QString art = QDir::current().absoluteFilePath(QStringLiteral("tools/qmlshot/sheets/art/%1.svg").arg(each));
+        if (QFile::exists(art)) {
+            return QStringLiteral("file://") + art;
+        }
     }
     return {};
 }
