@@ -104,10 +104,19 @@ it is a copy.
 
 ### Every few minutes: windows and motion
 
-6. **How windows open, close and minimize.** KWin's own effects with their
-   own curves; Settings switches Genie (Magic Lamp) and Scale (Squash) for
-   minimizing, but nothing moves on the spring tokens and a minimized window
-   doesn't land on its Dock tile. From the code.
+6. **How windows open and close; minimizing is the Genie, seen on KWin.**
+   Since round 15 a window minimizes into its app's Dock tile with the
+   Genie effect by default, as on a Mac (KWin's Magic Lamp, switched on in
+   the session's `kwinrc`; the Dock has told KWin where each tile is all
+   along, so the old line here, that it didn't land there, was wrong).
+   Settings still switches to Scale (KWin's Squash). Seen on tenet
+   (2026-11-18), slowed down to photograph: Konsole pours into its own
+   tile. Its 400 ms is by eye, with no recording of a Mac to measure
+   against. A session already running keeps its effects until the next
+   login. Still KWin's own, on its own curves: opening (a scale from 80%
+   with a fade, 200 ms) and closing (the same backwards, where a Mac's
+   window is simply gone); nothing moves on the spring tokens. Not seen:
+   the Genie with the Dock on the left or right, or hidden.
 7. **⌘Tab: ours, seen on KWin.** Since round 6 KWin's switcher walks apps,
    one window each, on a glass strip of large icons with the chosen app's
    name under it (the look-and-feel's `windowswitcher`); ← → move and Q
@@ -239,6 +248,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 15, 2026-11-18 | 6, minimizing | Genie is the session's default for minimizing (`session/xdg/kwinrc`: Magic Lamp on, Squash off, 400 ms), and the gap's line is put right: the Dock already published each tile's place (`requestPublishDelegateGeometry` in `shell/Dock.qml`), so a window lands on its own tile | On tenet: KWin's `iconGeometry` for Konsole and Firefox is their Dock tiles (52 px squares in the Dock); with the effect slowed to 5 s, a picture of Konsole pouring into its tile; the defaults read back through the session's config path. A running KWin doesn't take the new default on reconfigure, so the live session was switched by hand the way Settings does it. Not seen: the Dock at a side, Settings' pane showing Genie chosen |
 | 14, 2026-11-18 | 3, menus' shortcuts | The widget style prints a menu row's shortcut with the Mac's glyphs (`macShortcut` in `style/src/style.cpp`: it reads Qt's own spelling back into keys, so any language's; modifiers as ⌃⌥⇧⌘, Ctrl as ⌘ and Meta as ⌃ like the shell's menu bar, arrows and editing keys as symbols; text that isn't a shortcut is left alone), and takes back the width QMenu added for the longer spelling (`shortcutsSaved`). The gallery's menu has more shortcuts to show it | On the Mac: `out/shots/style-*.png` (Qt on a Mac prints glyphs itself, so this shows only that nothing broke). On tenet: the gallery drawn there (⌘N, ⇧⌘S, ⌥←, ⌦, the menu as wide as the Mac's), and Kate's right-click menu in the live session from the r422 packages (⌘X ⌘C ⌘V, ⇧⌘Ins), light only |
 | 13, 2026-11-18 | 2, notifications' icons | A banner's and a Notification Center card's icon goes through `AppTile`: one by name that isn't ours gets the plain tile (`NotificationStore.plainOf`; what was heard before is judged by its source, `plainSource`), a picture or a file doesn't. Found on tenet and fixed: notify-send hands an icon's name over as the picture (`image://icon/<name>`), so the rule reads that too; and a banner pushed down while still arriving stayed faint (ListView cuts the arrival short: the displaced transition now finishes it). The Mac's stand-in for icons answers from `sheets/art/` too (`other-app`) | On the Mac: `out/shots/shell-desktop-banner-*.png`, `shell-desktop-notifications-*.png` with a stand-in for another app's icon, light and dark. On tenet: Firefox's and a warning's icon by name on the tile, Kate's and Files' as they are, a PNG by path untiled, an entry from last week tiled, three banners arriving together all opaque; as banners and in Notification Center, light only |
 | 12, 2026-11-18 | 16, menu bar extras | Apps' status items in the menu bar through Quickshell's tray service: a `MenuBarItem` can carry a picture; `shell/StatusIcon.qml` tells a glyph from a picture by its pixels and draws a glyph in the bar's text color; a press opens the app's own menu (the path the focused app's menus already take). A stand-in tray for the Mac (`stubs/Quickshell/Services/SystemTray`) and a sheet | On the Mac: `out/shots/shell-desktop-extras-*.png` (a white glyph with a blue dot comes out dark on the light bar and white on the dark one, a colored mark stays, a passive item stays out, the menu opens under its item). On tenet: Discover's notifier in the bar in light and dark, its menu opened and closed by pressing the item |

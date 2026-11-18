@@ -268,6 +268,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
    menu opens at the pointer, New Folder makes the folder and Files shows
    it, Change Wallpaper… opens Settings' pane. Not tried: the screen's
    edges, a right-click while another menu is open.
+   **A window minimizes into its Dock tile with the Genie** (round 15,
+   2026-11-18): KWin's Magic Lamp is the session's default
+   (`session/xdg/kwinrc`, 400 ms by eye), and the Dock publishes each
+   tile's place to KWin (`publish()` in `shell/Dock.qml`; check with
+   `tools/live.sh js` printing a window's `iconGeometry`). Seen on tenet
+   slowed down. A running KWin doesn't load or unload effects when the
+   defaults file changes, even on reconfigure: call `/Effects` `loadEffect`
+   and `unloadEffect` as Settings does, or log in again. Opening and
+   closing are still KWin's Scale.
    **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
    grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
    kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the
