@@ -1,5 +1,6 @@
-// The "Ambrosia" pointer theme, from design/cursors.ts: Xcursor files for the
-// clients that load their own pointer, the same shapes as SVGs for KWin
+// The pointer, from design/cursors.ts, as part of the "Ambrosia" icon theme
+// (targets/icons.ts writes the theme's index): Xcursor files for the clients
+// that load their own pointer, the same shapes as SVGs for KWin
 // (cursors_scalable, which it draws at any size), CSS cursors for the preview,
 // and a sheet to look them all over on.
 
@@ -8,9 +9,7 @@ import * as c from "../../../design/cursors";
 import { toHex } from "../color";
 import type { Resolved } from "../resolve";
 import { xcursor, type CursorImage } from "../xcursor";
-import { HEADER } from "./shared";
-
-export const THEME = "Ambrosia";
+import { HEADER, ICON_THEME_ROOT } from "./shared";
 
 const SVG_OPEN = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${c.canvas}" height="${c.canvas}" viewBox="0 0 ${c.canvas} ${c.canvas}">`;
 const render = (svg: string, width: number) =>
@@ -80,11 +79,10 @@ export interface CursorTheme {
 
 export function cursorTheme(r: Resolved): CursorTheme {
   const pointers = c.pointers(pointerColors(r));
-  const root = `cursors/${THEME}`;
-  const files: CursorTheme["files"] = {
-    // A shape not drawn here yet comes from Breeze rather than X's own.
-    [`${root}/index.theme`]: `# ${HEADER}\n[Icon Theme]\nName=${THEME}\nComment=Ambrosia's pointer\nInherits=breeze_cursors\n`,
-  };
+  // A shape not drawn here yet comes from Breeze (the theme's Inherits)
+  // rather than X's own.
+  const root = ICON_THEME_ROOT;
+  const files: CursorTheme["files"] = {};
   const links: CursorTheme["links"] = {};
   const sheet: SheetEntry[] = [];
   const css: string[] = [];

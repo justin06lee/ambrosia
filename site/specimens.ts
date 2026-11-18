@@ -2,6 +2,7 @@
 // resolver the theme generator uses, so what you review is what ships.
 
 import { pointers } from "../design/cursors";
+import { adopted, appIcons } from "../design/icons";
 import * as t from "../design/tokens";
 import type { Mode } from "../design/tokens";
 import { contrast, toCss, toHex, type RGBA } from "../tools/gen/color";
@@ -366,9 +367,14 @@ export const setIconIds = (ids: string[]) => (iconIds = ids);
 
 function iconography() {
   const cells = (size: number) => iconIds.map((id) => h("div", { class: "icon-cell", title: id }, icon(id, size), h("span", null, id.slice(2))));
+  // The pictures come from dist/web/icons.css; a dot can't be in a variable's name.
+  const apps = [...Object.keys(adopted), ...Object.values(appIcons).map((icon) => icon.names[0]!)].map((name) =>
+    h("div", { class: "app-icon-cell" }, h("i", { style: { backgroundImage: `var(--amb-icon-${name.replace(/\./g, "-")})` } }), h("span", null, name)));
   return [
     specimen("Symbols at 16px", h("div", { class: "icon-grid" }, cells(16))),
     specimen("At 24px", h("div", { class: "icon-grid big" }, cells(24)), caption("1.5px rounded strokes on a 24 grid. Filled only to show state.")),
+    specimen("App icons", h("div", { class: "app-icon-grid" }, apps),
+      caption("The apps a new install starts with, each on the same tile with its margin, under the name the app asks for its icon by. Other apps keep their own until they are drawn.")),
   ];
 }
 

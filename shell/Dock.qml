@@ -124,10 +124,11 @@ PanelWindow {
     }
 
     // Icons drawn on a whole Dock tile, as macOS draws its own (the Trash,
-    // Files), are shown that much bigger than the icon size: an app icon's
-    // body is 0.805 of the tile.
+    // and every app icon of ours: the theme says which names those are), are
+    // shown that much bigger than the icon size: an app icon's body is 0.805
+    // of the tile.
     readonly property real tileArt: 1 / 0.805
-    readonly property var tileIcons: ["org.ambrosia.files"]
+    readonly property var tileIcons: Theme.tileIcons
 
     // Moves files to the trash. While Files runs it does the moving, so Edit >
     // Undo there can put them back; KIO's own move (kioclient) can't be undone.

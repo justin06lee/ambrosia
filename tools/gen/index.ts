@@ -5,7 +5,9 @@ import { dirname, join } from "node:path";
 import * as t from "../../design/tokens";
 import { toCss } from "./color";
 import { resolve } from "./resolve";
+import { adopted } from "../../design/icons";
 import { cursorTheme } from "./targets/cursors";
+import { iconTheme } from "./targets/icons";
 import { fontEnvironment, fontconfig } from "./targets/fontconfig";
 import { gtk3, gtk4, titlebuttonGlyphs } from "./targets/gtk";
 import { kdecoration } from "./targets/kdecoration";
@@ -18,6 +20,11 @@ const dist = join(root, "dist");
 const r = resolve();
 
 const pointer = cursorTheme(r);
+// The app icons drawn before the theme, which it carries under more names.
+const drawn = Object.fromEntries(
+  await Promise.all(Object.keys(adopted).map(async (name) => [name, await Bun.file(join(root, `assets/icons/${name}.svg`)).text()])),
+);
+const icons = iconTheme(drawn);
 
 const files: Record<string, string | Uint8Array> = {
   "web/tokens.css": web(r),
@@ -44,7 +51,9 @@ const files: Record<string, string | Uint8Array> = {
     (_, v) => (v && typeof v === "object" && "r" in v && "a" in v && !Array.isArray(v) ? toCss(v) : v),
     2,
   ),
-  // The pointer theme (dist/cursors/Ambrosia), its sheet and the preview's CSS.
+  // The icon theme (dist/icons/Ambrosia): app icons and the pointer, a sheet
+  // of each to look them over on, and the preview's CSS cursors.
+  ...icons.files,
   ...pointer.files,
 };
 
@@ -54,8 +63,9 @@ for (const [path, content] of Object.entries(files)) {
   await mkdir(dirname(out), { recursive: true });
   await Bun.write(out, content);
 }
-// The other names a pointer goes by, as links beside it.
-for (const [path, target] of Object.entries(pointer.links)) await symlink(target, join(dist, path));
+// The other names an icon or a pointer goes by, as links beside it.
+const links = { ...icons.links, ...pointer.links };
+for (const [path, target] of Object.entries(links)) await symlink(target, join(dist, path));
 
 const fonts = join(root, "node_modules/@fontsource-variable");
 await mkdir(join(dist, "web/fonts"), { recursive: true });
@@ -64,7 +74,7 @@ for (const file of ["inter/files/inter-latin-opsz-normal.woff2", "jetbrains-mono
 }
 
 console.log(`ambrosia: generated ${Object.keys(files).length} files into dist/`);
-// The pointer's files by the hundred would bury the rest.
-const [theme, rest] = [Object.keys(pointer.files).filter((p) => p.startsWith("cursors/Ambrosia/")), Object.keys(files)];
-for (const path of rest.filter((p) => !theme.includes(p))) console.log(`  ${path}`);
-console.log(`  cursors/Ambrosia/ (${theme.length} files, ${Object.keys(pointer.links).length} links)`);
+// The icon theme's files by the hundred would bury the rest.
+const theme = Object.keys(files).filter((p) => p.startsWith("icons/Ambrosia/"));
+for (const path of Object.keys(files).filter((p) => !theme.includes(p))) console.log(`  ${path}`);
+console.log(`  icons/Ambrosia/ (${theme.length} files, ${Object.keys(links).length} links)`);

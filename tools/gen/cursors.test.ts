@@ -2,13 +2,14 @@
 import { expect, test } from "bun:test";
 import * as c from "../../design/cursors";
 import { resolve } from "./resolve";
-import { cursorTheme, pointerColors, THEME } from "./targets/cursors";
+import { cursorTheme, pointerColors } from "./targets/cursors";
+import { ICON_THEME_ROOT } from "./targets/shared";
 import { readXcursor, xcursor, type CursorImage } from "./xcursor";
 
 const r = resolve();
 const pointers = c.pointers(pointerColors(r));
 const theme = cursorTheme(r);
-const root = `cursors/${THEME}`;
+const root = ICON_THEME_ROOT;
 
 test("an Xcursor file reads back as it was written", () => {
   const image = (size: number, delay: number): CursorImage => ({

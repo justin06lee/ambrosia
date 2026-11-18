@@ -262,6 +262,9 @@ and the preview is the visual reference. In brief:
 - **App icons:** the 22.5% superellipse on a 1024 grid with a 100px margin, one
   light source from above. A soft gradient is allowed on app icons only. No
   photorealism.
+- Every app a new install starts with wears an icon of ours (`design/icons.ts`),
+  whoever wrote the app: one object or mark, in white or its own few colors,
+  on the tile. The shapes are drawn here, never taken from another system's.
 
 ## Voice
 

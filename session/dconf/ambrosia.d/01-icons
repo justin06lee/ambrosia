@@ -1,0 +1,7 @@
+# GTK apps find their icons and draw their own pointer from the themes
+# GSettings names, not the ones KDE's settings name; without this they'd show
+# Adwaita's beside Ambrosia's. In the Ambrosia session only, and under themes
+# the user picked for themselves.
+[org/gnome/desktop/interface]
+icon-theme='Ambrosia'
+cursor-theme='Ambrosia'

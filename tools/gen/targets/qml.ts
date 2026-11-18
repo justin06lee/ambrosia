@@ -4,6 +4,7 @@
 import * as t from "../../../design/tokens";
 import { toQtHex, type RGBA } from "../color";
 import type { Resolved, ResolvedMode } from "../resolve";
+import { tileIconNames } from "./icons";
 import { HEADER, slug, svgPath, windowGlyphPolygons } from "./shared";
 
 type Tree = { [key: string]: Tree | RGBA | number | string | unknown[] };
@@ -116,6 +117,10 @@ QtObject {
 
     readonly property string uiFont: ${JSON.stringify(t.font.ui[0])}
     readonly property string monoFont: ${JSON.stringify(t.font.mono[0])}
+
+    // The icon theme's names that are drawn on a whole tile, margin and all
+    // (design/icons.ts): the Dock shows these larger than a plain icon.
+    readonly property var tileIcons: ${JSON.stringify(tileIconNames())}
 
     readonly property QtObject color: dark ? darkColors : lightColors
     readonly property QtObject accent: color.accents[accentName] ?? color.accents[${JSON.stringify(t.accent.default)}]

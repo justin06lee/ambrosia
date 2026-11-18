@@ -31,6 +31,7 @@ it is a copy.
    round 1 (`design/cursors.ts`): a Mac's black arrow with its white rim and
    soft shadow, white hands, the I-beam, resize arrows, badges for copy,
    alias and not-allowed, and a wheel in the accent colors for busy. It
+   lives in the same icon theme. It
    stays here until it has been looked at on tenet: KWin drawing the SVGs,
    the wheel turning, an Xwayland app, a GTK app, the login screen. Shapes
    still Breeze's (through `Inherits`): the skull of Kill Window, the color
@@ -38,12 +39,17 @@ it is a copy.
    bouncing beside the pointer) is off in the session
    (`session/xdg/klaunchrc`): the Dock's icon bounces instead, as a Mac's
    does. Also to look at on tenet.
-2. **Other apps' icons.** Only Files and Settings have icons of ours; every
-   other app in the Dock, in Search and in Files' Applications shows Breeze's
-   (flat, no tile). A Mac's are all on one rounded tile. Needs an icon theme:
-   at least the apps a new install starts with (Firefox keeps its own mark,
-   on a tile), the folder and document kinds Files draws already, and the
-   status and action glyphs Qt apps ask for by name. From the code.
+2. **Other apps' icons: begun, not yet seen on KWin.** Since round 2 the
+   "Ambrosia" icon theme (over Breeze) gives the apps a new install starts
+   with an icon of ours on the tile: Terminal, the text editor, the picture
+   and document viewers, Calculator, the archiver, the store, Screenshot,
+   system information; KDE's settings and Dolphin wear Settings' and Files'.
+   To look at on tenet: that those apps really ask for the names we drew
+   under, and how the icons sit in the Dock, Search and Files. Still
+   Breeze's or the app's own: every app not on that list (Firefox's mark
+   has no tile; the Dock could put one under any icon that lacks it), the
+   folders and document kinds in KDE's dialogs (Files draws its own), and
+   the one-color status and action icons inside Qt apps.
 3. **Other Qt apps' controls.** Breeze's widget style draws Konsole, Kate,
    Dolphin, the file dialog: its buttons, checkboxes, scrollbars, tabs, and
    menus (radius and row height can't be changed from a color scheme). Needs
@@ -151,4 +157,5 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 2, 2026-11-18 | 2, app icons | The "Ambrosia" icon theme over Breeze: nine app icons drawn in `design/icons.ts` on the tile Files' and Settings' sit on, under the names the installed apps ask for; the pointer moved into it; named by the look-and-feel and the session's GTK defaults; the Dock takes its list of tile icons from the theme | On the Mac: `dist/icons/sheet.html` (each icon at 128, 48, 32 and 20, and in a row at the Dock's size on light and dark glass) and the review site's Iconography chapter; tests for names, links and what Qt's SVG reader can draw. Not on KWin |
 | 1, 2026-11-18 | 1, the pointer | The "Ambrosia" pointer theme: 24 shapes drawn in `design/cursors.ts`, generated as Xcursor files, KWin SVGs and CSS; named by the look-and-feel, the session's GTK defaults and the login screen; in the preview and the review site | On the Mac: every shape looked over on `dist/cursors/sheet.html` (light, dark and mid grounds, hotspots marked) and in the review site's Input chapter; tests for the file format, sizes, hotspots on ink and the names apps ask for. Not on KWin: tenet doesn't take this Mac's key yet |

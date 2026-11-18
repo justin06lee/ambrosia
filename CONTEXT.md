@@ -129,19 +129,33 @@ package repo below), and they carry `shell/` and `session/` as they are.
    Files has its own Finder-style icon (2026-10-21, `assets/icons/`, hicolor
    `org.ambrosia.files`); until Ambrosia's Files app exists, Dolphin's Dock
    pin shows as Files with it (`standIns` in `shell/Dock.qml`).
-   **The pointer is ours** (2026-11-18, `design/cursors.ts`, built into
-   `dist/cursors/Ambrosia` by `tools/gen/targets/cursors.ts`, shipped in
-   ambrosia-theme as `/usr/share/icons/Ambrosia`): 24 shapes and 90 other
-   names, as Xcursor files (24 to 96) and as SVGs for KWin. The
-   look-and-feel names it, `startambrosia` keeps Plasma's copy of that
-   current for existing users, GTK gets it through the session's dconf
-   defaults and the login screen through sddm.conf. **Drawn and checked on
-   the Mac only** (`dist/cursors/sheet.html`, the review site's Input
-   chapter): no KWin has loaded it yet. First things to look at on tenet:
-   that KWin draws the SVGs (their shadow is an embedded PNG, as Qt's SVG
-   reader has no blur), that the wheel turns, an Xwayland and a GTK app,
-   the login screen (its KWin reads no Ambrosia config, so it may keep
-   Breeze's arrow under a greeter that draws its own).
+   **There is an "Ambrosia" icon theme** (2026-11-18, built into
+   `dist/icons/Ambrosia`, shipped in ambrosia-theme as
+   `/usr/share/icons/Ambrosia`, inheriting Breeze). It holds **the pointer**
+   (`design/cursors.ts`, `tools/gen/targets/cursors.ts`: 24 shapes and 90
+   other names, as Xcursor files from 24 to 96 and as SVGs for KWin) and
+   **app icons** (`design/icons.ts`, `tools/gen/targets/icons.ts`: Terminal,
+   a text editor, picture and document viewers, Calculator, an archiver,
+   the store, Screenshot and system information, under the icon names
+   Konsole, Kate, Gwenview, Okular, KCalc, Ark, Discover, Spectacle and
+   Info Center ask for; KDE's settings and Dolphin wear Settings' and
+   Files'). The look-and-feel names the theme for icons and pointer,
+   `startambrosia` keeps Plasma's copy of both current for existing users,
+   GTK gets them through the session's dconf defaults and the login screen
+   its pointer through sddm.conf. The Dock shows every icon of ours at tile
+   size (`Theme.tileIcons`, generated; Settings' icon wasn't on the old
+   list). **Drawn and checked on the Mac only** (`dist/icons/sheet.html`,
+   `dist/cursors/sheet.html`, the review site's Input and Iconography
+   chapters): no KWin or KDE app has loaded any of it, so **look at it on
+   tenet or in the VM before publishing**. To look at: KWin drawing the
+   pointer's SVGs (their shadow is an embedded PNG, as Qt's SVG reader has
+   no blur) and the wheel turning; an Xwayland and a GTK app; the login
+   screen (its KWin reads no Ambrosia config, so it may keep Breeze's
+   arrow under a greeter that draws its own); no bouncing icon by the
+   pointer at launch (`session/xdg/klaunchrc`); the Dock, Search and Files'
+   Applications showing our icons, with the desktop files' real `Icon=`
+   names (the list in `design/icons.ts` is from memory); Breeze's one-color
+   icons still following dark mode under our theme (`FollowsColorScheme`).
    Still apart from the preview: Breeze's menu radius and row height (only our own
    QStyle could change them), real apps' icons (no Ambrosia icon theme),
    per-surface blur and saturation (KWin has one setting for all), and the

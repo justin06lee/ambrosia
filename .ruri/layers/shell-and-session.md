@@ -22,6 +22,7 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - **Window traffic lights (close, minimise, zoom in window frames):** decoration/src/button.cpp
 - **Session start, env, KWin rules:** session/startambrosia, session/ambrosia.desktop, session/xdg/
 - **Swapping plasmashell for the shell:** session/ambrosia-shell.service, session/plasmashell.conf
+- **Session defaults for launch feedback, GTK's icon and cursor themes:** session/xdg/klaunchrc, session/dconf/ambrosia.d/01-icons
 
 ## How it works
 
