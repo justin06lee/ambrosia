@@ -210,7 +210,21 @@ package repo below), and they carry `shell/` and `session/` as they are.
    unchecked). If it doesn't, fall back to watching Pipewire's default
    sink and `org.kde.ScreenBrightness`, at the cost of showing for changes
    the keys didn't make.
-   **Pieces of the shell can be drawn on the Mac** since the same round:
+   **⌘Tab has a switcher of ours** (round 6, 2026-11-18): the
+   look-and-feel package's `contents/windowswitcher/` (KWin looks there
+   first for the layout kwinrc names, `LayoutName=org.ambrosia.desktop`),
+   with `ApplicationsMode=1` so it walks apps. `SwitcherStrip.qml` is the
+   picture (seen, by `make shell-shots`); `WindowSwitcher.qml` is KWin's
+   side (`KWin.TabBoxSwitcher`, a plain transparent `Window`, icons through
+   Kirigami, the mode from KWin's palette) and **has never been loaded by
+   KWin**. Glass.qml, Label.qml and icons.js are symlinks to the shell's
+   (the PKGBUILD copies with `-L`). To do on tenet: ⌘Tab with three apps
+   open; if KWin logs "Component failed to load" it falls back to its own
+   layout. Look at: the window's place and transparency, icons, the name
+   (KWin.Workspace.windowList() by internalId), dark mode following the
+   scheme, ← → and Q, the pointer, a user whose kwinrc already has a
+   `[TabBox]` group (theirs wins).
+   **Pieces of the shell can be drawn on the Mac** since round 5:
    `make shell-shots` builds `tools/qmlshot` (a Qt Quick window that is
    never shown, drawn once into a picture with the real renderer) and
    draws each sheet in `tools/qmlshot/sheets/` in light and dark. A sheet

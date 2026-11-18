@@ -150,7 +150,8 @@ tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remot
 shell/         the shell in QML for Quickshell: wallpaper, menu bar and menus, Search,
                Dock, control center, notifications, the volume and brightness keys' display
 session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
-               GTK's button layout (dconf), the `ambrosia` command and the shell's desktop files
+               GTK's button layout (dconf), the `ambrosia` command and the shell's desktop files,
+               the look-and-feel package with ⌘Tab's app switcher (a KWin switcher layout)
 decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens
 style/         the Qt widget style: other apps' buttons, boxes, sliders and menus, over Breeze;
                its gallery draws them all into a picture with no display (make gallery)

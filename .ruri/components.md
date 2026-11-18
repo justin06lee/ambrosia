@@ -166,3 +166,9 @@ What the volume and brightness keys show: a glass capsule under the menu bar's r
 Its files: shell/Hud.qml, shell/HudPanel.qml
 Reaches into: shell/Glass.qml, shell/Icon.qml, shell/Label.qml, shell/shell.qml, design/tokens.ts, tools/qmlshot/sheets/hud.qml
 Tags: shell, hud, volume, brightness, qml
+
+## app-switcher — the app switcher
+⌘Tab: the running apps as a row of large icons on glass in the middle of the screen, the chosen one on a soft square with its name under it; icons shrink when there are many. SwitcherStrip.qml is the picture (drawn on the Mac by make shell-shots); WindowSwitcher.qml is KWin's side, a switcher layout in the look-and-feel package that kwinrc names. Glass, Label and icons.js beside them are symlinks to the shell's. Never loaded by KWin yet.
+Its files: session/look-and-feel/org.ambrosia.desktop/contents/windowswitcher/SwitcherStrip.qml, session/look-and-feel/org.ambrosia.desktop/contents/windowswitcher/WindowSwitcher.qml
+Reaches into: shell/Glass.qml, shell/Label.qml, session/xdg/kwinrc, design/tokens.ts, tools/qmlshot/sheets/switcher.qml, packaging/PKGBUILD
+Tags: switcher, cmd-tab, kwin, qml, session

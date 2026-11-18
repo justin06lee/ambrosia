@@ -247,6 +247,10 @@ and the preview is the visual reference. In brief:
   opens: a glyph and the control center's track with no knob, or a line of
   text when sound moves to another output. It comes at once, stays a second
   and a half after the last press and fades; it takes no clicks.
+- **⌘Tab:** the running apps as a row of 104px icons on `thick` glass
+  ringed in light, in the middle of the screen; the chosen one sits on a
+  soft square with its name under it. With more apps than fit across nine
+  tenths of the screen the icons shrink, to no less than 40.
 - **Windows:** three 14px controls 23 apart on the left, centered in the bar
   and as far from the left edge as from the top. All three show their glyphs
   while the pointer is over any of them, and they're gray when the window is

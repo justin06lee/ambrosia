@@ -82,6 +82,11 @@ export const size = {
   /** What the volume and brightness keys show: a capsule as wide as the
    *  control center's modules, under the menu bar's right end. */
   hud: { width: 276, height: 44, padding: 16, glyph: 18, gap: 12 },
+  /** ⌘Tab's strip of apps: an icon, the room round it its highlight takes
+   *  (`pad`), the strip's own margin, the row the chosen app's name gets,
+   *  and how small icons may get when there are many. By eye from macOS 26,
+   *  not measured yet. */
+  switcher: { icon: 104, pad: 10, margin: 14, label: 26, minimum: 40 },
   // macOS 26: a titled window's bar is 32, a toolbar 52. The controls sit
   // centered in either, as far from the left edge as from the top.
   titlebar: { height: 32, toolbar: 52 },
