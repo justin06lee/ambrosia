@@ -34,6 +34,7 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - tools/gen/targets/kdecoration.ts — dist/kdecoration/tokens.h: the frame's sizes, per-mode colors, window-button shapes, light edge and shadow layers for the decoration plugin
 - tools/gen/targets/cursors.ts — the pointer inside dist/icons/Ambrosia (cursors/ Xcursor files, cursors_scalable/ SVGs with metadata.json), dist/web/cursors.css (--amb-cursor-* and --amb-pointer-*), dist/cursors/sheet.html; rasterizes with @resvg/resvg-js
 - tools/gen/targets/icons.ts — dist/icons/Ambrosia: index.theme (Inherits breeze,breeze_cursors,hicolor; FollowsColorScheme), apps/scalable/*.svg, links for other names; tileIconNames() feeds Theme.tileIcons; dist/icons/sheet.html, dist/web/icons.css
+- tools/gen/targets/qstyle.ts — dist/qstyle/tokens.h for style/: the controls' sizes, controlColor per mode, and each mode's palette for the gallery
 
 ## Rules and traps
 

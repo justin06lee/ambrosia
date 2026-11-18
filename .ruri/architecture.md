@@ -15,7 +15,7 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 4. **Theme Targets** — Per-toolkit formatters turning resolved model into GTK, KDE, QML, fontconfig, web output (`tools/gen/targets/`) → `.ruri/layers/theme-targets.md`
 5. **Build and Install** — Bun, TypeScript, Make orchestration: test, build dist/, per-user Linux install with backups (`./, tools/ · 4 files`) → `.ruri/layers/build-install.md`
 6. **Review Site** — Design review website with live specimens, verdict threads, review server and static build (`site/`) → `.ruri/layers/review-site.md`
-7. **Shell and Session** — Quickshell QML shell (wallpaper, menu bar) and the Ambrosia session: Plasma's services with plasmashell swapped out, KWin/KDE defaults (`shell/, session/, tools/ +1 · 1 file`) → `.ruri/layers/shell-and-session.md`
+7. **Shell and Session** — Quickshell QML shell (wallpaper, menu bar) and the Ambrosia session: Plasma's services with plasmashell swapped out, KWin/KDE defaults (`shell/, session/, tools/ +2 · 1 file`) → `.ruri/layers/shell-and-session.md`
 8. **Packaging and Image** — Arch PKGBUILDs (ambrosia-theme/-shell/-desktop, the Quickshell rebuild), the archiso profile with live desktop and installer, ISO build and VM test scripts (`packaging/, iso/, tools/ +2 · 6 files`) → `.ruri/layers/packaging-and-image.md`
 9. **Files App** — our Finder look-alike file manager: Qt 6 QML front end on the Ambrosia theme, C++20 core with KF6/KIO, in-memory filename index, rg content search, benchmarks (`docs/finder/, files/, files/tools/ +7 · 15 files`) → `.ruri/layers/files-app.md`
 10. **Settings App** — our System Settings look-alike: Qt 6 QML window on the Ambrosia theme (sidebar in macOS 26 order, General and About), C++20 core reading hostnamed, /proc, DRM and pacman; panes not built yet open KDE's own modules via kcmshell6 (`settings/, docs/settings/, scratch/settings/ · 11 files`) → `.ruri/layers/settings-app.md`
@@ -58,6 +58,7 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 - sudo make iso — Arch only: installer image into out/iso/
 - tools/remote.sh justin06lee@192.168.1.172 <cmd> — push HEAD to tenet's bare repo, reset its ~/work/ambrosia checkout (uncommitted changes rsynced on top) and run there; make remote-build / review-remote / shot-remote — the build gate, the review site (tunnelled to :4747) and headless Firefox screenshots on tenet
 - tools/shot.sh out.png — screenshot the shell on a headless KWin; tools/vm.sh live|install|installed|shot — the image in a headless QEMU VM
+- make gallery — build the Qt widget style and draw its controls into out/shots/style-{light,dark,base}.png, no display (needs Qt 6, CMake, Ninja)
 
 ## Conventions
 

@@ -1,6 +1,6 @@
 # ambrosia — Shell and Session
 
-One layer of ambrosia's stack, owning `shell/, session/, tools/shot.sh, decoration/`. The whole stack, and how the layers connect, is in `.ruri/architecture.md`.
+One layer of ambrosia's stack, owning `shell/, session/, tools/shot.sh, decoration/, style/`. The whole stack, and how the layers connect, is in `.ruri/architecture.md`.
 Don't edit this file: ruri writes it. `ruri layer shell-and-session` prints it with every line numbered, what git says changed in this layer lately and what sessions learned working here; once you have read it that way, put right what your work changed — `ruri layer shell-and-session add|set|drop <section> …`. Where it and the code disagree, the code is right.
 
 The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and the session that hosts it. startambrosia runs Plasma's session with XDG_SESSION_DESKTOP=ambrosia; systemd units keyed on that variable swap plasmashell for Quickshell, and /etc/xdg/ambrosia carries session-only KDE/KWin defaults. The shell is now functional, not just visual: menu bar with real app menus, Spotlight launcher on Super+Space, dock, control center and notification banners, and it must match preview/ visually.

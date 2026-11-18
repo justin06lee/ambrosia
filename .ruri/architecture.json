@@ -83,7 +83,8 @@
         "shell/",
         "session/",
         "tools/shot.sh",
-        "decoration/"
+        "decoration/",
+        "style/"
       ]
     },
     {
@@ -217,7 +218,8 @@
     "make package / make quickshell — Arch only: packages into out/pkg/",
     "sudo make iso — Arch only: installer image into out/iso/",
     "tools/remote.sh justin06lee@192.168.1.172 <cmd> — push HEAD to tenet's bare repo, reset its ~/work/ambrosia checkout (uncommitted changes rsynced on top) and run there; make remote-build / review-remote / shot-remote — the build gate, the review site (tunnelled to :4747) and headless Firefox screenshots on tenet",
-    "tools/shot.sh out.png — screenshot the shell on a headless KWin; tools/vm.sh live|install|installed|shot — the image in a headless QEMU VM"
+    "tools/shot.sh out.png — screenshot the shell on a headless KWin; tools/vm.sh live|install|installed|shot — the image in a headless QEMU VM",
+    "make gallery — build the Qt widget style and draw its controls into out/shots/style-{light,dark,base}.png, no display (needs Qt 6, CMake, Ninja)"
   ],
   "conventions": [
     "Never hand-edit dist/ output; change design/tokens.ts and regenerate",
@@ -814,7 +816,8 @@
         "tools/gen/targets/fontconfig.ts — sans-serif/monospace aliases, rasterization defaults, and the session's font environment (FreeType stem darkening, QT_NO_SYNTHESIZED_BOLD)",
         "tools/gen/targets/kdecoration.ts — dist/kdecoration/tokens.h: the frame's sizes, per-mode colors, window-button shapes, light edge and shadow layers for the decoration plugin",
         "tools/gen/targets/cursors.ts — the pointer inside dist/icons/Ambrosia (cursors/ Xcursor files, cursors_scalable/ SVGs with metadata.json), dist/web/cursors.css (--amb-cursor-* and --amb-pointer-*), dist/cursors/sheet.html; rasterizes with @resvg/resvg-js",
-        "tools/gen/targets/icons.ts — dist/icons/Ambrosia: index.theme (Inherits breeze,breeze_cursors,hicolor; FollowsColorScheme), apps/scalable/*.svg, links for other names; tileIconNames() feeds Theme.tileIcons; dist/icons/sheet.html, dist/web/icons.css"
+        "tools/gen/targets/icons.ts — dist/icons/Ambrosia: index.theme (Inherits breeze,breeze_cursors,hicolor; FollowsColorScheme), apps/scalable/*.svg, links for other names; tileIconNames() feeds Theme.tileIcons; dist/icons/sheet.html, dist/web/icons.css",
+        "tools/gen/targets/qstyle.ts — dist/qstyle/tokens.h for style/: the controls' sizes, controlColor per mode, and each mode's palette for the gallery"
       ],
       "rules": [
         "Do not edit generated output; every file carries HEADER pointing back to design/tokens.ts via tools/gen.",

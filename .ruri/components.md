@@ -154,3 +154,9 @@ Ambrosia's icon theme over Breeze: nine app icons (Terminal, text editor, pictur
 Its files: design/icons.ts, tools/gen/targets/icons.ts
 Reaches into: assets/icons/org.ambrosia.files.svg, assets/icons/org.ambrosia.settings.svg, shell/Dock.qml, tools/gen/targets/qml.ts, session/look-and-feel/org.ambrosia.desktop/contents/defaults
 Tags: icons, theme, dock, generator
+
+## qt-widget-style — the Qt controls
+Ambrosia's Qt widget style (key "ambrosia", package ambrosia-style): a QProxyStyle over Breeze (Fusion elsewhere) that draws other apps' push buttons, checkboxes, radios, text fields, pop-ups, steppers, sliders, progress and scroll bars, tool buttons, menus and tooltips as macOS 26 does, from the controls tokens (dist/qstyle/tokens.h) and the app's palette. `make gallery` renders every control with no display. Installed but not the session's style yet: never run over Breeze or in a real app.
+Its files: style/src/style.cpp, style/src/style.h, style/src/plugin.cpp, style/gallery/main.cpp, style/CMakeLists.txt
+Reaches into: design/tokens.ts, tools/gen/targets/qstyle.ts, packaging/PKGBUILD, Makefile
+Tags: qt, style, controls, widgets, menu
