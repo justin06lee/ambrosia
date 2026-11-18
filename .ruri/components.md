@@ -144,7 +144,13 @@ Reaches into: settings/qml/PaneIcon.qml, settings/qml/Box.qml, settings/qml/Sect
 Tags: settings, network, pane, qml
 
 ## pointer-theme — the pointer
-Ambrosia's own cursor theme: a Mac's black arrow with a white rim and soft shadow, white hands, I-beam, resize arrows, copy/alias/not-allowed badges and a busy wheel in the accent colors (24 shapes, 90 other names), drawn as paths in design/cursors.ts and generated into dist/cursors/Ambrosia (Xcursor 24–96 plus KWin's SVGs), dist/web/cursors.css and dist/cursors/sheet.html. Not yet seen on KWin.
+Ambrosia's own cursor theme: a Mac's black arrow with a white rim and soft shadow, white hands, I-beam, resize arrows, copy/alias/not-allowed badges and a busy wheel in the accent colors (24 shapes, 90 other names), drawn as paths in design/cursors.ts and generated into dist/icons/Ambrosia (cursors/: Xcursor 24–96; cursors_scalable/: KWin's SVGs), dist/web/cursors.css and dist/cursors/sheet.html. Not yet seen on KWin.
 Its files: design/cursors.ts, tools/gen/targets/cursors.ts, tools/gen/xcursor.ts
 Reaches into: session/look-and-feel/org.ambrosia.desktop/contents/defaults, session/startambrosia, session/dconf/ambrosia.d/01-pointer, packaging/sddm.conf, preview/preview.css, site/specimens.ts
 Tags: pointer, cursor, theme, generator
+
+## app-icons — the app icons
+Ambrosia's icon theme over Breeze: nine app icons (Terminal, text editor, picture and document viewers, Calculator, archiver, store, Screenshot, system info) drawn as SVG art on the 256-grid tile in design/icons.ts, generated into dist/icons/Ambrosia/apps/scalable under the names Konsole, Kate, Gwenview, Okular, KCalc, Ark, Discover, Spectacle and Info Center ask for; Files' and Settings' icons adopted under KDE's names. dist/icons/sheet.html shows them. Not yet seen on KWin.
+Its files: design/icons.ts, tools/gen/targets/icons.ts
+Reaches into: assets/icons/org.ambrosia.files.svg, assets/icons/org.ambrosia.settings.svg, shell/Dock.qml, tools/gen/targets/qml.ts, session/look-and-feel/org.ambrosia.desktop/contents/defaults
+Tags: icons, theme, dock, generator
