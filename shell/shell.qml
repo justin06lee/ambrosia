@@ -1,6 +1,7 @@
 // The Ambrosia shell, run by Quickshell: on every screen a wallpaper, the
-// menu bar, Search and a layer for menus and the control center; the Dock
-// and notification banners on the first screen. Everything visual comes
+// menu bar, Search and a layer for menus and the control center; the Dock,
+// notification banners and the volume and brightness keys' display on the
+// first screen. Everything visual comes
 // from the generated `Ambrosia` Theme module.
 import Quickshell
 import Quickshell.Io
@@ -51,6 +52,8 @@ ShellRoot {
         }
     }
     Notifications {}
+    // What the volume and brightness keys show.
+    Hud {}
     // Which keyboard layer the focused app gets (the Mac-first keyboard).
     KeyLayer {}
 

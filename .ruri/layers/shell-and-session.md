@@ -24,6 +24,7 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - **Swapping plasmashell for the shell:** session/ambrosia-shell.service, session/plasmashell.conf
 - **Session defaults for launch feedback, GTK's icon and cursor themes:** session/xdg/klaunchrc, session/dconf/ambrosia.d/01-icons
 - **Other Qt apps' controls (widget style; make gallery draws them):** style/src/style.cpp, style/gallery/main.cpp
+- **Volume and brightness keys' display (make shell-shots draws it):** shell/Hud.qml, shell/HudPanel.qml
 
 ## How it works
 
@@ -47,8 +48,6 @@ The desktop shell (Quickshell QML on the generated Ambrosia Theme module) and th
 - shell/ControlCenter.qml — quick-settings toggles and sliders
 - shell/Notifications.qml — notification banners, with action buttons and timeouts that respect the app's request
 - shell/Session.qml — launching apps (kstart), opening URLs, settings, sleep, restart, shut down, lock, log out
-- shell/Appearance.qml — dark mode and accent color controls
-- shell/Brightness.qml — display brightness control
 
 ## Rules and traps
 

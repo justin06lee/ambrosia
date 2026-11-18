@@ -64,7 +64,8 @@
         "Makefile",
         "package.json",
         "tsconfig.json",
-        "tools/install.sh"
+        "tools/install.sh",
+        "tools/qmlshot/"
       ]
     },
     {
@@ -661,6 +662,13 @@
             "Makefile",
             "tools/remote.sh"
           ]
+        },
+        {
+          "name": "Drawing pieces of the shell with no window (make shell-shots)",
+          "files": [
+            "tools/qmlshot/main.cpp",
+            "tools/qmlshot/sheets/"
+          ]
         }
       ],
       "flows": [
@@ -710,7 +718,8 @@
         "After Arch updates Qt, bump pkgrel in packaging/quickshell/PKGBUILD and run make publish.",
         "Heavy work runs on tenet, not the 8 GB Mac: the Mac only edits, runs git and signs. Everything on tenet runs capped (systemd-run --user --scope -p MemoryMax=…, nice 19, ionice -c3, two jobs): it has no swap and hosts mira's gateway.",
         "tenet's ~/work/ambrosia is disposable: every tools/remote.sh run resets it hard and cleans untracked files (ignored out/, dist/, node_modules survive), so never edit there.",
-        "make shot-remote shows layout and colour, not glass: headless Firefox draws no backdrop blur."
+        "make shot-remote shows layout and colour, not glass: headless Firefox draws no backdrop blur.",
+        "tools/qmlshot can load only QML that needs nothing but Qt Quick and the Theme: keep a new shell surface's picture in its own file, apart from its Quickshell window, and add a sheet for it."
       ],
       "edges": [
         "Generator Core — install only copies dist/ output, never generates it",
@@ -976,6 +985,13 @@
             "style/src/style.cpp",
             "style/gallery/main.cpp"
           ]
+        },
+        {
+          "name": "Volume and brightness keys' display (make shell-shots draws it)",
+          "files": [
+            "shell/Hud.qml",
+            "shell/HudPanel.qml"
+          ]
         }
       ],
       "flows": [
@@ -1040,9 +1056,7 @@
         "shell/trash-empty.svg — hand-drawn Trash for the dock; trash-full.svg is the full one",
         "shell/ControlCenter.qml — quick-settings toggles and sliders",
         "shell/Notifications.qml — notification banners, with action buttons and timeouts that respect the app's request",
-        "shell/Session.qml — launching apps (kstart), opening URLs, settings, sleep, restart, shut down, lock, log out",
-        "shell/Appearance.qml — dark mode and accent color controls",
-        "shell/Brightness.qml — display brightness control"
+        "shell/Session.qml — launching apps (kstart), opening URLs, settings, sleep, restart, shut down, lock, log out"
       ],
       "rules": [
         "Build file URLs from Quickshell.shellDir with an explicit file:// — Quickshell's QML base URL is qrc:/qs-blackhole, so relative URLs and Qt.resolvedUrl don't reach files.",

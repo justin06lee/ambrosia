@@ -241,6 +241,12 @@ and the preview is the visual reference. In brief:
   grid float on a light, untinted blur with soft rounded edges. Toggles that
   are on are solid circles. It fades in place (blur first, then the modules)
   rather than springing.
+- **The keys' display:** the volume and brightness keys show a capsule of
+  `regular` glass ringed in light, as wide as the control center's modules
+  and 44 tall, under the menu bar's right end where the control center
+  opens: a glyph and the control center's track with no knob, or a line of
+  text when sound moves to another output. It comes at once, stays a second
+  and a half after the last press and fades; it takes no clicks.
 - **Windows:** three 14px controls 23 apart on the left, centered in the bar
   and as far from the left edge as from the top. All three show their glyphs
   while the pointer is over any of them, and they're gray when the window is

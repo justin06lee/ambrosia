@@ -1,6 +1,6 @@
 # ambrosia — Build and Install
 
-One layer of ambrosia's stack, owning `Makefile, package.json, tsconfig.json, tools/install.sh`. The whole stack, and how the layers connect, is in `.ruri/architecture.md`.
+One layer of ambrosia's stack, owning `Makefile, package.json, tsconfig.json, tools/install.sh, tools/qmlshot/`. The whole stack, and how the layers connect, is in `.ruri/architecture.md`.
 Don't edit this file: ruri writes it. `ruri layer build-install` prints it with every line numbered, what git says changed in this layer lately and what sessions learned working here; once you have read it that way, put right what your work changed — `ruri layer build-install add|set|drop <section> …`. Where it and the code disagree, the code is right.
 
 This layer builds, tests and installs Ambrosia. Bun and TypeScript handle the build, Make orchestrates the targets, and a POSIX sh script installs the already-generated themes for the current Linux user into XDG config and data directories. Install copies from dist/ and backs up foreign files. The key idea: install never loses user data, since foreign files become <name>.before-ambrosia and ambrosia-owned files are overwritten silently. Make publish also pushes the signed Arch package repo to GitHub Releases.
@@ -13,6 +13,7 @@ This layer builds, tests and installs Ambrosia. Bun and TypeScript handle the bu
 - **make package / quickshell / iso targets (Arch):** Makefile
 - **Publish signed Arch package repo (make publish):** Makefile, tools/publish-repo.sh
 - **Running the build gate, review site and screenshots on tenet (make remote-build, review-remote, shot-remote):** Makefile, tools/remote.sh
+- **Drawing pieces of the shell with no window (make shell-shots):** tools/qmlshot/main.cpp, tools/qmlshot/sheets/
 
 ## How it works
 
@@ -39,6 +40,7 @@ This layer builds, tests and installs Ambrosia. Bun and TypeScript handle the bu
 - Heavy work runs on tenet, not the 8 GB Mac: the Mac only edits, runs git and signs. Everything on tenet runs capped (systemd-run --user --scope -p MemoryMax=…, nice 19, ionice -c3, two jobs): it has no swap and hosts mira's gateway.
 - tenet's ~/work/ambrosia is disposable: every tools/remote.sh run resets it hard and cleans untracked files (ignored out/, dist/, node_modules survive), so never edit there.
 - make shot-remote shows layout and colour, not glass: headless Firefox draws no backdrop blur.
+- tools/qmlshot can load only QML that needs nothing but Qt Quick and the Theme: keep a new shell surface's picture in its own file, apart from its Quickshell window, and add a sheet for it.
 
 ## What it talks to
 
