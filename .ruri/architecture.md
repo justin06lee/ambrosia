@@ -16,9 +16,9 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 5. **Build and Install** — Bun, TypeScript, Make orchestration: test, build dist/, per-user Linux install with backups (`./, tools/ · 4 files`) → `.ruri/layers/build-install.md`
 6. **Review Site** — Design review website with live specimens, verdict threads, review server and static build (`site/`) → `.ruri/layers/review-site.md`
 7. **Shell and Session** — Quickshell QML shell (wallpaper, menu bar) and the Ambrosia session: Plasma's services with plasmashell swapped out, KWin/KDE defaults (`shell/, session/, tools/ +1 · 1 file`) → `.ruri/layers/shell-and-session.md`
-8. **Packaging and Image** — Arch PKGBUILDs (ambrosia-theme/-shell/-desktop, the Quickshell rebuild), the archiso profile with live desktop and installer, ISO build and VM test scripts (`packaging/, iso/, tools/ · 6 files`) → `.ruri/layers/packaging-and-image.md`
+8. **Packaging and Image** — Arch PKGBUILDs (ambrosia-theme/-shell/-desktop, the Quickshell rebuild), the archiso profile with live desktop and installer, ISO build and VM test scripts (`packaging/, iso/, tools/ +2 · 6 files`) → `.ruri/layers/packaging-and-image.md`
 9. **Files App** — our Finder look-alike file manager: Qt 6 QML front end on the Ambrosia theme, C++20 core with KF6/KIO, in-memory filename index, rg content search, benchmarks (`docs/finder/, files/, files/tools/ +7 · 15 files`) → `.ruri/layers/files-app.md`
-10. **Settings App** — our System Settings look-alike: Qt 6 QML window on the Ambrosia theme (sidebar in macOS 26 order, General and About), C++20 core reading hostnamed, /proc, DRM and pacman; panes not built yet open KDE's own modules via kcmshell6 (`settings/, docs/settings/, scratch/settings/ · 4 files`) → `.ruri/layers/settings-app.md`
+10. **Settings App** — our System Settings look-alike: Qt 6 QML window on the Ambrosia theme (sidebar in macOS 26 order, General and About), C++20 core reading hostnamed, /proc, DRM and pacman; panes not built yet open KDE's own modules via kcmshell6 (`settings/, docs/settings/, scratch/settings/ · 11 files`) → `.ruri/layers/settings-app.md`
 
 ## How it flows
 
@@ -39,13 +39,12 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 - dist/ — generated output: gtk-*, kde/, kdecoration/, qml/, fontconfig/, web/, tokens.json (never hand-edit)
 - Makefile — build, test, review, screenshot targets; remote-build, review-remote and shot-remote run on tenet; package.json / tsconfig.json — bun+typescript toolchain definition
 - CONTEXT.md — handoff sheet: what stands, what's next, machines (tenet), how to build/test, gotchas
-- shell/ — Quickshell QML shell: menu bar and menus on a grabbing popup (MenuView.qml, Overlay.qml), Spotlight, dock (hand-drawn trash-full/empty.svg, no Apple art), control center, notifications, appearance; watchFiles off when installed under /usr
+- shell/ — Quickshell QML shell: menu bar and menus on a grabbing popup (MenuView.qml, Overlay.qml), Spotlight (including file results), dock (hand-drawn trash-full/empty.svg, no Apple art), control center, notifications (Notifications.qml, banners with action buttons), appearance; Settings.qml is the settings.json adapter, Wallpaper.qml draws the desktop; watchFiles off when installed under /usr
 - session/ — startambrosia (copies decoration settings into ~/.config/kdedefaults/kwinrc at login), systemd units swapping plasmashell, /etc/xdg/ambrosia defaults (kwinrc, breezerc), xdg/mimeapps.list (folders and trash:/ open in Files), look-and-feel defaults, pacman hook ambrosia-shell-restart(.hook) restarting the shell after upgrades
-- packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop, ambrosia-files (depends include ripgrep, ffmpeg, taglib, karchive, freetype2; makedepends include taglib, karchive, freetype2), and the Quickshell rebuild (DBusMenu shortcut patch; debug packages off)
+- packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop, ambrosia-files (depends include ripgrep, ffmpeg, taglib, karchive, freetype2; makedepends include taglib, karchive, freetype2), ambrosia-keyring (install hook, not yet on the -Syu path), and the Quickshell rebuild (DBusMenu shortcut patch; debug packages off)
 - iso/ — archiso profile: live desktop, local [ambrosia] repo, installer scripts
-- files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub, PreviewDetails/QuickActions/TagField.qml), C++20 core with KF6/KIO (foldermodel.cpp with timesAt for pane dates and search listing, fileops.cpp undoable copy/move/trash with undo/redo labels, iteminfo.cpp one item's details followed by inode, metadata.cpp Show More metadata, tags.cpp/tags.h colour tags in the attribute Dolphin and Baloo use, index.cpp/index.h in-memory name index kept current by inotify and saved to ~/.cache/ambrosia/files/index, thumbnailer.cpp/h shared-cache thumbnails paused under I/O pressure, rg content search, Trash drops exposed over DBus), benchmarks in files/bench/ and src/searchbench.cpp; installs /usr/bin/ambrosia-files and the resident user unit files/ambrosia-files.service (--background, started with the Ambrosia session, indexes home on first start)
-Colour tags shared with Dolphin/Baloo: dots, tinted folders, menu, sidebar lists; src/previews.cpp/h Finder-style thumbnail sources (video frames, font tiles, office pages, audio covers)
-- settings/ — Settings, Ambrosia's System Settings: Qt Quick window (SettingsWindow, Sidebar, pages, controls; every measure in qml/Look.qml), C++ core (src/app.cpp system facts, src/sound.cpp PulseAudio sound via pulseaudio-qt, src/wifi.cpp Wi-Fi page, KDE modules via kcmshell6, vertical zoom through a KWin script; src/about.cpp); docs/settings/ holds the plan and the measured frame
+- files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub, PreviewDetails/QuickActions/TagField.qml, ProgressWindow.qml copy progress), C++20 core with KF6/KIO (foldermodel.cpp with timesAt for pane dates and search listing, fileops.cpp undoable copy/move/trash with undo/redo labels, iteminfo.cpp one item's details followed by inode, metadata.cpp Show More metadata, tags.cpp/tags.h colour tags in the attribute Dolphin and Baloo use, index.cpp/index.h in-memory name index kept current by inotify and saved to ~/.cache/ambrosia/files/index, thumbnailer.cpp/h shared-cache thumbnails paused under I/O pressure, rg content search, Trash drops exposed over DBus), benchmarks in files/bench/ and src/searchbench.cpp; installs /usr/bin/ambrosia-files and the resident user unit files/ambrosia-files.service (--background, started with the Ambrosia session, indexes home on first start)
+- files/src/places.cpp — Files sidebar places: Applications, drives with eject
 
 ## How to run it
 
@@ -79,9 +78,9 @@ Colour tags shared with Dolphin/Baloo: dots, tinted folders, menu, sidebar lists
 - Mac-first keyboard: Super-as-Command, ⌘ glyphs in menus, Files shortcuts
 - Signed Arch pacman repo on GitHub; archiso installer, UEFI, QEMU-testable
 - Menu bar: focused-app menus with shortcuts, Wi-Fi, search, clock
-- Super+Space Spotlight; dock keeps pinned order, separate launchers, Mac-style Trash
-- Control center: pure blur glass, modes, sliding notification banners
+- Super+Space Spotlight: apps, file results, Settings panes, sums; dock keeps pinned order, separate launchers, Mac-style Trash
+- Control center: pure blur glass, modes, notification banners with actions
 - Honey-bowl Ambrosia branding in menu bar, banner, favicon, preview and review site
-- Finder-style Files: thumbnails, Quick Look, Get Info, Columns with metadata, undo, search
+- Finder-style Files: thumbnails, Quick Look, Get Info, Columns with metadata, undo, search, drives with eject, Show in Folder
 - Colour tags shared with Dolphin/Baloo: dots, tinted folders, menu, sidebar lists
-- Settings: System Settings look-alike; real Sound and Wi-Fi panes
+- Settings: Wi‑Fi, Network/VPN, Bluetooth, Sound, Displays, Battery, Privacy, Users, Lock Screen, Wallpaper, Updates, Storage, Clock, Language, Sharing, Login Items, Printers & Scanners, Accessibility, Spotlight
