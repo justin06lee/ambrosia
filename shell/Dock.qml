@@ -213,7 +213,8 @@ PanelWindow {
                     onDragEnded: dock.dropApp()
                     name: model.AppName || entry?.name || ""
                     iconSource: Quickshell.iconPath(iconName, "application-x-executable")
-                    art: dock.tileIcons.includes(iconName) ? dock.tileArt : 1
+                    art: dock.tileArt
+                    plain: !dock.tileIcons.includes(iconName)
                     running: model.IsWindow === true || (model.ChildCount ?? 0) > 0
                     attention: model.IsDemandingAttention === true
                     starting: model.IsStartup === true
@@ -471,6 +472,8 @@ PanelWindow {
         property bool highlighted
         // The image's size against the icon's, for art drawn past it.
         property real art: 1
+        // An icon with no tile of its own: set on a plain one.
+        property bool plain: false
         // Its place along the Dock, and how big the pointer's nearness makes it.
         property int slot: 0
         property real hop: 0
@@ -523,7 +526,7 @@ PanelWindow {
             Behavior on pressScale { SpringAnimation { spring: 8; damping: 0.5 } }
             scale: pressScale * item.zoom
 
-            IconImage {
+            AppTile {
                 visible: item.glyph === ""
                 // Drawn as large as it will ever show, and scaled down from there.
                 readonly property real most: 1 + dock.swell
@@ -532,7 +535,11 @@ PanelWindow {
                 width: parent.width * item.art * most
                 height: parent.height * item.art * most
                 scale: 1 / most
-                source: item.iconSource
+                tiled: !item.plain
+                IconImage {
+                    anchors.fill: parent
+                    source: item.iconSource
+                }
                 layer.enabled: item.highlighted
                 layer.effect: MultiEffect { brightness: -0.3 }
                 transform: Translate {

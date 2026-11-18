@@ -47,11 +47,15 @@ it is a copy.
    system information; KDE's settings and Dolphin wear Settings' and Files'.
    The names are the ones those apps' desktop files ask for (read from
    KDE's sources). Seen on tenet (2026-11-18): they sit right in the Dock,
-   in Search's results and in ⌘Tab. Still
-   Breeze's or the app's own: every app not on that list (Firefox's mark
-   has no tile; the Dock could put one under any icon that lacks it), the
-   folders and document kinds in KDE's dialogs (Files draws its own), and
-   the one-color status and action icons inside Qt apps.
+   in Search's results and in ⌘Tab. Since round 10 an app whose icon isn't
+   ours (Firefox's fox, Breeze's own) sits on a plain tile of the same
+   shape in the Dock, Search and ⌘Tab, as macOS 26 does with icons not
+   drawn for it, so a row of apps is a row of tiles (`shell/AppTile.qml`;
+   seen on tenet, light and dark, the Dock on each side). Still Breeze's or
+   the app's own: the art inside those plain tiles, notifications' app
+   icons (no tile), the folders and document kinds in KDE's dialogs and the
+   Downloads stack (Files draws its own), and the one-color status and
+   action icons inside Qt apps.
 3. **Other Qt apps' controls: ours, switched on.** Since round 3 there is
    a style of ours over Breeze (`style/`, `make gallery`): push
    buttons, checkboxes, radio buttons, text fields, pop-ups, steppers,
@@ -87,7 +91,8 @@ it is a copy.
    one window each, on a glass strip of large icons with the chosen app's
    name under it (the look-and-feel's `windowswitcher`); ← → move and Q
    closes the chosen window while it's up. Seen on tenet (2026-11-18): hold,
-   Tab on, arrows, let go to switch, with ⌘ and with Alt. Since that look it
+   Tab on, arrows, let go to switch, with ⌘ and with Alt; the pointer
+   choosing, Q, and dark. Since that look it
    has KWin's blur behind the glass and the app's own name ("System
    Settings", not the window's title), both from a small module of ours
    inside KWin (`decoration/qml`, org.ambrosia.kwin). Short of a Mac's:
@@ -111,7 +116,8 @@ it is a copy.
     glass over the Dock (pictures as themselves, the rest by kind), with a
     button for the folder (`shell/Stack.qml`, `StackGrid.qml`). Seen on
     tenet (2026-11-18): the folder read newest first, a picture as itself,
-    long names cut, Open in Files. Still missing: a fan, sorting and the
+    long names cut, Open in Files, with the Dock at the bottom, left and
+    right. Still missing: a fan, sorting and the
     stack's own menu, dragging out of it, minimized windows in the Dock,
     recent apps.
 12. **Tiling.** Dragging a window to an edge and the green button's menu
@@ -200,6 +206,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 10, 2026-11-18 | 2, app icons | A plain tile under any app icon that has none of its own: `shell/AppTile.qml` (only QtQuick, so KWin's switcher uses it too), in the Dock, Search's app results and ⌘Tab; the KWin module tells the switcher which icon an app wears (`Apps.icon`) | On the Mac: the switcher's sheet with a stand-in for another app's icon. On tenet: Firefox on its tile in the Dock, Search and ⌘Tab (from a test copy), light and dark. Looked at along the way: the Dock on the left and right (the stack and a Dock menu beside it), ⌘Tab's pointer and Q, ⌘Tab in dark |
 | The tenet check, 2026-11-18 | Rounds 1 to 9 | Every round installed on tenet and driven on KWin 6.8 and Quickshell 0.3.2. All nine worked. Fixed from that look: ⌘Tab had no blur and named apps by their window's title (a module of ours inside KWin now gives both: `decoration/qml`); the style's menus were see-through by accident (painted as a disabled control) and are now glass on purpose, where KWin blurs behind them; a chosen row in the file dialog was two colors; KDE's push buttons kept their pictures; the Dock's menu overlapped the Dock's glass; a notification stack's peeking card had square corners; the note on showing the HUD by hand was wrong (`call hud -- show volume 45`). The session names our widget style since | On tenet's live session: pictures of each (`spectacle`), keys and clicks through a virtual keyboard and pointer. ⌘Tab's new files ran there from a test copy: a running KWin keeps the layout it loaded, so the installed one shows at the next login |
 | 9, 2026-11-18 | 14, the desktop | A right-click on the desktop opens its menu at the pointer (`shell/Wallpaper.qml`, on the Overlay like every menu): New Folder (a script names it as a Mac does and Files is asked to show it) and Change Wallpaper… (Settings' pane) | On the Mac, through the stand-ins: a right press on the sheet's desktop opens the menu at the pointer in light and dark (`out/shots/shell-desktop-context-menu-*.png`); choosing New Folder ran the script and asked Files to show `untitled folder 2` by a well-formed URL. Not run under Quickshell or KWin |
 | 8, 2026-11-18 | Tooling, for every shell gap | The shell's own files drawn on the Mac: stand-ins for Quickshell and Plasma (`tools/qmlshot/stubs/`, `stubs.h`), a staged copy of `shell/` with a qmldir for its singletons, `parts/Desk.qml` (the desktop as the shell puts it up) and ten `desktop-*` sheets that open things on it with real pointer and key events. Fixed from the first look: Notification Center's shadows cut by the list's clip, a wrapped card overlapped by the next, the Dock's menus placed from the scene instead of its window | On the Mac: `make shell-shots`, 13 sheets in light and dark, each looked at. The stand-ins are not Quickshell: nothing here has run on it |

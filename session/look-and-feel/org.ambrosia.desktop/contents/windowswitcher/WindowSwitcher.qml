@@ -14,20 +14,39 @@ import Ambrosia
 KWin.TabBoxSwitcher {
     id: tabBox
 
+    // Asks our module about a desktop file: its app's "name" or "icon". A
+    // KWin still running from before an upgrade may hold a module without
+    // Apps, or with less of it: then "".
+    function ask(what, file) {
+        const apps = AmbrosiaKWin.Apps;
+        return apps && typeof apps[what] === "function" ? apps[what](file) : "";
+    }
+
+    // KWin's window for a row of its list.
+    function windowOf(windows, windowId) {
+        const id = String(windowId);
+        return windows.find(w => String(w.internalId) === id);
+    }
+
     // An app's name, from its window. KWin's list has the window's title,
     // which is the document's; the window knows its desktop file's name
     // (org.kde.konsole), and that file has the app's.
     function appName(windows, windowId, caption) {
-        const id = String(windowId);
-        const window = windows.find(w => String(w.internalId) === id);
+        const window = windowOf(windows, windowId);
         const file = window?.desktopFileName ?? "";
-        // (A KWin still running from before an upgrade may hold a module
-        // without Apps.)
-        const name = AmbrosiaKWin.Apps?.name(file) ?? "";
+        const name = tabBox.ask("name", file);
         if (name) return name;
         // No desktop file: the last word of what the window calls itself.
         const word = (file || window?.resourceClass || "").split(".").pop();
         return word ? word.charAt(0).toUpperCase() + word.slice(1) : caption;
+    }
+
+    // Whether an app's icon is one of ours, drawn on its tile: by the icon
+    // its desktop file names, or by the file's own name where that can't be
+    // asked.
+    function tiled(windows, windowId) {
+        const file = windowOf(windows, windowId)?.desktopFileName ?? "";
+        return Theme.tileIcons.includes(tabBox.ask("icon", file) || file);
     }
 
     Instantiator {
@@ -72,6 +91,7 @@ KWin.TabBoxSwitcher {
                 currentIndex: tabBox.currentIndex
                 maxWidth: tabBox.screenGeometry.width * 0.9
                 nameOf: entry => tabBox.appName(windows, entry.windowId, entry.caption)
+                tiledOf: entry => tabBox.tiled(windows, entry.windowId)
                 icon: Kirigami.Icon {
                     anchors.fill: parent
                     source: parent ? parent.entry.icon : ""
