@@ -48,6 +48,7 @@ bun run review             # the design review site at http://localhost:4747
 make remote-build          # the build gate on tenet, the Arch build box (Mac stays light)
 make review-remote         # the review site served from tenet, tunnelled to localhost:4747
 make shot-remote           # the mock desktop photographed in headless Firefox on tenet, into out/shots/
+make gallery               # the Qt widget style's controls drawn into out/shots/ (needs Qt 6, CMake, Ninja)
 open preview/index.html    # the mock desktop on its own (xdg-open on Linux)
 ```
 
@@ -124,6 +125,7 @@ an accent or a label color is identical in GTK, KDE and the shell.
 | `dist/fontconfig/50-ambrosia.conf` | Inter and JetBrains Mono as system fonts, grayscale AA, slight hinting |
 | `dist/environment.d/50-ambrosia-fonts.conf` | FreeType stem darkening, for fuller text; no synthetic bold in Qt |
 | `dist/kdecoration/tokens.h` | the KWin window frame (`decoration/`): traffic lights, title, corners, shadow |
+| `dist/qstyle/tokens.h` | the Qt widget style (`style/`): the controls' sizes and the colors a palette has no role for |
 | `dist/icons/Ambrosia/` | the icon theme, over Breeze: our app icons under the names the installed apps ask for, and the pointer (Xcursor files for apps, SVGs for KWin); every other name is a link. `dist/icons/sheet.html` and `dist/cursors/sheet.html` show them all |
 | `dist/web/cursors.css`, `icons.css` | the same pointer and app icons for the preview and the review site |
 | `dist/web/tokens.css` | the preview and any web surface |
@@ -147,6 +149,8 @@ shell/         the shell in QML for Quickshell: wallpaper, menu bar and menus, S
 session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
                GTK's button layout (dconf), the `ambrosia` command and the shell's desktop files
 decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens
+style/         the Qt widget style: other apps' buttons, boxes, sliders and menus, over Breeze;
+               its gallery draws them all into a picture with no display (make gallery)
 files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks (bench/)
                and tools/tenet.sh to build and photograph it on tenet
 settings/      Settings, Ambrosia's System Settings: Qt Quick window, C++ core, art
@@ -176,7 +180,11 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 4. **Compositor**: a KWin effect for glass refraction and window animations on
    the spring tokens. Window frames are done: our own KWin decoration gives
    every app the traffic lights, and GTK's own titlebars match.
-5. **Toolkits**: a Qt widget style and a full GTK theme beyond colors. The
+5. **Toolkits**: a full GTK theme beyond colors, and a Qt widget style, which
+   is begun (`style/`): push buttons, checkboxes, radio buttons, text
+   fields, pop-ups, steppers, sliders, progress and scroll bars, and menus
+   are drawn as macOS 26 draws them, over Breeze for the rest; it is
+   installed but not yet the session's style. The
    "Ambrosia" icon theme is begun: the pointer (a Mac's black arrow and white
    hands, a wheel of our own for busy) and icons for the apps a new install
    starts with, over Breeze for the rest. Neither has been seen on KWin yet.

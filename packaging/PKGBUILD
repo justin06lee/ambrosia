@@ -2,17 +2,18 @@
 # ambrosia-keyring the key the packages are signed with, and the repo's address
 # ambrosia-theme   the generated themes (Qt/QML, KDE, GTK, fontconfig)
 # ambrosia-decoration the window frame with the traffic lights, a KWin plugin (decoration/)
+# ambrosia-style   the Qt widget style: other apps' buttons, boxes and menus (style/)
 # ambrosia-shell   the Quickshell shell and the Ambrosia session on KWin
 # ambrosia-files   Files, Ambrosia's Finder (files/, built with CMake)
 # ambrosia-settings System Settings (settings/, built with CMake)
 # ambrosia-desktop everything a fresh install needs, the ISO installs this
 
 pkgbase=ambrosia
-pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-shell ambrosia-files ambrosia-settings ambrosia-desktop)
+pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-shell ambrosia-files ambrosia-settings ambrosia-desktop)
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A Linux desktop that looks and moves as one thing"
-# x86_64 for ambrosia-files, ambrosia-settings and ambrosia-decoration; the rest are arch=(any).
+# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-decoration and ambrosia-style; the rest are arch=(any).
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
@@ -40,6 +41,8 @@ build() {
   cmake --build "$srcdir/build-decoration"
   cmake -S settings -B "$srcdir/build-settings" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-settings"
+  cmake -S style -B "$srcdir/build-style" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build "$srcdir/build-style"
 }
 
 package_ambrosia-keyring() {
@@ -96,6 +99,15 @@ package_ambrosia-decoration() {
   pkgdesc="Ambrosia's window frame for KWin: the traffic lights and a centered title on every window"
   depends=(kwin kdecoration kcoreaddons qt6-base)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-decoration"
+}
+
+package_ambrosia-style() {
+  pkgdesc="Ambrosia's Qt widget style: every Qt app's buttons, boxes, sliders and menus as the desktop draws its own"
+  # It stands on Breeze for everything it doesn't draw itself. Installed, it
+  # changes nothing until an app is told to use it (QT_STYLE_OVERRIDE=ambrosia,
+  # or widgetStyle=ambrosia in kdeglobals): the session still names Breeze.
+  depends=(qt6-base breeze)
+  DESTDIR="$pkgdir" cmake --install "$srcdir/build-style"
 }
 
 package_ambrosia-shell() {
@@ -174,7 +186,7 @@ package_ambrosia-desktop() {
   pkgdesc="The Ambrosia desktop: the shell plus the system services and apps a new install needs"
   arch=(any)
   depends=(
-    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings
+    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-style
     # Low Power Mode (Battery), and printing (Printers & Scanners): ipp-usb
     # for the printers that plug in, started when one does.
     power-profiles-daemon cups avahi nss-mdns ipp-usb

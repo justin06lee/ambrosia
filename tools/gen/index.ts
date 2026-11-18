@@ -13,6 +13,7 @@ import { gtk3, gtk4, titlebuttonGlyphs } from "./targets/gtk";
 import { kdecoration } from "./targets/kdecoration";
 import { kde, kdeglobals } from "./targets/kde";
 import { qml, qmldir } from "./targets/qml";
+import { qstyle } from "./targets/qstyle";
 import { web } from "./targets/web";
 
 const root = join(import.meta.dir, "../..");
@@ -42,6 +43,7 @@ const files: Record<string, string | Uint8Array> = {
   "qml/Ambrosia/Theme.qml": qml(r),
   "qml/Ambrosia/qmldir": qmldir,
   "kdecoration/tokens.h": kdecoration(r),
+  "qstyle/tokens.h": qstyle(r),
   "fontconfig/50-ambrosia.conf": fontconfig(),
   "environment.d/50-ambrosia-fonts.conf": fontEnvironment(),
   // Everything resolved, for consumers without a dedicated target (the

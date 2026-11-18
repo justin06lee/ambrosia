@@ -158,8 +158,30 @@ package repo below), and they carry `shell/` and `session/` as they are.
    pointer at launch (`session/xdg/klaunchrc`); the Dock, Search and Files'
    Applications showing our icons; Breeze's one-color
    icons still following dark mode under our theme (`FollowsColorScheme`).
-   Still apart from the preview: Breeze's menu radius and row height (only our own
-   QStyle could change them), real apps' icons (no Ambrosia icon theme),
+   **A Qt widget style is begun** (2026-11-18, `style/`, package
+   ambrosia-style, key `ambrosia`): a QProxyStyle over Breeze (Fusion where
+   Breeze isn't installed) that repaints push buttons, checkboxes, radio
+   buttons, text fields, pop-up buttons, steppers, sliders, progress bars,
+   scroll bars (thin, no arrows), tool buttons, menus (rounded, a rounded
+   accent highlight, 22-point rows) and tooltips with the Mac's measured
+   sizes (`controls` and `controlColor` in the tokens, the numbers
+   Settings' Look.qml carries), takes the accent and text from the app's
+   palette, lays dialog buttons out the Mac's way and drops underlined
+   letters. `make gallery` builds it and draws every control into
+   `out/shots/style-{light,dark}.png` with no display, on the Mac too (it
+   has Homebrew's qtbase, cmake and ninja for this since 2026-11-18).
+   **Seen only in that gallery, over Fusion.** It is installed but nothing
+   uses it: the look-and-feel still says `widgetStyle=Breeze`, because a
+   style that misbehaves does so in every Qt app at once. To do on tenet:
+   `QT_STYLE_OVERRIDE=ambrosia kate` (and Konsole, Dolphin, the file
+   dialog, System Settings' modules) over Breeze, where Breeze's own
+   handling of menus (translucency, blur, shadow), tool buttons and combo
+   boxes may draw over or under ours; then name it in the look-and-feel
+   and `startambrosia`. Not drawn yet: tabs, group boxes, item views'
+   selection, headers, toolbars, the editable combo's list, a busy bar
+   that moves, scroll bars that hide.
+   Still apart from the preview: Breeze's menu radius and row height (ours once
+   the style above is switched on), real apps' icons (no Ambrosia icon theme),
    per-surface blur and saturation (KWin has one setting for all), and the
    control center's feathered blur edge (KWin's blur regions are hard-edged).
 2. Gaps in the shell (Shell lane, 2026-11-10). **Notification Center** is
@@ -373,8 +395,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
 
 - **This Mac** (since 2026-11-16): a Mac mini (M4, 16 GB, macOS 26,
   `justins-mac-mini-1` on the tailnet); the repo is at
-  `~/code/github.com/justin06lee/ambrosia`. bun and gh are set up; no Qt, GTK,
-  Docker or VM tool. Three things didn't come across from the MacBook and the
+  `~/code/github.com/justin06lee/ambrosia`. bun and gh are set up, and Homebrew's qtbase, cmake and
+  ninja (for `make gallery`, the Qt widget style); no QML, KDE, GTK, Docker
+  or VM tool. Three things didn't come across from the MacBook and the
   T7 drive: **tenet doesn't accept this Mac's SSH key yet** (`ssh tenet`
   reaches it over Tailscale and is refused; `ssh-copy-id tenet` and the same
   key for root put it right, see Needs Justin), **the signing key**

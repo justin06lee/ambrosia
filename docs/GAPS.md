@@ -51,10 +51,14 @@ it is a copy.
    has no tile; the Dock could put one under any icon that lacks it), the
    folders and document kinds in KDE's dialogs (Files draws its own), and
    the one-color status and action icons inside Qt apps.
-3. **Other Qt apps' controls.** Breeze's widget style draws Konsole, Kate,
-   Dolphin, the file dialog: its buttons, checkboxes, scrollbars, tabs, and
-   menus (radius and row height can't be changed from a color scheme). Needs
-   a QStyle of our own (roadmap 5). From the code.
+3. **Other Qt apps' controls: begun, not yet switched on.** Breeze's widget
+   style draws Konsole, Kate, Dolphin and the file dialog. Since round 3
+   there is a style of ours over it (`style/`, `make gallery`): push
+   buttons, checkboxes, radio buttons, text fields, pop-ups, steppers,
+   sliders, progress and scroll bars, tool buttons, menus and tooltips as
+   the Mac draws them. Installed, but the session still names Breeze until
+   real apps have been run under it on tenet. Still Breeze's even then:
+   tabs, group boxes, lists' selection, headers and toolbars.
 4. **GTK apps beyond colors.** GTK 3 and 4 get our colors and the traffic
    lights; the controls are Adwaita's. GTK 4's CSS has never been looked at
    (no GTK 4 app on tenet). From the docs.
@@ -158,5 +162,6 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 3, 2026-11-18 | 3, Qt apps' controls | A Qt widget style (`style/`, ambrosia-style): a proxy over Breeze drawing twelve kinds of control from the Mac's measured sizes (new `controls` tokens), dialog buttons in the Mac's order, no underlined letters; a gallery that draws them with no display | On the Mac, for real: built against Qt 6.12 and rendered by the gallery in light and dark (`out/shots/style-*.png`), each control and state looked at. Over Fusion only: not yet over Breeze, nor in a real app |
 | 2, 2026-11-18 | 2, app icons | The "Ambrosia" icon theme over Breeze: nine app icons drawn in `design/icons.ts` on the tile Files' and Settings' sit on, under the names the installed apps ask for; the pointer moved into it; named by the look-and-feel and the session's GTK defaults; the Dock takes its list of tile icons from the theme | On the Mac: `dist/icons/sheet.html` (each icon at 128, 48, 32 and 20, and in a row at the Dock's size on light and dark glass) and the review site's Iconography chapter; tests for names, links and what Qt's SVG reader can draw. Not on KWin |
 | 1, 2026-11-18 | 1, the pointer | The "Ambrosia" pointer theme: 24 shapes drawn in `design/cursors.ts`, generated as Xcursor files, KWin SVGs and CSS; named by the look-and-feel, the session's GTK defaults and the login screen; in the preview and the review site | On the Mac: every shape looked over on `dist/cursors/sheet.html` (light, dark and mid grounds, hotspots marked) and in the review site's Input chapter; tests for the file format, sizes, hotspots on ink and the names apps ask for. Not on KWin: tenet doesn't take this Mac's key yet |

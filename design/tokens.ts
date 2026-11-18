@@ -92,6 +92,54 @@ export const size = {
   hitTarget: 24,
 } as const;
 
+/**
+ * Controls as macOS 26 draws them, measured on the Mac (Settings carries the
+ * same numbers in settings/qml/Look.qml). The Qt widget style (style/) draws
+ * every other app's buttons, boxes and menus from these. They are the Mac's
+ * own sizes, so like the window controls they needn't sit on the 2px grid.
+ */
+export const controls = {
+  /** A push button: its height, corner, and the room either side of its title. */
+  push: { height: 24, radius: 7, padding: 13, minimumDefault: 64 },
+  /** A text field, and the box of a combo or a stepper. */
+  field: { height: 24, radius: 5, padding: 6 },
+  /** A checkbox and a radio button: the box, its corner, the gap to its label. */
+  check: { size: 16, radius: 4, gap: 6 },
+  /** A slider's track and its knob; a progress bar is a track alone. */
+  slider: { track: 6, knobWidth: 20, knobHeight: 16 },
+  /** A pop-up button's arrows, and a stepper's. */
+  arrows: { width: 20 },
+  /** A menu: its corner and inner margin, a row, the highlight's corner and
+   *  the room a rule takes. */
+  menu: { radius: 8, margin: 5, row: 22, rowRadius: 5, rowPadding: 9, rule: 11, icon: 16, gap: 6, shortcutGap: 24 },
+  /** A tool button's hover, and a tooltip. */
+  tool: { radius: 6 },
+  tooltip: { radius: 6, padding: 6 },
+  /** Anything disabled is this opaque. */
+  disabled: 0.45,
+} as const;
+
+/** The control colors the palette has no role for. */
+export const controlColor = {
+  /** A button's face, and pressed. */
+  face: { light: "oklch(0.18 0.006 85 / 0.106)", dark: white(0.075) },
+  facePressed: { light: "oklch(0.18 0.006 85 / 0.17)", dark: white(0.15) },
+  /** An empty checkbox, a slider's or progress bar's track. */
+  track: { light: "oklch(0.18 0.006 85 / 0.125)", dark: white(0.2) },
+  /** A text field and its hairline. */
+  field: { light: "oklch(1 0 0)", dark: white(0.1) },
+  fieldBorder: { light: "oklch(0.18 0.006 85 / 0.16)", dark: white(0.14) },
+  /** A slider's knob. */
+  knob: { light: "oklch(1 0 0)", dark: "oklch(0.92 0 0)" },
+  /** A menu, its rim and its rules; a tooltip takes the same. */
+  menu: { light: "oklch(0.96 0 0)", dark: "oklch(0.265 0.004 85)" },
+  menuRim: { light: "oklch(0.86 0 0)", dark: "oklch(0.42 0.004 85)" },
+  menuRule: { light: "oklch(0.885 0 0)", dark: "oklch(0.36 0.004 85)" },
+  /** A scroll bar's thumb, at rest and under the pointer. */
+  scroller: { light: "oklch(0.18 0.006 85 / 0.35)", dark: white(0.35) },
+  scrollerHover: { light: "oklch(0.18 0.006 85 / 0.55)", dark: white(0.55) },
+} as const;
+
 // Color ----------------------------------------------------------------------
 
 export interface ModeColors {
