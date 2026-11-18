@@ -282,6 +282,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
    closes at once. To look at it, write `Duration=20000` under
    `[Effect-ambrosia_windows]` in the user's kwinrc, `reconfigureEffect`,
    photograph two seconds after starting an app, and delete the key.
+   **The preview of where a dragged window will tile is ours** (round 17,
+   `session/kwin-outline/outline.qml`, `[Outline] QmlPath` in the
+   session's kwinrc; it needs `org.ambrosia.kwin` from
+   ambrosia-decoration for the blur). KWin loads the outline's QML once,
+   the first time it shows one: after an edit, only a new KWin (a login,
+   or a nested one) shows the change.
    **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
    grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
    kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the

@@ -156,9 +156,18 @@ it is a copy.
     right. Still missing: a fan, sorting and the
     stack's own menu, dragging out of it, minimized windows in the Dock,
     recent apps.
-12. **Tiling.** Dragging a window to an edge and the green button's menu
-    (Move & Resize, Full Screen on a display) are KWin's quick-tile with its
-    own outline. From the code.
+12. **Tiling: the preview is ours, seen on KWin; the rest is KWin's.**
+    Since round 17 a window dragged to a screen's edge shows where it will
+    land as a rounded pane of glass a little inside the place, as a Mac
+    previews a tile (`session/kwin-outline/outline.qml`, named by the
+    session's `kwinrc`), not KWin's outline. Seen on tenet (2026-11-18):
+    Konsole held at the left edge, the pane over the left half between the
+    menu bar and the Dock, blurring what is behind. It is drawn over the
+    dragged window, where a Mac's is under it, and the tiled window still
+    lands flush with the edges, where a Mac leaves a margin. Not seen: a
+    corner, the top edge, dark. Still KWin's: where the edges tile to
+    (halves and quarters; a Mac's top edge fills the screen), and the
+    green button has no menu (Move & Resize, Full Screen on a display).
 13. **Screenshots.** ⇧⌘3/4/5 run Spectacle with its own window; a Mac shows
     a floating toolbar, then a thumbnail in the corner that can be dragged
     or opens Markup. From `docs/keyboard.md`.
@@ -254,6 +263,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 17, 2026-11-18 | 12, the tiling preview | `session/kwin-outline/outline.qml`: KWin's outline window with a pane of our glass in it (the theme's clear tint, edge and rim, the window radius, KWin told to blur behind it through our `BlurBehind`), installed to `/usr/share/kwin/outline/ambrosia/` by ambrosia-shell and named by `[Outline] QmlPath` in the session's `kwinrc` | On tenet's running KWin (which loads the outline the first time it shows one, and had not yet): Konsole dragged to the left edge with the virtual pointer held down (`ui.py down`, `glide`, `sleep`, `up` in one call: the button is let go when the call ends), photographed while held. Light only; no corner or top edge |
 | 16, 2026-11-18 | 6, opening and closing | A KWin effect of ours, `session/kwin-effects/ambrosia_windows` (a scripted effect: `metadata.json`, `contents/code/main.js`, a `Duration` setting in `contents/config/main.xml`), installed to `/usr/share/kwin/effects/` by ambrosia-shell and switched on by the session's `kwinrc` with KWin's Scale off: a window opens from 90% with a fade over the snappy spring's 290 ms; nothing answers a window closing | On tenet, loaded into the running KWin over DBus: with `Duration` at 20 s, a picture of Konsole part-way open, smaller and half see-through over Firefox; after it, no open/close effect but ours is loaded, so a closing window has nothing to play. The first try ignored `Duration`: KWin reads a scripted effect's settings only when its `main.xml` declares them. Not seen at its real speed, nor a dialog |
 | 15, 2026-11-18 | 6, minimizing | Genie is the session's default for minimizing (`session/xdg/kwinrc`: Magic Lamp on, Squash off, 400 ms), and the gap's line is put right: the Dock already published each tile's place (`requestPublishDelegateGeometry` in `shell/Dock.qml`), so a window lands on its own tile | On tenet: KWin's `iconGeometry` for Konsole and Firefox is their Dock tiles (52 px squares in the Dock); with the effect slowed to 5 s, a picture of Konsole pouring into its tile; the defaults read back through the session's config path. A running KWin doesn't take the new default on reconfigure, so the live session was switched by hand the way Settings does it. Not seen: the Dock at a side, Settings' pane showing Genie chosen |
 | 14, 2026-11-18 | 3, menus' shortcuts | The widget style prints a menu row's shortcut with the Mac's glyphs (`macShortcut` in `style/src/style.cpp`: it reads Qt's own spelling back into keys, so any language's; modifiers as ⌃⌥⇧⌘, Ctrl as ⌘ and Meta as ⌃ like the shell's menu bar, arrows and editing keys as symbols; text that isn't a shortcut is left alone), and takes back the width QMenu added for the longer spelling (`shortcutsSaved`). The gallery's menu has more shortcuts to show it | On the Mac: `out/shots/style-*.png` (Qt on a Mac prints glyphs itself, so this shows only that nothing broke). On tenet: the gallery drawn there (⌘N, ⇧⌘S, ⌥←, ⌦, the menu as wide as the Mac's), and Kate's right-click menu in the live session from the r422 packages (⌘X ⌘C ⌘V, ⇧⌘Ins), light only |

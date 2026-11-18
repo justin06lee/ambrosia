@@ -151,6 +151,8 @@ package_ambrosia-shell() {
   # KWin effects of ours, off unless the session's kwinrc asks for them.
   install -d "$pkgdir/usr/share/kwin/effects"
   cp -r session/kwin-effects/. "$pkgdir/usr/share/kwin/effects/"
+  # The preview of where a dragged window will tile (kwinrc's [Outline]).
+  install -Dm644 session/kwin-outline/outline.qml -t "$pkgdir/usr/share/kwin/outline/ambrosia/"
   install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/kwinrulesrc session/xdg/breezerc session/xdg/mimeapps.list \
     session/xdg/kcminputrc session/xdg/konsolerc session/xdg/klaunchrc -t "$pkgdir/etc/xdg/ambrosia/"
   # Konsole's profile and key table for the session (konsolerc names the
