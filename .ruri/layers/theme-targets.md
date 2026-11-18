@@ -16,6 +16,7 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - **Shared formatting helpers:** tools/gen/targets/shared.ts
 - **Session kdeglobals (light scheme + type-scale fonts as QFont strings):** tools/gen/targets/kde.ts
 - **KWin window frame's tokens (titlebar, lights, corner, rim, edge, shadow) as a C++ header for decoration/:** tools/gen/targets/kdecoration.ts
+- **Pointer theme (Xcursor files, KWin's cursors_scalable SVGs, web/cursors.css, the look-over sheet):** tools/gen/targets/cursors.ts, design/cursors.ts, tools/gen/xcursor.ts
 
 ## How it works
 
@@ -30,6 +31,7 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - tools/gen/targets/web.ts — --amb-* CSS custom properties for preview/web surfaces
 - tools/gen/targets/fontconfig.ts — sans-serif/monospace aliases, rasterization defaults, and the session's font environment (FreeType stem darkening, QT_NO_SYNTHESIZED_BOLD)
 - tools/gen/targets/kdecoration.ts — dist/kdecoration/tokens.h: the frame's sizes, per-mode colors, window-button shapes, light edge and shadow layers for the decoration plugin
+- tools/gen/targets/cursors.ts — dist/cursors/Ambrosia (index.theme, cursors/, cursors_scalable/ with metadata.json), dist/web/cursors.css (--amb-cursor-* and --amb-pointer-*), dist/cursors/sheet.html; rasterizes with @resvg/resvg-js
 
 ## Rules and traps
 
@@ -46,6 +48,8 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - The traffic-light edge is a thin darker shade of each light's own colour, not a grey ring; the KWin frame and GTK draw it that way.
 - GTK lights move to the left only in sessions started after that setting shipped; a running session keeps the old placement, so check on a fresh login.
 - Qt fakes bold for weight ≥700 when the face's OS/2 weight class is under 700. Variable fonts report their default instance (Inter Variable says 400), so their real Bold gets thickened again. fontEnvironment() sets QT_NO_SYNTHESIZED_BOLD=1, which startambrosia sources at login. fontconfig's embolden doesn't reach Qt.
+- KWin draws cursors_scalable SVGs with Qt's SVG reader, which has no filters: the pointer's shadow is blurred once by resvg and embedded as a PNG <image>; only the web variant uses feGaussianBlur. A test rejects <filter> in the theme's SVGs.
+- resvg-js returns premultiplied RGBA, which is what Xcursor wants: don't premultiply again. Pass font.loadSystemFonts false or every render scans the system's fonts.
 
 ## What it talks to
 

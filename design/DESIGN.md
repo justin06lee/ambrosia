@@ -188,6 +188,14 @@ Rules:
   is how far past the edge and `d` is the viewport size.
 - Tooltips appear after 600 ms. Once one is showing, the next appears immediately.
 - Minimum hit target: 24 × 24.
+- **The pointer** is ours, drawn once (`design/cursors.ts`) for every toolkit.
+  It is a black arrow with a white rim and a soft shadow, so it reads on any
+  ground. The shapes that stand in for it (resize arrows, the I-beam, the
+  crosshair) keep its ink and rim; the hands are white with a black rim.
+- The arrow stays an arrow over buttons, menus and the Dock. The hand is for
+  links, and the I-beam for text that can be selected.
+- Busy is a wheel in the accent colors that turns once a second, alone when
+  the app can't be used and beside the arrow when it still can.
 
 ## Keyboard
 

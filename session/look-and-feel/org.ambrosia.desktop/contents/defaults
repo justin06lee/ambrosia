@@ -11,7 +11,7 @@ Theme=breeze
 name=default
 
 [kcminputrc][Mouse]
-cursorTheme=breeze_cursors
+cursorTheme=Ambrosia
 
 [kwinrc][org.kde.kdecoration2]
 library=org.ambrosia.decoration

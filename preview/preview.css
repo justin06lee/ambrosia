@@ -11,9 +11,11 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
-body { height: 100vh; overflow: hidden; user-select: none; cursor: default; }
-button { font: inherit; letter-spacing: inherit; color: inherit; background: none; border: 0; cursor: default; }
-input { font: inherit; color: inherit; background: none; border: 0; outline: 0; }
+/* The arrow everywhere, as on a Mac: buttons, menus and the Dock don't turn
+   it into a hand. Ambrosia's own pointer (dist/web/cursors.css). */
+body { height: 100vh; overflow: hidden; user-select: none; cursor: var(--amb-cursor-default, default); }
+button { font: inherit; letter-spacing: inherit; color: inherit; background: none; border: 0; cursor: var(--amb-cursor-default, default); }
+input { font: inherit; color: inherit; background: none; border: 0; outline: 0; cursor: var(--amb-cursor-text, text); }
 .sprite { position: absolute; width: 0; height: 0; }
 
 .i {

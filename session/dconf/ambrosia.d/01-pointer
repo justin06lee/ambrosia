@@ -1,0 +1,5 @@
+# GTK apps draw their own pointer from the theme GSettings names, not the one
+# KWin uses; without this they'd show Adwaita's beside Ambrosia's. In the
+# Ambrosia session only, and under a theme the user picked for themselves.
+[org/gnome/desktop/interface]
+cursor-theme='Ambrosia'

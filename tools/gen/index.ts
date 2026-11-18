@@ -1,10 +1,11 @@
 // Generates every theme target from design/tokens.ts into dist/.
 
-import { cp, mkdir, rm } from "node:fs/promises";
+import { cp, mkdir, rm, symlink } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import * as t from "../../design/tokens";
 import { toCss } from "./color";
 import { resolve } from "./resolve";
+import { cursorTheme } from "./targets/cursors";
 import { fontEnvironment, fontconfig } from "./targets/fontconfig";
 import { gtk3, gtk4, titlebuttonGlyphs } from "./targets/gtk";
 import { kdecoration } from "./targets/kdecoration";
@@ -16,7 +17,9 @@ const root = join(import.meta.dir, "../..");
 const dist = join(root, "dist");
 const r = resolve();
 
-const files: Record<string, string> = {
+const pointer = cursorTheme(r);
+
+const files: Record<string, string | Uint8Array> = {
   "web/tokens.css": web(r),
   "gtk-4.0/gtk.css": gtk4(r),
   "gtk-3.0/gtk-light.css": gtk3(r, "light"),
@@ -41,6 +44,8 @@ const files: Record<string, string> = {
     (_, v) => (v && typeof v === "object" && "r" in v && "a" in v && !Array.isArray(v) ? toCss(v) : v),
     2,
   ),
+  // The pointer theme (dist/cursors/Ambrosia), its sheet and the preview's CSS.
+  ...pointer.files,
 };
 
 await rm(dist, { recursive: true, force: true });
@@ -49,6 +54,8 @@ for (const [path, content] of Object.entries(files)) {
   await mkdir(dirname(out), { recursive: true });
   await Bun.write(out, content);
 }
+// The other names a pointer goes by, as links beside it.
+for (const [path, target] of Object.entries(pointer.links)) await symlink(target, join(dist, path));
 
 const fonts = join(root, "node_modules/@fontsource-variable");
 await mkdir(join(dist, "web/fonts"), { recursive: true });
@@ -57,4 +64,7 @@ for (const file of ["inter/files/inter-latin-opsz-normal.woff2", "jetbrains-mono
 }
 
 console.log(`ambrosia: generated ${Object.keys(files).length} files into dist/`);
-for (const path of Object.keys(files)) console.log(`  ${path}`);
+// The pointer's files by the hundred would bury the rest.
+const [theme, rest] = [Object.keys(pointer.files).filter((p) => p.startsWith("cursors/Ambrosia/")), Object.keys(files)];
+for (const path of rest.filter((p) => !theme.includes(p))) console.log(`  ${path}`);
+console.log(`  cursors/Ambrosia/ (${theme.length} files, ${Object.keys(pointer.links).length} links)`);

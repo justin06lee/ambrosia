@@ -1,6 +1,7 @@
 // Live examples for each spec section, built from the same tokens and
 // resolver the theme generator uses, so what you review is what ships.
 
+import { pointers } from "../design/cursors";
 import * as t from "../design/tokens";
 import type { Mode } from "../design/tokens";
 import { contrast, toCss, toHex, type RGBA } from "../tools/gen/color";
@@ -319,9 +320,15 @@ function input() {
     sheet.style.transition = "transform var(--amb-spring-gesture)";
     sheet.style.transform = "";
   });
+  // Only the names are needed here: the pictures come from dist/web/cursors.css.
+  const shapes = Object.keys(pointers({ copy: "", wheel: [] })).map((name) =>
+    h("div", { class: "pointer-cell", style: { cursor: `var(--amb-cursor-${name})` } },
+      h("i", { style: { backgroundImage: `var(--amb-pointer-${name})` } }), h("span", null, name)));
   return [
     specimen("Rubber-band edges", box,
       caption(`Drag the list up or down past its edge. It resists more the further you pull (coefficient ${t.input.rubberBand}), then settles back on the gesture spring.`)),
+    specimen("The pointer", h("div", { class: "pointer-grid" }, shapes),
+      caption("Every shape the pointer takes, at twice its size; rest on one to point with it. Black with a white rim so it reads on any ground, the hands the other way round. The wheel turns once a second on the desktop; a browser shows it still.")),
   ];
 }
 

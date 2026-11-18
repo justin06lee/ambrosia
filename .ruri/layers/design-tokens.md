@@ -19,12 +19,14 @@ Single-file source of truth for ambrosia's look and motion, exporting type scale
 - **Springs and motion:** design/tokens.ts, design/DESIGN.md
 - **Control center module metrics:** design/tokens.ts, design/DESIGN.md
 - **Dock metrics:** design/tokens.ts
+- **The pointer's shapes (arrow, hands, I-beam, resize arrows, badges, the busy wheel), hotspots and other names:** design/cursors.ts
 
 ## Key files
 
 - design/tokens.ts — the single source of truth: font/type/tracking, space, radius, OKLCH color pairs, window frame, glass, shadow, springs
 - design/DESIGN.md — reasoning behind the numbers before retuning values
 - design/DECISIONS.md — recorded design decisions behind token choices
+- design/cursors.ts — every pointer shape as paths on a 32-unit canvas (nominal size 24), in groups painted rim-then-ink; pointers(colors) takes the token colors it borrows from the generator
 
 ## Rules and traps
 
@@ -36,6 +38,7 @@ Single-file source of truth for ambrosia's look and motion, exporting type scale
 - Traffic-light edges are a thin darker shade of each light's own colour, not grey.
 - Menus snap open instantly with no open animation (close fades 120ms); control-center panel is blur-only with no fill, border, or shadow, controls carry their own glass.
 - font.ui lists Inter Variable before the static Inter: Qt maps Inter.ttc (13 MB, every cut) once per weight. Weight 700 then needs QT_NO_SYNTHESIZED_BOLD (session font environment), or Qt fakes bold over the variable font's real Bold.
+- Pointer shapes are drawn by hand in design/cursors.ts: never extract or trace Apple's cursor images, even though the look (black ink, white rim, soft shadow) follows a Mac's.
 
 ## What it talks to
 

@@ -129,6 +129,19 @@ package repo below), and they carry `shell/` and `session/` as they are.
    Files has its own Finder-style icon (2026-10-21, `assets/icons/`, hicolor
    `org.ambrosia.files`); until Ambrosia's Files app exists, Dolphin's Dock
    pin shows as Files with it (`standIns` in `shell/Dock.qml`).
+   **The pointer is ours** (2026-11-18, `design/cursors.ts`, built into
+   `dist/cursors/Ambrosia` by `tools/gen/targets/cursors.ts`, shipped in
+   ambrosia-theme as `/usr/share/icons/Ambrosia`): 24 shapes and 90 other
+   names, as Xcursor files (24 to 96) and as SVGs for KWin. The
+   look-and-feel names it, `startambrosia` keeps Plasma's copy of that
+   current for existing users, GTK gets it through the session's dconf
+   defaults and the login screen through sddm.conf. **Drawn and checked on
+   the Mac only** (`dist/cursors/sheet.html`, the review site's Input
+   chapter): no KWin has loaded it yet. First things to look at on tenet:
+   that KWin draws the SVGs (their shadow is an embedded PNG, as Qt's SVG
+   reader has no blur), that the wheel turns, an Xwayland and a GTK app,
+   the login screen (its KWin reads no Ambrosia config, so it may keep
+   Breeze's arrow under a greeter that draws its own).
    Still apart from the preview: Breeze's menu radius and row height (only our own
    QStyle could change them), real apps' icons (no Ambrosia icon theme),
    per-surface blur and saturation (KWin has one setting for all), and the
