@@ -12,7 +12,9 @@ export const grid = 256;
 export const tile = { at: 24, side: 208 };
 
 export type AppIcon = {
-  /** The names apps ask for it by; the first is the file, the rest link to it. */
+  /** The names apps ask for it by; the first is the file, the rest link to it.
+   *  The first is the `Icon=` of the app we ship (read from its desktop file
+   *  upstream, 2026-11-18); the others are that kind of app's usual names. */
   names: string[];
   /** The tile's gradient, top to bottom. */
   tile: [string, string];

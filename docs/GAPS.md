@@ -44,8 +44,9 @@ it is a copy.
    with an icon of ours on the tile: Terminal, the text editor, the picture
    and document viewers, Calculator, the archiver, the store, Screenshot,
    system information; KDE's settings and Dolphin wear Settings' and Files'.
-   To look at on tenet: that those apps really ask for the names we drew
-   under, and how the icons sit in the Dock, Search and Files. Still
+   The names are the ones those apps' desktop files ask for (read from
+   KDE's sources). To look at on tenet: how the icons sit in the Dock,
+   Search and Files. Still
    Breeze's or the app's own: every app not on that list (Firefox's mark
    has no tile; the Dock could put one under any icon that lacks it), the
    folders and document kinds in KDE's dialogs (Files draws its own), and

@@ -74,7 +74,7 @@ test("no name is claimed twice, and the names apps ask for are all there", () =>
   for (const name of asked) expect(names).toContain(name);
 });
 
-test("KWin's SVGs use only what Qt's SVG reader draws", () => {
+test("KWin's SVGs carry their shadow as a picture and name every frame", () => {
   for (const [path, content] of Object.entries(theme.files)) {
     if (!path.startsWith(`${root}/cursors_scalable/`) || !path.endsWith(".svg")) continue;
     const svg = content as string;

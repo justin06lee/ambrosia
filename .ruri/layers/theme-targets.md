@@ -50,10 +50,10 @@ This layer turns the resolved theme model (Resolved/ResolvedMode from Generator 
 - The traffic-light edge is a thin darker shade of each light's own colour, not a grey ring; the KWin frame and GTK draw it that way.
 - GTK lights move to the left only in sessions started after that setting shipped; a running session keeps the old placement, so check on a fresh login.
 - Qt fakes bold for weight ≥700 when the face's OS/2 weight class is under 700. Variable fonts report their default instance (Inter Variable says 400), so their real Bold gets thickened again. fontEnvironment() sets QT_NO_SYNTHESIZED_BOLD=1, which startambrosia sources at login. fontconfig's embolden doesn't reach Qt.
-- KWin draws cursors_scalable SVGs with Qt's SVG reader, which has no filters: the pointer's shadow is blurred once by resvg and embedded as a PNG <image>; only the web variant uses feGaussianBlur. A test rejects <filter> in the theme's SVGs.
+- The pointer's shadow is blurred once by resvg and embedded in each cursors_scalable SVG as a PNG <image>, so it looks the same in any renderer (Breeze's own SVGs use feGaussianBlur, which KWin's QSvgRenderer does draw); only the web variant uses a filter. A test keeps <filter> out of the theme's SVGs.
 - resvg-js returns premultiplied RGBA, which is what Xcursor wants: don't premultiply again. Pass font.loadSystemFonts false or every render scans the system's fonts.
 - The pointer and the app icons share one theme folder, dist/icons/Ambrosia (ICON_THEME_ROOT in shared.ts): icons.ts writes its index.theme, cursors.ts only adds cursors/ and cursors_scalable/. The sheets are dist/icons/sheet.html and dist/cursors/sheet.html.
-- App icon SVGs must stay within what Qt's SVG reader draws (no filter, clip-path or mask): a test rejects them. Icon names in design/icons.ts were written from memory of each app's desktop file; check Icon= on a real install.
+- App icon SVGs avoid filter, clip-path and mask (a test rejects them) so any SVG reader draws them alike. Each icon's first name is its app's real Icon= (read from KDE's sources 2026-11-18); check again when an app is added.
 
 ## What it talks to
 

@@ -43,9 +43,10 @@ const blurred = (groups: c.Group[]) =>
   `<g filter="url(#shadow)" opacity="${c.shadow.opacity}" transform="translate(0 ${c.shadow.dy})">${groups.map((g) => outline(g, "#000")).join("")}</g>`;
 const FILTER = `<defs><filter id="shadow" filterUnits="userSpaceOnUse" x="0" y="0" width="${c.canvas}" height="${c.canvas}"><feGaussianBlur stdDeviation="${c.shadow.blur}"/></filter></defs>`;
 
-/** The shadow as a picture inside the SVG: Qt's SVG reader, which KWin draws
- *  pointers with, has no blur. Three times the canvas, so it stays soft at
- *  the largest pointer sizes. */
+/** The shadow as a picture inside the SVG, blurred once here, so the pointer
+ *  looks the same whatever draws it: KWin uses Qt's SVG reader, whose blur is
+ *  recent and drawn at its own resolution. Three times the canvas, so it
+ *  stays soft at the largest pointer sizes. */
 const shadowImages = new Map<string, string>();
 function shadowImage(groups: c.Group[]): string {
   const key = blurred(groups);

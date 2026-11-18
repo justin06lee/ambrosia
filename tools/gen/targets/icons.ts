@@ -38,8 +38,10 @@ const APPS = "apps/scalable";
 export const cssName = (name: string) => name.replace(/\./g, "-");
 
 /** KDE reads its default icon sizes from the theme in use; these are
- *  Breeze's, so nothing changes size when the theme does. FollowsColorScheme
- *  keeps Breeze's one-color icons following light and dark. */
+ *  Breeze's own (its commonthemeinfo.theme.in), so nothing changes size when
+ *  the theme does. FollowsColorScheme keeps Breeze's one-color icons
+ *  following light and dark. Our one folder serves every size, so the app
+ *  icons are in color even where Breeze's small ones are one-color. */
 const index = `# ${HEADER.replace("tokens.ts", "icons.ts and cursors.ts")}
 [Icon Theme]
 Name=${ICON_THEME}
@@ -60,6 +62,7 @@ PanelDefault=48
 PanelSizes=16,22,32,48,64,128,256
 DialogDefault=32
 DialogSizes=16,22,32,48,64,128,256
+KDE-Extensions=.svg
 Directories=${APPS}
 
 [${APPS}]

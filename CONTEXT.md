@@ -147,14 +147,16 @@ package repo below), and they carry `shell/` and `session/` as they are.
    list). **Drawn and checked on the Mac only** (`dist/icons/sheet.html`,
    `dist/cursors/sheet.html`, the review site's Input and Iconography
    chapters): no KWin or KDE app has loaded any of it, so **look at it on
-   tenet or in the VM before publishing**. To look at: KWin drawing the
-   pointer's SVGs (their shadow is an embedded PNG, as Qt's SVG reader has
-   no blur) and the wheel turning; an Xwayland and a GTK app; the login
+   tenet or in the VM before publishing**. What was checked against KDE's
+   sources instead (2026-11-18): the SVG pointers' `metadata.json` keys
+   (KWin's `svgcursorreader.cpp`, Breeze's own files), the theme index's
+   KDE keys (Breeze's), `klaunchrc`'s, and each app's `Icon=` name. To look
+   at: KWin drawing the pointer's SVGs (their shadow is an embedded PNG
+   where Breeze's use a blur filter) and the wheel turning; an Xwayland and a GTK app; the login
    screen (its KWin reads no Ambrosia config, so it may keep Breeze's
    arrow under a greeter that draws its own); no bouncing icon by the
    pointer at launch (`session/xdg/klaunchrc`); the Dock, Search and Files'
-   Applications showing our icons, with the desktop files' real `Icon=`
-   names (the list in `design/icons.ts` is from memory); Breeze's one-color
+   Applications showing our icons; Breeze's one-color
    icons still following dark mode under our theme (`FollowsColorScheme`).
    Still apart from the preview: Breeze's menu radius and row height (only our own
    QStyle could change them), real apps' icons (no Ambrosia icon theme),
