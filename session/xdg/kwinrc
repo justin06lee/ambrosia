@@ -37,6 +37,11 @@ ambrosia_windowsEnabled=true
 [Effect-magiclamp]
 AnimationDuration=400
 
+# Where a window dragged to an edge will land is shown as a pane of glass
+# of ours (session/kwin-outline), not KWin's outline. Under /usr/share.
+[Outline]
+QmlPath=kwin/outline/ambrosia/outline.qml
+
 # How glass treats what's behind it. KWin has one setting for every surface,
 # where the design asks for a light, untinted blur behind the control center
 # and a heavy, saturated one (160-180%) behind menus, the Dock and the menu
