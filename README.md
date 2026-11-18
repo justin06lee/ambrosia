@@ -155,6 +155,7 @@ shell/         the shell in QML for Quickshell: wallpaper and the desktop's menu
                Dock, control center, notifications, the volume and brightness keys' display,
                the plain tile under app icons that have none (AppTile.qml)
 session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
+               how windows open and close (kwin-effects/, a KWin effect of ours),
                GTK's button layout (dconf), the `ambrosia` command and the shell's desktop files,
                the look-and-feel package with ⌘Tab's app switcher (a KWin switcher layout)
 decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens;

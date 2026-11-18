@@ -104,7 +104,7 @@ it is a copy.
 
 ### Every few minutes: windows and motion
 
-6. **How windows open and close; minimizing is the Genie, seen on KWin.**
+6. **How windows open, close and minimize: ours, seen on KWin.**
    Since round 15 a window minimizes into its app's Dock tile with the
    Genie effect by default, as on a Mac (KWin's Magic Lamp, switched on in
    the session's `kwinrc`; the Dock has told KWin where each tile is all
@@ -113,10 +113,16 @@ it is a copy.
    (2026-11-18), slowed down to photograph: Konsole pours into its own
    tile. Its 400 ms is by eye, with no recording of a Mac to measure
    against. A session already running keeps its effects until the next
-   login. Still KWin's own, on its own curves: opening (a scale from 80%
-   with a fade, 200 ms) and closing (the same backwards, where a Mac's
-   window is simply gone); nothing moves on the spring tokens. Not seen:
-   the Genie with the Dock on the left or right, or hidden.
+   login. Since round 16 a window swells open from 90% while it fades in,
+   on the snappy spring's time (290 ms), and a closed one is simply gone,
+   as on a Mac: a KWin effect of ours (`session/kwin-effects/
+   ambrosia_windows`) in place of KWin's Scale, which shrank a closing
+   window away. Seen on tenet slowed down, Konsole part-way open. The 90%
+   is by eye, the curve is Qt's nearest to the spring and not the spring
+   itself, and a dialog opens like any window where a Mac's alert pops.
+   Not seen: the Genie with the Dock on the left or right, or hidden;
+   an Xwayland window opening; zooming with the green button (KWin's own
+   Maximize effect).
 7. **⌘Tab: ours, seen on KWin.** Since round 6 KWin's switcher walks apps,
    one window each, on a glass strip of large icons with the chosen app's
    name under it (the look-and-feel's `windowswitcher`); ← → move and Q
@@ -248,6 +254,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 16, 2026-11-18 | 6, opening and closing | A KWin effect of ours, `session/kwin-effects/ambrosia_windows` (a scripted effect: `metadata.json`, `contents/code/main.js`, a `Duration` setting in `contents/config/main.xml`), installed to `/usr/share/kwin/effects/` by ambrosia-shell and switched on by the session's `kwinrc` with KWin's Scale off: a window opens from 90% with a fade over the snappy spring's 290 ms; nothing answers a window closing | On tenet, loaded into the running KWin over DBus: with `Duration` at 20 s, a picture of Konsole part-way open, smaller and half see-through over Firefox; after it, no open/close effect but ours is loaded, so a closing window has nothing to play. The first try ignored `Duration`: KWin reads a scripted effect's settings only when its `main.xml` declares them. Not seen at its real speed, nor a dialog |
 | 15, 2026-11-18 | 6, minimizing | Genie is the session's default for minimizing (`session/xdg/kwinrc`: Magic Lamp on, Squash off, 400 ms), and the gap's line is put right: the Dock already published each tile's place (`requestPublishDelegateGeometry` in `shell/Dock.qml`), so a window lands on its own tile | On tenet: KWin's `iconGeometry` for Konsole and Firefox is their Dock tiles (52 px squares in the Dock); with the effect slowed to 5 s, a picture of Konsole pouring into its tile; the defaults read back through the session's config path. A running KWin doesn't take the new default on reconfigure, so the live session was switched by hand the way Settings does it. Not seen: the Dock at a side, Settings' pane showing Genie chosen |
 | 14, 2026-11-18 | 3, menus' shortcuts | The widget style prints a menu row's shortcut with the Mac's glyphs (`macShortcut` in `style/src/style.cpp`: it reads Qt's own spelling back into keys, so any language's; modifiers as ⌃⌥⇧⌘, Ctrl as ⌘ and Meta as ⌃ like the shell's menu bar, arrows and editing keys as symbols; text that isn't a shortcut is left alone), and takes back the width QMenu added for the longer spelling (`shortcutsSaved`). The gallery's menu has more shortcuts to show it | On the Mac: `out/shots/style-*.png` (Qt on a Mac prints glyphs itself, so this shows only that nothing broke). On tenet: the gallery drawn there (⌘N, ⇧⌘S, ⌥←, ⌦, the menu as wide as the Mac's), and Kate's right-click menu in the live session from the r422 packages (⌘X ⌘C ⌘V, ⇧⌘Ins), light only |
 | 13, 2026-11-18 | 2, notifications' icons | A banner's and a Notification Center card's icon goes through `AppTile`: one by name that isn't ours gets the plain tile (`NotificationStore.plainOf`; what was heard before is judged by its source, `plainSource`), a picture or a file doesn't. Found on tenet and fixed: notify-send hands an icon's name over as the picture (`image://icon/<name>`), so the rule reads that too; and a banner pushed down while still arriving stayed faint (ListView cuts the arrival short: the displaced transition now finishes it). The Mac's stand-in for icons answers from `sheets/art/` too (`other-app`) | On the Mac: `out/shots/shell-desktop-banner-*.png`, `shell-desktop-notifications-*.png` with a stand-in for another app's icon, light and dark. On tenet: Firefox's and a warning's icon by name on the tile, Kate's and Files' as they are, a PNG by path untiled, an entry from last week tiled, three banners arriving together all opaque; as banners and in Notification Center, light only |

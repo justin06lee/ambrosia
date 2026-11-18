@@ -275,8 +275,13 @@ package repo below), and they carry `shell/` and `session/` as they are.
    `tools/live.sh js` printing a window's `iconGeometry`). Seen on tenet
    slowed down. A running KWin doesn't load or unload effects when the
    defaults file changes, even on reconfigure: call `/Effects` `loadEffect`
-   and `unloadEffect` as Settings does, or log in again. Opening and
-   closing are still KWin's Scale.
+   and `unloadEffect` as Settings does, or log in again. **Opening and
+   closing are an effect of ours** (round 16, `session/kwin-effects/
+   ambrosia_windows`, in ambrosia-shell, on in the session's kwinrc with
+   KWin's Scale off): a window swells open from 90% with a fade and
+   closes at once. To look at it, write `Duration=20000` under
+   `[Effect-ambrosia_windows]` in the user's kwinrc, `reconfigureEffect`,
+   photograph two seconds after starting an app, and delete the key.
    **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
    grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
    kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the

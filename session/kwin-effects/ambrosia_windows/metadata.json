@@ -1,0 +1,13 @@
+{
+    "KPackageStructure": "KWin/Effect",
+    "KPlugin": {
+        "Category": "Window Open/Close Animation",
+        "Description": "Windows swell open and close at once, as on a Mac",
+        "EnabledByDefault": false,
+        "Id": "ambrosia_windows",
+        "License": "MIT",
+        "Name": "Ambrosia Windows"
+    },
+    "X-KWin-Exclusive-Category": "toplevel-open-close-animation",
+    "X-Plasma-API": "javascript"
+}
