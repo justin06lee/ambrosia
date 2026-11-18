@@ -954,7 +954,7 @@
           ]
         },
         {
-          "name": "Desktop wallpaper: what Settings chose, each change faded in, Nectar if a picture won't load",
+          "name": "Desktop wallpaper (what Settings chose, faded in, Nectar if a picture won't load) and the desktop's right-click menu (New Folder, Change Wallpaper…)",
           "files": [
             "shell/Wallpaper.qml"
           ]

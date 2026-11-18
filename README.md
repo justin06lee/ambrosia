@@ -149,7 +149,7 @@ tools/qmlshot/ draws a QML file into a picture with no window on screen; sheets/
                make shell-shots
 tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remote.sh,
                publish-repo.sh (the hosted repo), repo-test.sh + repo-check.sh (its VM test)
-shell/         the shell in QML for Quickshell: wallpaper, menu bar and menus, Search,
+shell/         the shell in QML for Quickshell: wallpaper and the desktop's menu, menu bar and menus, Search,
                Dock, control center, notifications, the volume and brightness keys' display
 session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
                GTK's button layout (dconf), the `ambrosia` command and the shell's desktop files,

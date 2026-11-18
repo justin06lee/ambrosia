@@ -251,6 +251,8 @@ and the preview is the visual reference. In brief:
   on `thick` glass just clear of the Dock: four across, four rows before
   it scrolls, 56px icons with two lines of name, and a button that opens
   the folder in Files.
+- **The desktop:** the right button opens a menu at the pointer, like any
+  other menu: New Folder, Change Wallpaper….
 - **⌘Tab:** the running apps as a row of 104px icons on `thick` glass
   ringed in light, in the middle of the screen; the chosen one sits on a
   soft square with its name under it. With more apps than fit across nine

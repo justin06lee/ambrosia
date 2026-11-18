@@ -1,10 +1,12 @@
 import Quickshell
+import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
 import Ambrosia
 
 // The desktop picture, on the background layer under every window: what's
-// chosen in Settings, each change fading in over the one before.
+// chosen in Settings, each change fading in over the one before. A
+// right-click on it opens the desktop's menu, as on a Mac.
 PanelWindow {
     id: window
 
@@ -42,6 +44,26 @@ PanelWindow {
         }
         layers.coming.what = wanted;
         layers.tryFade();
+    }
+
+    // The desktop's own menu. Nothing is kept on the desktop yet, so a new
+    // folder (in ~/Desktop, named as a Mac names one) is shown in Files.
+    function desktopMenu() {
+        return [
+            { text: "New Folder", action: () => newFolder.running = true },
+            { separator: true },
+            { text: "Change Wallpaper…", action: () => Session.settings("wallpaper") },
+        ];
+    }
+    Process {
+        id: newFolder
+        command: ["sh", "-c",
+            'dir="$HOME/Desktop"; name="untitled folder"; n=2;'
+            + ' while [ -e "$dir/$name" ]; do name="untitled folder $n"; n=$((n + 1)); done;'
+            + ' mkdir -p "$dir/$name" && printf %s "$dir/$name"']
+        stdout: StdioCollector {
+            onStreamFinished: if (text) Session.reveal(text)
+        }
     }
 
     component Layer: Item {
@@ -113,6 +135,16 @@ PanelWindow {
         Layer {
             id: two
             opacity: 0
+        }
+
+        // Menus open in the Overlay's frame, which starts below the menu bar;
+        // this window starts at the screen's top.
+        MouseArea {
+            anchors.fill: parent
+            z: 2
+            acceptedButtons: Qt.RightButton
+            onPressed: mouse => Popups.openMenu(window.screen, "desktop", window.desktopMenu(),
+                mouse.x, mouse.y - Theme.size.menubar.height)
         }
 
         NumberAnimation {

@@ -113,8 +113,15 @@ it is a copy.
 13. **Screenshots.** ⇧⌘3/4/5 run Spectacle with its own window; a Mac shows
     a floating toolbar, then a thumbnail in the corner that can be dragged
     or opens Markup. From `docs/keyboard.md`.
-14. **The desktop itself.** No icons on it, no right-click menu, no widgets,
-    no stacks. From the code.
+14. **The desktop itself: a right-click menu, not yet seen on KWin; the rest
+    open.** Since round 9 the right button on the desktop opens a menu
+    (`shell/Wallpaper.qml`): New Folder, which makes "untitled folder" in
+    ~/Desktop and shows it in Files, and Change Wallpaper…. Still no icons
+    on the desktop (so the new folder appears in Files, not under the
+    pointer), no widgets, no stacks, and none of a Mac's Sort By, Clean Up
+    or Show View Options, which need the icons. To look at on tenet:
+    whether KWin hands the wallpaper's layer the press, and the menu's
+    place.
 15. **Trackpad gestures.** Whatever KWin does out of the box; nothing set
     to a Mac's (swipe between desktops and full-screen apps, Mission Control,
     pinch for the apps, two-finger swipe from the right edge for Notification
@@ -186,6 +193,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 9, 2026-11-18 | 14, the desktop | A right-click on the desktop opens its menu at the pointer (`shell/Wallpaper.qml`, on the Overlay like every menu): New Folder (a script names it as a Mac does and Files is asked to show it) and Change Wallpaper… (Settings' pane) | On the Mac, through the stand-ins: a right press on the sheet's desktop opens the menu at the pointer in light and dark (`out/shots/shell-desktop-context-menu-*.png`); choosing New Folder ran the script and asked Files to show `untitled folder 2` by a well-formed URL. Not run under Quickshell or KWin |
 | 8, 2026-11-18 | Tooling, for every shell gap | The shell's own files drawn on the Mac: stand-ins for Quickshell and Plasma (`tools/qmlshot/stubs/`, `stubs.h`), a staged copy of `shell/` with a qmldir for its singletons, `parts/Desk.qml` (the desktop as the shell puts it up) and ten `desktop-*` sheets that open things on it with real pointer and key events. Fixed from the first look: Notification Center's shadows cut by the list's clip, a wrapped card overlapped by the next, the Dock's menus placed from the scene instead of its window | On the Mac: `make shell-shots`, 13 sheets in light and dark, each looked at. The stand-ins are not Quickshell: nothing here has run on it |
 | 7, 2026-11-18 | 11, the Dock's right side | Downloads as a stack: `shell/StackGrid.qml` (the grid's picture), `shell/Stack.qml` (reads the folder's newest 24 with `ls -t` and `file`, icons by kind from the icon theme, pictures as themselves), a place on the Overlay, `Popups.toggleStack` | On the Mac: the grid full, part full and empty, light and dark (`out/shots/shell-stack-*.png`). Not run under Quickshell |
 | 6, 2026-11-18 | 7, ⌘Tab | A switcher layout of our own in the look-and-feel package (`contents/windowswitcher`): the strip's picture in `SwitcherStrip.qml`, KWin's side in `WindowSwitcher.qml`; kwinrc names it and sets one window an app | On the Mac: the strip with six apps and with fifteen (icons shrink to fit), light and dark (`out/shots/shell-switcher-*.png`); KWin's API read from its sources (TabBoxSwitcher, the model's roles, where a layout is looked for). Not run on KWin |
