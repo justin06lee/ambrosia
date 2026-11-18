@@ -234,15 +234,26 @@ package repo below), and they carry `shell/` and `session/` as they are.
    falling back to `text-x-generic`, `unknown`); a picture as its own
    icon; a name with spaces or a `#`; clicking a thing, the button, away,
    Escape; an empty folder and no folder at all.
-   **Pieces of the shell can be drawn on the Mac** since round 5:
-   `make shell-shots` builds `tools/qmlshot` (a Qt Quick window that is
-   never shown, drawn once into a picture with the real renderer) and
-   draws each sheet in `tools/qmlshot/sheets/` in light and dark. A sheet
-   can use whatever of `shell/` needs only Qt Quick and the Theme (Glass,
-   Icon, Label, PushButton, HudPanel); anything importing Quickshell
-   can't be loaded. New shell surfaces should keep their picture in a file
-   of its own, apart from the window and the services, so they can be
-   looked at here.
+   **The shell itself can be drawn on the Mac** (pieces since round 5,
+   the whole desktop since round 8): `make shell-shots` builds
+   `tools/qmlshot` (a Qt Quick window that is never shown, drawn into a
+   picture with the real renderer) and draws each sheet in
+   `tools/qmlshot/sheets/` in light and dark. The shell's own files load
+   unchanged, over stand-ins for Quickshell and Plasma
+   (`tools/qmlshot/stubs/`, `stubs.h`; its README says what each is and
+   what a picture from here doesn't show: Quickshell's agreement, Inter's
+   metrics, KWin's blur). `parts/Desk.qml` puts up the wallpaper, menu
+   bar, Dock, Search, banners and the menus' layer with a few apps
+   running; a `desktop-*` sheet then opens something on it, by calling the
+   shell or with `shotPointer` (real moves, clicks and typing): an app's
+   menu and submenu, the Ambrosia menu, the Dock's tooltip and menu,
+   Control Center, Notification Center, banners, a confirmation, Search.
+   A new surface gets a sheet; one that is only a picture (HudPanel,
+   StackGrid, SwitcherStrip) can still have a sheet of its own.
+   The first look found and fixed three things: Notification Center's
+   cards' shadows were cut in a straight line by the list's clip, a card
+   whose text wrapped was overlapped by the next app's, and the Dock
+   placed its menus by `mapToItem(null)` (now its own `contentItem`).
    Still apart from the preview: Breeze's menu radius and row height (ours once
    the style above is switched on), real apps' icons (no Ambrosia icon theme),
    per-surface blur and saturation (KWin has one setting for all), and the

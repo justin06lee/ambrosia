@@ -5,7 +5,7 @@ Don't edit this file: ruri writes it. `ruri architecture` prints it with every l
 
 Read from the repo at 43429bc; folded forward from finished turns since. Where it and the code disagree, the code is right.
 
-Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design authority, one token file, a generator theming every toolkit identically. It ships as Arch packages and an archiso installer image. The design system, preview and review site exist; the distro pipeline (packages, Ambrosia session on KWin, live image, installer) has a first cut; the shell has its menu bar and traffic-light window frames.
+Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design authority, one token file, a generator theming every toolkit identically. It ships as Arch packages and an archiso installer image. The design system, preview and review site exist; the distro pipeline (packages, Ambrosia session on KWin, live image, installer) has a first cut; the shell has its menu bar, traffic-light window frames, ⌘Tab strip switcher and dock folder stacks.
 
 ## The stack, top to bottom
 
@@ -39,8 +39,8 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 - dist/ — generated output: gtk-*, kde/, kdecoration/, qml/, fontconfig/, web/, tokens.json (never hand-edit)
 - Makefile — build, test, review, screenshot targets; remote-build, review-remote and shot-remote run on tenet; package.json / tsconfig.json — bun+typescript toolchain definition
 - CONTEXT.md — handoff sheet: what stands, what's next, machines (tenet), how to build/test, gotchas
-- shell/ — Quickshell QML shell: menu bar and menus on a grabbing popup (MenuView.qml, Overlay.qml), Spotlight (including file results), dock (hand-drawn trash-full/empty.svg, no Apple art), control center, notifications (Notifications.qml, banners with action buttons), appearance; Settings.qml is the settings.json adapter, Wallpaper.qml draws the desktop; watchFiles off when installed under /usr
-- session/ — startambrosia (copies decoration settings into ~/.config/kdedefaults/kwinrc at login), systemd units swapping plasmashell, /etc/xdg/ambrosia defaults (kwinrc, breezerc), xdg/mimeapps.list (folders and trash:/ open in Files), look-and-feel defaults, pacman hook ambrosia-shell-restart(.hook) restarting the shell after upgrades
+- shell/ — Quickshell QML shell: menu bar and menus on a grabbing popup (MenuView.qml, Overlay.qml), Spotlight (including file results), dock (hand-drawn trash-full/empty.svg, no Apple art), folder stacks (Stack.qml, StackGrid.qml), control center, notifications (Notifications.qml, banners with action buttons), appearance; Settings.qml is the settings.json adapter, Wallpaper.qml draws the desktop; watchFiles off when installed under /usr
+- session/ — startambrosia (copies decoration settings into ~/.config/kdedefaults/kwinrc at login), systemd units swapping plasmashell, /etc/xdg/ambrosia defaults (kwinrc, breezerc), xdg/mimeapps.list (folders and trash:/ open in Files), look-and-feel defaults and windowswitcher/ (⌘Tab strip: SwitcherStrip.qml, WindowSwitcher.qml, Glass.qml, Label.qml, icons.js), pacman hook ambrosia-shell-restart(.hook) restarting the shell after upgrades
 - packaging/ — PKGBUILDs for ambrosia-theme/-shell/-desktop, ambrosia-files (depends include ripgrep, ffmpeg, taglib, karchive, freetype2; makedepends include taglib, karchive, freetype2), ambrosia-keyring (install hook, not yet on the -Syu path), and the Quickshell rebuild (DBusMenu shortcut patch; debug packages off)
 - iso/ — archiso profile: live desktop, local [ambrosia] repo, installer scripts
 - files/ — Files, Ambrosia's Finder: Qt Quick front end (MenuBar with DBusMenu-exported Edit, View and Go menus, FinderWindow, Toolbar, ListPane.qml resizable columns, RenameField.qml, swappable Sidebar/SidebarList with SidebarFlush stub, PreviewDetails/QuickActions/TagField.qml, ProgressWindow.qml copy progress), C++20 core with KF6/KIO (foldermodel.cpp with timesAt for pane dates and search listing, fileops.cpp undoable copy/move/trash with undo/redo labels, iteminfo.cpp one item's details followed by inode, metadata.cpp Show More metadata, tags.cpp/tags.h colour tags in the attribute Dolphin and Baloo use, index.cpp/index.h in-memory name index kept current by inotify and saved to ~/.cache/ambrosia/files/index, thumbnailer.cpp/h shared-cache thumbnails paused under I/O pressure, rg content search, Trash drops exposed over DBus), benchmarks in files/bench/ and src/searchbench.cpp; installs /usr/bin/ambrosia-files and the resident user unit files/ambrosia-files.service (--background, started with the Ambrosia session, indexes home on first start)
@@ -76,10 +76,10 @@ Ambrosia is a Linux distro on Arch that looks and moves as one thing: one design
 - Browser mock desktop preview and review site render spec with live specimens
 - Dark mode and accents via keys/URL; verdict threads in review
 - Installs themes per-user on Linux preserving prior configs
-- Mac-first keyboard: Super-as-Command, ⌘ glyphs in menus, Files shortcuts
+- Mac-first keyboard: Super-as-Command, ⌘Tab strip switcher, ⌘ glyphs, Files shortcuts
 - Signed Arch pacman repo on GitHub; archiso installer, UEFI, QEMU-testable
 - Menu bar: focused-app menus with shortcuts, Wi-Fi, search, clock
-- Super+Space Spotlight: apps, file results, Settings panes, sums; dock keeps pinned order, separate launchers, Mac-style Trash
+- Super+Space Spotlight: apps, file results, Settings panes, sums; dock keeps pinned order, separate launchers, Mac-style Trash, folder stacks
 - Control center: pure blur glass, modes, notification banners with actions
 - Honey-bowl Ambrosia branding in menu bar, banner, favicon, preview and review site
 - Finder-style Files: thumbnails, Quick Look, Get Info, Columns with metadata, undo, search, drives with eject, Show in Folder
