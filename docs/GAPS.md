@@ -147,8 +147,9 @@ it is a copy.
    has KWin's blur behind the glass and the app's own name ("System
    Settings", not the window's title), both from a small module of ours
    inside KWin (`decoration/qml`, org.ambrosia.kwin). Short of a Mac's:
-   switching raises one window rather than all the app's, Q closes a window
-   rather than quitting, no ⌘H.
+   switching raises one window rather than all the app's (a hidden app's
+   all come back, gap 10), Q closes a window rather than quitting, and H
+   while it's up does nothing.
 8. **Mission Control and Spaces.** KWin's Overview is there but unstyled and
    on no Mac key or gesture (F3, ⌃↑, three fingers up; ⌃← ⌃→ and a swipe
    between desktops; ⌃↓ for one app's windows). From the code.
@@ -160,8 +161,27 @@ it is a copy.
    to a name nobody owns). Brightness was only shown by hand: tenet's
    display has no brightness keys. It takes no clicks, where a Mac's can be
    dragged.
-10. **⌘H and ⌘Q.** ⌘H minimizes one window instead of hiding the app; ⌘Q
-    only works where the app has Ctrl+Q (`docs/keyboard.md`).
+10. **⌘H and ⌘Q: hiding is ours, seen on KWin; ⌘Q is still the app's.**
+    Since round 24 ⌘H hides the app in front and ⌥⌘H every other, and the
+    app menu has Hide, Hide Others and Show All: every window of the app is
+    put away at once, with no motion, and they are all back at once when
+    the app is next brought forward from the Dock or ⌘Tab. It is the
+    session's KWin effect (`session/kwin-effects/ambrosia_windows`): the
+    windows are minimized, and the effect takes the whole screen for that
+    instant, which is the one thing that keeps KWin's Genie from playing.
+    Seen on tenet (2026-11-23) with the Genie slowed to tell: Konsole's
+    two windows hidden and back from the Dock and from the switcher, Hide
+    Others, Show All, the menu's rows, and a plain minimize still pouring
+    into the Dock. Short of a Mac's: a hidden app looks no different in
+    the Dock and ⌘Tab; the Dock brings back every window of an app that
+    has them all put away, minimized one by one or hidden; an app that
+    brings itself forward (a notification's click) gets one window out of
+    the Dock before the rest appear. ⌘Q is the app's own Ctrl+Q, as
+    before; an app without one can be named in `~/.config/ambrosia/
+    keys.json` (`"quit"`) to have the shell close its windows instead
+    (`ambrosia quit`, seen closing Kate). The shell can't tell which apps
+    those are by itself (`docs/keyboard.md`). Our own menus still show no
+    shortcuts beside their rows.
 11. **The Dock's right side: Downloads opens as a stack, seen on KWin.**
     Since round 7 clicking Downloads opens its newest things as a grid on
     glass over the Dock (pictures as themselves, the rest by kind), with a
@@ -195,10 +215,11 @@ it is a copy.
     Short of a Mac's: the menu is words, where a Mac's is a row of small
     pictures; a window filling the screen (the top edge, Zoom) has no
     margin; no Fill, Arrange or Return to Previous Size; the green light
-    still zooms on a click, where a Mac's enters full screen. A menu
-    opened by a command (this one, Force Quit) doesn't come up until the
-    menu bar has had a click since the shell started: the Overlay is a
-    popup of the bar's, and a popup needs an input the bar was given.
+    still zooms on a click, where a Mac's enters full screen. (Until
+    round 24 a menu opened by a command, this one or Force Quit, didn't
+    come up before the shell had had a click: Qt refuses a popup that
+    takes the keyboard until then. Our Quickshell build now carries a
+    patch for it, `packaging/quickshell/popup-grab.patch`.)
 13. **Screenshots: to the Desktop with a thumbnail in the corner, seen on
     KWin; the tool is Spectacle's.** Since round 23 ⇧⌘3 and ⇧⌘4 (`ambrosia
     screenshot screen|region`) save "Screenshot 2026-11-23 at 10.31.22.png"
@@ -271,16 +292,18 @@ it is a copy.
     every app, through the desktop portal (roadmap 6).
 21. **Print, colors, fonts, emoji.** Qt's print dialog and color picker,
     KDE's emoji picker.
-22. **Force Quit: a list of ours, seen on KWin; the key is still KWin's.**
+22. **Force Quit: a list of ours, seen on KWin, on ⌥⌘Esc.**
     Since round 20 the Ambrosia menu's Force Quit… opens Force Quit
     Applications on glass (`shell/ForceQuit.qml`): the apps with a window,
     one chosen, a button that asks once and then kills the app's
     processes; arrows, Return and Escape work, and `ambrosia force-quit`
     opens it too. Seen on tenet (2026-11-23): Konsole listed, asked about,
-    gone. ⌥⌘Esc still gives KWin's skull pointer to click a window with
-    (the shortcut is KWin's own; moving it belongs with the keyboard's
-    gaps). It closes on a click outside, where a Mac's is a window that
-    stays, and has no Relaunch for Files.
+    gone. Since round 24 ⌥⌘Esc opens it (Super+Ctrl+Alt+Esc, a desktop
+    file of ours that keyd's ⌥⌘Esc sends; KWin's skull pointer keeps its
+    own Super+Ctrl+Esc), and it opens by command before the shell has had
+    a click (seen on tenet straight after a shell restart, the arrows
+    moving the choice). It closes on a click outside, where a Mac's is a
+    window that stays, and has no Relaunch for Files.
 23. **Sounds.** No sounds of our own: the alert, the Trash, a screenshot, the
     volume step.
 24. **The first minutes.** The installer asks with kdialog; a new account
@@ -321,6 +344,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 24, 2026-11-23 | 10 and 22, ⌘H, ⌥⌘Esc and menus opened by a command | Hiding in the session's KWin effect (`ambrosia_windows`: Hide App, Hide Others, Show All and Show Without Motion as KWin shortcuts; windows minimized while the effect has the whole screen, so no Genie; a hidden app's other windows follow the one brought forward); the app menu's Hide, Hide Others, Show All (`Apps.hideFront` and the rest, `Apps.kwin`), and the Dock telling the effect before it brings back an app with every window put away; `ambrosia quit` and the `quit` key layer for apps without Ctrl+Q; desktop files for ⌥⌘Esc and that quit; keyd's ⌘H, ⌥⌘H and ⌥⌘Esc; `packaging/quickshell/popup-grab.patch` (a popup that takes the keyboard before the shell's first input; pkgrel 4). | `bun test`, `bun run build`, `make shell-shots` (new sheet `desktop-app-menu`). On tenet, live, with the Genie slowed to 6 s and KWin asked which effects were running: Hide on Konsole's two windows, back from the Dock and from Alt+Tab, Hide Others, Show All, the app menu's rows, a plain minimize as the control (the Genie ran); `ambrosia quit` closing Kate; the patched Quickshell installed and Force Quit opened by command straight after a shell restart, Down moving the choice. With keyd switched on for the test (and off again after), ⌘H and ⌥⌘H pressed on a keyboard-only virtual device hid Kate and then the others. Not checked: ⌥⌘Esc and the `quit` layer's ⌘Q by their keys (a desktop file's chord is taken up at the next login), the green light's menu before a click (it needs the installed frame, so a login too), dark, an app with a dialog open, an Xwayland app. |
 | 23, 2026-11-23 | 13, screenshots | `shell/Screenshot.qml` (runs Spectacle in the background into a file on the Desktop named as a Mac names one, then shows it) and `ScreenshotThumb.qml` (the picture fitted in a box, a white edge, a shadow) on a layer surface in the bottom right corner; `ambrosia screenshot screen|region` and the shell's IPC; two desktop files holding Super+Ctrl+Alt+3 and 4, which keyd's ⇧⌘3 and ⇧⌘4 now send (they were Spectacle's own Shift+Print chords); `screenshot` size and choreography tokens; a sheet, `screenshot` | On the Mac: `out/shots/shell-screenshot-*.png` (a wide picture, a tall one, one not read yet). On tenet: the command for the screen and for a part (dragged with the virtual pointer, Return), the files' sizes read back, the thumbnail photographed in the corner and gone five seconds on, a click opening Gwenview. A second Spectacle started while the crosshair was up ended it without a picture. After the r444 packages: once more from the installed files (the thumbnail comes some three seconds after the command: Spectacle starting). The shortcut daemon reads new desktop files at login, so the two chords aren't held yet on tenet. Not seen: the keys, dark |
 | 22, 2026-11-23 | 12, the rest of tiling | `session/kwin-scripts/ambrosia_tiles` (a KWin script: a padding of 8 on any tile of KWin's own a window lands in; on in the session's `kwinrc`); `Apps.placeWindow` and `placeEntries` (KWin's quick-tile actions by their shortcuts' names, over kglobalaccel), Center and Move & Resize in the Window menu, `ambrosia window-menu X Y` (the shell's IPC opens the menu at that place); the frame's green light starts a 600 ms timer when the pointer comes to rest on it and runs that command with its own place on the screen (the pointer's, less its place in the frame); no tooltips on the lights; a sheet, `desktop-window-menu` | On the Mac: the sheet, light and dark. On tenet: the script loaded into the running KWin by a reconfigure; Konsole sent Right and Top Right from the menu (x 1284, width 1268, height 649: 8 and 4); the top edge's preview held and photographed; the green light's menu from a test copy of the plugin under another name, named in the user's `kwinrc` and taken out again. After the r441 packages: the Window menu's Move & Resize on tenet, Bottom Left chosen from it (a list set inside a menu row didn't come through as a list: a row's `submenu` is a function now). Not seen: dark, two tiles side by side dragged at their shared edge |
 | 21, 2026-11-23 | 3, the Qt controls left | In `style/src/style.cpp`: the list of a combo to type in (rows of our own put in before Breeze puts its own, `ComboRows`; the frame round it is the menu's panel, `CE_ShapedFrame`), glass behind both kinds of combo list where KWindowSystem is built in (`Glass`), `CC_Dial`, `CE_ToolBoxTab`, `CE_DockWidgetTitle` and its two buttons, the calendar (its bar on the sheet's color, the weekend out of Qt's red, headings small, today, the chosen day's disc), `CE_ProgressBar` put together here, a menu button's title without Breeze's arrow. The gallery has the new controls and `--show`, which opens it as a window to use | On the Mac: `out/shots/style-*.png`, light and dark. On tenet: the gallery drawn there over Breeze, then opened in the live session with `--show`: both combo lists opened (the dropped one tinted by the slider behind it), the progress bars and the menu button before and after. From the r438 packages: Dolphin with its panels unlocked, Places under our heading. Not seen: a calendar in a real app, dark on tenet |

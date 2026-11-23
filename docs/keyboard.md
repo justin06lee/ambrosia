@@ -45,14 +45,15 @@ Everywhere:
 | ⌘Space | Search | Super+Space (the shell's shortcut) |
 | ⌘Tab, ⇧⌘Tab | switch apps, forward and back, on a strip of their icons; while it's up ` steps back, ← → move, Q closes the chosen app's window | Alt+Tab, Alt held until ⌘ is let go (KWin's switcher, our layout) |
 | ⌘` , ⇧⌘` | the app's next window, and the one before | Alt+` |
-| ⌘M, ⌘H | minimize the window | Super+PgDn (KWin's Minimize) |
+| ⌘M | minimize the window | Super+PgDn (KWin's Minimize) |
+| ⌘H, ⌥⌘H | hide the app in front, every window of it at once and with no motion; hide every other app. They come back the same way when the app does (the Dock, ⌘Tab), or with the app menu's Show All | Super+Ctrl+Alt+H, Super+Ctrl+Alt+Shift+H (the session's KWin effect, `ambrosia_windows`, holds both) |
 | ⇧⌘3, ⇧⌘4 | picture of the screen, of a part dragged out: saved to the Desktop, its thumbnail in the screen's corner for a moment | Super+Ctrl+Alt+3, Super+Ctrl+Alt+4 (`session/org.ambrosia.screenshot*.desktop`) |
 | ⇧⌘5 | the screenshot tool | Print (Spectacle) |
 | ⇧⌘[ , ⇧⌘] | the tab before, the tab after | Ctrl+PgUp, Ctrl+PgDn |
 | ⌃⌘F | full screen | Super+Ctrl+F (`session/org.ambrosia.fullscreen.desktop`) |
 | ⌃⌘Q | lock the screen | Super+L |
 | ⌃⌘Space | emoji | Super+. |
-| ⌥⌘Esc | force a window's app to quit (click the window; the Ambrosia menu's Force Quit… lists the apps instead) | Super+Ctrl+Esc (KWin's Kill Window) |
+| ⌥⌘Esc | Force Quit Applications: the apps to choose one from, as the Ambrosia menu's Force Quit… | Super+Ctrl+Alt+Esc (`session/org.ambrosia.force-quit.desktop`) |
 
 In every app but a terminal:
 
@@ -84,6 +85,10 @@ folder, ⌘↓ open, ⌘[ back, ⌘] forward): they go on as plain Ctrl.
 - **Which layer an app gets**: `~/.config/ambrosia/keys.json` names it by
   the app's desktop file id, as `{ "org.wezfurlong.wezterm": "terminal",
   "org.kde.kate": "default" }`. Read at once, no restart.
+- **An app that ignores ⌘Q** (it has no Quit on Ctrl+Q): name it `"quit"`
+  there. ⌘Q then goes to the shell (as Super+Ctrl+Alt+Q,
+  `session/org.ambrosia.quit.desktop`, `ambrosia quit`), which asks every
+  window of the app to close.
 - **A new set of bindings**: a file in `/etc/ambrosia/keys/` named for it,
   one keyd binding a line (`cmd.r = f5`, `cmd.t = C-S-t`), the same file name
   as an app's layer in `keys.json`. A file there with a shipped name
@@ -95,16 +100,20 @@ folder, ⌘↓ open, ⌘[ back, ⌘] forward): they go on as plain Ctrl.
 ## What it doesn't do
 
 - **⌘Q and ⌘W are the app's Ctrl+Q and Ctrl+W.** An app with no such
-  shortcut ignores them (most Electron apps have no Ctrl+Q); the Mac's
-  quit-anything would have to come from the shell. Files, like Finder, has
-  no Quit.
+  shortcut ignores them (most Electron apps have no Ctrl+Q) until it is
+  named `"quit"` in `keys.json` (above): the shell can't tell by itself
+  which apps those are, and an app's own Quit is the better one where it
+  has it (it keeps its windows for next time; closing them one by one
+  doesn't, and leaves an app that lives in the menu bar running). Files,
+  like Finder, has no Quit.
 - **⌘Tab walks apps, one window each** (KWin's switcher set to one window
   an app, drawn by the look-and-feel's `windowswitcher`): switching brings
   that window forward, not all of the app's as a Mac does, and Q while it is
   up closes that window rather than quitting the app. An app's name there
   is the last word of its desktop file's name (Konsole, not Terminal).
-  Built and drawn, not yet run on KWin. ⌘H minimizes one window rather than
-  hiding the app: KWin's own action, the nearest it has.
+  A hidden app is minimized windows to KWin: the Dock shows it no
+  differently, and the Dock brings back every window of an app that has
+  them all put away, hidden or not.
 - **⌘⌫ deletes a word, not the line**: it is the app's Ctrl+Backspace, so
   that in Files it still moves to the Trash. The Mac's would take two
   keystrokes (select to the line's start, delete), which in a list is a
@@ -149,3 +158,8 @@ ways, ⌃⌘Q, ⌃⌘Space and ⇧⌘4 doing what the tables say; a line copied 
 with ⌘A ⌘C and pasted into Konsole with ⌘V. Not driven there: ⌘`, ⇧⌘3 and
 ⇧⌘5, ⌥⌘Esc's click, ⌘Q, copying a Konsole selection (it needs a mouse drag),
 a keyboard that isn't US.
+
+On tenet's own session (2026-11-23), keyd switched on for the test: ⌘H
+hid Kate and ⌥⌘H every other app, pressed on a virtual keyboard keyd took
+for one. Not pressed there: ⌥⌘Esc and the `quit` layer's ⌘Q, whose chords
+the session takes up from their desktop files at the next login.

@@ -319,9 +319,34 @@ package repo below), and they carry `shell/` and `session/` as they are.
    `metadata.json`), install it beside ours, name it in the user's
    `kwinrc` (`[org.kde.kdecoration2] library=`), `reconfigure`; put the
    name back and delete the copy after. **A menu opened by a command
-   needs the menu bar to have had a click** since the shell started:
-   the Overlay is a grabbing popup of the bar's (Qt: "Failed to create
-   grabbing popup"). Force Quit by a key will need that solved.
+   comes up before the shell has had any input** only with our Quickshell
+   (round 24, `packaging/quickshell/popup-grab.patch`, pkgrel 4): the
+   Overlay is a grabbing popup of the bar's, and Qt refuses one until a
+   press or a key has reached the program ("Failed to create grabbing
+   popup"); the patch hands Qt the seat with no serial, which KWin takes
+   (it doesn't check a grab's serial).
+   **⌘H hides the app, with no motion** (round 24): the session's KWin
+   effect (`session/kwin-effects/ambrosia_windows/contents/code/main.js`)
+   registers Ambrosia Hide App, Hide Others, Show All and Show Without
+   Motion as KWin shortcuts (the first two on Super+Ctrl+Alt+H and
+   +Shift, which keyd sends for ⌘H and ⌥⌘H); the shell's menus and Dock
+   run them by name (`Apps.kwin`). Hidden windows are minimized ones.
+   KWin's Genie plays for every minimize unless some effect has the whole
+   screen, so ours takes it (an animation with `fullScreen: true`) for
+   the instant, holding blur on meanwhile. **An animation on a window
+   that isn't drawn never ends** (KWin advances it when it paints the
+   window): the effect cancels its own, or puts it on the bottom window.
+   KWin's `animationEnded` gives no id (always 0); the effect listens to
+   `isActiveFullScreenEffectChanged`. **To slow an effect down in a
+   running KWin**: write its key to the user's `kwinrc`, `qdbus6
+   org.kde.KWin /KWin reconfigure`, then unload and load the effect
+   (without the reconfigure it keeps the old value); `/Effects
+   activeEffects` then says whether it is running. **keyd leaves
+   `/root/ui.py`'s device alone** (a pointer with keys isn't a keyboard
+   to it): to press a ⌘ chord through keyd on tenet, make a uinput
+   device with keys only (python-evdev, `UInput({EV_KEY: keys})`), wait
+   two seconds for keyd to take it, then write the keys. keyd stopped by
+   systemd is left "failed" (it exits 15): `systemctl reset-failed keyd`.
    **⇧⌘3 and ⇧⌘4 save to the Desktop and float a thumbnail** (round 23,
    `shell/Screenshot.qml`, `ambrosia screenshot screen|region`): Spectacle
    takes the picture in the background (`--background --nonotify
@@ -332,8 +357,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
    another started while its crosshair is up ends that shot.
    **Force Quit… in the Ambrosia menu opens a list of apps** (round 20,
    `shell/ForceQuit.qml`, `ambrosia force-quit`): choose one, confirm,
-   and its windows' processes are killed (`Apps.forceQuit`). ⌥⌘Esc is
-   still KWin's Kill Window.
+   and its windows' processes are killed (`Apps.forceQuit`). ⌥⌘Esc opens
+   it since round 24 (`session/org.ambrosia.force-quit.desktop`,
+   Super+Ctrl+Alt+Esc); `ambrosia quit` asks the app in front's windows
+   to close (`org.ambrosia.quit.desktop`, for apps named "quit" in
+   `keys.json`).
    **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
    grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
    kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the
@@ -666,7 +694,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
   `packaging/quickshell/PKGBUILD` and tenet's `out/pkg` doesn't have it yet),
   signs on the Mac, uploads, and drops the versions it replaced. **Builds on
   tenet are capped** (`systemd-run --user --scope -p MemoryMax=6G nice -n 19
-  ionice -c3` with two jobs): tenet has no swap and runs other projects'
+  ionice -c3 env MAKEFLAGS=-j2 CMAKE_BUILD_PARALLEL_LEVEL=2`: two jobs,
+  without which ninja's 18 run into the 6G and the build is killed;
+  `make quickshell` takes about six minutes so): tenet has no swap and runs other projects'
   services (mira's gateway), and an uncapped Quickshell build (ninja's 18
   jobs) starved it on 2026-10-21. Its disk is one hard drive: when other
   work saturates it (`/proc/pressure/io` above ~50%), the idle-class build

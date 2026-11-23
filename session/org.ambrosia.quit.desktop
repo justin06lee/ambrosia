@@ -1,0 +1,13 @@
+# Super+Ctrl+Alt+Q asks every window of the app in front to close: ⌘Q on the
+# Mac-first keyboard for the apps that have no Quit of their own on Ctrl+Q
+# (those named "quit" in ~/.config/ambrosia/keys.json; docs/keyboard.md).
+# It can be changed in System Settings, Shortcuts, like Search's.
+[Desktop Entry]
+Type=Application
+Name=Quit the App in Front
+Comment=Ask every window of the app in front to close
+Icon=application-exit
+Exec=/usr/bin/ambrosia quit
+NoDisplay=true
+StartupNotify=false
+X-KDE-Shortcuts=Meta+Ctrl+Alt+Q

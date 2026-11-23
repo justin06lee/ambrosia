@@ -111,7 +111,9 @@ PanelWindow {
         ];
         const row = Apps.activeRow;
         return [
-            { text: `Hide ${Apps.activeName}`, action: () => Apps.hide(row) },
+            { text: `Hide ${Apps.activeName}`, action: () => Apps.hideFront() },
+            { text: "Hide Others", action: () => Apps.hideOthers() },
+            { text: "Show All", action: () => Apps.showAll() },
             { separator: true },
             { text: `Quit ${Apps.activeName}`, action: () => Apps.quit(row) },
         ];

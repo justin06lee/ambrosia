@@ -1,3 +1,5 @@
 # ⌥⌘, in every app.
-# ⌥⌘Esc: force an app to quit (KWin's Kill Window; click the window).
-esc = C-M-esc
+# ⌥⌘Esc: Force Quit Applications (session/org.ambrosia.force-quit.desktop).
+esc = C-M-A-esc
+# ⌥⌘H hides every app but the one in front (the same KWin effect as ⌘H).
+h = C-M-A-S-h

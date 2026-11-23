@@ -57,7 +57,7 @@ On an Arch machine, the distro builds from the same checkout:
 
 ```sh
 make package               # ambrosia-keyring, -theme, -shell, -files, -desktop into out/pkg/
-make quickshell            # our Quickshell (with the app menu patch) for the installed Qt
+make quickshell            # our Quickshell (with the app menu and popup patches) for the installed Qt
 sudo make iso              # the installer image, out/iso/ambrosia-*.iso
 tools/vm.sh install        # install the image unattended in a headless VM
 tools/vm.sh shot vm.png    # and photograph it
