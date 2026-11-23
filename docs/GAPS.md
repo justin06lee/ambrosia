@@ -174,7 +174,8 @@ it is a copy.
    does; sizes, the ring and the timing are by eye. The four-finger
    swipes are written but no trackpad has been tried (gap 15). A KWin
    still running from before the upgrade draws it only after the next
-   login (it holds the old tokens).
+   login (it holds the old tokens); as packaged it was seen in the test
+   VM after a fresh login (round 27).
 9. **Volume and brightness keys: ours, seen on KWin.** Since round 5 they
    show a glass capsule under the menu bar's right end, where the control
    center opens: a glyph and a level, or the name of the output sound moved
@@ -307,16 +308,27 @@ it is a copy.
 
 ### System surfaces
 
-17. **The lock screen.** KDE's locker in Breeze's look; the login screen is
-    ours (`packaging/sddm-theme`) and the two should be one picture. Read
-    from kscreenlocker's sources (2026-11-18): its QML no longer comes from
-    the look-and-feel package but from a Plasma shell package
-    (`contents/lockscreen/LockScreen.qml`, `X-Plasma-APIVersion` 2, named
-    to the greeter with `--shell`; `org.kde.plasma.desktop` is the
-    fallback), so ours needs a shell package of its own and a way to name
-    it. A broken one falls back to a built-in screen rather than locking
-    the user out. Left for when it can be run: it is the one surface where
-    a mistake keeps someone out of their session.
+17. **The lock screen: ours, seen on KDE's locker.** Since round 27 it is
+    the login screen's own picture (`packaging/sddm-theme/Main.qml`, shared
+    by a link): the date and time, the account's picture and name, a
+    password field that shakes at a wrong one. KDE's locker takes it from a
+    Plasma shell package of ours (`session/plasma-shell/org.ambrosia.
+    desktop`, named by the session's `plasmashellrc`; `LockScreen.qml`
+    stands in for what SDDM hands the login screen and talks to PAM as
+    Plasma's own lock screen does) and draws the user's desktop picture
+    behind it, which the shell keeps in step in `kscreenlockerrc`. Seen in
+    the test VM (2026-11-23) on a real lock: a wrong password refused, the
+    right one letting in, twice; on tenet in the locker's testing mode. A
+    file that doesn't load falls back to KDE's built-in screen, and
+    `loginctl unlock-session` always lets in. Short of a Mac's: the text is
+    dark in the light appearance and light in the dark one, whatever the
+    picture (a Mac's is always light, with the picture dimmed under it), so
+    a dark picture chosen in the light appearance leaves it hard to read;
+    no Touch ID line, no Switch User, no sleep on Esc, no media controls or
+    notifications on it, no blur of the desktop as it comes down; an
+    account without a password is let in on Return. Not seen: dark, Caps
+    Lock's mark, two screens, a fingerprint reader, a custom picture or a
+    color.
 18. **Starting up and shutting down.** No boot picture (Plymouth), kernel
     text on the way up and down; the image's UEFI menu is text (Needs Justin
     in `CONTEXT.md`).
@@ -378,6 +390,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 27, 2026-11-23 | 17, the lock screen | `session/plasma-shell/org.ambrosia.desktop` (a Plasma shell package with only `contents/lockscreen`: `LockScreen.qml`, which gives the login screen's file the `sddm`, `userModel`, `sessionModel`, `keyboard` and `config` it expects and passes the password to the locker's `authenticator`, keeping PAM asking, as Plasma's does; `Login.qml`, a link to `packaging/sddm-theme/Main.qml`); that file's new `lockScreen` (no picture of its own, no power buttons); the session's `plasmashellrc` naming the package; `Wallpaper.tellLocker` (the first screen's wallpaper writes the picture, or the color, and how it fills into `kscreenlockerrc`); a stand-in for Plasma's key-state module and a sheet, `lock-screen`; `tools/vm-try.sh` (a throwaway copy of the test install with root SSH, typed at and photographed through QEMU) | `bun test`, `bun run build`, `make shell-shots` (new sheet `lock-screen`, light and dark, over a stand-in authenticator). On tenet: the package as a user copy opened by `kscreenlocker_greet --testing --shell org.ambrosia.desktop` and photographed (the clock, the account, the field, over the locker's own picture; nothing typed: it is Justin's account), nothing in the journal about a fallback; the shell restarted and `~/.config/kscreenlockerrc` read back with the desktop's picture. In a throwaway copy of the test install (same KDE, 6.8.2), with the new files copied in: the login screen still drawing and logging in; `loginctl lock-session` showing ours over the picture named in `kscreenlockerrc`; `wrong` refused (`pam_unix(kde:auth): authentication failure`, LockedHint yes), `ambrosia` letting in (LockedHint no, the locker gone), three locks in two boots; `tools/vm-try.sh` itself run once, every part. After the r454 packages, installed in another throwaway copy (all eight and our Quickshell) and logged in afresh: `kscreenlockerrc` written by the shell itself; a lock showing ours, `wrong` refused, `ambrosia` letting in; and round 26's Mission Control as packaged, loaded by the session with KWin's Overview off, opened by its shortcut and photographed with no errors in the journal. On tenet from the packages: the testing mode without `--shell` (the session's `plasmashellrc` names ours), over the desktop's picture. Not seen: dark, Caps Lock's mark, a picture of the user's own or a color, an account without a password, two screens, the grace period, Justin's own unlock on tenet. |
 | 26, 2026-11-23 | 8, Mission Control and Spaces | `session/kwin-effects/ambrosia_mission`, a KWin scene effect in QML: `main.qml` (the effect, its two shortcuts and two swipes, its modes and the timing), `MissionScreen.qml` (one screen: the wallpaper and the bars as window thumbnails, the windows in KWin's own `ExpoLayout` with a shadow, a ring and a name, a drag to a desktop, the arrows), `SpacesBar.qml` and `WindowLabel.qml` (the strip and the name, pictures only), the shell's `Label.qml` by a link; on in the session's `kwinrc`, KWin's Overview off; keyd's `[control]` layer (⌃ with an arrow); `Apps.showWindows` and the Dock menu's Show All Windows; `size.mission` tokens; a sheet, `mission-control` | `bun test`, `bun run build`, `make shell-shots` (new sheet `mission-control`: the strip closed and open, a ringed window with its name). On tenet, live, from a copy of the effect loaded into the running KWin under another id (with numbers for the new tokens, which that KWin doesn't hold): opened by its shortcut over Files, Kate and Konsole; the ring and the name under the pointer; the strip opened by the pointer, + adding Desktop 2, Konsole dragged onto its picture and found there by KWin, a click on the picture going to it, KWin's Switch One Desktop to the Left coming back, the picture's button removing it (the window back on Desktop 1); → → Return going to a window; Esc, the shortcut again and a click on the Dock leaving; the one-app spread with two Konsole windows, one minimized, and a click bringing the minimized one back; the switch from one mode to the other while up; the motion both ways at 4 s; dark. The Dock menu's Show All Windows. keyd reads the new layer without complaint (`keyd check`). After the r451 packages: the installed effect loaded into the running KWin opens, but that KWin holds the tokens from before (`Theme.size.mission` isn't there: no ring, the strip unsized), so it was unloaded again and is to be seen as packaged after a login; a copy of the installed files with numbers for those tokens, and keyd switched on for the test: ⌃↑ opening and closing it, ⌃↓ the app's windows, Esc, ⌃→ and ⌃← between two desktops, pressed on a virtual keyboard keyd took for one. Not checked: the installed effect as it is (needs a login); the four-finger swipes (no trackpad); two screens; a full-screen window; Show All Windows for an app that isn't in front or has every window minimized; more windows than fit comfortably. |
 | 25, 2026-11-23 | 14, icons on the desktop | `shell/DesktopIcons.qml` on the first screen's wallpaper (`Wallpaper.qml` loads it, with the room the menu bar and the Dock take): ~/Desktop watched by a `FolderListModel` and read with `stat` and `file`, laid out in columns from the right, choosing by click, ⌘/Shift and a dragged rectangle, opening, a menu, dragging out (`Drag.Automatic` with the URLs) and drops in (`kioclient move`); `shell/FileKinds.qml` (the icon for a kind of file, shared with the Dock's stack); `Session.trash` (was the Dock's); the desktop menu's Sort By and `desktopSort` in the settings; `size.desktop` tokens. | `bun test`, `bun run build`, `make shell-shots` (new sheet `desktop-icons`). On tenet, live: four test things on the Desktop shown, one chosen, a double click opening a text file in Kate, an icon's menu and its Move to Trash, New Folder appearing, Sort By Date Modified, an icon dragged onto the Dock's Trash, a rectangle dragged over three; the Downloads stack still opening. Not checked: ⌘-click, a drop from a window, the Dock at a side, more icons than one column holds, a second screen. |
 | 24, 2026-11-23 | 10 and 22, ⌘H, ⌥⌘Esc and menus opened by a command | Hiding in the session's KWin effect (`ambrosia_windows`: Hide App, Hide Others, Show All and Show Without Motion as KWin shortcuts; windows minimized while the effect has the whole screen, so no Genie; a hidden app's other windows follow the one brought forward); the app menu's Hide, Hide Others, Show All (`Apps.hideFront` and the rest, `Apps.kwin`), and the Dock telling the effect before it brings back an app with every window put away; `ambrosia quit` and the `quit` key layer for apps without Ctrl+Q; desktop files for ⌥⌘Esc and that quit; keyd's ⌘H, ⌥⌘H and ⌥⌘Esc; `packaging/quickshell/popup-grab.patch` (a popup that takes the keyboard before the shell's first input; pkgrel 4). | `bun test`, `bun run build`, `make shell-shots` (new sheet `desktop-app-menu`). On tenet, live, with the Genie slowed to 6 s and KWin asked which effects were running: Hide on Konsole's two windows, back from the Dock and from Alt+Tab, Hide Others, Show All, the app menu's rows, a plain minimize as the control (the Genie ran); `ambrosia quit` closing Kate; the patched Quickshell installed and Force Quit opened by command straight after a shell restart, Down moving the choice. With keyd switched on for the test (and off again after), ⌘H and ⌥⌘H pressed on a keyboard-only virtual device hid Kate and then the others. Not checked: ⌥⌘Esc and the `quit` layer's ⌘Q by their keys (a desktop file's chord is taken up at the next login), the green light's menu before a click (it needs the installed frame, so a login too), dark, an app with a dialog open, an Xwayland app. |

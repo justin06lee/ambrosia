@@ -9,11 +9,18 @@ import Ambrosia
 // Every size and color is a design token (the Ambrosia Theme module); SDDM
 // loads this once per screen and hands it `sddm`, `userModel`,
 // `sessionModel`, `keyboard` and `config` (theme.conf).
+//
+// The lock screen is this same file (session/plasma-shell: LockScreen.qml
+// stands in for what SDDM hands over, and sets `lockScreen`): the one
+// account, no buttons under it, and the desktop picture left to the locker,
+// which draws the user's own behind this.
 Item {
     id: root
 
     width: 1920
     height: 1200
+
+    property bool lockScreen: false
 
     // Night from six to six, unless theme.conf says which.
     property date now: new Date()
@@ -139,12 +146,14 @@ Item {
 
     Rectangle {
         anchors.fill: parent
+        visible: !root.lockScreen
         color: root.night ? "#1a1430" : "#f7e9d2"
     }
     Image {
         id: picture
         anchors.fill: parent
-        source: config.background
+        visible: !root.lockScreen
+        source: root.lockScreen ? "" : config.background
             || "/usr/share/ambrosia/wallpapers/" + (root.night ? "nectar-night.png" : "nectar-day.png")
         fillMode: Image.PreserveAspectCrop
         asynchronous: true
@@ -385,6 +394,9 @@ Item {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: root.height * 0.05
             spacing: Theme.space.s4 * root.u
+            // Kept for its room when locked, so the account stays where it
+            // is at login.
+            visible: !root.lockScreen
 
             PowerButton {
                 name: "Sleep"

@@ -45,7 +45,29 @@ PanelWindow {
         }
         layers.coming.what = wanted;
         layers.tryFade();
+        tellLocker();
     }
+
+    // The lock screen has the same picture: KDE's locker draws the one its
+    // own settings name (kscreenlockerrc), so they are kept in step with
+    // ours, by the first screen's wallpaper.
+    function tellLocker() {
+        if (!first) return;
+        const color = wanted.startsWith("#");
+        const value = color
+            ? [1, 3, 5].map(at => parseInt(wanted.slice(at, at + 2), 16)).join(",")
+            : wanted;
+        // Qt's numbers for how a picture fills, as KDE's image wallpaper stores them.
+        Quickshell.execDetached(["sh", "-c",
+            'rc="--file kscreenlockerrc --group Greeter"; of="--group Wallpaper --group $1 --group General";'
+            + ' kwriteconfig6 $rc --key WallpaperPlugin "$1"'
+            + ' && kwriteconfig6 $rc $of --key "$2" "$3"'
+            + ' && { [ "$1" != org.kde.image ] || kwriteconfig6 $rc $of --key FillMode "$4"; }',
+            "sh", color ? "org.kde.color" : "org.kde.image", color ? "Color" : "Image", value, String(fill)]);
+    }
+    onFirstChanged: tellLocker()
+    onFillChanged: tellLocker()
+    Component.onCompleted: tellLocker()
 
     // The first screen has the desktop's icons, as a Mac's main display does.
     readonly property bool first: screen?.name === Quickshell.screens[0]?.name
