@@ -7,6 +7,7 @@ namespace Ambrosia
 {
 
 class Pulse;
+class Glass;
 
 class Style : public QProxyStyle
 {
@@ -30,6 +31,7 @@ public:
 
 private:
     Pulse *m_pulse;
+    Glass *m_glass;
 };
 
 } // namespace Ambrosia

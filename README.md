@@ -162,7 +162,8 @@ session/       the Ambrosia session: start script, systemd units, KWin and KDE d
 decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens;
                qml/ is a small QML module for our QML inside KWin (the blur behind ⌘Tab, apps' names)
 style/         the Qt widget style the session names: other apps' buttons, boxes, sliders and menus, over Breeze;
-               its gallery draws them all into a picture with no display (make gallery)
+               its gallery draws them all into a picture with no display (make gallery),
+               or opens them as a window to use (ambrosia-style-gallery --show)
 files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks (bench/)
                and tools/tenet.sh to build and photograph it on tenet
 settings/      Settings, Ambrosia's System Settings: Qt Quick window, C++ core, art

@@ -2,7 +2,8 @@
 // draws its own. Push buttons, checkboxes and radio buttons, text fields,
 // pop-up buttons and steppers, sliders, progress bars, scroll bars, menus
 // and tooltips, tabs, boxes, the rows and headers of lists, trees and
-// tables, toolbars and menu bars are painted here; everything else is the
+// tables, toolbars and menu bars, a combo box's list, dials, tool boxes, a
+// dock widget's title and the calendar are painted here; everything else is the
 // style underneath (Breeze on an Ambrosia system), so an app never meets a
 // control this doesn't know. Sizes and the colors a palette has no role for come from the
 // tokens; the accent, the text and the window come from the app's palette,
@@ -16,10 +17,14 @@
 #include <QAction>
 #include <QApplication>
 #include <QBasicTimer>
+#include <QCalendarWidget>
 #include <QComboBox>
+#include <QDate>
 #include <QElapsedTimer>
+#include <QEvent>
 #include <QHash>
 #include <QHeaderView>
+#include <QItemDelegate>
 #include <QKeySequence>
 #include <QLayout>
 #include <QListView>
@@ -33,9 +38,14 @@
 #include <QStyleFactory>
 #include <QStyleOption>
 #include <QTabBar>
+#include <QTextCharFormat>
 #include <QTabWidget>
 #include <QTreeView>
 #include <QtMath>
+
+#ifdef AMBROSIA_HAVE_KWINDOWSYSTEM
+#include <KWindowEffects>
+#endif
 
 namespace Ambrosia
 {
@@ -93,6 +103,47 @@ private:
     QList<QPointer<QProgressBar>> m_bars;
     QBasicTimer m_timer;
     QElapsedTimer m_clock;
+};
+
+// Has the compositor blur behind the lists that pop up from a combo box, so
+// they can be the glass a menu is (Breeze, underneath, asks for its menus
+// only). Where KWindowSystem isn't built in nothing is asked, and they are
+// solid.
+class Glass : public QObject
+{
+public:
+    using QObject::QObject;
+
+    static constexpr char marked[] = "_ambrosia_glass";
+
+    void watch(QWidget *window)
+    {
+#ifdef AMBROSIA_HAVE_KWINDOWSYSTEM
+        window->removeEventFilter(this);
+        window->installEventFilter(this);
+#else
+        Q_UNUSED(window)
+#endif
+    }
+
+protected:
+    bool eventFilter(QObject *object, QEvent *event) override
+    {
+#ifdef AMBROSIA_HAVE_KWINDOWSYSTEM
+        auto *window = qobject_cast<QWidget *>(object);
+        if (window && (event->type() == QEvent::Show || event->type() == QEvent::Resize) && window->testAttribute(Qt::WA_WState_Created)) {
+            window->winId();
+            // The panel's own shape, a pixel in from the window's edge.
+            QPainterPath shape;
+            shape.addRoundedRect(QRectF(window->rect()).adjusted(0.5, 0.5, -0.5, -0.5), Tokens::menuRadius, Tokens::menuRadius);
+            KWindowEffects::enableBlurBehind(window->windowHandle(), true, QRegion(shape.toFillPolygon().toPolygon()));
+            window->setProperty(marked, true);
+        }
+#else
+        Q_UNUSED(event)
+#endif
+        return QObject::eventFilter(object, event);
+    }
 };
 
 namespace
@@ -552,6 +603,138 @@ constexpr int headerArrow = 12;
 // The room a checkbox keeps round its box for the focus ring.
 constexpr int ringRoom = 2;
 
+// The combo box a popped-up list belongs to, when `container` is the window
+// Qt puts that list in.
+const QComboBox *comboOf(const QWidget *container)
+{
+    return container && container->inherits("QComboBoxPrivateContainer") ? qobject_cast<const QComboBox *>(container->parentWidget()) : nullptr;
+}
+
+// A menu's panel: glass where the compositor blurs behind it, solid where
+// not. (Not through Paint: a menu hands its panel over with no state at
+// all, which would dim it as a disabled control's.)
+void menuPanel(QPainter *painter, const QRect &rect, const T::Mode &m, const QWidget *widget, qreal glass)
+{
+    painter->save();
+    QColor ground = color(m.menu);
+    if (widget && widget->isWindow() && widget->testAttribute(Qt::WA_TranslucentBackground)) {
+        if (comboOf(widget)) {
+            // Breeze has painted a frame of its own under a combo's list.
+            painter->setCompositionMode(QPainter::CompositionMode_Source);
+            painter->fillRect(rect, Qt::transparent);
+            painter->setCompositionMode(QPainter::CompositionMode_SourceOver);
+            if (widget->property(Glass::marked).toBool()) {
+                ground.setAlphaF(glass);
+            }
+        } else {
+            ground.setAlphaF(glass);
+        }
+    }
+    painter->setRenderHint(QPainter::Antialiasing);
+    painter->setBrush(ground);
+    painter->setPen(QPen(color(m.menuRim), 1));
+    painter->drawRoundedRect(QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5), T::menuRadius, T::menuRadius);
+    painter->restore();
+}
+
+// The rows of the list a combo box you can type in drops: a menu's rows, the
+// one under the pointer on the accent color.
+class ComboRows : public QItemDelegate
+{
+public:
+    using QItemDelegate::QItemDelegate;
+
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        const T::Mode &m = mode(option.palette);
+        const bool usable = (option.state & QStyle::State_Enabled) && (index.flags() & Qt::ItemIsEnabled);
+        const bool lit = (option.state & QStyle::State_Selected) && usable;
+        painter->save();
+        painter->setRenderHint(QPainter::Antialiasing);
+        const QRectF r = option.rect;
+        if (lit) {
+            fill(painter, r, T::menuRowRadius, option.palette.color(QPalette::Active, QPalette::Highlight));
+        }
+        qreal x = r.left() + T::menuRowPadding;
+        const QIcon icon = qvariant_cast<QIcon>(index.data(Qt::DecorationRole));
+        if (!icon.isNull()) {
+            const QRectF slot(x, r.center().y() + 0.5 - T::menuIcon / 2, T::menuIcon, T::menuIcon);
+            icon.paint(painter, slot.toRect(), Qt::AlignCenter, !usable ? QIcon::Disabled : lit ? QIcon::Selected : QIcon::Normal);
+            x += T::menuIcon + T::menuGap;
+        }
+        painter->setFont(option.font);
+        painter->setPen(lit ? option.palette.color(QPalette::Active, QPalette::HighlightedText) : usable ? option.palette.color(QPalette::Active, QPalette::Text) : color(m.textTertiary));
+        const qreal width = r.right() + 1 - T::menuRowPadding - x;
+        painter->drawText(QRectF(x, r.top(), width, r.height()), Qt::AlignVCenter | Qt::AlignLeft | Qt::TextSingleLine,
+                          option.fontMetrics.elidedText(index.data(Qt::DisplayRole).toString(), Qt::ElideRight, int(width)));
+        painter->restore();
+    }
+
+    QSize sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const override
+    {
+        int width = option.fontMetrics.horizontalAdvance(index.data(Qt::DisplayRole).toString()) + 2 * T::menuRowPadding;
+        if (!qvariant_cast<QIcon>(index.data(Qt::DecorationRole)).isNull()) {
+            width += T::menuIcon + T::menuGap;
+        }
+        return QSize(width, qMax<int>(option.fontMetrics.height() + 4, T::menuRow));
+    }
+};
+
+// The calendar a table of days belongs to, when `view` is that table.
+const QCalendarWidget *calendarOf(const QWidget *view)
+{
+    if (!view || view->objectName() != QLatin1String("qt_calendar_calendarview")) {
+        return nullptr;
+    }
+    return qobject_cast<const QCalendarWidget *>(view->parentWidget());
+}
+
+// A cell of the calendar's table that names a weekday or numbers a week.
+bool calendarHeading(const QCalendarWidget *calendar, const QModelIndex &index)
+{
+    return (calendar->horizontalHeaderFormat() != QCalendarWidget::NoHorizontalHeader && index.row() == 0)
+        || (calendar->verticalHeaderFormat() != QCalendarWidget::NoVerticalHeader && index.column() == 0);
+}
+
+// Whether a cell of the calendar's table is today's. The table shows six
+// weeks: a day past the first week in the top one is last month's, and one
+// from a month's start in the bottom two is next month's.
+bool calendarToday(const QCalendarWidget *calendar, const QModelIndex &index)
+{
+    if (calendarHeading(calendar, index)) {
+        return false;
+    }
+    const QDate today = QDate::currentDate();
+    const QCalendar system = calendar->calendar();
+    if (calendar->yearShown() != today.year(system) || calendar->monthShown() != today.month(system)) {
+        return false;
+    }
+    const int day = index.data(Qt::DisplayRole).toInt();
+    const int week = index.row() - (calendar->horizontalHeaderFormat() != QCalendarWidget::NoHorizontalHeader ? 1 : 0);
+    if ((week == 0 && day > 7) || (week >= 4 && day < 15)) {
+        return false;
+    }
+    return day == today.day(system);
+}
+
+// One of the buttons over the calendar's days: back, on, the month, the year.
+bool calendarButton(const QWidget *widget)
+{
+    return widget && widget->parentWidget() && widget->parentWidget()->objectName() == QLatin1String("qt_calendar_navigationbar");
+}
+
+// The angle a dial's mark is at for a place along its range, as Qt turns
+// the pointer into a value: a gap at the bottom unless the dial wraps round.
+qreal dialAngle(const QStyleOptionSlider *dial, int position)
+{
+    const int along = dial->upsideDown ? position : dial->maximum - position;
+    if (dial->maximum == dial->minimum) {
+        return M_PI / 2;
+    }
+    const qreal share = qreal(along - dial->minimum) / (dial->maximum - dial->minimum);
+    return dial->dialWrapping ? M_PI * 3 / 2 - share * 2 * M_PI : (M_PI * 8 - share * 10 * M_PI) / 6;
+}
+
 bool isDefaultButton(const QStyleOptionButton *button)
 {
     return (button->features & QStyleOptionButton::DefaultButton) && (button->state & QStyle::State_Active) && enabled(button);
@@ -568,40 +751,64 @@ bool titledWithIcon(const QStyleOptionButton *button)
 Style::Style(const QString &base)
     : QProxyStyle(styleUnderneath(base))
     , m_pulse(new Pulse(this))
+    , m_glass(new Glass(this))
 {
     setObjectName(QStringLiteral("ambrosia"));
 }
 
 void Style::polish(QWidget *widget)
 {
+    // The list of a combo you can type in gets rows of ours in place of
+    // Qt's, before the style underneath sees it: Breeze would put its own
+    // there, and those can't be told from an app's, which are left alone.
+    if (auto *combo = qobject_cast<QComboBox *>(widget); combo && combo->isEditable() && combo->view() && combo->view()->itemDelegate()) {
+        if (qstrcmp(combo->view()->itemDelegate()->metaObject()->className(), "QComboBoxDelegate") == 0) {
+            combo->view()->setItemDelegate(new ComboRows(combo->view()));
+        }
+    }
     QProxyStyle::polish(widget);
     // Round corners need a window that isn't filled first.
     if (qobject_cast<QMenu *>(widget) || widget->inherits("QTipLabel")) {
         widget->setAttribute(Qt::WA_TranslucentBackground);
     }
-    if (widget->inherits("QScrollBar") || widget->inherits("QAbstractSlider") || qobject_cast<QTabBar *>(widget)) {
+    if (widget->inherits("QScrollBar") || widget->inherits("QAbstractSlider") || qobject_cast<QTabBar *>(widget) || widget->inherits("QDockWidgetTitleButton")
+        || widget->inherits("QToolBoxButton")) {
         widget->setAttribute(Qt::WA_Hover);
     }
     if (auto *bar = qobject_cast<QProgressBar *>(widget)) {
         m_pulse->watch(bar);
     }
-    // A pop-up button's list is a menu: round, and the menu's color behind
-    // its rows rather than a list's white.
+    // A combo's list is a menu: round, and the menu's color behind its rows
+    // rather than a list's white.
     const QWidget *parent = widget->parentWidget();
-    const auto popsUp = [](const QWidget *container) {
-        const auto *combo = container && container->inherits("QComboBoxPrivateContainer") ? qobject_cast<const QComboBox *>(container->parentWidget()) : nullptr;
-        return combo && !combo->isEditable();
-    };
-    if (popsUp(widget)) {
+    if (const QComboBox *combo = comboOf(widget)) {
         widget->setAttribute(Qt::WA_TranslucentBackground);
-        // Qt fills each row from edge to edge before it is drawn: kept a
-        // pixel in, the rows leave the panel's rim alone.
-        if (widget->layout()) {
+        m_glass->watch(widget);
+        // Qt fills each row of a pop-up button's list from edge to edge
+        // before it is drawn: kept a pixel in, the rows leave the panel's
+        // rim alone. (The list of a combo to type in has the panel's margin
+        // round it: SE_ShapedFrameContents.)
+        if (widget->layout() && !combo->isEditable()) {
             widget->layout()->setContentsMargins(1, 0, 1, 0);
         }
     }
-    if (auto *view = qobject_cast<QAbstractItemView *>(widget); view && popsUp(parent)) {
+    if (auto *view = qobject_cast<QAbstractItemView *>(widget); view && comboOf(parent)) {
         view->viewport()->setAutoFillBackground(false);
+    }
+    // The calendar is one sheet: the bar over its days isn't a band of the
+    // accent color, and the weekend isn't in red (where that is still Qt's
+    // doing and not the app's).
+    if (widget->objectName() == QLatin1String("qt_calendar_navigationbar")) {
+        widget->setBackgroundRole(QPalette::Base);
+    }
+    if (auto *calendar = qobject_cast<QCalendarWidget *>(widget)) {
+        for (const Qt::DayOfWeek day : {Qt::Saturday, Qt::Sunday}) {
+            QTextCharFormat format = calendar->weekdayTextFormat(day);
+            if (format.foreground() == QBrush(Qt::red)) {
+                format.clearForeground();
+                calendar->setWeekdayTextFormat(day, format);
+            }
+        }
     }
 }
 
@@ -701,8 +908,12 @@ int Style::styleHint(StyleHint hint, const QStyleOption *option, const QWidget *
         if (combo && !combo->editable) {
             return 0; // QFrame::NoFrame
         }
-        break;
+        // A list dropped from a combo to type in: a frame, which is where
+        // its panel is drawn (CE_ShapedFrame).
+        return 0x0006 | 0x0010; // QFrame::StyledPanel | QFrame::Plain
     }
+    case SH_DockWidget_ButtonsHaveFrame:
+        return false;
     // A tab view's tabs sit in the middle of its top edge; a window's own
     // start at the left and close from the left.
     case SH_TabBar_Alignment: {
@@ -919,6 +1130,14 @@ QRect Style::subElementRect(SubElement element, const QStyleOption *option, cons
         const int arrow = header->sortIndicator != QStyleOptionHeader::None ? headerArrow : 0;
         return visualRect(header->direction, header->rect, header->rect.adjusted(headerPadding, 0, -headerPadding - arrow, 0));
     }
+    case SE_ShapedFrameContents:
+        // The list a combo to type in drops keeps a menu's margin from its
+        // panel's edge.
+        if (const QComboBox *combo = comboOf(widget); combo && combo->isEditable()) {
+            const int margin = T::menuMargin;
+            return option->rect.adjusted(margin, margin, -margin, -margin);
+        }
+        break;
     case SE_HeaderArrow:
         return visualRect(option->direction, option->rect, QRect(option->rect.right() + 1 - headerPadding - headerArrow, option->rect.top(), headerArrow, option->rect.height()));
     default:
@@ -1107,6 +1326,17 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
         if (!item) {
             break;
         }
+        if (calendarOf(widget)) {
+            // A day of the calendar: the chosen one on a disc.
+            if (item->state & State_Selected) {
+                Paint paint(painter, item);
+                const QRectF r = item->rect;
+                const qreal across = qMin<qreal>(qMin(r.width(), r.height()) - 2, T::rowHeight + 4);
+                painter->setBrush(emphasized(item, widget) ? accent(item) : color(m.rowUnfocused));
+                painter->drawEllipse(QRectF(r.center().x() + 0.5 - across / 2, r.center().y() + 0.5 - across / 2, across, across));
+            }
+            return;
+        }
         painter->save();
         if (item->backgroundBrush.style() != Qt::NoBrush) {
             painter->setBrushOrigin(item->rect.topLeft());
@@ -1167,23 +1397,9 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
     case PE_IndicatorDockWidgetResizeHandle:
         hairline(painter, option->rect, option->rect.width() > option->rect.height(), color(m.separator));
         return;
-    case PE_PanelMenu: {
-        // (Not through Paint: a menu hands its panel over with no state at
-        // all, which would dim it as a disabled control's.)
-        painter->save();
-        painter->setRenderHint(QPainter::Antialiasing);
-        const QRectF r = QRectF(option->rect).adjusted(0.5, 0.5, -0.5, -0.5);
-        QColor panel = color(m.menu);
-        // Glass where the compositor blurs behind it, solid where not.
-        if (widget && widget->isWindow() && widget->testAttribute(Qt::WA_TranslucentBackground)) {
-            panel.setAlphaF(blurredMenuOpacity(baseStyle()));
-        }
-        painter->setBrush(panel);
-        painter->setPen(QPen(color(m.menuRim), 1));
-        painter->drawRoundedRect(r, T::menuRadius, T::menuRadius);
-        painter->restore();
+    case PE_PanelMenu:
+        menuPanel(painter, option->rect, m, widget, blurredMenuOpacity(baseStyle()));
         return;
-    }
     case PE_FrameMenu:
         return;
     case PE_PanelTipLabel: {
@@ -1230,8 +1446,12 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
         // The default button's title is in the accent's own text color, and
         // a button with a title has no picture beside it (KDE's apps give
         // theirs one whatever SH_DialogButtonBox_ButtonsHaveIcons says).
+        // A button with a menu has its arrow already (CE_PushButtonBevel):
+        // the title is set in the room beside it, and the style underneath
+        // isn't told of the menu, or Breeze draws an arrow of its own.
         const auto *button = qstyleoption_cast<const QStyleOptionButton *>(option);
-        if (button && (isDefaultButton(button) || titledWithIcon(button))) {
+        const bool hasMenu = button && (button->features & QStyleOptionButton::HasMenu);
+        if (button && (isDefaultButton(button) || titledWithIcon(button) || hasMenu)) {
             QStyleOptionButton copy(*button);
             if (isDefaultButton(button)) {
                 copy.palette.setColor(QPalette::ButtonText, accentText(option));
@@ -1239,10 +1459,32 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
             if (titledWithIcon(button)) {
                 copy.icon = QIcon();
             }
+            if (hasMenu) {
+                copy.features.setFlag(QStyleOptionButton::HasMenu, false);
+                copy.rect = visualRect(button->direction, button->rect, button->rect.adjusted(0, 0, -int(T::arrowsWidth - T::pushPadding / 2), 0));
+            }
             QProxyStyle::drawControl(element, &copy, painter, widget);
             return;
         }
         break;
+    }
+    case CE_ProgressBar: {
+        // Put together here, piece by piece: Breeze draws its own track and
+        // its own lit part without asking for ours.
+        const auto *bar = qstyleoption_cast<const QStyleOptionProgressBar *>(option);
+        if (!bar) {
+            break;
+        }
+        QStyleOptionProgressBar part(*bar);
+        part.rect = subElementRect(SE_ProgressBarGroove, bar, widget);
+        drawControl(CE_ProgressBarGroove, &part, painter, widget);
+        part.rect = subElementRect(SE_ProgressBarContents, bar, widget);
+        drawControl(CE_ProgressBarContents, &part, painter, widget);
+        if (bar->textVisible && bar->minimum != bar->maximum) {
+            part.rect = subElementRect(SE_ProgressBarLabel, bar, widget);
+            drawControl(CE_ProgressBarLabel, &part, painter, widget);
+        }
+        return;
     }
     case CE_ProgressBarGroove: {
         Paint paint(painter, option);
@@ -1452,6 +1694,33 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
         // Where the keyboard isn't, a chosen row is gray and its text stays
         // the color it was.
         const auto *item = qstyleoption_cast<const QStyleOptionViewItem *>(option);
+        if (const QCalendarWidget *calendar = item ? calendarOf(widget) : nullptr) {
+            // The calendar's days on its own sheet: the weekdays' names small
+            // and quiet over them, today in the accent color, the chosen day
+            // on its disc (PE_PanelItemViewItem).
+            QStyleOptionViewItem copy(*item);
+            copy.backgroundBrush = Qt::NoBrush;
+            const auto ink = [&copy](QPalette::ColorRole role, const QColor &c) {
+                for (const auto group : {QPalette::Active, QPalette::Inactive, QPalette::Disabled}) {
+                    copy.palette.setColor(group, role, c);
+                }
+            };
+            if (calendarHeading(calendar, item->index)) {
+                copy.state.setFlag(State_Selected, false);
+                copy.font = smaller(item->font);
+                copy.fontMetrics = QFontMetrics(copy.font);
+                ink(QPalette::Text, color(m.textSecondary));
+            } else if (!(item->state & State_Selected)) {
+                if (calendarToday(calendar, item->index)) {
+                    copy.font.setBold(true);
+                    ink(QPalette::Text, accent(item));
+                }
+            } else if (!emphasized(item, widget)) {
+                ink(QPalette::HighlightedText, item->palette.color(QPalette::Active, QPalette::Text));
+            }
+            QProxyStyle::drawControl(element, &copy, painter, widget);
+            return;
+        }
         if (item && (item->state & State_Selected) && !emphasized(item, widget)) {
             QStyleOptionViewItem copy(*item);
             for (const auto group : {QPalette::Active, QPalette::Inactive, QPalette::Disabled}) {
@@ -1462,6 +1731,59 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
             return;
         }
         break;
+    }
+    case CE_ShapedFrame:
+        // The window round the list a combo to type in drops is a menu's panel.
+        if (const QComboBox *combo = comboOf(widget); combo && combo->isEditable()) {
+            menuPanel(painter, option->rect, m, widget, blurredMenuOpacity(baseStyle()));
+            return;
+        }
+        break;
+    case CE_ToolBoxTab: {
+        // A tool box's tab is a heading that opens what is under it: an
+        // arrow, down while it is open, and its title in bold.
+        const auto *tab = qstyleoption_cast<const QStyleOptionToolBox *>(option);
+        if (!tab) {
+            break;
+        }
+        Paint paint(painter, option);
+        const QRectF r = tab->rect;
+        const bool rightToLeft = tab->direction == Qt::RightToLeft;
+        if (tab->position != QStyleOptionToolBox::Beginning && tab->position != QStyleOptionToolBox::OnlyOneTab) {
+            painter->fillRect(QRectF(r.left(), r.top(), r.width(), 1), color(m.separator));
+        }
+        const Qt::ArrowType arrow = tab->state & State_Selected ? Qt::DownArrow : rightToLeft ? Qt::LeftArrow : Qt::RightArrow;
+        chevron(painter, QRectF(rightToLeft ? r.right() + 1 - 20 : r.left() + 4, r.top(), 16, r.height()), arrow, color(m.textSecondary), 3.5);
+        QRectF title = r.adjusted(rightToLeft ? 6 : 24, 0, rightToLeft ? -24 : -6, 0);
+        if (!tab->icon.isNull()) {
+            const QRectF slot(rightToLeft ? title.right() - T::menuIcon : title.left(), r.center().y() + 0.5 - T::menuIcon / 2, T::menuIcon, T::menuIcon);
+            tab->icon.paint(painter, slot.toRect(), Qt::AlignCenter, enabled(tab) ? QIcon::Normal : QIcon::Disabled);
+            title.adjust(rightToLeft ? 0 : T::menuIcon + T::menuGap, 0, rightToLeft ? -(T::menuIcon + T::menuGap) : 0, 0);
+        }
+        QFont bold = painter->font();
+        bold.setBold(true);
+        painter->setFont(bold);
+        painter->setPen(tab->palette.color(QPalette::Active, QPalette::WindowText));
+        painter->drawText(title, int(Qt::AlignVCenter | visualAlignment(tab->direction, Qt::AlignLeft)) | Qt::TextSingleLine | Qt::TextHideMnemonic,
+                          QFontMetrics(bold).elidedText(tab->text, Qt::ElideRight, int(title.width()), Qt::TextHideMnemonic));
+        return;
+    }
+    case CE_DockWidgetTitle: {
+        // A panel's name over it: small, bold and quiet, as the heading of
+        // a Mac's inspector is.
+        const auto *dock = qstyleoption_cast<const QStyleOptionDockWidget *>(option);
+        if (!dock || dock->verticalTitleBar) {
+            break;
+        }
+        Paint paint(painter, option);
+        const QRect title = subElementRect(SE_DockWidgetTitleBarText, option, widget);
+        QFont font = smaller(painter->font());
+        font.setBold(true);
+        painter->setFont(font);
+        painter->setPen(color(m.textSecondary));
+        painter->drawText(title, int(Qt::AlignVCenter | visualAlignment(dock->direction, Qt::AlignLeft)) | Qt::TextSingleLine | Qt::TextHideMnemonic,
+                          QFontMetrics(font).elidedText(dock->title, Qt::ElideRight, title.width(), Qt::TextHideMnemonic));
+        return;
     }
     case CE_MenuItem: {
         const auto *item = qstyleoption_cast<const QStyleOptionMenuItem *>(option);
@@ -1836,6 +2158,99 @@ void Style::drawComplexControl(ComplexControl control, const QStyleOptionComplex
             if (ringed(option)) {
                 ring(painter, knob, round, option);
             }
+        }
+        return;
+    }
+    case CC_ToolButton: {
+        // The small buttons of a dock widget's title and of the calendar:
+        // a glyph or a word, on a face while the pointer is on it.
+        const bool onDock = widget && widget->inherits("QDockWidgetTitleButton");
+        const auto *button = qstyleoption_cast<const QStyleOptionToolButton *>(option);
+        if (!button || !(onDock || calendarButton(widget))) {
+            break;
+        }
+        Paint paint(painter, option);
+        const QRectF r = option->rect;
+        if (option->state & (State_Sunken | State_On)) {
+            fill(painter, r, T::toolRadius, color(m.facePressed));
+        } else if ((option->state & State_MouseOver) && enabled(option)) {
+            fill(painter, r, T::toolRadius, color(m.face));
+        }
+        const QString name = widget->objectName();
+        if (onDock) {
+            const QPointF c(r.center().x() + 0.5, r.center().y() + 0.5);
+            painter->setBrush(Qt::NoBrush);
+            painter->setPen(QPen(color(m.textSecondary), 1.3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
+            if (name == QLatin1String("qt_dockwidget_closebutton")) {
+                painter->drawLine(QPointF(c.x() - 3, c.y() - 3), QPointF(c.x() + 3, c.y() + 3));
+                painter->drawLine(QPointF(c.x() + 3, c.y() - 3), QPointF(c.x() - 3, c.y() + 3));
+            } else {
+                // To lift it out of the window: one pane off another.
+                painter->drawRoundedRect(QRectF(c.x() - 4.5, c.y() - 1.5, 6, 6), 1, 1);
+                QPainterPath behind;
+                behind.moveTo(c.x() - 1.5, c.y() - 3.5);
+                behind.lineTo(c.x() - 1.5, c.y() - 4.5);
+                behind.lineTo(c.x() + 4.5, c.y() - 4.5);
+                behind.lineTo(c.x() + 4.5, c.y() + 1.5);
+                behind.lineTo(c.x() + 3.5, c.y() + 1.5);
+                painter->drawPath(behind);
+            }
+            return;
+        }
+        const QColor ink = option->palette.color(QPalette::Active, QPalette::Text);
+        if (name == QLatin1String("qt_calendar_prevmonth") || name == QLatin1String("qt_calendar_nextmonth")) {
+            const bool back = (name == QLatin1String("qt_calendar_prevmonth")) != (option->direction == Qt::RightToLeft);
+            chevron(painter, r, back ? Qt::LeftArrow : Qt::RightArrow, ink, 3.5);
+            return;
+        }
+        painter->setFont(button->font);
+        painter->setPen(ink);
+        painter->drawText(r, Qt::AlignCenter | Qt::TextSingleLine, button->text);
+        return;
+    }
+    case CC_Dial: {
+        // A round knob with a dot at where it is turned to; dots round it
+        // where the dial shows its steps.
+        const auto *dial = qstyleoption_cast<const QStyleOptionSlider *>(option);
+        if (!dial) {
+            break;
+        }
+        Paint paint(painter, option);
+        const QRectF r = option->rect;
+        const bool stepped = (dial->subControls & SC_DialTickmarks) && dial->tickPosition != QSlider::NoTicks && dial->tickInterval > 0;
+        const qreal across = qMin<qreal>(qMin(r.width(), r.height()) - (stepped ? 16 : 6), 64);
+        if (across < 8) {
+            return;
+        }
+        const QPointF c(r.center().x() + 0.5, r.center().y() + 0.5);
+        const qreal reach = across / 2;
+        const auto at = [&](int position, qreal length) {
+            const qreal a = dialAngle(dial, position);
+            return QPointF(c.x() + length * qCos(a), c.y() - length * qSin(a));
+        };
+        if (stepped && dial->maximum > dial->minimum) {
+            painter->setBrush(color(m.textTertiary));
+            // No more dots than can be told apart.
+            int step = dial->tickInterval;
+            while ((dial->maximum - dial->minimum) / step > 48) {
+                step *= 2;
+            }
+            const int last = dial->dialWrapping ? dial->maximum - 1 : dial->maximum;
+            for (int v = dial->minimum; v <= last; v += step) {
+                painter->drawEllipse(at(v, reach + 5), 1, 1);
+            }
+        }
+        painter->setBrush(QColor(0, 0, 0, 22));
+        painter->drawEllipse(QPointF(c.x(), c.y() + 1), reach + 1, reach + 1);
+        painter->setBrush(QColor(0, 0, 0, 30));
+        painter->drawEllipse(QPointF(c.x(), c.y() + 0.5), reach + 0.5, reach + 0.5);
+        painter->setBrush(color(m.knob));
+        painter->drawEllipse(c, reach, reach);
+        const qreal dot = qMax(1.5, across * 0.055);
+        painter->setBrush(enabled(option) && (option->state & State_Sunken) ? accent(option) : color(mode(option->palette).textSecondary));
+        painter->drawEllipse(at(dial->sliderPosition, reach - dot - qMax(3.0, across * 0.09)), dot, dot);
+        if (ringed(option)) {
+            ring(painter, QRectF(c.x() - reach, c.y() - reach, across, across), reach, option);
         }
         return;
     }

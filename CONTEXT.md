@@ -219,9 +219,20 @@ package repo below), and they carry `shell/` and `session/` as they are.
    to edge even where a view's own delegate draws it (the file dialog
    calls `PE_PanelItemViewItem` directly). A push button with a title
    draws no picture (KDE's apps set one whatever the style hint says).
-   Not drawn yet: the editable combo's list, dock widgets' title bars, tool
-   boxes, dials, the calendar, scroll bars that hide (a Mac with a mouse
-   shows them always, as ours do).
+   Round 21 (2026-11-23) drew the rest: the list a combo to type in
+   drops, dials, tool boxes, a dock widget's title and the calendar, and
+   asks KWin itself to blur behind a combo's list (KWindowSystem, when
+   it is there to build against; Breeze only asks for menus). **Breeze
+   doesn't always ask the style on top:** it paints a progress bar's
+   pieces and a menu button's arrow by calling itself, and gives a combo's
+   list rows of its own when the combo is polished, so those three are
+   put together in ours (`CE_ProgressBar`, `CE_PushButtonLabel`, the rows
+   swapped in before Breeze's polish). The picture `make gallery` draws
+   has no hover and no real popup: `ambrosia-style-gallery --show` opens
+   the same controls as a window (on tenet: `tools/live.sh run
+   ~/work/ambrosia/out/build/style/ambrosia-style-gallery --show`), which
+   is how the progress bars were caught. Not drawn: scroll bars that hide
+   (a Mac with a mouse shows them always, as ours do).
    **The volume and brightness keys have a display** (round 5, 2026-11-18,
    `shell/Hud.qml` and `HudPanel.qml`): a glass capsule under the menu
    bar's right end with a glyph and a level, or the name of the output
