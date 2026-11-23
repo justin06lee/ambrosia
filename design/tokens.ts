@@ -101,6 +101,12 @@ export const size = {
    *  and how small icons may get when there are many. By eye from macOS 26,
    *  not measured yet. */
   switcher: { icon: 104, pad: 10, margin: 14, label: 26, minimum: 40 },
+  /** Mission Control: the spaces bar while it shows names only (`bar`), a
+   *  space's picture once it is opened (`space`, its height) and the room
+   *  round it, the ring round the window the pointer is on, and the capsule
+   *  with a window's name under it (`label`, `gap` below the window). By eye
+   *  from macOS 26, not measured yet. */
+  mission: { bar: 40, space: 96, pad: 12, ring: 4, label: 28, gap: 10 },
   // macOS 26: a titled window's bar is 32, a toolbar 52. The controls sit
   // centered in either, as far from the left edge as from the top.
   titlebar: { height: 32, toolbar: 52 },

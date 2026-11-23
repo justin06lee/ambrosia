@@ -20,8 +20,9 @@ remapped and nothing else here runs.
   the same reason, as do the menus inside Qt apps (the widget style,
   `macShortcut` in `style/src/style.cpp`), and Files binds `Ctrl` where
   Finder has ⌘.
-- **Ctrl, Shift and the right Alt (AltGr) are untouched.** `Ctrl+C` still
-  interrupts in a terminal.
+- **Ctrl, Shift and the right Alt (AltGr) are untouched,** but for Ctrl
+  with an arrow, which is the desktop's as on a Mac (⌃↑ Mission Control;
+  the table has the four). `Ctrl+C` still interrupts in a terminal.
 - **What ⌘ does that isn't Ctrl is written out** in `/etc/keyd/ambrosia.conf`
   (the layers) and `/usr/share/keyd/ambrosia/` (the system's shortcuts, which
   every layer includes). The tables below are those files.
@@ -47,6 +48,8 @@ Everywhere:
 | ⌘` , ⇧⌘` | the app's next window, and the one before | Alt+` |
 | ⌘M | minimize the window | Super+PgDn (KWin's Minimize) |
 | ⌘H, ⌥⌘H | hide the app in front, every window of it at once and with no motion; hide every other app. They come back the same way when the app does (the Dock, ⌘Tab), or with the app menu's Show All | Super+Ctrl+Alt+H, Super+Ctrl+Alt+Shift+H (the session's KWin effect, `ambrosia_windows`, holds both) |
+| ⌃↑, ⌃↓ | Mission Control: this desktop's windows spread out under a strip of the desktops; the front app's windows spread out, minimized ones too. The same key, Esc or a click beside the windows leaves; ← → ↑ ↓ and Return choose a window | Super+Ctrl+Alt+↑, Super+Ctrl+Alt+↓ (the session's KWin effect, `ambrosia_mission`, holds both) |
+| ⌃←, ⌃→ | the desktop to the left, to the right | Super+Ctrl+←, Super+Ctrl+→ (KWin's own) |
 | ⇧⌘3, ⇧⌘4 | picture of the screen, of a part dragged out: saved to the Desktop, its thumbnail in the screen's corner for a moment | Super+Ctrl+Alt+3, Super+Ctrl+Alt+4 (`session/org.ambrosia.screenshot*.desktop`) |
 | ⇧⌘5 | the screenshot tool | Print (Spectacle) |
 | ⇧⌘[ , ⇧⌘] | the tab before, the tab after | Ctrl+PgUp, Ctrl+PgDn |
@@ -163,3 +166,7 @@ On tenet's own session (2026-11-23), keyd switched on for the test: ⌘H
 hid Kate and ⌥⌘H every other app, pressed on a virtual keyboard keyd took
 for one. Not pressed there: ⌥⌘Esc and the `quit` layer's ⌘Q, whose chords
 the session takes up from their desktop files at the next login.
+
+Also there (2026-11-23), keyd on for the test again: ⌃↑ opened Mission
+Control and closed it, ⌃↓ spread Konsole's windows, ⌃→ and ⌃← went to a
+second desktop and back.

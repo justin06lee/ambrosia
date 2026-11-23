@@ -119,6 +119,22 @@ Singleton {
     function showAll() {
         kwin("Ambrosia Show All");
     }
+    // Mission Control, and an app's windows spread out with the rest put
+    // away: our KWin effect's too (session/kwin-effects/ambrosia_mission).
+    // It spreads the windows of whichever app is in front, so the app
+    // comes forward first.
+    function missionControl() {
+        kwin("Ambrosia Mission Control");
+    }
+    function showWindows(row) {
+        activate(row);
+        spread.restart();
+    }
+    Timer {
+        id: spread
+        interval: 250
+        onTriggered: apps.kwin("Ambrosia App Windows")
+    }
     // Quits the app: asks each of its windows to close.
     function quit(row) {
         tasksModel.requestClose(tasksModel.makeModelIndex(row));

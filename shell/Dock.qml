@@ -229,6 +229,7 @@ PanelWindow {
                         }
                         if (appItem.running) {
                             items.push({ separator: true });
+                            items.push({ text: "Show All Windows", action: () => Apps.showWindows(row) });
                             items.push({ text: "Quit", action: () => Apps.quit(row) });
                         }
                         dock.openMenu(appItem, items);

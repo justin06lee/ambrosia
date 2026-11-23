@@ -1,0 +1,12 @@
+{
+    "KPackageStructure": "KWin/Effect",
+    "KPlugin": {
+        "Category": "Window Management",
+        "Description": "Every window spread out under a strip of the desktops, or one app's windows, as on a Mac",
+        "EnabledByDefault": false,
+        "Id": "ambrosia_mission",
+        "License": "MIT",
+        "Name": "Ambrosia Mission Control"
+    },
+    "X-Plasma-API": "declarativescript"
+}
