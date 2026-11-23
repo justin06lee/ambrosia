@@ -151,6 +151,11 @@ package_ambrosia-shell() {
   # -L: the window switcher borrows the shell's Glass and Label by symlink.
   cp -rL session/look-and-feel/. "$pkgdir/usr/share/plasma/look-and-feel/"
   # KWin effects of ours, off unless the session's kwinrc asks for them.
+  # The lock screen: a Plasma shell package KDE's locker takes its QML from
+  # (the session's plasmashellrc names it). -L: it is the login screen's own
+  # file, by a link.
+  install -d "$pkgdir/usr/share/plasma/shells"
+  cp -rL session/plasma-shell/. "$pkgdir/usr/share/plasma/shells/"
   install -d "$pkgdir/usr/share/kwin/effects"
   # -L: Mission Control shares the shell's Label.qml by a link.
   cp -rL session/kwin-effects/. "$pkgdir/usr/share/kwin/effects/"
@@ -159,7 +164,8 @@ package_ambrosia-shell() {
   # The preview of where a dragged window will tile (kwinrc's [Outline]).
   install -Dm644 session/kwin-outline/outline.qml -t "$pkgdir/usr/share/kwin/outline/ambrosia/"
   install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/kwinrulesrc session/xdg/breezerc session/xdg/mimeapps.list \
-    session/xdg/kcminputrc session/xdg/konsolerc session/xdg/klaunchrc -t "$pkgdir/etc/xdg/ambrosia/"
+    session/xdg/kcminputrc session/xdg/konsolerc session/xdg/klaunchrc session/xdg/plasmashellrc \
+    -t "$pkgdir/etc/xdg/ambrosia/"
   # Konsole's profile and key table for the session (konsolerc names the
   # profile): Command chords Konsole has no use for don't reach the shell.
   install -Dm644 session/konsole/Ambrosia.profile session/konsole/ambrosia.keytab -t "$pkgdir/usr/share/konsole/"

@@ -1,0 +1,6 @@
+# Ambrosia session defaults for what reads Plasma's shell package. Plasma's
+# own shell doesn't run here; KDE's screen locker does, and takes its lock
+# screen from the package named here (session/plasma-shell: ours, the login
+# screen's picture). What ours lacks comes from Plasma's own package.
+[Shell]
+ShellPackage=org.ambrosia.desktop

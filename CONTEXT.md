@@ -361,6 +361,31 @@ package repo below), and they carry `shell/` and `session/` as they are.
    pictures answer the two commands through `Quickshell.shotRun` (sheet
    `desktop-icons`; HOME there is `/home/ada`, so the Mac's own Desktop
    is never read).
+   **The lock screen is the login screen's file** (round 27): KDE's
+   locker (`kscreenlocker_greet`, started by KWin at each lock) loads
+   `contents/lockscreen/LockScreen.qml` from the Plasma shell package
+   that `plasmashellrc`'s `[Shell] ShellPackage` names (the session's is
+   `/etc/xdg/ambrosia/plasmashellrc`; ours is `session/plasma-shell/
+   org.ambrosia.desktop`, and what a package lacks comes from Plasma's).
+   `LockScreen.qml` has ids named `sddm`, `userModel`, `sessionModel`,
+   `keyboard` and `config`, which `Login.qml` (a link to
+   `packaging/sddm-theme/Main.qml`) finds as SDDM's: a change to that
+   file changes both screens, so look at both. The locker's
+   `authenticator.respond(password)` drops a password PAM hasn't asked
+   for yet: ours keeps `startAuthenticating()` going once a second and
+   holds a password typed early until `promptForSecretChanged`. The
+   picture behind is the locker's own doing, from `kscreenlockerrc`
+   (`[Greeter][Wallpaper][org.kde.image][General] Image`), which
+   `shell/Wallpaper.qml` writes. **To look at it without locking**:
+   `/usr/lib/kscreenlocker_greet --testing --shell org.ambrosia.desktop`
+   (it covers the screen and takes the keyboard all the same; end it
+   with `pkill -x kscreenlocker_g`, never `pkill -f`, which matches the
+   shell that runs it). **To try a real lock where the password is
+   known**: `tools/vm-try.sh` on tenet as root (user `test`, password
+   `ambrosia`; `loginctl lock-session`, type, `loginctl show-session
+   -p LockedHint`). A lock screen that loads and doesn't unlock keeps
+   its user out: `loginctl unlock-session <id>` from SSH or a console
+   lets in.
    **Mission Control is a KWin effect of ours** (round 26,
    `session/kwin-effects/ambrosia_mission`, a `SceneEffect` in QML:
    KWin draws nothing else while it is up, so the wallpaper, the menu

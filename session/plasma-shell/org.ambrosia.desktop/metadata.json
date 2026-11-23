@@ -1,0 +1,10 @@
+{
+    "KPackageStructure": "Plasma/Shell",
+    "KPlugin": {
+        "Description": "Ambrosia's lock screen (the desktop itself is Quickshell's, not Plasma's)",
+        "Id": "org.ambrosia.desktop",
+        "License": "MIT",
+        "Name": "Ambrosia"
+    },
+    "X-Plasma-APIVersion": "2"
+}

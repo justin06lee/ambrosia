@@ -149,6 +149,7 @@ tools/qmlshot/ draws a QML file into a picture with no window on screen; sheets/
                make shell-shots
 tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remote.sh,
                live.sh (drive and photograph the session logged in on the build box),
+               vm-try.sh (a throwaway copy of the test install, for the lock and login screens),
                publish-repo.sh (the hosted repo), repo-test.sh + repo-check.sh (its VM test)
 shell/         the shell in QML for Quickshell: wallpaper, the desktop's icons and menu, menu bar (with apps' own
                status items) and menus, Search,
@@ -159,6 +160,7 @@ session/       the Ambrosia session: start script, systemd units, KWin and KDE d
                how windows open and close and Mission Control (kwin-effects/, KWin effects of ours), the
                preview of where a dragged window will tile (kwin-outline/), the margin
                round a tiled window (kwin-scripts/),
+               the lock screen (plasma-shell/: the login screen's own file, for KDE's locker),
                GTK's button layout (dconf), the `ambrosia` command and the shell's desktop files,
                the look-and-feel package with ⌘Tab's app switcher (a KWin switcher layout)
 decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens;

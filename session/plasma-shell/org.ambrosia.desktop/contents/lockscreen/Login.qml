@@ -1,0 +1,1 @@
+../../../../../packaging/sddm-theme/Main.qml
