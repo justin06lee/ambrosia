@@ -152,7 +152,8 @@ package_ambrosia-shell() {
   cp -rL session/look-and-feel/. "$pkgdir/usr/share/plasma/look-and-feel/"
   # KWin effects of ours, off unless the session's kwinrc asks for them.
   install -d "$pkgdir/usr/share/kwin/effects"
-  cp -r session/kwin-effects/. "$pkgdir/usr/share/kwin/effects/"
+  # -L: Mission Control shares the shell's Label.qml by a link.
+  cp -rL session/kwin-effects/. "$pkgdir/usr/share/kwin/effects/"
   install -d "$pkgdir/usr/share/kwin/scripts"
   cp -r session/kwin-scripts/. "$pkgdir/usr/share/kwin/scripts/"
   # The preview of where a dragged window will tile (kwinrc's [Outline]).

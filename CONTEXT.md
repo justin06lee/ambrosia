@@ -359,6 +359,28 @@ package repo below), and they carry `shell/` and `session/` as they are.
    pictures answer the two commands through `Quickshell.shotRun` (sheet
    `desktop-icons`; HOME there is `/home/ada`, so the Mac's own Desktop
    is never read).
+   **Mission Control is a KWin effect of ours** (round 26,
+   `session/kwin-effects/ambrosia_mission`, a `SceneEffect` in QML:
+   KWin draws nothing else while it is up, so the wallpaper, the menu
+   bar and the Dock are drawn there as `WindowThumbnail`s; the shell's
+   surfaces are told apart by `window.layer`, 0 the wallpaper, 3 and up
+   the bars, since KWin types only the Dock). The windows are laid out
+   by KWin's private `ExpoLayout`/`ExpoCell` (`org.kde.kwin.private.
+   effects`, what its Overview uses: it may change with a KWin release).
+   Shortcuts "Ambrosia Mission Control" and "Ambrosia App Windows"
+   (Super+Ctrl+Alt+↑/↓; keyd's `[control]` layer sends them for ⌃↑ ⌃↓,
+   and KWin's own Super+Ctrl+←/→ for ⌃← ⌃→). KWin's Overview is off in
+   the session's `kwinrc` (same four-finger swipe). Global shortcuts
+   still fire while a scene effect has the keyboard, so the same key
+   closes it. **To try an edit in the running KWin**: copy the package
+   to `~/.local/share/kwin/effects/<a new id>` (the id in
+   `metadata.json` too; a new one each edit, KWin keeps loaded QML),
+   `qdbus6 org.kde.KWin /Effects loadEffect <id>`, and run it with
+   `qdbus6 org.kde.kglobalaccel /component/kwin invokeShortcut
+   "Ambrosia Mission Control"`; errors are in `journalctl --user
+   _COMM=kwin_wayland`. **KWin holds the `Theme` it first loaded**: QML
+   of ours inside KWin sees a new token only after a login (for a try,
+   put numbers in the copy).
    **⇧⌘3 and ⇧⌘4 save to the Desktop and float a thumbnail** (round 23,
    `shell/Screenshot.qml`, `ambrosia screenshot screen|region`): Spectacle
    takes the picture in the background (`--background --nonotify

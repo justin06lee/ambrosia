@@ -13,7 +13,8 @@ BorderSizeAuto=false
 # menu opens where the tooltip would.
 ShowToolTips=false
 
-# No hot corner by default.
+# No hot corner by default. (KWin's Overview is off below, Mission Control
+# being ours; this holds if someone switches it back on.)
 [Effect-overview]
 BorderActivate=9
 
@@ -37,6 +38,12 @@ ambrosia_windowsEnabled=true
 # A window tiled to an edge keeps a margin round it, as a Mac's does: a
 # script of ours (session/kwin-scripts/ambrosia_tiles).
 ambrosia_tilesEnabled=true
+# Mission Control and one app's windows spread out (a Mac's ⌃↑ and ⌃↓, four
+# fingers up and down) are an effect of ours
+# (session/kwin-effects/ambrosia_mission) in place of KWin's Overview, which
+# would answer the same gesture.
+overviewEnabled=false
+ambrosia_missionEnabled=true
 
 # The Genie at a Mac's unhurried pace (KWin's own is 250 ms). By eye:
 # there is no recording to measure yet.

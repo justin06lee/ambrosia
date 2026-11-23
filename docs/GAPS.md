@@ -150,9 +150,31 @@ it is a copy.
    switching raises one window rather than all the app's (a hidden app's
    all come back, gap 10), Q closes a window rather than quitting, and H
    while it's up does nothing.
-8. **Mission Control and Spaces.** KWin's Overview is there but unstyled and
-   on no Mac key or gesture (F3, ⌃↑, three fingers up; ⌃← ⌃→ and a swipe
-   between desktops; ⌃↓ for one app's windows). From the code.
+8. **Mission Control and Spaces: ours, seen on KWin.** Since round 26 a
+   KWin effect of ours (`session/kwin-effects/ambrosia_mission`, in place
+   of KWin's Overview, which is off) spreads this desktop's windows over
+   the wallpaper with the menu bar and the Dock left in place. Under the
+   menu bar is a strip of the desktops: their names, and once the pointer
+   has been on it a small picture of each; a click goes to one, + adds
+   one, the button on a picture removes it, and a window dragged onto a
+   picture moves there. The window the pointer is on gets a ring in the
+   accent color and its name under it; a click, or the arrows and Return,
+   goes to it; Esc, the key again or a click beside the windows leaves.
+   ⌃↓ is the same with the front app's windows only, minimized ones too,
+   over a darkened desktop (the Dock's menu has it as Show All Windows).
+   ⌃← and ⌃→ go to the desktop beside this one (KWin's own, with its
+   slide). Seen on tenet (2026-11-23), light and dark; the keys through
+   keyd. Short of a Mac's: no full-screen apps as spaces of their own and
+   no desktop per display (KWin's desktops span the screens); the strip's
+   pictures can't be dragged into another order; a window can't be
+   dragged to the strip's + for a new desktop, or onto another window for
+   Split View; the Dock and the menu bar are pictures while it is up (a
+   click on either only leaves); no F3 or Launchpad key; windows are laid
+   out by KWin's rows, which keep less of where they were than a Mac
+   does; sizes, the ring and the timing are by eye. The four-finger
+   swipes are written but no trackpad has been tried (gap 15). A KWin
+   still running from before the upgrade draws it only after the next
+   login (it holds the old tokens).
 9. **Volume and brightness keys: ours, seen on KWin.** Since round 5 they
    show a glass capsule under the menu bar's right end, where the control
    center opens: a glyph and a level, or the name of the output sound moved
@@ -356,6 +378,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 26, 2026-11-23 | 8, Mission Control and Spaces | `session/kwin-effects/ambrosia_mission`, a KWin scene effect in QML: `main.qml` (the effect, its two shortcuts and two swipes, its modes and the timing), `MissionScreen.qml` (one screen: the wallpaper and the bars as window thumbnails, the windows in KWin's own `ExpoLayout` with a shadow, a ring and a name, a drag to a desktop, the arrows), `SpacesBar.qml` and `WindowLabel.qml` (the strip and the name, pictures only), the shell's `Label.qml` by a link; on in the session's `kwinrc`, KWin's Overview off; keyd's `[control]` layer (⌃ with an arrow); `Apps.showWindows` and the Dock menu's Show All Windows; `size.mission` tokens; a sheet, `mission-control` | `bun test`, `bun run build`, `make shell-shots` (new sheet `mission-control`: the strip closed and open, a ringed window with its name). On tenet, live, from a copy of the effect loaded into the running KWin under another id (with numbers for the new tokens, which that KWin doesn't hold): opened by its shortcut over Files, Kate and Konsole; the ring and the name under the pointer; the strip opened by the pointer, + adding Desktop 2, Konsole dragged onto its picture and found there by KWin, a click on the picture going to it, KWin's Switch One Desktop to the Left coming back, the picture's button removing it (the window back on Desktop 1); → → Return going to a window; Esc, the shortcut again and a click on the Dock leaving; the one-app spread with two Konsole windows, one minimized, and a click bringing the minimized one back; the switch from one mode to the other while up; the motion both ways at 4 s; dark. The Dock menu's Show All Windows. keyd reads the new layer without complaint (`keyd check`). PACKAGE_26 |
 | 25, 2026-11-23 | 14, icons on the desktop | `shell/DesktopIcons.qml` on the first screen's wallpaper (`Wallpaper.qml` loads it, with the room the menu bar and the Dock take): ~/Desktop watched by a `FolderListModel` and read with `stat` and `file`, laid out in columns from the right, choosing by click, ⌘/Shift and a dragged rectangle, opening, a menu, dragging out (`Drag.Automatic` with the URLs) and drops in (`kioclient move`); `shell/FileKinds.qml` (the icon for a kind of file, shared with the Dock's stack); `Session.trash` (was the Dock's); the desktop menu's Sort By and `desktopSort` in the settings; `size.desktop` tokens. | `bun test`, `bun run build`, `make shell-shots` (new sheet `desktop-icons`). On tenet, live: four test things on the Desktop shown, one chosen, a double click opening a text file in Kate, an icon's menu and its Move to Trash, New Folder appearing, Sort By Date Modified, an icon dragged onto the Dock's Trash, a rectangle dragged over three; the Downloads stack still opening. Not checked: ⌘-click, a drop from a window, the Dock at a side, more icons than one column holds, a second screen. |
 | 24, 2026-11-23 | 10 and 22, ⌘H, ⌥⌘Esc and menus opened by a command | Hiding in the session's KWin effect (`ambrosia_windows`: Hide App, Hide Others, Show All and Show Without Motion as KWin shortcuts; windows minimized while the effect has the whole screen, so no Genie; a hidden app's other windows follow the one brought forward); the app menu's Hide, Hide Others, Show All (`Apps.hideFront` and the rest, `Apps.kwin`), and the Dock telling the effect before it brings back an app with every window put away; `ambrosia quit` and the `quit` key layer for apps without Ctrl+Q; desktop files for ⌥⌘Esc and that quit; keyd's ⌘H, ⌥⌘H and ⌥⌘Esc; `packaging/quickshell/popup-grab.patch` (a popup that takes the keyboard before the shell's first input; pkgrel 4). | `bun test`, `bun run build`, `make shell-shots` (new sheet `desktop-app-menu`). On tenet, live, with the Genie slowed to 6 s and KWin asked which effects were running: Hide on Konsole's two windows, back from the Dock and from Alt+Tab, Hide Others, Show All, the app menu's rows, a plain minimize as the control (the Genie ran); `ambrosia quit` closing Kate; the patched Quickshell installed and Force Quit opened by command straight after a shell restart, Down moving the choice. With keyd switched on for the test (and off again after), ⌘H and ⌥⌘H pressed on a keyboard-only virtual device hid Kate and then the others. Not checked: ⌥⌘Esc and the `quit` layer's ⌘Q by their keys (a desktop file's chord is taken up at the next login), the green light's menu before a click (it needs the installed frame, so a login too), dark, an app with a dialog open, an Xwayland app. |
 | 23, 2026-11-23 | 13, screenshots | `shell/Screenshot.qml` (runs Spectacle in the background into a file on the Desktop named as a Mac names one, then shows it) and `ScreenshotThumb.qml` (the picture fitted in a box, a white edge, a shadow) on a layer surface in the bottom right corner; `ambrosia screenshot screen|region` and the shell's IPC; two desktop files holding Super+Ctrl+Alt+3 and 4, which keyd's ⇧⌘3 and ⇧⌘4 now send (they were Spectacle's own Shift+Print chords); `screenshot` size and choreography tokens; a sheet, `screenshot` | On the Mac: `out/shots/shell-screenshot-*.png` (a wide picture, a tall one, one not read yet). On tenet: the command for the screen and for a part (dragged with the virtual pointer, Return), the files' sizes read back, the thumbnail photographed in the corner and gone five seconds on, a click opening Gwenview. A second Spectacle started while the crosshair was up ended it without a picture. After the r444 packages: once more from the installed files (the thumbnail comes some three seconds after the command: Spectacle starting). The shortcut daemon reads new desktop files at login, so the two chords aren't held yet on tenet. Not seen: the keys, dark |
