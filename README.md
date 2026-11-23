@@ -23,7 +23,10 @@ the shell and font rendering all read the same numbers.
 The design system, the theme generator, a browser preview of the desktop and a
 design review site exist. The distro pipeline works end to end: Arch packages,
 an Ambrosia session on KWin, our login screen, and an installer image that
-boots a live desktop and installs it on UEFI and BIOS computers. The shell
+boots a live desktop and installs it on UEFI and BIOS computers. A new install
+starts behind the mark and a bar that fills, not the kernel's text (a
+Plymouth theme; on a system installed before, `sudo pacman -S plymouth &&
+sudo /usr/lib/ambrosia/boot-picture`). The shell
 works on real hardware: the menu bar with the focused app's own menus, Search
 (Super+Space: apps, settings, files and folders, sums), the Dock (drag to
 reorder, magnification, a live Trash, Downloads as a stack), the control center, notification
@@ -176,7 +179,8 @@ docs/GAPS.md   what still tells Ambrosia from a Mac, biggest first, and the roun
 docs/finder/   the Files plan: research, stack, v1 scope, performance targets
 docs/settings/ the Settings plan: the panes, their backends, the order of work
 packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild (with our DBusMenuSource patch),
-               the repo's public key (keyring/), the os-release that names the system
+               the repo's public key (keyring/), the os-release that names the system,
+               what switches on the picture while starting up (plymouth/)
 iso/           the archiso profile: live desktop, installer (ambrosia-install)
 preview/       the mock desktop, styled only from dist/web/tokens.css; glass.css is shared
 site/          the design review site and its server
@@ -212,6 +216,7 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 6. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
    dialogs in other apps match too.
 7. **Onboarding**: a first-party onboarding app in place of the installer
-   script (asking Mac-first or Linux-first), and a boot splash of our own.
+   script (asking Mac-first or Linux-first). The picture while starting up
+   is there already.
 
 Later: an ARM64 build for the Jetson Orin Nano.

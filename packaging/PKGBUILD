@@ -83,6 +83,9 @@ package_ambrosia-theme() {
   # or a shape goes by is a link (cp -a keeps them links).
   install -d "$pkgdir/usr/share/icons"
   cp -a icons/Ambrosia "$pkgdir/usr/share/icons/Ambrosia"
+  # The picture while the computer starts (a Plymouth theme; it shows once
+  # ambrosia-desktop's boot-picture has switched it on).
+  install -Dm644 plymouth/ambrosia/* -t "$pkgdir/usr/share/plymouth/themes/ambrosia/"
   # Files' and Settings' icons in hicolor too, for sessions on another theme.
   install -Dm644 "$_root"/assets/icons/*.svg -t "$pkgdir/usr/share/icons/hicolor/scalable/apps/"
   # Files' folder and document, by name (ambrosia-folder, ambrosia-document)
@@ -223,6 +226,9 @@ package_ambrosia-desktop() {
     # The apps a new install starts with, and Discover to get more.
     firefox kate gwenview okular ark kcalc discover packagekit-qt6 flatpak
   )
+  # Not a dependency: an installed system gets it by asking
+  # (/usr/lib/ambrosia/boot-picture), a new one from the installer.
+  optdepends=('plymouth: the mark and a bar while the computer starts, in place of text')
   backup=(etc/sddm.conf.d/10-ambrosia.conf etc/keyd/ambrosia.conf)
   cd "$_root"
 
@@ -250,6 +256,11 @@ package_ambrosia-desktop() {
   ln -s ../ambrosia-keys.socket "$pkgdir/usr/lib/systemd/system/keyd.service.wants/ambrosia-keys.socket"
   # A laptop's trackpad still rests while typing through keyd's keyboard.
   install -Dm644 packaging/keyd/keyd.quirks "$pkgdir/usr/share/libinput/50-ambrosia-keyd.quirks"
+
+  # The picture while starting up: what switches it on (the installer runs
+  # it), and Plymouth leaving its last frame up for the login screen.
+  install -Dm755 packaging/plymouth/boot-picture -t "$pkgdir/usr/lib/ambrosia/"
+  install -Dm644 packaging/plymouth/plymouth-quit.conf "$pkgdir/usr/lib/systemd/system/plymouth-quit.service.d/ambrosia.conf"
 
   # The system's name: our os-release, which a pacman hook keeps in /etc over
   # Arch's (About This Computer and the console read it), and its logo.

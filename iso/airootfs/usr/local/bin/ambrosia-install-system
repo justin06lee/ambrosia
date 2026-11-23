@@ -51,7 +51,8 @@ mount --mkdir -o fmask=0077,dmask=0077 "$boot" /mnt/boot
 
 step "Installing Ambrosia"
 # pipewire-jack is named here so pacman doesn't pick jack2 for "jack" first.
-packages=(base linux linux-firmware sudo nano man-db pipewire-jack ambrosia-desktop)
+# plymouth is the picture while starting up (boot-picture, at the end).
+packages=(base linux linux-firmware sudo nano man-db pipewire-jack plymouth ambrosia-desktop)
 grep -q GenuineIntel /proc/cpuinfo && packages+=(intel-ucode)
 grep -q AuthenticAMD /proc/cpuinfo && packages+=(amd-ucode)
 [[ $firmware == bios ]] && packages+=(syslinux)
@@ -157,6 +158,12 @@ LABEL ambrosia
     APPEND $options
 CONFIG
 fi
+
+# The mark and a bar while it starts, not the kernel's text: Plymouth's
+# theme, its hook in the initramfs, `splash` on the command line just
+# written. A computer that can't have it still starts, in text.
+arch-chroot /mnt /usr/lib/ambrosia/boot-picture ||
+  echo "The starting picture couldn't be set up; this computer will start in text." >&2
 
 # pacstrap -K leaves the new keyring's gpg-agent running inside /mnt.
 gpgconf --homedir /mnt/etc/pacman.d/gnupg --kill all 2>/dev/null || true

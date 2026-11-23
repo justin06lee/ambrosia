@@ -361,6 +361,28 @@ package repo below), and they carry `shell/` and `session/` as they are.
    pictures answer the two commands through `Quickshell.shotRun` (sheet
    `desktop-icons`; HOME there is `/home/ada`, so the Mac's own Desktop
    is never read).
+   **The picture while starting up is a Plymouth theme** (round 29,
+   generated: `tools/gen/targets/plymouth.ts` → `dist/plymouth/ambrosia`,
+   installed by ambrosia-theme; `dist/plymouth/sheet.png` is a drawing of
+   it to look over on the Mac). Plymouth's script plugin knows nothing of
+   a display's scale, so the script sizes everything by the screen's
+   height (1080 is 1x) from pictures drawn at 1x to 4x. It is switched on
+   by `/usr/lib/ambrosia/boot-picture` (ambrosia-desktop; the installer
+   runs it in the new system, which is why `plymouth` is in the
+   installer's list and only an optional dependency of the package: as a
+   dependency it would make `pacman -U` on an installed system pull from
+   a newer package list). **To see it**: `tools/vm-try.sh up`, install
+   plymouth and the packages there, run `boot-picture`, `systemctl
+   reboot`, and photograph in a loop (`screendump` through the monitor
+   socket every 0.2 s: the splash is up for under two seconds in the VM).
+   `plymouthd --mode=boot --tty=tty1; plymouth show-splash` with SDDM
+   stopped holds it still, and `plymouth ask-for-password` shows the
+   field. **Not run yet:** the installer's own use of it and the live
+   image's splash (`iso/`: the package, the hook in `archiso.conf`,
+   `quiet splash` on the first entries, `etc/plymouth/plymouthd.conf`).
+   The next `sudo make iso` should be followed by `tools/vm.sh live`,
+   `install` and `installed`, photographed while starting (`install`
+   deletes `out/vm/vars.fd`; give it `VM_DISK` to spare `disk.qcow2`).
    **The shell is the polkit agent** (round 28, `shell/Authorization.qml`
    on `Quickshell.Services.Polkit`): a session has one agent, so
    `plasma-polkit-agent.service` has a drop-in that skips it in our
@@ -662,6 +684,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
   by hand (see Gotchas), which a login does properly.
 - Publishing needs the signing key copied from its backup into
   `~/.config/ambrosia/gnupg`.
+- tenet starts in text still: the picture (round 29) needs `sudo pacman -S
+  plymouth && sudo /usr/lib/ambrosia/boot-picture` there and a restart to
+  see it. It rebuilds the initramfs, so it was left for Justin.
 - The image's UEFI boot menu is plain text (systemd-boot draws no pictures).
   A picture there means starting the image with GRUB instead (archiso's
   `uefi.grub`), a boot path not yet proven on tenet's hardware: wanted?
