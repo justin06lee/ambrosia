@@ -167,5 +167,6 @@ hid Kate and ⌥⌘H every other app, pressed on a virtual keyboard keyd took
 for one. Not pressed there: ⌥⌘Esc and the `quit` layer's ⌘Q, whose chords
 the session takes up from their desktop files at the next login.
 
-⌃↑, ⌃↓, ⌃← and ⌃→ (2026-11-23): see the line the round added to
-`docs/GAPS.md`'s table for what was pressed through keyd on tenet.
+Also there (2026-11-23), keyd on for the test again: ⌃↑ opened Mission
+Control and closed it, ⌃↓ spread Konsole's windows, ⌃→ and ⌃← went to a
+second desktop and back.

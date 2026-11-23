@@ -344,8 +344,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
    activeEffects` then says whether it is running. **keyd leaves
    `/root/ui.py`'s device alone** (a pointer with keys isn't a keyboard
    to it): to press a ⌘ chord through keyd on tenet, make a uinput
-   device with keys only (python-evdev, `UInput({EV_KEY: keys})`), wait
-   two seconds for keyd to take it, then write the keys. keyd stopped by
+   device with keys only and a whole board of them (python-evdev,
+   `UInput({EV_KEY: list(range(1, 128))})`: with a handful of keys keyd
+   says "ignoring"), wait two seconds for keyd to take it, then write
+   the keys. keyd stopped by
    systemd is left "failed" (it exits 15): `systemctl reset-failed keyd`.
    **What is in ~/Desktop lies on the desktop as icons** (round 25,
    `shell/DesktopIcons.qml`, loaded by the first screen's
