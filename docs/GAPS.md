@@ -171,18 +171,34 @@ it is a copy.
     right. Still missing: a fan, sorting and the
     stack's own menu, dragging out of it, minimized windows in the Dock,
     recent apps.
-12. **Tiling: the preview is ours, seen on KWin; the rest is KWin's.**
+12. **Tiling: the preview, the margins and the green light's menu are ours, seen on KWin.**
     Since round 17 a window dragged to a screen's edge shows where it will
     land as a rounded pane of glass a little inside the place, as a Mac
     previews a tile (`session/kwin-outline/outline.qml`, named by the
     session's `kwinrc`), not KWin's outline. Seen on tenet (2026-11-18):
     Konsole held at the left edge, the pane over the left half between the
     menu bar and the Dock, blurring what is behind. It is drawn over the
-    dragged window, where a Mac's is under it, and the tiled window still
-    lands flush with the edges, where a Mac leaves a margin. A corner
-    and dark were seen in round 18. Not seen: the top edge. Still KWin's: where the edges tile to
-    (halves and quarters; a Mac's top edge fills the screen), and the
-    green button has no menu (Move & Resize, Full Screen on a display).
+    dragged window, where a Mac's is under it. A corner and dark were seen
+    in round 18, the top edge (the whole screen's pane) in round 22.
+    Since round 22 a tiled window keeps a margin of 8 from the screen's
+    edges and from the tile beside it, landing where the preview was (a
+    KWin script of ours, `session/kwin-scripts/ambrosia_tiles`, gives
+    KWin's halves and quarters a padding); the pointer resting on a
+    window's green light brings up where it can go (halves, quarters,
+    Center, Enter Full Screen) as a menu under the light, and the menu
+    bar's Window menu has Center and Move & Resize. Seen on tenet
+    (2026-11-23): Konsole sent right and to the top right from the menu,
+    8 from the edges and 4 from the middle; the green light's menu from a
+    test copy of the frame (a running KWin keeps the frame it loaded:
+    the installed one shows at the next login), closed with Escape, not
+    back until the pointer left and returned, and Right chosen from it.
+    Short of a Mac's: the menu is words, where a Mac's is a row of small
+    pictures; a window filling the screen (the top edge, Zoom) has no
+    margin; no Fill, Arrange or Return to Previous Size; the green light
+    still zooms on a click, where a Mac's enters full screen. A menu
+    opened by a command (this one, Force Quit) doesn't come up until the
+    menu bar has had a click since the shell started: the Overlay is a
+    popup of the bar's, and a popup needs an input the bar was given.
 13. **Screenshots.** ⇧⌘3/4/5 run Spectacle with its own window; a Mac shows
     a floating toolbar, then a thumbnail in the corner that can be dragged
     or opens Markup. From `docs/keyboard.md`.
@@ -290,6 +306,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 22, 2026-11-23 | 12, the rest of tiling | `session/kwin-scripts/ambrosia_tiles` (a KWin script: a padding of 8 on any tile of KWin's own a window lands in; on in the session's `kwinrc`); `Apps.placeWindow` and `placeEntries` (KWin's quick-tile actions by their shortcuts' names, over kglobalaccel), Center and Move & Resize in the Window menu, `ambrosia window-menu X Y` (the shell's IPC opens the menu at that place); the frame's green light starts a 600 ms timer when the pointer comes to rest on it and runs that command with its own place on the screen (the pointer's, less its place in the frame); no tooltips on the lights; a sheet, `desktop-window-menu` | On the Mac: the sheet, light and dark. On tenet: the script loaded into the running KWin by a reconfigure; Konsole sent Right and Top Right from the menu (x 1284, width 1268, height 649: 8 and 4); the top edge's preview held and photographed; the green light's menu from a test copy of the plugin under another name, named in the user's `kwinrc` and taken out again. After the r441 packages: the Window menu's Move & Resize on tenet, Bottom Left chosen from it (a list set inside a menu row didn't come through as a list: a row's `submenu` is a function now). Not seen: dark, two tiles side by side dragged at their shared edge |
 | 21, 2026-11-23 | 3, the Qt controls left | In `style/src/style.cpp`: the list of a combo to type in (rows of our own put in before Breeze puts its own, `ComboRows`; the frame round it is the menu's panel, `CE_ShapedFrame`), glass behind both kinds of combo list where KWindowSystem is built in (`Glass`), `CC_Dial`, `CE_ToolBoxTab`, `CE_DockWidgetTitle` and its two buttons, the calendar (its bar on the sheet's color, the weekend out of Qt's red, headings small, today, the chosen day's disc), `CE_ProgressBar` put together here, a menu button's title without Breeze's arrow. The gallery has the new controls and `--show`, which opens it as a window to use | On the Mac: `out/shots/style-*.png`, light and dark. On tenet: the gallery drawn there over Breeze, then opened in the live session with `--show`: both combo lists opened (the dropped one tinted by the slider behind it), the progress bars and the menu button before and after. From the r438 packages: Dolphin with its panels unlocked, Places under our heading. Not seen: a calendar in a real app, dark on tenet |
 | 20, 2026-11-23 | 22, Force Quit | `shell/ForceQuit.qml` on the Overlay (kind "forceQuit": `Popups.toggleForceQuit`, the Overlay's keys, the Ambrosia menu, the shell's IPC and the `ambrosia` command), `Apps.forceQuit` (kill -KILL on the pids of the app's windows) after the confirmation dialog; the stand-in task model gives a pid; a sheet, `desktop-force-quit` | On the Mac: `out/shots/shell-desktop-force-quit-*.png`. On tenet: opened with `ambrosia force-quit` over Konsole, Return for the confirmation, Return again, Konsole's process gone. Light only; not from the menu itself, not with several apps |
 | 19, 2026-11-23 | 16, hiding a status item | The shell records each app status item it sees (`menuBarExtras` in the settings, id and title, from `shell/MenuBar.qml`); Settings' Menu Bar pane lists them under Allow in the Menu Bar with a switch (`settings/qml/MenuBarPage.qml`: off is `extra:<id>` among the hidden). `shell/StatusIcon.qml` takes an icon for a glyph only when it is one gray and leaves most of its square empty | On the Mac: the extras sheet with a pale app icon as a status item, left as a picture. On tenet: a test item (Qt's tray icon from `qml6 --apptype widget`, Kate's icon) shown first as a dark square, then as itself; listed in Settings; switched off there, gone from the bar. Light only |

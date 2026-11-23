@@ -3,9 +3,12 @@
 
 #include <KDecoration3/DecoratedWindow>
 
+#include <QCursor>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPolygonF>
+#include <QProcess>
+#include <QTimer>
 
 namespace Ambrosia {
 
@@ -26,12 +29,45 @@ static QPainterPath polygons(const double *run)
     return path;
 }
 
+// How long the pointer rests on the green light before its menu comes, and
+// how far under the light the menu opens.
+static constexpr int lingerMs = 600;
+static constexpr int menuGap = 6;
+
 Button::Button(DecorationButtonType type, Decoration *decoration, QObject *parent)
     : DecorationButton(type, decoration, parent)
 {
     setGeometry(QRectF(0, 0, Tokens::diameter, Tokens::diameter));
     // Gray and back as the window loses and gains focus.
     connect(decoration->window(), &DecoratedWindow::activeChanged, this, [this] { update(); });
+
+    if (type == DecorationButtonType::Maximize) {
+        m_linger = new QTimer(this);
+        m_linger->setSingleShot(true);
+        m_linger->setInterval(lingerMs);
+        connect(m_linger, &QTimer::timeout, this, &Button::offerPlaces);
+        connect(this, &DecorationButton::hoveredChanged, this, [this, decoration](bool hovered) {
+            if (hovered && isEnabled() && decoration->window()->isActive() && QCursor::pos() != m_offeredAt)
+                m_linger->start();
+            else
+                m_linger->stop();
+        });
+        connect(this, &DecorationButton::pressedChanged, m_linger, [this] { m_linger->stop(); });
+    }
+}
+
+// The menu of where the window can go, under the light. KWin doesn't tell a
+// frame where on the screen it is: the pointer's place there, less its place
+// in the frame, is the frame's corner.
+void Button::offerPlaces()
+{
+    auto *deco = static_cast<Decoration *>(decoration());
+    if (!isHovered() || isPressed() || !deco->window()->isActive())
+        return;
+    m_offeredAt = QCursor::pos();
+    const QPointF corner = QPointF(m_offeredAt) - deco->pointer();
+    const QPoint at = (corner + QPointF(geometry().left(), geometry().bottom() + menuGap)).toPoint();
+    QProcess::startDetached(QStringLiteral("/usr/bin/ambrosia"), {QStringLiteral("window-menu"), QString::number(at.x()), QString::number(at.y())});
 }
 
 DecorationButton *Button::create(DecorationButtonType type, KDecoration3::Decoration *decoration, QObject *parent)

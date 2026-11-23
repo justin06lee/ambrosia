@@ -1,0 +1,11 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Description": "Windows tiled to a screen's edge keep a margin round them, as on a Mac",
+        "EnabledByDefault": false,
+        "Id": "ambrosia_tiles",
+        "License": "MIT",
+        "Name": "Ambrosia Tiles"
+    },
+    "X-Plasma-API": "javascript"
+}

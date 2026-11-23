@@ -129,6 +129,32 @@ Singleton {
         const index = indexOf(window);
         if (index) tasksModel.requestClose(index);
     }
+    // Sends the window to a half or a quarter of the screen, or its middle:
+    // KWin's own action, by the name its shortcut goes by, on the window in
+    // front (which this one is made first).
+    function placeWindow(window, where) {
+        const index = indexOf(window);
+        if (!index) return;
+        tasksModel.requestActivate(index);
+        Quickshell.execDetached(["busctl", "--user", "call", "org.kde.kglobalaccel", "/component/kwin",
+            "org.kde.kglobalaccel.Component", "invokeShortcut", "s", where]);
+    }
+    // A menu's rows for where a window can go: a Mac's Move & Resize.
+    function placeEntries(window) {
+        const any = window.row >= 0;
+        const to = (text, where) => ({ text: text, enabled: any, action: () => apps.placeWindow(window, where) });
+        return [
+            to("Left", "Window Quick Tile Left"),
+            to("Right", "Window Quick Tile Right"),
+            to("Top", "Window Quick Tile Top"),
+            to("Bottom", "Window Quick Tile Bottom"),
+            { separator: true },
+            to("Top Left", "Window Quick Tile Top Left"),
+            to("Top Right", "Window Quick Tile Top Right"),
+            to("Bottom Left", "Window Quick Tile Bottom Left"),
+            to("Bottom Right", "Window Quick Tile Bottom Right"),
+        ];
+    }
 
     // The desktop entry for an app id as the task model gives it: running
     // apps' ids are bare (org.kde.dolphin), pinned ones end in .desktop.

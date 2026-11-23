@@ -114,6 +114,8 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
 
 void Decoration::hoverMoveEvent(QHoverEvent *event)
 {
+    // (Before the lights hear of it: the green one asks where the pointer is.)
+    m_pointer = event->position();
     KDecoration3::Decoration::hoverMoveEvent(event);
     setLightsHovered(m_lights->geometry().contains(event->position()));
 }

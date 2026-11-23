@@ -123,6 +123,9 @@ PanelWindow {
         return [
             { text: "Minimize", enabled: any, action: () => Apps.minimizeWindow(window) },
             { text: "Zoom", enabled: any, action: () => Apps.zoomWindow(window) },
+            { text: "Center", enabled: any, action: () => Apps.placeWindow(window, "Window Move Center") },
+            { separator: true },
+            { text: "Move & Resize", enabled: any, submenu: () => Apps.placeEntries(window) },
             { text: "Enter Full Screen", enabled: any, action: () => Apps.fullScreenWindow(window) },
             { separator: true },
             { text: "Close Window", enabled: any, action: () => Apps.closeWindow(window) },

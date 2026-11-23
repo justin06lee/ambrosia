@@ -9,6 +9,9 @@ ButtonsOnRight=
 # from the look-and-feel package; see startambrosia.)
 BorderSize=None
 BorderSizeAuto=false
+# No tooltips naming the lights: a Mac's have none, and the green one's
+# menu opens where the tooltip would.
+ShowToolTips=false
 
 # No hot corner by default.
 [Effect-overview]
@@ -31,6 +34,9 @@ squashEnabled=false
 # which shrinks a closing window away.
 scaleEnabled=false
 ambrosia_windowsEnabled=true
+# A window tiled to an edge keeps a margin round it, as a Mac's does: a
+# script of ours (session/kwin-scripts/ambrosia_tiles).
+ambrosia_tilesEnabled=true
 
 # The Genie at a Mac's unhurried pace (KWin's own is 250 ms). By eye:
 # there is no recording to measure yet.
