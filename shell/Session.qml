@@ -54,7 +54,8 @@ Singleton {
     function shutDown() {
         shutdownCall("logoutAndShutdown");
     }
-    // KWin's kill-window mode: the next window clicked is force-quit.
+    // KWin's kill-window mode: the next window clicked is force-quit. (The
+    // menu opens Force Quit Applications instead; ⌥⌘Esc is still this.)
     function forceQuit() {
         Quickshell.execDetached(["dbus-send", "--session", "--type=method_call", "--dest=org.kde.KWin", "/KWin", "org.kde.KWin.killWindow"]);
     }

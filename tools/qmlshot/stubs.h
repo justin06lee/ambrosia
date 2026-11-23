@@ -259,6 +259,7 @@ public:
         IsStartup,
         IsDemandingAttention,
         IsMinimized,
+        AppPid,
         ChildCount,
         LastActivated,
         ApplicationMenuServiceName,

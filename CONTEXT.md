@@ -290,6 +290,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
    ambrosia-decoration for the blur). KWin loads the outline's QML once,
    the first time it shows one: after an edit, only a new KWin (a login,
    or a nested one) shows the change.
+   **Force Quit… in the Ambrosia menu opens a list of apps** (round 20,
+   `shell/ForceQuit.qml`, `ambrosia force-quit`): choose one, confirm,
+   and its windows' processes are killed (`Apps.forceQuit`). ⌥⌘Esc is
+   still KWin's Kill Window.
    **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
    grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
    kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the

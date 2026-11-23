@@ -72,5 +72,8 @@ ShellRoot {
         function notificationCenter(): void {
             Popups.toggleNotificationCenter(Quickshell.screens[0]);
         }
+        function forceQuit(): void {
+            Popups.toggleForceQuit(Quickshell.screens[0]);
+        }
     }
 }

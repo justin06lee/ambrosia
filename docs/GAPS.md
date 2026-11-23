@@ -227,8 +227,16 @@ it is a copy.
     every app, through the desktop portal (roadmap 6).
 21. **Print, colors, fonts, emoji.** Qt's print dialog and color picker,
     KDE's emoji picker.
-22. **Force Quit.** ⌥⌘Esc gives KWin's skull pointer to click a window with,
-    not a list of apps.
+22. **Force Quit: a list of ours, seen on KWin; the key is still KWin's.**
+    Since round 20 the Ambrosia menu's Force Quit… opens Force Quit
+    Applications on glass (`shell/ForceQuit.qml`): the apps with a window,
+    one chosen, a button that asks once and then kills the app's
+    processes; arrows, Return and Escape work, and `ambrosia force-quit`
+    opens it too. Seen on tenet (2026-11-23): Konsole listed, asked about,
+    gone. ⌥⌘Esc still gives KWin's skull pointer to click a window with
+    (the shortcut is KWin's own; moving it belongs with the keyboard's
+    gaps). It closes on a click outside, where a Mac's is a window that
+    stays, and has no Relaunch for Files.
 23. **Sounds.** No sounds of our own: the alert, the Trash, a screenshot, the
     volume step.
 24. **The first minutes.** The installer asks with kdialog; a new account
@@ -269,6 +277,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 20, 2026-11-23 | 22, Force Quit | `shell/ForceQuit.qml` on the Overlay (kind "forceQuit": `Popups.toggleForceQuit`, the Overlay's keys, the Ambrosia menu, the shell's IPC and the `ambrosia` command), `Apps.forceQuit` (kill -KILL on the pids of the app's windows) after the confirmation dialog; the stand-in task model gives a pid; a sheet, `desktop-force-quit` | On the Mac: `out/shots/shell-desktop-force-quit-*.png`. On tenet: opened with `ambrosia force-quit` over Konsole, Return for the confirmation, Return again, Konsole's process gone. Light only; not from the menu itself, not with several apps |
 | 19, 2026-11-23 | 16, hiding a status item | The shell records each app status item it sees (`menuBarExtras` in the settings, id and title, from `shell/MenuBar.qml`); Settings' Menu Bar pane lists them under Allow in the Menu Bar with a switch (`settings/qml/MenuBarPage.qml`: off is `extra:<id>` among the hidden). `shell/StatusIcon.qml` takes an icon for a glyph only when it is one gray and leaves most of its square empty | On the Mac: the extras sheet with a pale app icon as a status item, left as a picture. On tenet: a test item (Qt's tray icon from `qml6 --apptype widget`, Kate's icon) shown first as a dark square, then as itself; listed in Settings; switched off there, gone from the bar. Light only |
 | 18, 2026-11-23 | What rounds 13 to 17 left unseen | A look at tenet's first fresh login since those rounds, and one fix: the Dock's layer surface is named "dock", which is how KWin knows it for a panel (`shell/Dock.qml`); `tools/live.sh unlock` and `lock` find the session themselves (its number changes with each login) | On tenet: ⌘Tab's strip of our own, at last from a KWin that started with it; in dark, a banner with Firefox on its tile, Kate's menu with the Mac's shortcut glyphs, the tiling preview at a corner; a file dialog part-way open with the effect slowed. The Genie with the Dock on the left showed nothing: KWin found no panel under the tile and poured the window downwards; with the surface named "dock" it pours into the tile, seen twice. Still not seen: the tiling preview at the top edge, Settings' pane showing Genie chosen |
 | 17, 2026-11-18 | 12, the tiling preview | `session/kwin-outline/outline.qml`: KWin's outline window with a pane of our glass in it (the theme's clear tint, edge and rim, the window radius, KWin told to blur behind it through our `BlurBehind`), installed to `/usr/share/kwin/outline/ambrosia/` by ambrosia-shell and named by `[Outline] QmlPath` in the session's `kwinrc` | On tenet's running KWin (which loads the outline the first time it shows one, and had not yet): Konsole dragged to the left edge with the virtual pointer held down (`ui.py down`, `glide`, `sleep`, `up` in one call: the button is let go when the call ends), photographed while held. Light only; no corner or top edge |

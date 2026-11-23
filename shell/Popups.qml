@@ -109,6 +109,19 @@ Singleton {
         kind = "confirm";
     }
 
+    // Force Quit Applications (ForceQuit.qml).
+    function toggleForceQuit(screen) {
+        if (kind === "forceQuit") {
+            close();
+            return;
+        }
+        searchOpen = false;
+        popups.screen = screen;
+        owner = "";
+        levels = [];
+        kind = "forceQuit";
+    }
+
     function toggleSearch(screen) {
         if (searchOpen) {
             searchOpen = false;
