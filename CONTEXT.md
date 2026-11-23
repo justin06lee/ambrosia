@@ -377,7 +377,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
    socket every 0.2 s: the splash is up for under two seconds in the VM).
    `plymouthd --mode=boot --tty=tty1; plymouth show-splash` with SDDM
    stopped holds it still, and `plymouth ask-for-password` shows the
-   field.
+   field. **Not run yet:** the installer's own use of it and the live
+   image's splash (`iso/`: the package, the hook in `archiso.conf`,
+   `quiet splash` on the first entries, `etc/plymouth/plymouthd.conf`).
+   The next `sudo make iso` should be followed by `tools/vm.sh live`,
+   `install` and `installed`, photographed while starting (`install`
+   deletes `out/vm/vars.fd`; give it `VM_DISK` to spare `disk.qcow2`).
    **The shell is the polkit agent** (round 28, `shell/Authorization.qml`
    on `Quickshell.Services.Polkit`): a session has one agent, so
    `plasma-polkit-agent.service` has a drop-in that skips it in our
