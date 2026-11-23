@@ -4,12 +4,17 @@
 #   ambrosia control-center   open or close the control center
 #   ambrosia notification-center   open or close Notification Center
 #   ambrosia force-quit       open or close Force Quit Applications
+#   ambrosia window-menu X Y  where the window in front can go, as a menu at
+#                             that place on the screen (the window frame's
+#                             green light runs this)
 shell=${AMBROSIA_SHELL:-/usr/share/ambrosia/shell}
 case $1 in
   search) function=search ;;
   control-center) function=controlCenter ;;
   notification-center) function=notificationCenter ;;
   force-quit) function=forceQuit ;;
-  *) echo "usage: ambrosia search | control-center | notification-center | force-quit" >&2; exit 2 ;;
+  window-menu) function=windowMenu ;;
+  *) echo "usage: ambrosia search | control-center | notification-center | force-quit | window-menu X Y" >&2; exit 2 ;;
 esac
-exec quickshell ipc --path "$shell" call shell "$function"
+shift
+exec quickshell ipc --path "$shell" call shell "$function" "$@"

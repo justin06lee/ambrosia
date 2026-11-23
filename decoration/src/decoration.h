@@ -5,6 +5,7 @@
 #include <KDecoration3/Decoration>
 #include <KDecoration3/DecorationButtonGroup>
 
+#include <QPointF>
 #include <QVariantList>
 
 namespace Ambrosia {
@@ -28,6 +29,9 @@ public:
     // Over any of the three lights (or the gaps between them): macOS shows
     // all three glyphs at once.
     bool lightsHovered() const { return m_lightsHovered; }
+    // Where the pointer last was over the frame, in the frame's own
+    // coordinates.
+    QPointF pointer() const { return m_pointer; }
 
 protected:
     void hoverMoveEvent(QHoverEvent *event) override;
@@ -42,6 +46,7 @@ private:
     KDecoration3::DecorationButtonGroup *m_lights = nullptr;
     bool m_dark = false;
     bool m_lightsHovered = false;
+    QPointF m_pointer;
 };
 
 } // namespace Ambrosia

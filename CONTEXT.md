@@ -301,6 +301,27 @@ package repo below), and they carry `shell/` and `session/` as they are.
    ambrosia-decoration for the blur). KWin loads the outline's QML once,
    the first time it shows one: after an edit, only a new KWin (a login,
    or a nested one) shows the change.
+   **Tiled windows keep a margin, and the green light has a menu**
+   (round 22). `session/kwin-scripts/ambrosia_tiles` sets a padding of 8
+   on KWin's own halves and quarters (`window.tile.padding`, which KWin
+   leaves at nothing; a layout drawn in KWin's tile editor has its own
+   and is left alone); KWin loads a newly enabled script on
+   `reconfigure`. The frame's zoom light (`decoration/src/button.cpp`)
+   runs `ambrosia window-menu X Y` when the pointer has rested on it for
+   600 ms, and the shell opens Left, Right, Top, Bottom, the quarters,
+   Center and Enter Full Screen there (`Apps.placeEntries`,
+   `placeWindow`: KWin's actions through kglobalaccel's
+   `invokeShortcut`). KWin doesn't tell a frame where it is on the
+   screen: `QCursor::pos()` works inside KWin, and the pointer's place in
+   the frame comes with its hover events. **To try a frame plugin in a
+   running KWin** (which keeps the one it loaded): build a copy under
+   another name and Id (`sed` over `CMakeLists.txt` and
+   `metadata.json`), install it beside ours, name it in the user's
+   `kwinrc` (`[org.kde.kdecoration2] library=`), `reconfigure`; put the
+   name back and delete the copy after. **A menu opened by a command
+   needs the menu bar to have had a click** since the shell started:
+   the Overlay is a grabbing popup of the bar's (Qt: "Failed to create
+   grabbing popup"). Force Quit by a key will need that solved.
    **Force Quit… in the Ambrosia menu opens a list of apps** (round 20,
    `shell/ForceQuit.qml`, `ambrosia force-quit`): choose one, confirm,
    and its windows' processes are killed (`Apps.forceQuit`). ⌥⌘Esc is
