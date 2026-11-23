@@ -41,6 +41,7 @@ Singleton {
     property alias menuBarBackground: adapter.menuBarBackground
     property alias menuBarHidden: adapter.menuBarHidden
     property alias menuBarAlways: adapter.menuBarAlways
+    property alias menuBarExtras: adapter.menuBarExtras
     property alias clockDate: adapter.clockDate
     property alias clockWeekday: adapter.clockWeekday
     property alias clock24: adapter.clock24
@@ -110,6 +111,9 @@ Singleton {
             property bool menuBarBackground: true
             property list<string> menuBarHidden: ["bluetooth"]
             property list<string> menuBarAlways: []
+            // Apps' status items seen so far, as "id\ttitle", for Settings
+            // to list (hidden ones are "extra:<id>" in menuBarHidden).
+            property list<string> menuBarExtras: []
             property bool clockDate: true
             property bool clockWeekday: true
             property bool clock24: false

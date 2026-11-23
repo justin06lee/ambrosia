@@ -350,6 +350,12 @@ PanelWindow {
                 // Held open, so the app's menu is read before the first press
                 // and not during it.
                 QsMenuOpener { menu: modelData.hasMenu ? modelData.menu : null }
+                // Settings lists the items seen, to hide one by.
+                Component.onCompleted: {
+                    const id = modelData.id;
+                    if (id && !Settings.menuBarExtras.some(each => each.split("\t")[0] === id))
+                        Settings.menuBarExtras = Settings.menuBarExtras.concat([`${id}\t${modelData.tooltipTitle || modelData.title || id}`]);
+                }
             }
         }
         MenuBarItem {

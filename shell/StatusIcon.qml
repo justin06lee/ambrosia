@@ -4,9 +4,10 @@ import Ambrosia
 
 // An app's own status icon, in the menu bar. Most are a one-color glyph drawn
 // for some panel's light or dark, which is not ours to know: an icon that is
-// mostly gray is drawn as its shape alone in the menu bar's own text color,
-// as a Mac draws a template image. An icon in color is left as its app drew
-// it.
+// one gray and mostly empty is drawn as its shape alone in the menu bar's own
+// text color, as a Mac draws a template image. An icon in color, in several
+// grays, or filling its square (an app's own icon, say) is left as its app
+// drew it.
 Item {
     id: icon
 
@@ -57,16 +58,27 @@ Item {
             // Pixels are read as the screen has them, not in our units.
             const reach = Math.ceil(side * Screen.devicePixelRatio);
             const data = ctx.getImageData(0, 0, reach, reach).data;
-            let seen = 0, inColor = 0;
+            let seen = 0, inColor = 0, gray = 0;
+            // How many gray pixels are how bright, sixteen steps to a bin.
+            const bright = new Array(16).fill(0);
             for (let at = 0; at < data.length; at += 4) {
                 if (data[at + 3] < 32) continue;
                 seen++;
                 // A pixel has color when its channels are well apart.
                 const max = Math.max(data[at], data[at + 1], data[at + 2]);
-                if (max > 40 && (max - Math.min(data[at], data[at + 1], data[at + 2])) / max > 0.25) inColor++;
+                if (max > 40 && (max - Math.min(data[at], data[at + 1], data[at + 2])) / max > 0.25) {
+                    inColor++;
+                } else {
+                    gray++;
+                    bright[max >> 4]++;
+                }
             }
+            // One gray: nearly all of the gray is about as bright as most of it.
+            const most = bright.indexOf(Math.max(...bright));
+            const oneGray = gray > 0 && ((bright[most - 1] ?? 0) + bright[most] + (bright[most + 1] ?? 0)) / gray >= 0.85;
             // A thin glyph with a dot of color is still a glyph: under half.
-            icon.glyph = seen > 0 && inColor / seen < 0.5;
+            // A picture fills its square; a glyph leaves most of it empty.
+            icon.glyph = seen > 0 && inColor / seen < 0.5 && oneGray && seen / (data.length / 4) <= 0.6;
             if (icon.glyph) {
                 ctx.globalCompositeOperation = "source-in";
                 ctx.fillStyle = icon.color;

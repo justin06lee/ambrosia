@@ -64,7 +64,7 @@ Sidebar in macOS 26's order, keeping only what maps:
 | General › Sharing | hostnamed (computer name); Remote Login = sshd via systemd |
 | Appearance | shell + Theme: Light/Dark/Auto, accent, highlight, sidebar icon size, scroll bars, click in the scroll bar to |
 | Accessibility | KWin zoom, animation speed (reduce motion), reduce transparency / increase contrast (Theme), cursor size, sticky/slow keys |
-| Control Center | shell: each module's Show in Menu Bar / Show in Control Center, menu bar autohide |
+| Control Center | shell: apps' status items under Allow in the Menu Bar (those the shell has seen); each module's Show in Menu Bar / Show in Control Center, menu bar autohide |
 | Spotlight | our Search on Super+Space: switches for the result kinds it has (apps, settings, sums, files, folders) |
 | Privacy & Security | xdg-desktop-portal permission store (camera, mic, screen recording grants for portal apps); disk encryption status |
 | Desktop & Dock | shell (size, magnification, position, autohide, indicators, recent apps), KWin (minimize effect, double-click title bar, hot corners), default web browser (mimeapps.list and kdeglobals: xdg-settings fails on Plasma 6) |
