@@ -1,0 +1,70 @@
+#!/bin/bash
+# The picture while the computer starts and shuts down: Ambrosia's mark on
+# black with a bar that fills (the Plymouth theme "ambrosia", from
+# ambrosia-theme), in place of the kernel's text. The installer runs this
+# for a new system. On one installed before, once, as root:
+#
+#   /usr/lib/ambrosia/boot-picture        switch it on
+#   /usr/lib/ambrosia/boot-picture off    back to text
+#
+# On: Plymouth's theme is set, its hook goes into the initramfs (after
+# systemd or udev), `splash` goes on the kernel's command line where
+# systemd-boot or syslinux keeps it, and the initramfs is built again.
+# Off takes `splash` away again and leaves the rest. Safe to run twice.
+set -eu
+want=${1:-on}
+[[ $want == on || $want == off ]] || { echo "usage: boot-picture [on|off]" >&2; exit 2; }
+[[ $EUID == 0 ]] || { echo "boot-picture: run it as root" >&2; exit 1; }
+
+# Where a kernel command line is kept: systemd-boot's entries (`options`),
+# syslinux's menu (`APPEND`), and a unified kernel image's own file.
+lines=()
+for esp in /boot /efi /boot/efi; do
+  for entry in "$esp"/loader/entries/*.conf; do
+    [[ -f $entry ]] && lines+=("$entry:options")
+  done
+done
+[[ -f /boot/syslinux/syslinux.cfg ]] && lines+=("/boot/syslinux/syslinux.cfg:APPEND")
+[[ -f /etc/kernel/cmdline ]] && lines+=("/etc/kernel/cmdline:")
+
+if [[ $want == off ]]; then
+  for line in "${lines[@]}"; do
+    file=${line%%:*} key=${line#*:}
+    sed -i -E "/^[[:space:]]*${key}[[:space:]]*.*\<splash\>/s/[[:space:]]+splash\>//" "$file"
+  done
+  echo "boot-picture: off (the kernel's text is back at the next start)"
+  exit 0
+fi
+
+command -v plymouth-set-default-theme >/dev/null ||
+  { echo "boot-picture: Plymouth isn't installed (pacman -S plymouth)" >&2; exit 1; }
+[[ -f /usr/share/plymouth/themes/ambrosia/ambrosia.plymouth ]] ||
+  { echo "boot-picture: the theme isn't installed (ambrosia-theme)" >&2; exit 1; }
+plymouth-set-default-theme ambrosia
+
+# The hook, in whichever file sets HOOKS last (a drop-in wins over
+# mkinitcpio.conf).
+hooks=/etc/mkinitcpio.conf
+for conf in /etc/mkinitcpio.conf.d/*.conf; do
+  [[ -f $conf ]] && grep -q '^HOOKS=' "$conf" && hooks=$conf
+done
+if ! grep -qE '^HOOKS=.*\<plymouth\>' "$hooks"; then
+  sed -i -E '/^HOOKS=/s/\<(systemd|udev)\>/\1 plymouth/' "$hooks"
+  grep -qE '^HOOKS=.*\<plymouth\>' "$hooks" ||
+    { echo "boot-picture: no systemd or udev hook in $hooks to put plymouth after" >&2; exit 1; }
+fi
+
+if (( ${#lines[@]} == 0 )); then
+  echo "boot-picture: no systemd-boot entry or syslinux menu found: add 'splash' to the kernel's command line yourself" >&2
+fi
+for line in "${lines[@]}"; do
+  file=${line%%:*} key=${line#*:}
+  if [[ -n $key ]]; then
+    sed -i -E "/^[[:space:]]*${key}[[:space:]]/{/\<splash\>/!s/[[:space:]]*\$/ splash/}" "$file"
+  else
+    grep -qw splash "$file" || sed -i -E '1s/[[:space:]]*$/ splash/' "$file"
+  fi
+done
+
+mkinitcpio -P
+echo "boot-picture: on (it shows from the next start)"

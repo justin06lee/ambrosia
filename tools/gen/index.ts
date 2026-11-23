@@ -12,6 +12,7 @@ import { fontEnvironment, fontconfig } from "./targets/fontconfig";
 import { gtk3, gtk4, titlebuttonGlyphs } from "./targets/gtk";
 import { kdecoration } from "./targets/kdecoration";
 import { kde, kdeglobals } from "./targets/kde";
+import { plymouth } from "./targets/plymouth";
 import { qml, qmldir } from "./targets/qml";
 import { qstyle } from "./targets/qstyle";
 import { web } from "./targets/web";
@@ -60,6 +61,8 @@ const files: Record<string, string | Uint8Array> = {
   // of each to look them over on, and the preview's CSS cursors.
   ...icons.files,
   ...pointer.files,
+  // The picture while the computer starts: a Plymouth theme.
+  ...plymouth(),
 };
 
 await rm(dist, { recursive: true, force: true });

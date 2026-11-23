@@ -107,6 +107,11 @@ export const size = {
    *  with a window's name under it (`label`, `gap` below the window). By eye
    *  from macOS 26, not measured yet. */
   mission: { bar: 40, space: 96, pad: 12, ring: 4, label: 28, gap: 10 },
+  /** The picture while the computer starts (Plymouth): the mark in the
+   *  middle of a black screen and a thin bar under it, on a screen 1080
+   *  high; a taller screen draws them larger by as much. `field` is where a
+   *  disk's password goes. By eye from a Mac starting up, not measured. */
+  boot: { mark: 96, bar: 192, track: 4, gap: 56, field: 28, dot: 8 },
   // macOS 26: a titled window's bar is 32, a toolbar 52. The controls sit
   // centered in either, as far from the left edge as from the top.
   titlebar: { height: 32, toolbar: 52 },
