@@ -1,7 +1,9 @@
 # ⇧⌘, in every app.
-# ⇧⌘3 the screen, ⇧⌘4 a part of it, ⇧⌘5 the screenshot tool (Spectacle).
-3 = S-sysrq
-4 = M-S-sysrq
+# ⇧⌘3 the screen, ⇧⌘4 a part of it: straight to the Desktop, with a
+# thumbnail in the corner (session/org.ambrosia.screenshot*.desktop hold
+# these two chords). ⇧⌘5 the screenshot tool (Spectacle).
+3 = C-M-A-3
+4 = C-M-A-4
 5 = sysrq
 # ⇧⌘[ ⇧⌘] the tab before and after.
 leftbrace = C-pageup

@@ -132,7 +132,8 @@ package_ambrosia-shell() {
   # The shell's grant to KWin's window list, Super+Space for Search and
   # Super+Ctrl+F for full screen.
   install -Dm644 session/org.ambrosia.shell.desktop session/org.ambrosia.search.desktop \
-    session/org.ambrosia.fullscreen.desktop -t "$pkgdir/usr/share/applications/"
+    session/org.ambrosia.fullscreen.desktop session/org.ambrosia.screenshot.desktop \
+    session/org.ambrosia.screenshot-region.desktop -t "$pkgdir/usr/share/applications/"
   install -Dm644 session/ambrosia.desktop -t "$pkgdir/usr/share/wayland-sessions/"
   local units="$pkgdir/usr/lib/systemd/user"
   install -Dm644 session/ambrosia-shell.service -t "$units/"
