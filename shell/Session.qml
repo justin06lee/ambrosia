@@ -31,6 +31,14 @@ Singleton {
             + ' /org/freedesktop/FileManager1 org.freedesktop.FileManager1 ShowItems ass 1 "$1" "" >/dev/null 2>&1 && break; set -- "$1" yes; done',
             "sh", "file://" + path.split("/").map(encodeURIComponent).join("/"), "no"]);
     }
+    // Moves files (URLs) to the trash. While Files runs it does the moving,
+    // so Edit > Undo there can put them back; KIO's own move (kioclient)
+    // can't be undone.
+    function trash(urls) {
+        Quickshell.execDetached(["sh", "-c",
+            'busctl --user --auto-start=no call org.ambrosia.files /org/ambrosia/files org.ambrosia.Files Trash as "$#" "$@" >/dev/null 2>&1'
+            + ' || exec kioclient move "$@" trash:/', "sh"].concat(urls));
+    }
     // System Settings (ambrosia-settings), on one of its panes: general,
     // about, wifi, network, bluetooth, sound, battery, datetime…
     function settings(pane) {

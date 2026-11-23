@@ -133,14 +133,6 @@ PanelWindow {
     readonly property real tileArt: 1 / 0.805
     readonly property var tileIcons: Theme.tileIcons
 
-    // Moves files to the trash. While Files runs it does the moving, so Edit >
-    // Undo there can put them back; KIO's own move (kioclient) can't be undone.
-    function trash(urls) {
-        Quickshell.execDetached(["sh", "-c",
-            'busctl --user --auto-start=no call org.ambrosia.files /org/ambrosia/files org.ambrosia.Files Trash as "$#" "$@" >/dev/null 2>&1'
-            + ' || exec kioclient move "$@" trash:/', "sh"].concat(urls));
-    }
-
     // What's in the trash, watched, so the Trash fills and empties with it.
     // The folder is made first, so there's one to watch.
     readonly property string trashDir: (Quickshell.env("XDG_DATA_HOME") || Quickshell.env("HOME") + "/.local/share") + "/Trash/files"
@@ -317,7 +309,7 @@ PanelWindow {
                     onDropped: drop => {
                         if (tip.over === trash) tip.over = null;
                         if (!drop.hasUrls) return;
-                        dock.trash(Array.from(drop.urls, url => url.toString()));
+                        Session.trash(Array.from(drop.urls, url => url.toString()));
                         drop.accept(Qt.MoveAction);
                     }
                 }

@@ -56,6 +56,8 @@ Singleton {
     // "calculator", "files" and "folders", and kinds of file as
     // "files:images" (Search.qml's kinds).
     property alias searchOff: adapter.searchOff
+    // How the desktop's icons are ordered: "name", "kind" or "date".
+    property alias desktopSort: adapter.desktopSort
     // Read once: from here on, a change is one somebody made.
     property bool loaded: false
 
@@ -123,6 +125,7 @@ Singleton {
             property list<string> notificationApps: []
             property list<string> notificationsOff: []
             property list<string> searchOff: []
+            property string desktopSort: "name"
             // How many of migrate()'s steps this file has been through.
             property int migrated: 0
         }

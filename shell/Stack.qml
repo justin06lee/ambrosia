@@ -34,20 +34,6 @@ StackGrid {
         Session.open(folder);
     }
 
-    // A picture is its own icon; anything else wears its kind's, by the
-    // icon theme's names (text/plain is text-plain, or text-x-generic).
-    function iconFor(kind, path) {
-        if (stack.pictures.test(kind))
-            return "file://" + path.split("/").map(encodeURIComponent).join("/");
-        return stack.kindIcon(kind);
-    }
-    readonly property var pictures: /^image\/(png|jpeg|gif|webp|bmp|svg\+xml)$/
-    function kindIcon(kind) {
-        if (kind === "inode/directory") return Quickshell.iconPath("folder", "inode-directory");
-        const family = kind.split("/")[0];
-        return Quickshell.iconPath(kind.replace("/", "-"), family === "application" ? "unknown" : family + "-x-generic");
-    }
-
     // A line a thing, newest first: its kind, a tab, its name.
     Process {
         id: list
@@ -62,7 +48,7 @@ StackGrid {
                     const name = line.slice(tab + 1);
                     const kind = line.slice(0, tab);
                     // `spare` is what a picture that can't be read wears instead.
-                    return { name: name, path: folder + "/" + name, icon: stack.iconFor(kind, folder + "/" + name), spare: stack.kindIcon(kind) };
+                    return { name: name, path: folder + "/" + name, icon: FileKinds.iconFor(kind, folder + "/" + name), spare: FileKinds.icon(kind) };
                 });
                 stack.loading = false;
             }

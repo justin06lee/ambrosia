@@ -86,6 +86,12 @@ export const size = {
    *  the box the picture is fitted in, how far from the screen's edges, its
    *  white edge and its corners. By eye, not measured yet. */
   screenshot: { width: 180, height: 132, margin: 20, border: 2, radius: 8 },
+  /** Icons on the desktop (what is in ~/Desktop): an icon, the cell it and
+   *  its two lines of name take, the room kept between the icons and the
+   *  screen's edges, a picture's white edge, and the corners of a chosen
+   *  icon's backing. By eye from macOS 26's defaults (64 pt icons, 12 pt
+   *  names), not measured yet. */
+  desktop: { icon: 64, cellWidth: 108, cellHeight: 112, margin: 8, edge: 2, radius: 8 },
   /** A Dock stack opened (Downloads): a grid of the folder's newest things,
    *  so many across and at most so many rows before it scrolls; a cell, the
    *  icon in it, and the panel's own padding. By eye, not measured yet. */
