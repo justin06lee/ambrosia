@@ -361,6 +361,17 @@ package repo below), and they carry `shell/` and `session/` as they are.
    pictures answer the two commands through `Quickshell.shotRun` (sheet
    `desktop-icons`; HOME there is `/home/ada`, so the Mac's own Desktop
    is never read).
+   **The shell is the polkit agent** (round 28, `shell/Authorization.qml`
+   on `Quickshell.Services.Polkit`): a session has one agent, so
+   `plasma-polkit-agent.service` has a drop-in that skips it in our
+   session (in a session from before the upgrade: `systemctl --user stop
+   plasma-polkit-agent`, then restart the shell). A request is shown by
+   `Popups.confirm` with `hold` (stays up until `Popups.finish()` or
+   `refused()`) and `cancel` (run when it is put away by anything).
+   **To ask for one by hand**, from inside the session and not from
+   SSH's own (polkit looks for the agent of the caller's session, and
+   pkexec there ends with 127): `systemd-run --user --collect sh -c
+   'pkexec true; echo $? > /tmp/out'`; 126 is a refusal, 0 a yes.
    **The lock screen is the login screen's file** (round 27): KDE's
    locker (`kscreenlocker_greet`, started by KWin at each lock) loads
    `contents/lockscreen/LockScreen.qml` from the Plasma shell package

@@ -101,12 +101,35 @@ Singleton {
     }
 
     function confirm(screen, confirmation) {
+        // Taking its place refuses the one before.
+        const before = refusal;
+        refusal = null;
         searchOpen = false;
         popups.screen = screen;
         popups.confirmation = confirmation;
         owner = "";
         levels = [];
         kind = "confirm";
+        refusal = confirmation.cancel ?? null;
+        if (before) before();
+    }
+
+    // A confirmation may say what to do when it is put away unanswered
+    // (`cancel`): by its Cancel, Escape, a click beside it, or something
+    // else opening in its place.
+    property var refusal: null
+    onKindChanged: {
+        const refuse = refusal;
+        refusal = null;
+        if (refuse) refuse();
+    }
+    // One that stays up after its button is pressed (`hold`) is told its
+    // answer was wrong, and shakes, or is put away by whoever opened it.
+    signal refused()
+    function finish() {
+        if (kind !== "confirm") return;
+        refusal = null;
+        close();
     }
 
     // Force Quit Applications (ForceQuit.qml).

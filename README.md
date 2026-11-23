@@ -153,7 +153,8 @@ tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remot
                publish-repo.sh (the hosted repo), repo-test.sh + repo-check.sh (its VM test)
 shell/         the shell in QML for Quickshell: wallpaper, the desktop's icons and menu, menu bar (with apps' own
                status items) and menus, Search,
-               Dock, control center, notifications, Force Quit, the volume and brightness keys' display,
+               Dock, control center, notifications, Force Quit, password prompts (the shell is the polkit agent),
+               the volume and brightness keys' display,
                a screenshot's thumbnail in the corner,
                the plain tile under app icons that have none (AppTile.qml)
 session/       the Ambrosia session: start script, systemd units, KWin and KDE defaults,
