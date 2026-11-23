@@ -1776,7 +1776,9 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
             break;
         }
         Paint paint(painter, option);
-        const QRect title = subElementRect(SE_DockWidgetTitleBarText, option, widget);
+        // (In from the edge as far as a list's rows start under it.)
+        const QRect bar = subElementRect(SE_DockWidgetTitleBarText, option, widget);
+        const QRect title = visualRect(dock->direction, bar, bar.adjusted(qMax(0, int(T::fieldPadding) - (bar.left() - option->rect.left())), 0, 0, 0));
         QFont font = smaller(painter->font());
         font.setBold(true);
         painter->setFont(font);
