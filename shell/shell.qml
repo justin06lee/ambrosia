@@ -59,6 +59,9 @@ ShellRoot {
     // Which keyboard layer the focused app gets (the Mac-first keyboard).
     KeyLayer {}
 
+    // Programs' requests for the password (polkit).
+    Authorization {}
+
     // `ambrosia search`, `ambrosia control-center`, `ambrosia force-quit`
     // and the rest (see session/ambrosia): what the keyboard shortcuts run.
     IpcHandler {

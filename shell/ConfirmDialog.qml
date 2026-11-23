@@ -9,21 +9,55 @@ Item {
     id: dialog
 
     // { title, text, accept: button label, password: bool, action: function },
-    // where action is given the password when there is one.
+    // where action is given the password when there is one. Also: `glyph`,
+    // an icon of ours in place of the bowl; `shown`, the answer isn't a
+    // secret; `hold`, it stays up after its button is pressed until
+    // Popups.finish() or Popups.refused() (which shakes it and asks again);
+    // `cancel`, what to do when it is put away unanswered (Popups.qml).
     property var confirmation: null
     readonly property Region blurArea: Region { item: dialog; radius: Theme.radius.panel }
+    // Held, with its answer on the way.
+    property bool waiting: false
 
     function accept() {
+        if (waiting) return;
         const action = confirmation?.action;
         const answer = password.text;
-        Popups.close();
+        if (confirmation?.hold) {
+            waiting = true;
+        } else {
+            // Answered: nothing to refuse.
+            Popups.finish();
+        }
         action?.(answer);
     }
 
     onVisibleChanged: {
         password.text = "";
+        waiting = false;
         if (visible && confirmation?.password) Qt.callLater(() => password.forceActiveFocus());
     }
+
+    Connections {
+        target: Popups
+        function onRefused() {
+            dialog.waiting = false;
+            password.text = "";
+            shake.restart();
+            password.forceActiveFocus();
+        }
+    }
+
+    // A wrong password: the dialog shakes its head, as a Mac's does.
+    SequentialAnimation {
+        id: shake
+        NumberAnimation { target: nudge; property: "x"; to: -12; duration: 50 }
+        NumberAnimation { target: nudge; property: "x"; to: 10; duration: 70 }
+        NumberAnimation { target: nudge; property: "x"; to: -7; duration: 70 }
+        NumberAnimation { target: nudge; property: "x"; to: 4; duration: 70 }
+        NumberAnimation { target: nudge; property: "x"; to: 0; duration: 60 }
+    }
+    transform: Translate { id: nudge }
 
     width: 280
     height: content.implicitHeight + 2 * Theme.space.s5
@@ -48,7 +82,7 @@ Item {
 
         Icon {
             anchors.horizontalCenter: parent.horizontalCenter
-            name: "bowl"
+            name: dialog.confirmation?.glyph ?? "bowl"
             size: 48
         }
 
@@ -83,7 +117,8 @@ Item {
                 id: password
                 anchors { fill: parent; leftMargin: Theme.space.s2; rightMargin: Theme.space.s2 }
                 verticalAlignment: TextInput.AlignVCenter
-                echoMode: TextInput.Password
+                echoMode: dialog.confirmation?.shown ? TextInput.Normal : TextInput.Password
+                enabled: !dialog.waiting
                 font.family: Theme.uiFont
                 font.pixelSize: Theme.text.body.size
                 color: Theme.color.label.primary
@@ -108,6 +143,7 @@ Item {
                 width: (parent.width - parent.spacing) / 2
                 text: dialog.confirmation?.accept ?? "OK"
                 primary: true
+                opacity: dialog.waiting ? 0.5 : 1
                 onClicked: dialog.accept()
             }
         }

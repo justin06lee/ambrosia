@@ -141,6 +141,8 @@ package_ambrosia-shell() {
   install -d "$units/plasma-core.target.wants"
   ln -s ../ambrosia-shell.service "$units/plasma-core.target.wants/ambrosia-shell.service"
   install -Dm644 session/plasmashell.conf "$units/plasma-plasmashell.service.d/ambrosia.conf"
+  # The shell asks for passwords itself (polkit; shell/Authorization.qml).
+  install -Dm644 session/plasma-polkit-agent.conf "$units/plasma-polkit-agent.service.d/ambrosia.conf"
   install -Dm644 session/ksplash.conf "$units/plasma-ksplash.service.d/ambrosia.conf"
   # Running shells restart after an upgrade; they don't reload themselves.
   install -Dm644 session/ambrosia-shell-restart.hook -t "$pkgdir/usr/share/libalpm/hooks/"
