@@ -120,9 +120,11 @@ it is a copy.
    window away. Seen on tenet slowed down, Konsole part-way open. The 90%
    is by eye, the curve is Qt's nearest to the spring and not the spring
    itself, and a dialog opens like any window where a Mac's alert pops.
-   Not seen: the Genie with the Dock on the left or right, or hidden;
-   an Xwayland window opening; zooming with the green button (KWin's own
-   Maximize effect).
+   Seen since (round 18): a dialog opening the same way, and the Genie
+   with the Dock on the left, which had poured the window downwards until
+   KWin was told the Dock is a panel (its layer namespace is "dock").
+   Not seen: the Genie with the Dock hidden; an Xwayland window opening;
+   zooming with the green button (KWin's own Maximize effect).
 7. **⌘Tab: ours, seen on KWin.** Since round 6 KWin's switcher walks apps,
    one window each, on a glass strip of large icons with the chosen app's
    name under it (the look-and-feel's `windowswitcher`); ← → move and Q
@@ -164,8 +166,8 @@ it is a copy.
     Konsole held at the left edge, the pane over the left half between the
     menu bar and the Dock, blurring what is behind. It is drawn over the
     dragged window, where a Mac's is under it, and the tiled window still
-    lands flush with the edges, where a Mac leaves a margin. Not seen: a
-    corner, the top edge, dark. Still KWin's: where the edges tile to
+    lands flush with the edges, where a Mac leaves a margin. A corner
+    and dark were seen in round 18. Not seen: the top edge. Still KWin's: where the edges tile to
     (halves and quarters; a Mac's top edge fills the screen), and the
     green button has no menu (Move & Resize, Full Screen on a display).
 13. **Screenshots.** ⇧⌘3/4/5 run Spectacle with its own window; a Mac shows
@@ -263,6 +265,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 18, 2026-11-23 | What rounds 13 to 17 left unseen | A look at tenet's first fresh login since those rounds, and one fix: the Dock's layer surface is named "dock", which is how KWin knows it for a panel (`shell/Dock.qml`); `tools/live.sh unlock` and `lock` find the session themselves (its number changes with each login) | On tenet: ⌘Tab's strip of our own, at last from a KWin that started with it; in dark, a banner with Firefox on its tile, Kate's menu with the Mac's shortcut glyphs, the tiling preview at a corner; a file dialog part-way open with the effect slowed. The Genie with the Dock on the left showed nothing: KWin found no panel under the tile and poured the window downwards; with the surface named "dock" it pours into the tile, seen twice. Still not seen: the tiling preview at the top edge, Settings' pane showing Genie chosen |
 | 17, 2026-11-18 | 12, the tiling preview | `session/kwin-outline/outline.qml`: KWin's outline window with a pane of our glass in it (the theme's clear tint, edge and rim, the window radius, KWin told to blur behind it through our `BlurBehind`), installed to `/usr/share/kwin/outline/ambrosia/` by ambrosia-shell and named by `[Outline] QmlPath` in the session's `kwinrc` | On tenet's running KWin (which loads the outline the first time it shows one, and had not yet): Konsole dragged to the left edge with the virtual pointer held down (`ui.py down`, `glide`, `sleep`, `up` in one call: the button is let go when the call ends), photographed while held. Light only; no corner or top edge |
 | 16, 2026-11-18 | 6, opening and closing | A KWin effect of ours, `session/kwin-effects/ambrosia_windows` (a scripted effect: `metadata.json`, `contents/code/main.js`, a `Duration` setting in `contents/config/main.xml`), installed to `/usr/share/kwin/effects/` by ambrosia-shell and switched on by the session's `kwinrc` with KWin's Scale off: a window opens from 90% with a fade over the snappy spring's 290 ms; nothing answers a window closing | On tenet, loaded into the running KWin over DBus: with `Duration` at 20 s, a picture of Konsole part-way open, smaller and half see-through over Firefox; after it, no open/close effect but ours is loaded, so a closing window has nothing to play. The first try ignored `Duration`: KWin reads a scripted effect's settings only when its `main.xml` declares them. Not seen at its real speed, nor a dialog |
 | 15, 2026-11-18 | 6, minimizing | Genie is the session's default for minimizing (`session/xdg/kwinrc`: Magic Lamp on, Squash off, 400 ms), and the gap's line is put right: the Dock already published each tile's place (`requestPublishDelegateGeometry` in `shell/Dock.qml`), so a window lands on its own tile | On tenet: KWin's `iconGeometry` for Konsole and Firefox is their Dock tiles (52 px squares in the Dock); with the effect slowed to 5 s, a picture of Konsole pouring into its tile; the defaults read back through the session's config path. A running KWin doesn't take the new default on reconfigure, so the live session was switched by hand the way Settings does it. Not seen: the Dock at a side, Settings' pane showing Genie chosen |

@@ -12,13 +12,16 @@
 #   tools/live.sh crop <name> x y w h [max]   cut a piece out, as <name>-c.png
 #   tools/live.sh js '<script>'  run a KWin script; P("…") prints back here
 #   tools/live.sh keys           switch KWin's own shortcuts back on (see CONTEXT.md, Gotchas)
+#   tools/live.sh unlock | lock  unlock the session's screen and keep it awake for an
+#                                hour; lock it again when done (its number changes
+#                                with every login, so it is looked up)
 # Coordinates are the output's pixels. AMBROSIA_HOST is the machine (tenet).
 set -eu
 host=${AMBROSIA_HOST:-tenet}
 root=$(cd "$(dirname "$0")/.." && pwd)
 out=$root/out/live
 session='export XDG_RUNTIME_DIR=/run/user/1000 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus WAYLAND_DISPLAY=wayland-1 QT_QPA_PLATFORM=wayland LC_ALL=C.UTF-8;'
-cmd=${1:?usage: tools/live.sh u|run|r|ui|shot|crop|js|keys …}
+cmd=${1:?usage: tools/live.sh u|run|r|ui|shot|crop|js|keys|unlock|lock …}
 shift
 case $cmd in
 u) ssh -o BatchMode=yes "justin06lee@$host" "$session $*" ;;
@@ -40,6 +43,15 @@ js)
     qdbus6 org.kde.KWin /Scripting/Script$n org.kde.kwin.Script.run >/dev/null; sleep 0.4
     qdbus6 org.kde.KWin /Scripting org.kde.kwin.Scripting.unloadScript live$$ >/dev/null
     journalctl --user --since "$since" --no-pager -o cat _COMM=kwin_wayland | sed -n "s/^.*LIVEJS //p"; rm -f /tmp/live-$$.js' ;;
+unlock | lock)
+  # The graphical session is the one on a seat.
+  ssh -o BatchMode=yes "root@$host" "id=\$(loginctl list-sessions --no-legend | awk '\$4 == \"seat0\" { print \$1; exit }'); loginctl $cmd-session \$id && echo \"$cmd: session \$id\""
+  if [ "$cmd" = unlock ]; then
+    ssh -o BatchMode=yes "justin06lee@$host" "$session (kde-inhibit --screenSaver sleep 3600 >/dev/null 2>&1 &)"
+    ssh -o BatchMode=yes "root@$host" "python3 /root/ui.py move 700 500" >/dev/null
+  else
+    ssh -o BatchMode=yes "justin06lee@$host" "pkill -x kde-inhibit; true"
+  fi ;;
 keys)
   # Marks every KWin shortcut present again in the global-shortcut daemon,
   # with the keys it has on file (flag 2: set present, keep the keys).
