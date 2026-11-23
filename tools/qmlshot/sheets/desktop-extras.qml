@@ -19,6 +19,7 @@ Desk {
         SystemTray.shotItems = [
             { id: "sync", title: "Sync", icon: Qt.resolvedUrl("art/status-sync.svg"), status: Status.Active, hasMenu: true, menu: syncMenu },
             { id: "store", title: "Updates", icon: icons + "apps/scalable/plasmadiscover.svg", status: Status.NeedsAttention, hasMenu: false },
+            { id: "notes", title: "Notes", icon: icons + "apps/scalable/kate.svg", status: Status.Active, hasMenu: false },
             { id: "quiet", title: "Quiet", icon: icons + "apps/scalable/ark.svg", status: Status.Passive, hasMenu: false },
         ];
         open.start();
