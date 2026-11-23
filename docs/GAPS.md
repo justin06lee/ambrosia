@@ -238,15 +238,27 @@ it is a copy.
     ⇧⌘4 then Space (one window) isn't there, and the picture is taken a
     second or two after the key, the time Spectacle takes to start (KWin's
     own ScreenShot2 interface, asked by the shell, would be at once).
-14. **The desktop itself: a right-click menu, seen on KWin; the rest
-    open.** Since round 9 the right button on the desktop opens a menu
-    (`shell/Wallpaper.qml`): New Folder, which makes "untitled folder" in
-    ~/Desktop and shows it in Files, and Change Wallpaper…. Still no icons
-    on the desktop (so the new folder appears in Files, not under the
-    pointer), no widgets, no stacks, and none of a Mac's Sort By, Clean Up
-    or Show View Options, which need the icons. Seen on tenet
-    (2026-11-18): the menu opens at the pointer and both items do their
-    work.
+14. **The desktop itself: its icons and its menu, seen on KWin.** Since
+    round 9 the right button on the desktop opens a menu
+    (`shell/Wallpaper.qml`): New Folder, Change Wallpaper…. Since round 25
+    what is in ~/Desktop lies on the first screen's picture as icons
+    (`shell/DesktopIcons.qml`): in columns from the top right corner,
+    clear of the menu bar and the Dock, by name unless the menu's Sort By
+    says Kind or Date Modified; a picture as itself inside a white edge,
+    anything else by its kind's icon; the name in white on two lines. A
+    click chooses one (⌘ or Shift adds), a drag over the picture draws a
+    rectangle and chooses what it crosses, a double click opens, the
+    right button gives Open, Move to Trash and Show in Files, a chosen
+    icon drags into a window or onto the Trash, and a file dropped on the
+    picture moves into the folder. The folder is watched, so a screenshot
+    or a new folder (chosen as it arrives) appears by itself. Seen on
+    tenet (2026-11-23) with a text file, a PDF, a picture and folders:
+    all of that but ⌘-click and a drop from a window. Short of a Mac's:
+    icons can't be put where you like (they are always in order), no
+    renaming in place (Return), no keys at all (the desktop never has the
+    keyboard: no arrows, ⌘⌫, Space for a look), no Get Info, Copy or
+    Duplicate, no stacks or widgets, names cut at the end where a Mac
+    cuts the middle, sizes by eye, and drives don't show.
 15. **Trackpad gestures.** Whatever KWin does out of the box; nothing set
     to a Mac's (swipe between desktops and full-screen apps, Mission Control,
     pinch for the apps, two-finger swipe from the right edge for Notification
@@ -344,6 +356,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 25, 2026-11-23 | 14, icons on the desktop | `shell/DesktopIcons.qml` on the first screen's wallpaper (`Wallpaper.qml` loads it, with the room the menu bar and the Dock take): ~/Desktop watched by a `FolderListModel` and read with `stat` and `file`, laid out in columns from the right, choosing by click, ⌘/Shift and a dragged rectangle, opening, a menu, dragging out (`Drag.Automatic` with the URLs) and drops in (`kioclient move`); `shell/FileKinds.qml` (the icon for a kind of file, shared with the Dock's stack); `Session.trash` (was the Dock's); the desktop menu's Sort By and `desktopSort` in the settings; `size.desktop` tokens. | `bun test`, `bun run build`, `make shell-shots` (new sheet `desktop-icons`). On tenet, live: four test things on the Desktop shown, one chosen, a double click opening a text file in Kate, an icon's menu and its Move to Trash, New Folder appearing, Sort By Date Modified, an icon dragged onto the Dock's Trash, a rectangle dragged over three; the Downloads stack still opening. Not checked: ⌘-click, a drop from a window, the Dock at a side, more icons than one column holds, a second screen. |
 | 24, 2026-11-23 | 10 and 22, ⌘H, ⌥⌘Esc and menus opened by a command | Hiding in the session's KWin effect (`ambrosia_windows`: Hide App, Hide Others, Show All and Show Without Motion as KWin shortcuts; windows minimized while the effect has the whole screen, so no Genie; a hidden app's other windows follow the one brought forward); the app menu's Hide, Hide Others, Show All (`Apps.hideFront` and the rest, `Apps.kwin`), and the Dock telling the effect before it brings back an app with every window put away; `ambrosia quit` and the `quit` key layer for apps without Ctrl+Q; desktop files for ⌥⌘Esc and that quit; keyd's ⌘H, ⌥⌘H and ⌥⌘Esc; `packaging/quickshell/popup-grab.patch` (a popup that takes the keyboard before the shell's first input; pkgrel 4). | `bun test`, `bun run build`, `make shell-shots` (new sheet `desktop-app-menu`). On tenet, live, with the Genie slowed to 6 s and KWin asked which effects were running: Hide on Konsole's two windows, back from the Dock and from Alt+Tab, Hide Others, Show All, the app menu's rows, a plain minimize as the control (the Genie ran); `ambrosia quit` closing Kate; the patched Quickshell installed and Force Quit opened by command straight after a shell restart, Down moving the choice. With keyd switched on for the test (and off again after), ⌘H and ⌥⌘H pressed on a keyboard-only virtual device hid Kate and then the others. Not checked: ⌥⌘Esc and the `quit` layer's ⌘Q by their keys (a desktop file's chord is taken up at the next login), the green light's menu before a click (it needs the installed frame, so a login too), dark, an app with a dialog open, an Xwayland app. |
 | 23, 2026-11-23 | 13, screenshots | `shell/Screenshot.qml` (runs Spectacle in the background into a file on the Desktop named as a Mac names one, then shows it) and `ScreenshotThumb.qml` (the picture fitted in a box, a white edge, a shadow) on a layer surface in the bottom right corner; `ambrosia screenshot screen|region` and the shell's IPC; two desktop files holding Super+Ctrl+Alt+3 and 4, which keyd's ⇧⌘3 and ⇧⌘4 now send (they were Spectacle's own Shift+Print chords); `screenshot` size and choreography tokens; a sheet, `screenshot` | On the Mac: `out/shots/shell-screenshot-*.png` (a wide picture, a tall one, one not read yet). On tenet: the command for the screen and for a part (dragged with the virtual pointer, Return), the files' sizes read back, the thumbnail photographed in the corner and gone five seconds on, a click opening Gwenview. A second Spectacle started while the crosshair was up ended it without a picture. After the r444 packages: once more from the installed files (the thumbnail comes some three seconds after the command: Spectacle starting). The shortcut daemon reads new desktop files at login, so the two chords aren't held yet on tenet. Not seen: the keys, dark |
 | 22, 2026-11-23 | 12, the rest of tiling | `session/kwin-scripts/ambrosia_tiles` (a KWin script: a padding of 8 on any tile of KWin's own a window lands in; on in the session's `kwinrc`); `Apps.placeWindow` and `placeEntries` (KWin's quick-tile actions by their shortcuts' names, over kglobalaccel), Center and Move & Resize in the Window menu, `ambrosia window-menu X Y` (the shell's IPC opens the menu at that place); the frame's green light starts a 600 ms timer when the pointer comes to rest on it and runs that command with its own place on the screen (the pointer's, less its place in the frame); no tooltips on the lights; a sheet, `desktop-window-menu` | On the Mac: the sheet, light and dark. On tenet: the script loaded into the running KWin by a reconfigure; Konsole sent Right and Top Right from the menu (x 1284, width 1268, height 649: 8 and 4); the top edge's preview held and photographed; the green light's menu from a test copy of the plugin under another name, named in the user's `kwinrc` and taken out again. After the r441 packages: the Window menu's Move & Resize on tenet, Bottom Left chosen from it (a list set inside a menu row didn't come through as a list: a row's `submenu` is a function now). Not seen: dark, two tiles side by side dragged at their shared edge |

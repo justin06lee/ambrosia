@@ -6,7 +6,8 @@ import Ambrosia
 
 // The desktop picture, on the background layer under every window: what's
 // chosen in Settings, each change fading in over the one before. A
-// right-click on it opens the desktop's menu, as on a Mac.
+// right-click on it opens the desktop's menu, as on a Mac, and on the first
+// screen what is in ~/Desktop lies on it as icons (DesktopIcons.qml).
 PanelWindow {
     id: window
 
@@ -46,13 +47,23 @@ PanelWindow {
         layers.tryFade();
     }
 
-    // The desktop's own menu. Nothing is kept on the desktop yet, so a new
-    // folder (in ~/Desktop, named as a Mac names one) is shown in Files.
+    // The first screen has the desktop's icons, as a Mac's main display does.
+    readonly property bool first: screen?.name === Quickshell.screens[0]?.name
+    // The room the Dock keeps, on its side of the screen.
+    readonly property int dockRoom: Settings.dockAutohide ? 0
+        : Settings.dockSize + 2 * Math.round(Theme.size.dock.padding * Settings.dockSize / Theme.size.dock.icon) + Theme.size.dock.margin
+
+    // The desktop's own menu. A new folder (in ~/Desktop, named as a Mac
+    // names one) appears among the icons, chosen; on a screen without them
+    // it is shown in Files.
     function desktopMenu() {
+        const sort = (text, by) => ({ text: text, checked: Settings.desktopSort === by, action: () => Settings.desktopSort = by });
         return [
             { text: "New Folder", action: () => newFolder.running = true },
             { separator: true },
             { text: "Change Wallpaper…", action: () => Session.settings("wallpaper") },
+            { separator: true },
+            { text: "Sort By", submenu: () => [sort("Name", "name"), sort("Kind", "kind"), sort("Date Modified", "date")] },
         ];
     }
     Process {
@@ -62,7 +73,11 @@ PanelWindow {
             + ' while [ -e "$dir/$name" ]; do name="untitled folder $n"; n=$((n + 1)); done;'
             + ' mkdir -p "$dir/$name" && printf %s "$dir/$name"']
         stdout: StdioCollector {
-            onStreamFinished: if (text) Session.reveal(text)
+            onStreamFinished: {
+                if (!text) return;
+                if (icons.item) icons.item.awaited = text;
+                else Session.reveal(text);
+            }
         }
     }
 
@@ -145,6 +160,22 @@ PanelWindow {
             acceptedButtons: Qt.RightButton
             onPressed: mouse => Popups.openMenu(window.screen, "desktop", window.desktopMenu(),
                 mouse.x, mouse.y - Theme.size.menubar.height)
+        }
+
+        Loader {
+            id: icons
+            anchors.fill: parent
+            z: 3
+            active: window.first
+            sourceComponent: DesktopIcons {
+                screen: window.screen
+                insetTop: Theme.size.menubar.height
+                insetBottom: Settings.dockPosition === "bottom" ? window.dockRoom : 0
+                insetLeft: Settings.dockPosition === "left" ? window.dockRoom : 0
+                insetRight: Settings.dockPosition === "right" ? window.dockRoom : 0
+                onMenuRequested: (x, y) => Popups.openMenu(window.screen, "desktop", window.desktopMenu(),
+                    x, y - Theme.size.menubar.height)
+            }
         }
 
         NumberAnimation {

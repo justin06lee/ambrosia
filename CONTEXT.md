@@ -347,6 +347,18 @@ package repo below), and they carry `shell/` and `session/` as they are.
    device with keys only (python-evdev, `UInput({EV_KEY: keys})`), wait
    two seconds for keyd to take it, then write the keys. keyd stopped by
    systemd is left "failed" (it exits 15): `systemctl reset-failed keyd`.
+   **What is in ~/Desktop lies on the desktop as icons** (round 25,
+   `shell/DesktopIcons.qml`, loaded by the first screen's
+   `Wallpaper.qml`): a `FolderListModel` only watches the folder; each
+   change re-runs one `sh` loop (`stat -c %Y`, `file -bL --mime-type`)
+   whose lines become the icons, ordered by `Settings.desktopSort`. The
+   wallpaper is a background layer surface that never has the keyboard,
+   so the icons take the pointer only. A drag out is Qt's own
+   (`Drag.Automatic`, `text/uri-list`), which the Dock's Trash and apps
+   take; `shell/FileKinds.qml` picks icons for the stack too. The Mac
+   pictures answer the two commands through `Quickshell.shotRun` (sheet
+   `desktop-icons`; HOME there is `/home/ada`, so the Mac's own Desktop
+   is never read).
    **⇧⌘3 and ⇧⌘4 save to the Desktop and float a thumbnail** (round 23,
    `shell/Screenshot.qml`, `ambrosia screenshot screen|region`): Spectacle
    takes the picture in the background (`--background --nonotify
