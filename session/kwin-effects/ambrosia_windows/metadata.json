@@ -2,7 +2,7 @@
     "KPackageStructure": "KWin/Effect",
     "KPlugin": {
         "Category": "Window Open/Close Animation",
-        "Description": "Windows swell open and close at once, as on a Mac",
+        "Description": "Windows swell open, close at once and hide with their app, as on a Mac",
         "EnabledByDefault": false,
         "Id": "ambrosia_windows",
         "License": "MIT",

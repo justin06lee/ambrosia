@@ -1,0 +1,32 @@
+diff --git a/src/wayland/popupanchor.cpp b/src/wayland/popupanchor.cpp
+--- a/src/wayland/popupanchor.cpp
++++ b/src/wayland/popupanchor.cpp
+@@ -2,6 +2,7 @@
+ 
+ #include <private/qhighdpiscaling_p.h>
+ #include <private/qwayland-xdg-shell.h>
++#include <private/qwaylanddisplay_p.h>
+ #include <private/qwaylandwindow_p.h>
+ #include <private/wayland-xdg-shell-client-protocol.h>
+ #include <qvariant.h>
+@@ -105,6 +106,20 @@
+ 
+ 	if (auto* p = window->transientParent()) {
+ 		anchorRect = QHighDpi::toNativePixels(anchorRect, p);
++
++		// Qt makes a popup that grabs only once a press or a key has reached one of this
++		// program's windows: it wants a seat and a serial to hand the compositor, and until
++		// then closes the popup instead ("Failed to create grabbing popup"). A shell opens
++		// popups for other reasons too (a command, another program's request), so with no
++		// input yet it is given the seat and no serial. KWin takes the grab without one.
++		if (window->type() == Qt::Popup) {
++			auto* parent = dynamic_cast<QWaylandWindow*>(p->handle());
++			auto* display = parent ? parent->display() : nullptr;
++
++			if (display && !display->lastInputDevice() && display->defaultInputDevice()) {
++				display->setLastInputDevice(display->defaultInputDevice(), 0, nullptr);
++			}
++		}
+ 	}
+ 
+ 	// clang-format off

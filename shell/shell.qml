@@ -59,9 +59,8 @@ ShellRoot {
     // Which keyboard layer the focused app gets (the Mac-first keyboard).
     KeyLayer {}
 
-    // `ambrosia search`, `ambrosia control-center`, `ambrosia
-    // notification-center` (see session/ambrosia):
-    // what the keyboard shortcuts run.
+    // `ambrosia search`, `ambrosia control-center`, `ambrosia force-quit`
+    // and the rest (see session/ambrosia): what the keyboard shortcuts run.
     IpcHandler {
         target: "shell"
 
@@ -76,6 +75,11 @@ ShellRoot {
         }
         function forceQuit(): void {
             Popups.toggleForceQuit(Quickshell.screens[0]);
+        }
+        // ⌘Q for an app with no Quit of its own on Ctrl+Q: every window of
+        // the app in front is asked to close.
+        function quit(): void {
+            if (Apps.activeRow >= 0) Apps.quit(Apps.activeRow);
         }
         function screenshot(kind: string): void {
             shots.take(kind);

@@ -5,6 +5,7 @@ space = M-space
 # ⌘Tab between apps, ⌘` between one app's windows.
 tab = swapm(app_switcher, A-tab)
 grave = swapm(window_switcher, A-grave)
-# ⌘M and ⌘H put the window away (KWin's Minimize).
+# ⌘M puts the window away (KWin's Minimize); ⌘H hides the app, every
+# window of it (the session's KWin effect, ambrosia_windows, holds the chord).
 m = M-pagedown
-h = M-pagedown
+h = C-M-A-h

@@ -4,6 +4,7 @@
 #   ambrosia control-center   open or close the control center
 #   ambrosia notification-center   open or close Notification Center
 #   ambrosia force-quit       open or close Force Quit Applications
+#   ambrosia quit             ask every window of the app in front to close
 #   ambrosia screenshot [screen|region]   a picture of the screen, or of a
 #                             part dragged out, to the Desktop
 #   ambrosia window-menu X Y  where the window in front can go, as a menu at
@@ -15,9 +16,10 @@ case $1 in
   control-center) function=controlCenter ;;
   notification-center) function=notificationCenter ;;
   force-quit) function=forceQuit ;;
+  quit) function=quit ;;
   window-menu) function=windowMenu ;;
   screenshot) function=screenshot; [ $# -gt 1 ] || set -- screenshot screen ;;
-  *) echo "usage: ambrosia search | control-center | notification-center | force-quit | screenshot [screen|region] | window-menu X Y" >&2; exit 2 ;;
+  *) echo "usage: ambrosia search | control-center | notification-center | force-quit | quit | screenshot [screen|region] | window-menu X Y" >&2; exit 2 ;;
 esac
 shift
 exec quickshell ipc --path "$shell" call shell "$function" "$@"

@@ -65,8 +65,26 @@ Singleton {
             tasksModel.requestActivate(tasksModel.makeModelIndex(row));
             return;
         }
+        // An app with every window put away is hidden, or as good as: its
+        // windows come back at once, as a hidden app's do on a Mac, not one
+        // by one out of the Dock. KWin is told first and given a moment.
+        if (windows.every(window => get(window, TaskManager.AbstractTasksModel.IsMinimized))) {
+            kwin("Ambrosia Show Without Motion");
+            reveal.row = row;
+            reveal.restart();
+            return;
+        }
+        raise(windows);
+    }
+    function raise(windows) {
         windows.sort((a, b) => get(a, TaskManager.AbstractTasksModel.LastActivated) - get(b, TaskManager.AbstractTasksModel.LastActivated));
         for (const window of windows) tasksModel.requestActivate(window);
+    }
+    Timer {
+        id: reveal
+        property int row: -1
+        interval: 100
+        onTriggered: apps.raise(apps.windowsOf(row))
     }
     // The app of a desktop entry brought forward, or started if no window of
     // it is open (a notification's app, clicked in the center).
@@ -84,11 +102,22 @@ Singleton {
     function newWindow(row) {
         tasksModel.requestNewInstance(tasksModel.makeModelIndex(row));
     }
-    // Hides the app: minimizes each of its windows.
-    function hide(row) {
-        for (const window of windowsOf(row)) {
-            if (!get(window, TaskManager.AbstractTasksModel.IsMinimized)) tasksModel.requestToggleMinimized(window);
-        }
+    // One of KWin's actions, by the name its shortcut goes by: its own, or
+    // one of our effect's (session/kwin-effects/ambrosia_windows).
+    function kwin(action) {
+        Quickshell.execDetached(["busctl", "--user", "call", "org.kde.kglobalaccel", "/component/kwin",
+            "org.kde.kglobalaccel.Component", "invokeShortcut", "s", action]);
+    }
+    // Hiding is that effect's: the app in front, every other app, and all
+    // of them back. Its windows are put away at once, with no motion.
+    function hideFront() {
+        kwin("Ambrosia Hide App");
+    }
+    function hideOthers() {
+        kwin("Ambrosia Hide Others");
+    }
+    function showAll() {
+        kwin("Ambrosia Show All");
     }
     // Quits the app: asks each of its windows to close.
     function quit(row) {
@@ -136,8 +165,7 @@ Singleton {
         const index = indexOf(window);
         if (!index) return;
         tasksModel.requestActivate(index);
-        Quickshell.execDetached(["busctl", "--user", "call", "org.kde.kglobalaccel", "/component/kwin",
-            "org.kde.kglobalaccel.Component", "invokeShortcut", "s", where]);
+        kwin(where);
     }
     // A menu's rows for where a window can go: a Mac's Move & Resize.
     function placeEntries(window) {

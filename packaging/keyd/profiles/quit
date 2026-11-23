@@ -1,0 +1,4 @@
+# keyd bindings for an app with no Quit on Ctrl+Q (name it in
+# ~/.config/ambrosia/keys.json as "quit"): ⌘Q goes to the shell, which asks
+# every window of the app to close (session/org.ambrosia.quit.desktop).
+cmd.q = C-M-A-q
