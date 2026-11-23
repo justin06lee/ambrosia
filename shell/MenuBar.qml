@@ -84,7 +84,7 @@ PanelWindow {
             { separator: true },
             { text: "System Settings…", action: () => Session.settings() },
             { separator: true },
-            { text: "Force Quit…", action: () => Session.forceQuit() },
+            { text: "Force Quit…", action: () => Popups.toggleForceQuit(bar.screen) },
             { separator: true },
             { text: "Sleep", action: () => Session.sleep() },
             { text: "Restart…", action: () => Popups.confirm(bar.screen, {

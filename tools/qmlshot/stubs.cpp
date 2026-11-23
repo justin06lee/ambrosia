@@ -247,6 +247,7 @@ QHash<int, QByteArray> ShotTasksModel::roleNames() const
         {IsStartup, "IsStartup"},
         {IsDemandingAttention, "IsDemandingAttention"},
         {IsMinimized, "IsMinimized"},
+        {AppPid, "AppPid"},
         {ChildCount, "ChildCount"},
         {LastActivated, "LastActivated"},
         {ApplicationMenuServiceName, "ApplicationMenuServiceName"},
@@ -278,6 +279,8 @@ QVariant ShotTasksModel::data(const QModelIndex &index, int role) const
         return m_attention.contains(row.id);
     case IsMinimized:
         return false;
+    case AppPid:
+        return row.running ? 1000 + index.row() : 0;
     case ChildCount:
     case LastActivated:
         return 0;

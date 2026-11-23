@@ -51,7 +51,7 @@ Everywhere:
 | ⌃⌘F | full screen | Super+Ctrl+F (`session/org.ambrosia.fullscreen.desktop`) |
 | ⌃⌘Q | lock the screen | Super+L |
 | ⌃⌘Space | emoji | Super+. |
-| ⌥⌘Esc | force a window's app to quit (click the window) | Super+Ctrl+Esc (KWin's Kill Window) |
+| ⌥⌘Esc | force a window's app to quit (click the window; the Ambrosia menu's Force Quit… lists the apps instead) | Super+Ctrl+Esc (KWin's Kill Window) |
 
 In every app but a terminal:
 

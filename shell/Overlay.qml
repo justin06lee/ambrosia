@@ -53,6 +53,7 @@ PopupWindow {
             if (controlCenter.shown) list.push(controlCenter.blurArea);
             if (notificationCenter.shown) list.push(notificationCenter.blurArea);
             if (confirm.visible) list.push(confirm.blurArea);
+            if (forceQuit.visible) list.push(forceQuit.blurArea);
             if (stack.visible) list.push(stack.blurArea);
             return list;
         }
@@ -86,10 +87,12 @@ PopupWindow {
                     else Popups.close();
                     break;
                 case Qt.Key_Up:
-                    menu?.move(-1);
+                    if (forceQuit.visible) forceQuit.move(-1);
+                    else menu?.move(-1);
                     break;
                 case Qt.Key_Down:
-                    menu?.move(1);
+                    if (forceQuit.visible) forceQuit.move(1);
+                    else menu?.move(1);
                     break;
                 case Qt.Key_Right:
                     if (menu && !menu.openCurrent()) Popups.step(1);
@@ -103,6 +106,7 @@ PopupWindow {
                 case Qt.Key_Space:
                     if (menu) menu.activateCurrent();
                     else if (confirm.visible) confirm.accept();
+                    else if (forceQuit.visible) forceQuit.accept();
                     break;
                 default:
                     return;
@@ -171,6 +175,13 @@ PopupWindow {
                 edge === "left" ? request.x : edge === "right" ? request.x - width : (request?.x ?? 0) - width / 2))
             y: Math.max(Theme.space.s2, Math.min(area.height - height - Theme.space.s2,
                 edge === "bottom" ? (request?.y ?? 0) - height : (request?.y ?? 0) - height / 2))
+        }
+
+        ForceQuit {
+            id: forceQuit
+            visible: overlay.active && Popups.kind === "forceQuit"
+            anchors.centerIn: parent
+            anchors.verticalCenterOffset: -parent.height / 6
         }
 
         ConfirmDialog {

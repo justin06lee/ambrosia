@@ -94,6 +94,15 @@ Singleton {
     function quit(row) {
         tasksModel.requestClose(tasksModel.makeModelIndex(row));
     }
+    // Ends the app without asking it: its windows' processes are killed.
+    function forceQuit(row) {
+        const pids = [];
+        for (const window of windowsOf(row)) {
+            const pid = get(window, TaskManager.AbstractTasksModel.AppPid);
+            if (pid > 0 && !pids.includes(String(pid))) pids.push(String(pid));
+        }
+        if (pids.length > 0) Quickshell.execDetached(["kill", "-KILL"].concat(pids));
+    }
 
     // Window actions take the window as { row, child }, captured when the
     // menu offering them opened: by the time one runs, the menu has had the
