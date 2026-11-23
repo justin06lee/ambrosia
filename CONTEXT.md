@@ -322,6 +322,14 @@ package repo below), and they carry `shell/` and `session/` as they are.
    needs the menu bar to have had a click** since the shell started:
    the Overlay is a grabbing popup of the bar's (Qt: "Failed to create
    grabbing popup"). Force Quit by a key will need that solved.
+   **⇧⌘3 and ⇧⌘4 save to the Desktop and float a thumbnail** (round 23,
+   `shell/Screenshot.qml`, `ambrosia screenshot screen|region`): Spectacle
+   takes the picture in the background (`--background --nonotify
+   --fullscreen|--region --output`), the shell shows it in the bottom
+   right corner for five seconds and opens it on a click. The two chords
+   are desktop files of ours (Super+Ctrl+Alt+3 and 4, sent by keyd); the
+   Print key's chords are still Spectacle's. Spectacle is one instance:
+   another started while its crosshair is up ends that shot.
    **Force Quit… in the Ambrosia menu opens a list of apps** (round 20,
    `shell/ForceQuit.qml`, `ambrosia force-quit`): choose one, confirm,
    and its windows' processes are killed (`Apps.forceQuit`). ⌥⌘Esc is

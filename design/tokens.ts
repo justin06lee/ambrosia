@@ -82,6 +82,10 @@ export const size = {
   /** What the volume and brightness keys show: a capsule as wide as the
    *  control center's modules, under the menu bar's right end. */
   hud: { width: 276, height: 44, padding: 16, glyph: 18, gap: 12 },
+  /** A screenshot just taken, floating in the screen's bottom right corner:
+   *  the box the picture is fitted in, how far from the screen's edges, its
+   *  white edge and its corners. By eye, not measured yet. */
+  screenshot: { width: 180, height: 132, margin: 20, border: 2, radius: 8 },
   /** A Dock stack opened (Downloads): a grid of the folder's newest things,
    *  so many across and at most so many rows before it scrolls; a cell, the
    *  icon in it, and the panel's own padding. By eye, not measured yet. */
@@ -404,6 +408,9 @@ export const choreography = {
   /** The keys' display comes at once, stays this long after the last
    *  press, and fades. Not measured yet: by eye, until there is a recording. */
   hud: { fadeIn: 80, linger: 1500, fadeOut: 300 },
+  /** A screenshot's thumbnail slides in from the screen's edge, floats this
+   *  long, and slides back out. By eye. */
+  screenshot: { slide: 320, linger: 5000 },
 };
 
 export const input = {

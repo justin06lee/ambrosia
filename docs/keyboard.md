@@ -46,7 +46,8 @@ Everywhere:
 | ⌘Tab, ⇧⌘Tab | switch apps, forward and back, on a strip of their icons; while it's up ` steps back, ← → move, Q closes the chosen app's window | Alt+Tab, Alt held until ⌘ is let go (KWin's switcher, our layout) |
 | ⌘` , ⇧⌘` | the app's next window, and the one before | Alt+` |
 | ⌘M, ⌘H | minimize the window | Super+PgDn (KWin's Minimize) |
-| ⇧⌘3, ⇧⌘4, ⇧⌘5 | picture of the screen, of a part, the screenshot tool | Shift+Print, Super+Shift+Print, Print (Spectacle) |
+| ⇧⌘3, ⇧⌘4 | picture of the screen, of a part dragged out: saved to the Desktop, its thumbnail in the screen's corner for a moment | Super+Ctrl+Alt+3, Super+Ctrl+Alt+4 (`session/org.ambrosia.screenshot*.desktop`) |
+| ⇧⌘5 | the screenshot tool | Print (Spectacle) |
 | ⇧⌘[ , ⇧⌘] | the tab before, the tab after | Ctrl+PgUp, Ctrl+PgDn |
 | ⌃⌘F | full screen | Super+Ctrl+F (`session/org.ambrosia.fullscreen.desktop`) |
 | ⌃⌘Q | lock the screen | Super+L |

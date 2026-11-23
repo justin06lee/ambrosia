@@ -1,0 +1,12 @@
+# Super+Ctrl+Alt+4 takes a picture of a part of the screen, dragged out:
+# ⇧⌘4 on the Mac-first keyboard, which keyd hands on as exactly this. See
+# org.ambrosia.screenshot.desktop.
+[Desktop Entry]
+Type=Application
+Name=Screenshot of a Part of the Screen
+Comment=Save a picture of a dragged-out part of the screen to the Desktop
+Icon=applets-screenshooter
+Exec=/usr/bin/ambrosia screenshot region
+NoDisplay=true
+StartupNotify=false
+X-KDE-Shortcuts=Meta+Ctrl+Alt+4

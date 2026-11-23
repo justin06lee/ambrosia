@@ -54,6 +54,8 @@ ShellRoot {
     Notifications {}
     // What the volume and brightness keys show.
     Hud {}
+    // ⇧⌘3 and ⇧⌘4: the picture to the Desktop, its thumbnail in the corner.
+    Screenshot { id: shots }
     // Which keyboard layer the focused app gets (the Mac-first keyboard).
     KeyLayer {}
 
@@ -74,6 +76,9 @@ ShellRoot {
         }
         function forceQuit(): void {
             Popups.toggleForceQuit(Quickshell.screens[0]);
+        }
+        function screenshot(kind: string): void {
+            shots.take(kind);
         }
         // The green light of a window's frame, with the pointer resting on
         // it: where that window can go, as a menu under the light. (Menus
