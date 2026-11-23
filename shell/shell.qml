@@ -76,7 +76,8 @@ ShellRoot {
             Popups.toggleForceQuit(Quickshell.screens[0]);
         }
         // The green light of a window's frame, with the pointer resting on
-        // it: where that window can go, as a menu under the light.
+        // it: where that window can go, as a menu under the light. (Menus
+        // open in the Overlay's frame, which starts below the menu bar.)
         function windowMenu(x: int, y: int): void {
             const window = Apps.focusedWindow();
             const screen = Quickshell.screens.find(s => x >= s.x && x < s.x + s.width && y >= s.y && y < s.y + s.height) ?? Quickshell.screens[0];
@@ -84,7 +85,7 @@ ShellRoot {
                 { separator: true },
                 { text: "Center", action: () => Apps.placeWindow(window, "Window Move Center") },
                 { text: "Enter Full Screen", action: () => Apps.fullScreenWindow(window) },
-            ]), x - screen.x, y - screen.y);
+            ]), x - screen.x, y - screen.y - Theme.size.menubar.height);
         }
     }
 }

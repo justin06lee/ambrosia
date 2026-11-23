@@ -4,7 +4,9 @@ import Ambrosia
 
 // One open menu: rows on thick glass. Items come either as `entries`, plain
 // objects
-//   { text, shortcut, enabled, checked, separator, submenu: [...], action }
+//   { text, shortcut, enabled, checked, separator, submenu, action }
+// (`submenu` a function returning the rows of the menu beside it: a list
+// set inside a row doesn't come through the repeater as one)
 // or as `handle`, an app's own menu (QsMenuHandle), whose entries carry
 // text, enabled, isSeparator, checkState, hasChildren, shortcut (our
 // Quickshell build's DBusMenuItem) and triggered().
@@ -139,7 +141,7 @@ Item {
         required property int index
 
         readonly property bool separator: modelData.isSeparator === true || modelData.separator === true
-        readonly property bool hasSubmenu: modelData.hasChildren === true || Array.isArray(modelData.submenu)
+        readonly property bool hasSubmenu: modelData.hasChildren === true || typeof modelData.submenu === "function"
         readonly property bool checked: modelData.checked === true || modelData.checkState === Qt.Checked
         readonly property bool highlighted: menu.current === index && enabled && !separator
         property bool collapsed: false
