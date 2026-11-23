@@ -5,14 +5,20 @@ import Settings
 // Menu Bar, as System Settings lays it out: hiding, its background, and the
 // controls it shows, which the shell draws from what's here. Left out: On
 // Desktop Only (no desktop of icons to tell apart), Recent documents (no such
-// menu), Add Controls… and Allow in the Menu Bar (apps' tray icons aren't on
-// our bar), Siri, AirDrop and the like, Display and Fast User Switching (no
-// item of ours), Reset Control Center… and the help button.
+// menu), Add Controls…, Siri, AirDrop and the like, Display and Fast User
+// Switching (no item of ours), Reset Control Center… and the help button.
+// Allow in the Menu Bar lists the apps' own status items the shell has seen
+// (menuBarExtras, "id\ttitle"); one switched off is "extra:<id>" among the
+// hidden.
 Page {
     id: page
 
     readonly property var hidden: Preferences.all.menuBarHidden ?? ["bluetooth"]
     readonly property var always: Preferences.all.menuBarAlways ?? []
+    readonly property var extras: (Preferences.all.menuBarExtras ?? []).map(each => {
+        const parts = each.split("\t");
+        return { id: parts[0], name: parts[1] || parts[0] };
+    }).sort((a, b) => a.name.localeCompare(b.name))
 
     function toggled(list, key, on) {
         const others = list.filter(each => each !== key);
@@ -113,6 +119,50 @@ Page {
         Control { key: "focus"; text: qsTr("Focus"); glyph: "focus"; tint: "indigo"; idles: true }
         Control { key: "sound"; text: qsTr("Sound"); glyph: "sound"; tint: "pink"; idles: true }
         Control { key: "nowplaying"; text: qsTr("Now Playing"); glyph: "play"; tint: "pink"; idles: true }
+    }
+
+    SectionHeading { text: qsTr("Allow in the Menu Bar") }
+    Box {
+        Item {
+            visible: page.extras.length === 0
+            width: parent.width
+            height: 43
+            Label {
+                x: Look.boxPadding
+                anchors.verticalCenter: parent.verticalCenter
+                color: Theme.color.label.secondary
+                text: qsTr("Apps appear here once they've put an item in the menu bar.")
+            }
+        }
+        Repeater {
+            model: page.extras
+            Item {
+                id: extra
+                required property var modelData
+                readonly property string key: "extra:" + modelData.id
+                width: parent.width
+                height: 43
+                Image {
+                    x: Look.boxPadding
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 24
+                    height: 24
+                    sourceSize: Qt.size(48, 48)
+                    source: "image://icon/" + extra.modelData.id
+                }
+                Label {
+                    x: 65 - 13.5
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: extra.modelData.name
+                }
+                Switch {
+                    x: parent.width - Look.boxPadding - width
+                    anchors.verticalCenter: parent.verticalCenter
+                    checked: !page.hidden.includes(extra.key)
+                    onToggled: Preferences.set("menuBarHidden", page.toggled(page.hidden, extra.key, checked))
+                }
+            }
+        }
     }
 
     ClockOptionsSheet {
