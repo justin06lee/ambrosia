@@ -106,7 +106,7 @@ package_ambrosia-style() {
   # It stands on Breeze for everything it doesn't draw itself. The session's
   # look-and-feel names it (widgetStyle=ambrosia); anywhere else an app uses it
   # when told to (QT_STYLE_OVERRIDE=ambrosia).
-  depends=(qt6-base breeze)
+  depends=(qt6-base breeze kwindowsystem)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-style"
 }
 

@@ -29,6 +29,14 @@ set_target_properties(ambrosia-style-objects PROPERTIES POSITION_INDEPENDENT_COD
 target_include_directories(ambrosia-style-objects PUBLIC "${AMBROSIA_TOKENS}" src)
 target_link_libraries(ambrosia-style-objects PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets)
 
+# With KWindowSystem the list a combo box pops up is glass like a menu: the
+# compositor is asked to blur behind it. Without (the Mac), it is solid.
+find_package(KF6WindowSystem QUIET)
+if(KF6WindowSystem_FOUND)
+    target_compile_definitions(ambrosia-style-objects PRIVATE AMBROSIA_HAVE_KWINDOWSYSTEM)
+    target_link_libraries(ambrosia-style-objects PUBLIC KF6::WindowSystem)
+endif()
+
 # The plugin Qt loads for `widgetStyle=ambrosia` or QT_STYLE_OVERRIDE=ambrosia.
 add_library(ambrosia MODULE src/plugin.cpp)
 set_target_properties(ambrosia PROPERTIES PREFIX "")

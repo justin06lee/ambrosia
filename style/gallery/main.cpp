@@ -1,8 +1,10 @@
 // Draws every control the style covers into one picture, with no display:
 //
 //   ambrosia-style-gallery out.png [--dark] [--base]
+//   ambrosia-style-gallery --show [--dark] [--base]
 //
 // --base draws the style underneath (Breeze, or Fusion) instead, to compare.
+// --show opens the controls in a window to be used, on the display there is.
 // The palette is the tokens' own, so the picture is the same on a machine
 // with no KDE color scheme installed.
 
@@ -10,9 +12,12 @@
 #include "tokens.h"
 
 #include <QApplication>
+#include <QCalendarWidget>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDial>
 #include <QDialogButtonBox>
+#include <QDockWidget>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QHeaderView>
@@ -31,6 +36,7 @@
 #include <QTabBar>
 #include <QTabWidget>
 #include <QToolBar>
+#include <QToolBox>
 #include <QToolButton>
 #include <QTreeWidget>
 
@@ -66,16 +72,21 @@ static QLabel *heading(const QString &text)
 
 int main(int argc, char **argv)
 {
-    if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+    bool show = false;
+    for (int i = 1; i < argc; ++i) {
+        show = show || qstrcmp(argv[i], "--show") == 0;
+    }
+    // A picture is drawn with no display, at twice the size.
+    if (!show && qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
         qputenv("QT_QPA_PLATFORM", "offscreen");
     }
-    if (qEnvironmentVariableIsEmpty("QT_SCALE_FACTOR")) {
+    if (!show && qEnvironmentVariableIsEmpty("QT_SCALE_FACTOR")) {
         qputenv("QT_SCALE_FACTOR", "2");
     }
     QApplication app(argc, argv);
     const QStringList args = app.arguments();
-    if (args.size() < 2 || args.at(1).startsWith(QLatin1String("--"))) {
-        qWarning("usage: ambrosia-style-gallery out.png [--dark] [--base]");
+    if (!show && (args.size() < 2 || args.at(1).startsWith(QLatin1String("--")))) {
+        qWarning("usage: ambrosia-style-gallery out.png|--show [--dark] [--base]");
         return 2;
     }
     const bool dark = args.contains(QLatin1String("--dark"));
@@ -152,7 +163,7 @@ int main(int argc, char **argv)
     popup->addItems({QStringLiteral("Automatic"), QStringLiteral("Light"), QStringLiteral("Dark")});
     auto *editable = new QComboBox;
     editable->setEditable(true);
-    editable->addItems({QStringLiteral("Inter"), QStringLiteral("JetBrains Mono")});
+    editable->addItems({QStringLiteral("Inter"), QStringLiteral("JetBrains Mono"), QStringLiteral("New York"), QStringLiteral("Noto Sans")});
     auto *spin = new QSpinBox;
     spin->setRange(0, 100);
     spin->setValue(12);
@@ -299,7 +310,43 @@ int main(int argc, char **argv)
     toolBar->addAction(QStringLiteral("Share"));
     line(QStringLiteral("Menu bar, toolbar"), {menuBar, toolBar});
 
+    auto *dial = new QDial;
+    dial->setRange(0, 100);
+    dial->setValue(30);
+    dial->setFixedSize(44, 44);
+    auto *stepped = new QDial;
+    stepped->setRange(0, 10);
+    stepped->setValue(7);
+    stepped->setNotchesVisible(true);
+    stepped->setFixedSize(72, 72);
+    auto *calendar = new QCalendarWidget;
+    calendar->setSelectedDate(QDate::currentDate().addDays(QDate::currentDate().day() > 15 ? -9 : 9));
+    calendar->setVerticalHeaderFormat(QCalendarWidget::NoVerticalHeader);
+    auto *weeks = new QCalendarWidget;
+    line(QStringLiteral("Dials, calendars"), {dial, stepped, calendar, weeks});
+
+    auto *toolBox = new QToolBox;
+    auto *general = new QWidget;
+    auto *generalRows = new QVBoxLayout(general);
+    generalRows->addWidget(new QCheckBox(QStringLiteral("Show line numbers")));
+    generalRows->addWidget(new QCheckBox(QStringLiteral("Wrap long lines")));
+    generalRows->addStretch();
+    toolBox->addItem(general, QStringLiteral("Editing"));
+    toolBox->addItem(new QWidget, QStringLiteral("Appearance"));
+    toolBox->addItem(new QWidget, QStringLiteral("Advanced"));
+    toolBox->setFixedSize(220, 150);
+    auto *dock = new QDockWidget(QStringLiteral("Places"));
+    auto *dockList = new QListWidget;
+    dockList->addItems({QStringLiteral("Home"), QStringLiteral("Desktop"), QStringLiteral("Downloads")});
+    dockList->setFrameShape(QFrame::NoFrame);
+    dock->setWidget(dockList);
+    dock->setFixedSize(200, 150);
+    line(QStringLiteral("Tool box, dock"), {toolBox, dock});
+
     window.show();
+    if (show) {
+        return app.exec();
+    }
     window.activateWindow();
     for (int i = 0; i < 50 && !window.isActiveWindow(); ++i) {
         app.processEvents(QEventLoop::AllEvents, 20);
@@ -326,6 +373,16 @@ int main(int argc, char **argv)
     const QPixmap choicesShot = choices->grab();
     const QSize choicesSize = choices->size();
     popup->hidePopup();
+
+    // And the one a combo to type in drops.
+    editable->showPopup();
+    app.processEvents();
+    QWidget *dropped = editable->view()->window();
+    editable->view()->setCurrentIndex(editable->model()->index(1, 0));
+    app.processEvents();
+    const QPixmap droppedShot = dropped->grab();
+    const QSize droppedSize = dropped->size();
+    editable->hidePopup();
 
     QMenu menu;
     menu.addAction(QStringLiteral("New Window"))->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_N));
@@ -355,7 +412,8 @@ int main(int argc, char **argv)
     // `ratio` pixels to each.
     const qreal ratio = controls.devicePixelRatio();
     const int gap = 24;
-    const QSize size(window.width() + qMax(menu.width(), choicesSize.width()) + 2 * gap, qMax(window.height(), menu.height() + choicesSize.height() + 3 * gap));
+    const QSize size(window.width() + qMax(menu.width(), qMax(choicesSize.width(), droppedSize.width())) + 2 * gap,
+                     qMax(window.height(), menu.height() + choicesSize.height() + droppedSize.height() + 4 * gap));
     QImage sheet(size * ratio, QImage::Format_ARGB32_Premultiplied);
     sheet.setDevicePixelRatio(ratio);
     sheet.fill(app.palette().color(QPalette::Window));
@@ -366,6 +424,7 @@ int main(int argc, char **argv)
     }
     painter.drawPixmap(window.width() + gap, gap, menuShot);
     painter.drawPixmap(window.width() + gap, menu.height() + 2 * gap, choicesShot);
+    painter.drawPixmap(window.width() + gap, menu.height() + choicesSize.height() + 3 * gap, droppedShot);
     painter.end();
     if (!sheet.save(args.at(1))) {
         qWarning("couldn't write %s", qPrintable(args.at(1)));
