@@ -42,7 +42,10 @@ PanelWindow {
     exclusiveZone: Settings.dockAutohide ? 0 : thickness + margin
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.namespace: "ambrosia-dock"
+    // KWin reads a layer surface's kind from its namespace: "dock" makes
+    // this a panel, which is how the Genie knows which way to pour a window
+    // (without it, a Dock at a side got a window poured downwards).
+    WlrLayershell.namespace: "dock"
     mask: Region { item: dock.asleep ? edge : hit }
     BackgroundEffect.blurRegion: Region { item: body; radius: dock.corner }
 

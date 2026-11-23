@@ -273,7 +273,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
    (`session/xdg/kwinrc`, 400 ms by eye), and the Dock publishes each
    tile's place to KWin (`publish()` in `shell/Dock.qml`; check with
    `tools/live.sh js` printing a window's `iconGeometry`). Seen on tenet
-   slowed down. A running KWin doesn't load or unload effects when the
+   slowed down, with the Dock at the bottom and on the left (KWin types
+   a layer surface by its namespace: the Dock's is "dock", or the Genie
+   finds no panel and pours downwards). A running KWin doesn't load or unload effects when the
    defaults file changes, even on reconfigure: call `/Effects` `loadEffect`
    and `unloadEffect` as Settings does, or log in again. **Opening and
    closing are an effect of ours** (round 16, `session/kwin-effects/
@@ -597,7 +599,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
     type with `/root/ui.py` (a python-evdev absolute pointer and keyboard:
     `ui.py click X Y`, `rclick`, `key super+space`, `type text`). The
     session's Wayland socket is `wayland-1` now. A locked
-    or blanked screen photographs black: `loginctl unlock-session`,
+    or blanked screen photographs black: `tools/live.sh unlock` (and `lock` after; they look the session up, as its number changes with each login; by hand `loginctl unlock-session`),
     `kscreen-doctor --dpms on`, and hold `kde-inhibit --screenSaver` while
     testing. The shell logs to the user journal.
   - `tools/shot.sh out.png` photographs the installed shell on a headless KWin
