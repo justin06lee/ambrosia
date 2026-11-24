@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<protocol name="ambrosia_glass_v1">
+  <copyright>
+    SPDX-FileCopyrightText: 2026 Justin Lee
+    SPDX-License-Identifier: MIT
+  </copyright>
+
+  <description summary="glass behind parts of a surface">
+    Lets a client say which parts of a surface are panes of glass, and of
+    which material each is. The compositor draws what is behind each pane
+    through that material (blurred, saturated, bent at the rim) under the
+    surface; the client draws the tint, the rim and its content on top.
+
+    Where a surface has a glass object, its panes replace any blur region
+    the surface asks for by another protocol.
+  </description>
+
+  <interface name="ambrosia_glass_manager_v1" version="1">
+    <description summary="makes glass objects for surfaces"/>
+
+    <request name="destroy" type="destructor">
+      <description summary="the manager is no longer needed">
+        Glass objects made from it live on.
+      </description>
+    </request>
+
+    <request name="get_glass">
+      <description summary="the glass of a surface">
+        A surface has one glass object at a time; asking for a second while
+        the first lives replaces the first's panes with the second's, when
+        the surface is next committed.
+      </description>
+      <arg name="id" type="new_id" interface="ambrosia_glass_v1"/>
+      <arg name="surface" type="object" interface="wl_surface"/>
+    </request>
+  </interface>
+
+  <interface name="ambrosia_glass_v1" version="1">
+    <description summary="the panes of glass in one surface">
+      The list of panes is double-buffered state: clear and add_pane build
+      the next list, and it replaces the current one when the surface is
+      next committed.
+    </description>
+
+    <enum name="material">
+      <description summary="the design's materials">
+        How much the pane blurs and saturates what is behind it. The values
+        are the compositor's (the design's tokens).
+      </description>
+      <entry name="thin" value="0" summary="the menu bar, heads-up displays"/>
+      <entry name="regular" value="1" summary="the Dock, sidebars, notifications"/>
+      <entry name="thick" value="2" summary="menus, popovers, dense text"/>
+      <entry name="clear" value="3" summary="controls over glass or media"/>
+      <entry name="backdrop" value="4" summary="a blur only, behind content that carries its own glass"/>
+    </enum>
+
+    <request name="destroy" type="destructor">
+      <description summary="the surface has no glass any more">
+        The panes go when the surface is next committed. A surface destroyed
+        before that keeps them to its end.
+      </description>
+    </request>
+
+    <request name="clear">
+      <description summary="start the next list of panes empty"/>
+    </request>
+
+    <request name="add_pane">
+      <description summary="add a pane to the next list">
+        A rounded rectangle in surface-local coordinates, seen only inside
+        the clip rectangle (the same rectangle when nothing clips it).
+        Opacity is 0 to 1: how much of the glass shows, for a pane that is
+        fading in or out. A material the compositor does not know is drawn
+        as regular.
+      </description>
+      <arg name="x" type="fixed"/>
+      <arg name="y" type="fixed"/>
+      <arg name="width" type="fixed"/>
+      <arg name="height" type="fixed"/>
+      <arg name="radius" type="fixed"/>
+      <arg name="material" type="uint" enum="material"/>
+      <arg name="opacity" type="fixed"/>
+      <arg name="clip_x" type="fixed"/>
+      <arg name="clip_y" type="fixed"/>
+      <arg name="clip_width" type="fixed"/>
+      <arg name="clip_height" type="fixed"/>
+    </request>
+  </interface>
+</protocol>

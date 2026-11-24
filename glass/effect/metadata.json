@@ -1,0 +1,9 @@
+{
+    "KPlugin": {
+        "Category": "Appearance",
+        "Description": "Ambrosia's glass: what is behind each pane, blurred and saturated as its material asks",
+        "EnabledByDefault": false,
+        "License": "GPL",
+        "Name": "Ambrosia Glass"
+    }
+}

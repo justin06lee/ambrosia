@@ -4,22 +4,24 @@
 # ambrosia-decoration the window frame with the traffic lights, a KWin plugin (decoration/)
 # ambrosia-style   the Qt widget style: other apps' buttons, boxes and menus (style/)
 # ambrosia-input   the session's input method: the emoji picker types through it (input/)
+# ambrosia-glass   glass: a KWin effect in its blur's place, and the QML module that names panes to it (glass/)
 # ambrosia-shell   the Quickshell shell and the Ambrosia session on KWin
 # ambrosia-files   Files, Ambrosia's Finder (files/, built with CMake)
 # ambrosia-settings System Settings (settings/, built with CMake)
 # ambrosia-desktop everything a fresh install needs, the ISO installs this
 
 pkgbase=ambrosia
-pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-shell ambrosia-files ambrosia-settings ambrosia-desktop)
+pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-glass ambrosia-shell ambrosia-files ambrosia-settings ambrosia-desktop)
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A Linux desktop that looks and moves as one thing"
-# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-decoration, ambrosia-style and ambrosia-input; the rest are arch=(any).
+# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-decoration, ambrosia-style, ambrosia-input and ambrosia-glass; the rest are arch=(any).
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
 makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kservice kwindowsystem taglib karchive freetype2
-             kdecoration kcoreaddons pulseaudio-qt networkmanager-qt bluez-qt libkscreen wayland wayland-protocols)
+             kdecoration kcoreaddons pulseaudio-qt networkmanager-qt bluez-qt libkscreen wayland wayland-protocols
+             kwin extra-cmake-modules vulkan-headers libepoxy libdrm)
 options=(!debug)
 
 _root="$(realpath "$startdir/..")"
@@ -46,6 +48,8 @@ build() {
   cmake --build "$srcdir/build-style"
   cmake -S input -B "$srcdir/build-input" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-input"
+  cmake -S glass -B "$srcdir/build-glass" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build "$srcdir/build-glass"
 }
 
 package_ambrosia-keyring() {
@@ -132,6 +136,21 @@ package_ambrosia-input() {
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-input"
 }
 
+package_ambrosia-glass() {
+  pkgdesc="Ambrosia's glass: a KWin effect that blurs and saturates behind each pane as its material asks, and the QML module that names panes to it"
+  # The effect is forked from KWin's blur and linked to KWin; the QML
+  # module is ours alone.
+  license=(GPL-2.0-or-later MIT)
+  # KWin loads an effect only into the version it was built for (a newer
+  # KWin says so in the journal and leaves it out, and the session's own
+  # blur stands in): this is rebuilt with every KWin release. No version is
+  # named here, so that a KWin update is never held back by it.
+  depends=(kwin kdecoration kcoreaddons qt6-base qt6-declarative wayland)
+  DESTDIR="$pkgdir" cmake --install "$srcdir/build-glass"
+  install -Dm644 "$_root/glass/effect/COPYING" "$pkgdir/usr/share/licenses/ambrosia-glass/GPL-2.0.txt"
+  install -Dm644 "$_root/LICENSE" "$pkgdir/usr/share/licenses/ambrosia-glass/MIT.txt"
+}
+
 package_ambrosia-shell() {
   pkgdesc="The Ambrosia shell (menu bar, dock, control center) and session on KWin"
   arch=(any)
@@ -141,8 +160,9 @@ package_ambrosia-shell() {
   # scopes; dbus: dbus-test-tool holds the app menu view's bus name.
   # ambrosia-style: the widget style the look-and-feel names.
   # ambrosia-input and noto-fonts-emoji: the emoji picker types through the
-  # one and draws with the other.
-  depends=(ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
+  # one and draws with the other. ambrosia-glass: the shell's QML imports
+  # its module, and the session's kwinrc switches its effect on.
+  depends=(ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-glass quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
            qt6-svg qt6-imageformats upower dconf noto-fonts-emoji)
   backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc etc/xdg/ambrosia/kwinrulesrc
           etc/xdg/ambrosia/breezerc etc/xdg/ambrosia/mimeapps.list etc/xdg/ambrosia/kcminputrc

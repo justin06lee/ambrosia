@@ -18,7 +18,7 @@ Item {
 
     Glass {
         anchors.fill: parent
-        tint: Theme.color.material.regular.tint
+        material: "regular"
         radius: height / 2
         shadow: Theme.color.shadow.panel
         ring: true

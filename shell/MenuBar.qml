@@ -8,6 +8,7 @@ import Quickshell.Services.SystemTray
 import Quickshell.Services.UPower
 import QtQuick
 import Ambrosia
+import org.ambrosia.glass
 
 // The menu bar: the Ambrosia menu, the focused app's name and its own menus
 // on the left; apps' own status items, then status, search, the control
@@ -299,6 +300,8 @@ PanelWindow {
         anchors.fill: parent
         visible: Settings.menuBarBackground
         color: Theme.color.material.thin.tint
+
+        GlassPane { anchors.fill: parent; material: "thin" }
 
         // The hairline under the bar.
         Rectangle {

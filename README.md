@@ -31,8 +31,9 @@ works on real hardware: the menu bar with the focused app's own menus, Search
 (Super+Space: apps, settings, files and folders, sums), the Dock (drag to
 reorder, magnification, a live Trash, Downloads as a stack), the control center, notification
 banners and Notification Center, and a Mac-first keyboard (Command where a
-Mac has it). Its look still trails the design preview in places, and
-compositor effects don't exist yet.
+Mac has it). Glass is a compositor effect of our own: each pane blurs and
+saturates what is behind it as its material asks. Its look still trails the
+design preview in places (the bend at a pane's rim isn't drawn yet).
 
 Two first-party apps are in. Files (a Finder look-alike) has icon, list,
 column and gallery views, Quick Look, Get Info, tags, thumbnails, search by
@@ -132,6 +133,7 @@ an accent or a label color is identical in GTK, KDE and the shell.
 | `dist/environment.d/50-ambrosia-fonts.conf` | FreeType stem darkening, for fuller text; no synthetic bold in Qt |
 | `dist/kdecoration/tokens.h` | the KWin window frame (`decoration/`): traffic lights, title, corners, shadow |
 | `dist/qstyle/tokens.h` | the Qt widget style (`style/`): the controls' sizes and the colors a palette has no role for |
+| `dist/glass/tokens.h` | the glass effect (`glass/effect`): each material's blur as KWin's blur passes take it, its saturation, the rim's refraction |
 | `dist/icons/Ambrosia/` | the icon theme, over Breeze: our app icons, folders and kinds of file under the names apps ask for, and the pointer (Xcursor files for apps, SVGs for KWin); every other name is a link. `dist/icons/sheet.html` and `dist/cursors/sheet.html` show them all |
 | `dist/web/cursors.css`, `icons.css` | the same pointer and app icons for the preview and the review site |
 | `dist/web/tokens.css` | the preview and any web surface |
@@ -176,6 +178,10 @@ decoration/    the KWin window frame every app gets: a KDecoration3 plugin built
                qml/ is a small QML module for our QML inside KWin (the blur behind ⌘Tab, apps' names)
 input/         the session's input method (ambrosia-input, plain C on libwayland): KWin starts it, and the
                shell types into the app in front through it (the emoji picker's choice)
+glass/         glass (ambrosia-glass): protocol/ is how a surface names its panes of glass;
+               effect/ is the KWin effect that draws behind them, forked from KWin's blur
+               (GPL-2.0-or-later, unlike the rest; built for one KWin version);
+               qml/ is org.ambrosia.glass, the GlassPane our QML puts where a pane is
 style/         the Qt widget style the session names: other apps' buttons, boxes, sliders and menus, over Breeze;
                its gallery draws them all into a picture with no display (make gallery),
                or opens them as a window to use (ambrosia-style-gallery --show)

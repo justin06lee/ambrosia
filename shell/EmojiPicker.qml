@@ -187,7 +187,7 @@ Item {
 
     Glass {
         anchors.fill: parent
-        tint: Theme.color.material.thick.tint
+        material: "thick"
         radius: Theme.radius.panel
         shadow: Theme.color.shadow.window
     }

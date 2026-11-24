@@ -40,7 +40,8 @@ package repo below), and they carry `shell/` and `session/` as they are.
     (the QML shell, the session, KDE/KWin defaults), `ambrosia-files` (Files,
     built with CMake from `files/`), `ambrosia-settings` (Settings, from
     `settings/`; both x86_64), `ambrosia-input` (the session's input method,
-    from `input/`, x86_64) and `ambrosia-desktop` (the meta package: SDDM,
+    from `input/`, x86_64), `ambrosia-glass` (the glass effect and its QML
+    module, from `glass/`, x86_64) and `ambrosia-desktop` (the meta package: SDDM,
     portals, NetworkManager, PipeWire, Bluetooth, power-profiles-daemon, CUPS
     and Avahi, Konsole, Dolphin, Files, Settings, GTK skel, os-release).
   - `packaging/quickshell/PKGBUILD` is our Quickshell build: upstream v0.3.2
@@ -672,8 +673,8 @@ package repo below), and they carry `shell/` and `session/` as they are.
    placed its menus by `mapToItem(null)` (now its own `contentItem`).
    Still apart from the preview: Breeze's menu radius and row height (ours once
    the style above is switched on), real apps' icons (no Ambrosia icon theme),
-   per-surface blur and saturation (KWin has one setting for all), and the
-   control center's feathered blur edge (KWin's blur regions are hard-edged).
+   and the bend at a pane's rim. (Per-surface blur and saturation came
+   with the glass effect, 2026-11-25: see "Glass" under the traps.)
 2. Gaps in the shell (Shell lane, 2026-11-10). **Notification Center** is
    on the clock, as macOS 26 (`NotificationCenter.qml`, its store
    `NotificationStore.qml`, one card for it and the banners): past
@@ -1082,7 +1083,53 @@ package repo below), and they carry `shell/` and `session/` as they are.
   integer, 100 = none; its default boosts color like the preview's 160-180%
   glass). `org.kde.KWin.reconfigure` doesn't reload them: call
   `/Effects reconfigureEffect blur`. It doesn't unload effects either
-  (`unloadEffect fadingpopups`).
+  (`unloadEffect fadingpopups`). It only draws where our glass effect
+  could not load.
+- **Glass** (`glass/`, 2026-11-25). The effect (`ambrosia_glass`) draws
+  behind *sheets*: a pane a client named over `ambrosia_glass_v1`, or all of
+  a blur region asked for the usual way (regular; thick for a popup). A
+  surface with a glass object gets its panes and its blur region is
+  ignored, so the shell still lists blur regions for the day only KWin's
+  blur is there.
+  - **A pane is a `GlassPane` item** (`import org.ambrosia.glass`):
+    `shell/Glass.qml` holds one, so `Glass { material: "thick" }` is all a
+    surface says. It reads its place, the clips above it and the opacities
+    above it just before each frame (`afterAnimating`), so it follows
+    animations with no bindings; panes are drawn in the order they were
+    made (a backdrop goes first in its file). On the Mac a stand-in
+    (`tools/qmlshot/stubs/org/ambrosia/glass`) does nothing.
+  - **Measure, don't look**: `tools/blur.py picture` makes a wallpaper of
+    one hard edge, `tools/blur.py measure` reads a pane's softness off a
+    screenshot as the Gaussian it equals; the token is that number. One
+    edge, never stripes: a wide blur reaches the next stripe and reads
+    narrow (a Dock of 28 read 20). In the VM the wallpaper is set in
+    `~/.config/ambrosia/settings.json` (`"wallpaper": "/path.png"`).
+  - **The blur's numbers are generated**: `tools/gen/kawase.ts` runs
+    KWin's passes on an edge and solves for a token's `blur`; KWin's own
+    strength 6 measures 17.5 in the VM and the model says 17.6.
+  - **It is built for one KWin version** (the plugin's IID carries it).
+    KWin refuses another's with a line in the journal ("built for a
+    different version of KWin") and nothing else happens: our effect retires
+    KWin's blur only once it is up, so the session keeps `blurEnabled=true`.
+    After a KWin update: `make package`, install ambrosia-glass, log in
+    again. The test VM's KWin must be tenet's (`pacman -U` the one in
+    `/var/cache/pacman/pkg`).
+  - **KWin keeps "blur can be had" as one flag**, not a count
+    (`ExtBackgroundEffectManagerV1`): unloading its blur takes the flag down
+    even with ours up, and KDE's apps then stop asking for blur. Ours puts
+    it up again right after.
+  - **Never overwrite the effect's `.so` in place while a KWin has it
+    loaded** (`scp`, `cp`, `vm-try.sh push` straight onto it): KWin's mapped
+    code changes under it and it crashes at the next call. Copy beside it
+    and `mv` over, or let pacman. A changed effect needs KWin started again
+    (it is linked never to unload: clients' glass objects call into it
+    until KWin ends).
+  - **To try it on a card without the session**: `tools/glass-try.sh
+    out.png` (a headless KWin of its own; tenet's is NVIDIA on OpenGL ES,
+    where KWin converts the `#version 140` shaders itself).
+  - Off for one account: `kwriteconfig6 --file kwinrc --group Plugins --key
+    ambrosia_glassEnabled false`, then log in again (or `qdbus6 org.kde.KWin
+    /Effects unloadEffect ambrosia_glass` and `loadEffect blur` now).
 - **The installed shell doesn't reload itself when its files change**
   (`settings.watchFiles` in `shell.qml`): pacman replaces them one at a time,
   and Quickshell reloading partway through found no `shell.qml` and stayed
@@ -1121,7 +1168,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
 - **QML rejects ECMAScript keywords as property names.** The generator renames
   them with a trailing underscore (`Theme.size.switch_`); a test guards it.
 - KWin's blur strength is one global setting, not per surface; per-material
-  blur needs the phase 4 compositor effect.
+  blur is our glass effect's (`glass/`), which stands in its place.
 - Bun's hot reload re-imports `with { type: "text" }` markdown wrongly after a
   `.md` changes, so the review server runs with `hmr: false`.
 - Fractional space tokens are `--amb-space-1_5` / `--amb-space-0_5` in CSS
