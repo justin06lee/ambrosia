@@ -51,6 +51,15 @@ ShellRoot {
             screen: modelData
         }
     }
+    // A new account's first minutes: a welcome, and the look it wants.
+    Variants {
+        model: Quickshell.screens.slice(0, 1)
+
+        Welcome {
+            required property ShellScreen modelData
+            home: modelData
+        }
+    }
     Notifications {}
     // What the volume and brightness keys show.
     Hud {}
@@ -82,6 +91,10 @@ ShellRoot {
         // ⌃⌘Space: the emoji picker, on the screen the app in front is on.
         function emoji(): void {
             Popups.toggleEmoji(Quickshell.screens[0]);
+        }
+        // The welcome a new account gets, again.
+        function welcome(): void {
+            Popups.welcomeOpen = true;
         }
         // ⌘Q for an app with no Quit of its own on Ctrl+Q: every window of
         // the app in front is asked to close.
