@@ -19,6 +19,12 @@ Window {
     readonly property bool picture: info.preview === "image"
     readonly property bool text: info.preview === "text"
     readonly property bool full: visibility === Window.FullScreen
+    // In full screen, whether the pointer moved a moment ago: the bar shows.
+    property bool awake: true
+    onFullChanged: {
+        awake = true;
+        doze.restart();
+    }
     // The panel's size for what it shows: a picture with a 5-point frame
     // beside and below it, fitted to the screen; text in Finder's page;
     // anything else in the small panel.
@@ -68,15 +74,56 @@ Window {
         id: panel
         anchors.fill: parent
         radius: look.full ? 0 : Finder.lookRadius
-        color: Finder.lookFill
-        border.width: 1
+        // Full screen is Finder's: black, and the bar away until the
+        // pointer moves (and the pointer with it).
+        color: look.full ? "black" : Finder.lookFill
+        border.width: look.full ? 0 : 1
         border.color: Finder.lookRim
         focus: true
         Keys.onPressed: (event) => look.keyPressed(event)
 
+        HoverHandler {
+            cursorShape: look.full && !look.awake ? Qt.BlankCursor : Qt.ArrowCursor
+            // Only a pointer that has moved: Qt sends a hover again at
+            // the same place whenever the window redraws (the bar fading
+            // out would wake it).
+            property point last
+            onPointChanged: {
+                const at = point.scenePosition;
+                if (at.x === last.x && at.y === last.y)
+                    return;
+                last = at;
+                look.awake = true;
+                doze.restart();
+            }
+        }
+        Timer {
+            id: doze
+            interval: 2000
+            onTriggered: look.awake = false
+        }
+
         DragHandler {
             target: null
             onActiveChanged: if (active) look.startSystemMove()
+        }
+
+        // The bar's things: in full screen on a dark strip over what is
+        // shown, there while the pointer is awake.
+        Item {
+        id: chrome
+        anchors.fill: parent
+        z: 1
+        opacity: !look.full || look.awake ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity {
+            NumberAnimation { duration: 200 }
+        }
+        Rectangle {
+            visible: look.full
+            width: parent.width
+            height: look.bar
+            color: "#b3000000"
         }
 
         // Close and full screen: filled circles, their glyphs cut out.
@@ -94,12 +141,12 @@ Window {
                 width: 12
                 height: 12
                 radius: 6
-                color: Finder.lookControl
+                color: look.full ? "#9a9a9a" : Finder.lookControl
                 Shape {
                     anchors.fill: parent
                     preferredRendererType: Shape.CurveRenderer
                     ShapePath {
-                        strokeColor: circle.modelData.stroke ? Finder.lookFill : "transparent"
+                        strokeColor: circle.modelData.stroke ? (look.full ? "black" : Finder.lookFill) : "transparent"
                         strokeWidth: 1.5
                         fillColor: "transparent"
                         capStyle: ShapePath.RoundCap
@@ -107,7 +154,7 @@ Window {
                     }
                     ShapePath {
                         strokeColor: "transparent"
-                        fillColor: circle.modelData.fill ? Finder.lookFill : "transparent"
+                        fillColor: circle.modelData.fill ? (look.full ? "black" : Finder.lookFill) : "transparent"
                         PathSvg { path: circle.modelData.fill }
                     }
                 }
@@ -126,6 +173,7 @@ Window {
             font.weight: 700
             text: info.title
             elide: Text.ElideMiddle
+            color: look.full ? "#e6e6e6" : Theme.color.label.primary
         }
 
         // "Open with Preview": the app that opens it, as Finder names it.
@@ -155,13 +203,15 @@ Window {
             }
         }
 
-        // A picture, as itself.
+        }
+
+        // A picture, as itself: in full screen, as large as the screen takes.
         Image {
             visible: look.picture
-            x: 5
-            y: look.bar
-            width: parent.width - 10
-            height: parent.height - look.bar - 5
+            x: look.full ? 0 : 5
+            y: look.full ? 0 : look.bar
+            width: look.full ? parent.width : parent.width - 10
+            height: look.full ? parent.height : parent.height - look.bar - 5
             source: look.picture ? info.fileUrl : ""
             asynchronous: true
             fillMode: Image.PreserveAspectFit
@@ -170,12 +220,12 @@ Window {
             mipmap: true
         }
 
-        // Text, in its page.
+        // Text, in its page: in full screen, the page in the middle.
         Rectangle {
             visible: look.text
-            x: 5
+            x: look.full ? Math.round((parent.width - width) / 2) : 5
             y: look.bar
-            width: parent.width - 10
+            width: look.full ? Math.min(806, parent.width - 10) : parent.width - 10
             height: parent.height - look.bar - 5
             radius: 8
             color: Finder.lookPage
@@ -212,7 +262,11 @@ Window {
         // Anything else: its icon, and beside it its name, size and date.
         Item {
             visible: !look.picture && !look.text
-            anchors.fill: parent
+            // In full screen the small panel's layout, in the middle.
+            x: look.full ? Math.round((parent.width - 576) / 2) : 0
+            y: look.full ? Math.round((parent.height - 328) / 2) : 0
+            width: look.full ? 576 : parent.width
+            height: look.full ? 328 : parent.height
             FileIcon {
                 x: 20
                 y: 48
@@ -232,20 +286,21 @@ Window {
                 font.weight: 700
                 text: info.title
                 elide: Text.ElideMiddle
+                color: look.full ? "#e6e6e6" : Theme.color.label.primary
             }
             Label {
                 x: bigName.x
                 y: 175.5 - baselineOffset
                 font.pixelSize: 13
                 text: info.sizeSummary
-                color: Theme.color.label.secondary
+                color: look.full ? "#9a9a9a" : Theme.color.label.secondary
             }
             Label {
                 x: bigName.x
                 y: 199.5 - baselineOffset
                 font.pixelSize: 13
                 text: "Last modified " + info.modifiedSeconds
-                color: Theme.color.label.secondary
+                color: look.full ? "#9a9a9a" : Theme.color.label.secondary
             }
         }
     }

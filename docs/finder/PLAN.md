@@ -785,8 +785,10 @@ shortcut menu; v1 scope unless marked):
 - This Computer reaching other drives and the installed apps;
 - spring-loaded folders;
 - tabs (not v1).
-- Quick Look's full screen as Finder's: black, its bar hidden until the
-  pointer moves (ours keeps the panel's bar and grey margins).
+- Quick Look's full screen has no strip of controls at the bottom as
+  Finder's has (it is black since 2026-11-25, a picture as large as the
+  screen, and its bar and the pointer go away two seconds after the pointer
+  last moved; the bar is the panel's own, along the top).
 
 **The shortcut menu's submenus, Compress and Make Alias (2026-11-25).**
 - `ContextMenu.qml` rows may carry `submenu` (rows, or a function giving
