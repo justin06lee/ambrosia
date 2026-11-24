@@ -78,17 +78,76 @@ KWin.SceneEffect {
         onActivated: effect.show("app")
     }
 
-    // A Mac's four fingers up and down. (KWin's Overview, which has the
-    // same gesture, is off in the session's kwinrc.)
+    // A Mac's fingers up and down, three of them (its setting as it comes)
+    // or four. (KWin's Overview, which has the four-finger one, is off in
+    // the session's kwinrc; sideways, three or four fingers already go to
+    // the next desktop, KWin's own.)
+    KWin.SwipeGestureHandler {
+        direction: KWin.SwipeGestureHandler.Direction.Up
+        fingerCount: 3
+        onActivated: effect.swipe(true)
+    }
+    KWin.SwipeGestureHandler {
+        direction: KWin.SwipeGestureHandler.Direction.Down
+        fingerCount: 3
+        onActivated: effect.swipe(false)
+    }
     KWin.SwipeGestureHandler {
         direction: KWin.SwipeGestureHandler.Direction.Up
         fingerCount: 4
         onActivated: effect.swipe(true)
     }
-
     KWin.SwipeGestureHandler {
         direction: KWin.SwipeGestureHandler.Direction.Down
         fingerCount: 4
         onActivated: effect.swipe(false)
+    }
+
+    // A Mac's pinch with the thumb and three fingers brings up its apps:
+    // here, Search, where apps are found. The same fingers spread show the
+    // desktop, and pinched again bring the windows back (the windows
+    // effect's Show Desktop, session/kwin-effects/ambrosia_windows). An
+    // effect can't run a program or reach another effect, so each is a
+    // shortcut pressed by name through KDE's shortcut service. Not while
+    // Mission Control is up.
+    component Press: KWin.DBusCall {
+        service: "org.kde.kglobalaccel"
+        dbusInterface: "org.kde.kglobalaccel.Component"
+        method: "invokeShortcut"
+    }
+    Press { id: search; path: "/component/org_ambrosia_search_desktop"; arguments: ["_launch"] }
+    Press { id: aside; path: "/component/kwin"; arguments: ["Ambrosia Windows Aside"] }
+    Press { id: back; path: "/component/kwin"; arguments: ["Ambrosia Windows Back"] }
+
+    // Whether the spread has put the windows aside: the windows effect
+    // brings them back when any window comes forward, so that ends it here.
+    property bool desktopShown: false
+    Connections {
+        target: KWin.Workspace
+        function onWindowActivated(window) {
+            if (window && window.normalWindow) effect.desktopShown = false;
+        }
+    }
+    KWin.PinchGestureHandler {
+        direction: KWin.PinchGestureHandler.Direction.Expanding
+        fingerCount: 4
+        onActivated: {
+            if (effect.visible) return;
+            effect.desktopShown = true;
+            aside.call();
+        }
+    }
+    KWin.PinchGestureHandler {
+        direction: KWin.PinchGestureHandler.Direction.Contracting
+        fingerCount: 4
+        onActivated: {
+            if (effect.visible) return;
+            if (effect.desktopShown) {
+                effect.desktopShown = false;
+                back.call();
+            } else {
+                search.call();
+            }
+        }
     }
 }
