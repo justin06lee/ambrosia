@@ -577,6 +577,20 @@ package repo below), and they carry `shell/` and `session/` as they are.
    test VM: remove the user's settings.json and
    `~/.local/state/quickshell/by-shell/*/settings.json`, restart
    ambrosia-shell. Its sizes are `size.welcome` in the tokens.
+   **A shell that crashes comes back by itself** (2026-11-25):
+   `ambrosia-shell.service` sets `QS_DISABLE_CRASH_HANDLER=1` (and our
+   Quickshell, pkgrel 5, is built without the handler), so a crash ends
+   the process and systemd starts it again within seconds (`kill -SEGV`
+   in the test VM: no window, `NRestarts` up by one, the notification
+   server's name with the new shell). With Quickshell's handler the
+   shell came back under a "Quickshell has crashed" window whose default
+   button opens a bug report in the browser, and the dead shell's
+   parent kept `org.freedesktop.Notifications`, so banners were gone
+   until the next login. The crash that showed this: once, in the test
+   VM, while `pacman -S` ran its icon-cache hooks, in
+   `KIconEngine::createPixmap` under Quickshell's icon provider as a
+   list gained a row (a status item or a banner); two more installs did
+   not repeat it. KDE's or Qt's to fix, not found again.
    **The installer is an assistant of the shell's** (round 37,
    2026-11-25, `shell/Installer.qml`, `Popups.installerOpen`, `ambrosia
    install`): pages on the welcome's panel; nothing in it touches a disk.

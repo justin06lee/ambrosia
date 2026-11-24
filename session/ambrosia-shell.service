@@ -6,6 +6,12 @@ PartOf=graphical-session.target
 [Service]
 ExecCondition=/bin/sh -c 'test "$XDG_SESSION_DESKTOP" = ambrosia'
 ExecStart=/usr/bin/quickshell --path /usr/share/ambrosia/shell
+# A shell that crashes is started again here, cleanly, and says nothing, as
+# a Mac's Dock is. Quickshell's own crash handler would start it again
+# itself under a "Quickshell has crashed, please file a bug" window, and
+# keeps the dead shell's place on the session bus, so the new one can't be
+# the notification server. The crash is still in coredumpctl.
+Environment=QS_DISABLE_CRASH_HANDLER=1
 Restart=on-failure
 Slice=session.slice
 

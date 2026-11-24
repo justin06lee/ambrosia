@@ -23,7 +23,7 @@
 pkgname=quickshell
 # The pinned commit's `git describe --long --tags`, as 0.3.2.rN.gHASH.
 pkgver=0.3.2.r0.g4f508be
-pkgrel=4
+pkgrel=5
 pkgdesc='Flexible toolkit for making desktop shells with QtQuick'
 arch=(x86_64 aarch64)
 url="https://git.outfoxxed.me/$pkgname/$pkgname"
@@ -76,7 +76,9 @@ build() {
 		-D CMAKE_BUILD_TYPE=RelWithDebInfo
 		-D DISTRIBUTOR='Ambrosia'
 		-D DISTRIBUTOR_DEBUGINFO_AVAILABLE=No
-		-D CRASH_REPORTER=Off
+		# No crash handler: systemd restarts the shell (ambrosia-shell.service).
+		# (The option was CRASH_REPORTER before 0.3; that name does nothing now.)
+		-D CRASH_HANDLER=OFF
 		-D CMAKE_INSTALL_PREFIX=/usr
 		-D INSTALL_QML_PREFIX=lib/qt6/qml
 		# Ambrosia runs on KWin: no Hyprland or i3 integration.
