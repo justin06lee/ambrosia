@@ -62,6 +62,11 @@ public:
     // folder): what "Show in Folder" asks through FileManager1 below.
     void showItems(const QStringList &uris);
     Q_INVOKABLE void openFile(const QUrl &url);
+    // The apps that open this kind of thing, the one that does by default
+    // first: each a map of name, id (its desktop file's) and icon.
+    Q_INVOKABLE QVariantList appsFor(const QUrl &url) const;
+    // Opens them in that app; with no id, KDE's window for choosing one.
+    Q_INVOKABLE void openWith(const QList<QUrl> &urls, const QString &id);
     // Get Info (⌘I): the item's Info window, brought forward if it's open.
     Q_INVOKABLE void openInfo(const QUrl &url);
     // An Open or Save panel (Portal): a Finder window with `panel` set, not

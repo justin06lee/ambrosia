@@ -9,7 +9,9 @@ import Files
 // its row of tag colors is more than the shell's menus draw. Rows are
 // {text, run, enabled}, {separator: true}, or {tags: true}: Finder's colors,
 // each a click to give the tag to everything selected or take it from all;
-// pointed at, it shows which it does.
+// pointed at, it shows which it does. A row may have a `submenu` (rows, or
+// a function giving them: another of these opens beside it), an `icon` (an
+// icon theme name: Open With's apps) or `checked` (Sort By's mark).
 Controls.Popup {
     id: menu
 
@@ -25,24 +27,156 @@ Controls.Popup {
     readonly property var colors: ["red", "orange", "yellow", "green", "blue", "purple", "gray"]
     readonly property var colored: Tags.all.filter(tag => tag.color !== "").slice(0, 7)
     property string hint: ""
+    // Rows with a mark or an icon push every row's words right, as a Mac's.
+    readonly property bool marks: items.some(item => item.icon !== undefined || item.checked !== undefined)
 
+    // Submenus. `above` is the menu this one hangs off; `below` the one
+    // open beside row `belowRow` of this. A submenu says why it closed:
+    // "ran" (a row was chosen: everything closes), "left" (Escape or ←:
+    // back to this menu), "above" (this menu closed it), or "" (a press
+    // somewhere else: this one closes too unless the pointer is on it).
+    property var above: null
+    property var below: null
+    property int belowRow: -1
+    property string why: ""
+    readonly property bool pointed: over.hovered
+    // Whether the lit row was reached by the arrows: a submenu then waits
+    // for →, and takes the keys only when entered that way.
+    property bool byKeys: false
+
+    // How tall these rows make it: known at once, where the layout's own
+    // height is still the last menu's when a new one is placed.
+    readonly property real tall: 2 * padding + items.reduce((sum, item) =>
+        sum + (item.separator ? 11 : item.tags ? Finder.contextTagRow : Finder.menuRow), 0)
+    // Where it was asked to be; placed again once it has its width.
+    property var asked: ({})
+    function place() {
+        const root = parent;
+        if (asked.beside) {
+            menu.x = asked.right + implicitWidth + 4 <= root.width ? asked.right : Math.max(4, asked.left - implicitWidth);
+            menu.y = Math.max(4, Math.min(asked.y, root.height - tall - 4));
+        } else {
+            menu.x = Math.max(4, Math.min(asked.x, root.width - implicitWidth - 4));
+            menu.y = asked.y + tall + 4 <= root.height ? asked.y : Math.max(4, asked.y - tall);
+        }
+    }
     function openAt(x, y) {
         common = urls.length > 0 ? Tags.common(urls) : [];
         lit = -1;
         hint = "";
-        const root = parent;
-        menu.x = Math.max(4, Math.min(x, root.width - implicitWidth - 4));
-        menu.y = y + implicitHeight + 4 <= root.height ? y : Math.max(4, y - implicitHeight);
+        asked = { x: x, y: y };
+        place();
         open();
+        Qt.callLater(place);
+    }
+    // Beside a row of the menu above: to its right, or to its left where
+    // the window ends first.
+    function openBeside(right, left, y) {
+        common = [];
+        lit = -1;
+        hint = "";
+        why = "";
+        asked = { beside: true, right: right, left: left, y: y };
+        place();
+        open();
+        Qt.callLater(place);
     }
     function run(i) {
         const item = items[i];
         if (!item || item.separator || item.tags || item.enabled === false)
             return;
+        if (item.submenu) {
+            openSub(i, false);
+            return;
+        }
+        why = "ran";
         close();
         item.run();
     }
+    function openSub(i, byKey) {
+        if (belowRow === i && below?.opened) {
+            if (byKey) {
+                below.forceActiveFocus();
+                below.step(1);
+            }
+            return;
+        }
+        closeSub();
+        if (!below)
+            below = Qt.createComponent("ContextMenu.qml").createObject(menu.parent, { above: menu });
+        const item = items[i];
+        below.urls = [];
+        below.colorOf = "";
+        below.items = typeof item.submenu === "function" ? item.submenu() : item.submenu;
+        const row = repeater.itemAt(i);
+        const at = row.mapToItem(menu.parent, 0, 0);
+        belowRow = i;
+        below.openBeside(menu.x + menu.width - 3, menu.x + 3, at.y - below.padding);
+        if (byKey) {
+            below.forceActiveFocus();
+            below.step(1);
+        }
+    }
+    function closeSub() {
+        if (below?.opened) {
+            below.why = "above";
+            below.close();
+        }
+        belowRow = -1;
+    }
+    function subClosed(reason) {
+        if (reason === "above")
+            return;
+        belowRow = -1;
+        if (reason === "ran" || (reason === "" && !pointed)) {
+            why = "ran";
+            close();
+        } else {
+            rows.forceActiveFocus();
+        }
+    }
+    // The pointer on a row with a submenu opens it after a moment; off it,
+    // the submenu stays a little longer, so the pointer can cross other
+    // rows on its way there.
+    onLitChanged: {
+        if (byKeys) {
+            wait.stop();
+            if (belowRow >= 0 && belowRow !== lit)
+                closeSub();
+            return;
+        }
+        const item = items[lit];
+        wait.interval = belowRow >= 0 && belowRow !== lit ? 280 : 100;
+        if ((item && item.submenu) || belowRow >= 0)
+            wait.restart();
+    }
+    Timer {
+        id: wait
+        onTriggered: {
+            if (!menu.opened)
+                return;
+            if (menu.below?.opened && menu.below.pointed) {
+                menu.lit = menu.belowRow;
+                return;
+            }
+            const item = menu.items[menu.lit];
+            if (item && item.submenu && item.enabled !== false)
+                menu.openSub(menu.lit, false);
+            else if (menu.belowRow >= 0 && menu.lit !== menu.belowRow)
+                menu.closeSub();
+        }
+    }
+    onAboutToHide: {
+        wait.stop();
+        closeSub();
+    }
+    onClosed: {
+        if (above)
+            above.subClosed(why);
+        why = "";
+    }
     function step(by) {
+        byKeys = true;
         let i = lit;
         for (let k = 0; k < items.length; ++k) {
             i = (i + by + items.length) % items.length;
@@ -56,8 +190,13 @@ Controls.Popup {
 
     parent: Controls.Overlay.overlay
     padding: 5
-    focus: true
-    closePolicy: Controls.Popup.CloseOnEscape | Controls.Popup.CloseOnPressOutside
+    // A submenu takes the keys only when → enters it (openSub).
+    focus: above === null
+    // With a submenu open a press on it is a press outside this one: the
+    // submenu says what became of it (subClosed).
+    closePolicy: belowRow >= 0 ? Controls.Popup.NoAutoClose
+        : above ? Controls.Popup.CloseOnPressOutside
+        : Controls.Popup.CloseOnEscape | Controls.Popup.CloseOnPressOutside
     implicitWidth: Math.max(Finder.contextMenuWidth, rows.implicitWidth + 2 * padding)
 
     background: Rectangle {
@@ -84,8 +223,33 @@ Controls.Popup {
         Keys.onReturnPressed: menu.run(menu.lit)
         Keys.onEnterPressed: menu.run(menu.lit)
         Keys.onSpacePressed: menu.run(menu.lit)
+        Keys.onRightPressed: {
+            if (menu.items[menu.lit]?.submenu && menu.items[menu.lit].enabled !== false)
+                menu.openSub(menu.lit, true);
+        }
+        Keys.onLeftPressed: {
+            if (menu.above) {
+                menu.why = "left";
+                menu.close();
+            }
+        }
+        Keys.onEscapePressed: (event) => {
+            if (menu.above) {
+                menu.why = "left";
+                menu.close();
+            } else if (menu.belowRow >= 0) {
+                menu.closeSub();
+            } else {
+                event.accepted = false;
+            }
+        }
+
+        HoverHandler {
+            id: over
+        }
 
         Repeater {
+            id: repeater
             model: menu.items
             Item {
                 id: row
@@ -96,7 +260,7 @@ Controls.Popup {
                 readonly property bool lit: !separator && !tagRow && menu.lit === index
                 readonly property bool usable: !separator && !tagRow && modelData.enabled !== false
                 width: menu.availableWidth
-                implicitWidth: tagRow ? dots.implicitWidth + 24 : label.implicitWidth + 40
+                implicitWidth: tagRow ? dots.implicitWidth + 24 : label.x + label.implicitWidth + (modelData.submenu ? 34 : 26)
                 height: separator ? 11 : tagRow ? Finder.contextTagRow : Finder.menuRow
 
                 Rectangle {
@@ -112,17 +276,47 @@ Controls.Popup {
                     radius: 5
                     color: Theme.accent.bg
                 }
+                Glyph {
+                    visible: row.modelData.checked === true
+                    x: 9
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "check"
+                    size: 13
+                    color: label.color
+                }
+                Image {
+                    visible: (row.modelData.icon ?? "") !== ""
+                    x: 9
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 16
+                    height: 16
+                    sourceSize: Qt.size(32, 32)
+                    source: visible ? "image://icon/" + row.modelData.icon : ""
+                }
                 Label {
                     id: label
                     visible: !row.separator && !row.tagRow
-                    x: 14
+                    x: menu.marks ? 31 : 14
                     anchors.verticalCenter: parent.verticalCenter
                     text: row.modelData.text ?? ""
                     color: row.lit ? Theme.accent.fg : row.usable ? Theme.color.label.primary : Theme.color.label.tertiary
                 }
+                Glyph {
+                    visible: row.modelData.submenu !== undefined
+                    x: parent.width - 20
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "pathSeparator"
+                    size: 12
+                    color: row.lit ? Theme.accent.fg : Theme.color.label.secondary
+                }
                 HoverHandler {
                     enabled: row.usable
-                    onHoveredChanged: if (hovered) menu.lit = row.index
+                    onHoveredChanged: {
+                        if (hovered) {
+                            menu.byKeys = false;
+                            menu.lit = row.index;
+                        }
+                    }
                 }
                 TapHandler {
                     enabled: row.usable

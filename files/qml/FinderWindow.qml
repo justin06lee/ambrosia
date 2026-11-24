@@ -520,6 +520,35 @@ Window {
         if (hasSelection && local)
             run(FileOps.duplicate(selectedUrls()), { select: true });
     }
+    function makeAlias() {
+        if (hasSelection && local)
+            run(FileOps.makeAlias(selectedUrls()), { select: true });
+    }
+    function compress() {
+        if (hasSelection && local)
+            run(FileOps.compress(selectedUrls()), { select: true });
+    }
+    // Finder's Sort By: names and kinds from A, dates and sizes from the
+    // newest and the largest.
+    readonly property var sortings: [["name", "Name"], ["kind", "Kind"], ["date", "Date Modified"], ["size", "Size"]]
+    function sortBy(column) {
+        model.ascending = column === "name" || column === "kind";
+        model.sortColumn = column;
+    }
+    // Open With's rows: the app that opens it anyway first, then the
+    // others, then KDE's window for any app at all.
+    function openWithEntries() {
+        const urls = selectedUrls();
+        const apps = App.appsFor(urls[0]);
+        const row = (app, first) => ({ text: app.name + (first ? " (default)" : ""), icon: app.icon, run: () => App.openWith(urls, app.id) });
+        const rows = apps.length > 0 ? [row(apps[0], true)] : [];
+        if (apps.length > 1)
+            rows.push({ separator: true }, ...apps.slice(1).map(app => row(app, false)));
+        if (rows.length > 0)
+            rows.push({ separator: true });
+        rows.push({ text: "Other…", icon: "", run: () => App.openWith(urls, "") });
+        return rows;
+    }
     function trashSelection() {
         if (!hasSelection || inApplications)
             return;
@@ -652,14 +681,20 @@ Window {
             { separator: true },
             { text: FileOps.clipboardCount > 1 ? "Paste " + FileOps.clipboardCount + " Items" : "Paste Item",
               enabled: FileOps.clipboardCount > 0 && local, run: () => paste(false) },
+            { separator: true },
+            { text: "Sort By", enabled: !searching, submenu: () => sortings.map(([column, title]) =>
+                ({ text: title, checked: model.sortColumn === column, run: () => sortBy(column) })) },
         ] : [
             { text: "Open", run: () => openSelection() },
+            { text: "Open With", enabled: !inTrash, submenu: () => openWithEntries() },
             { separator: true },
             { text: inTrash ? "Put Back" : "Move to Trash", enabled: !inApplications, run: () => trashSelection() },
             { separator: true },
             { text: "Get Info", run: () => getInfo() },
             { text: "Rename", enabled: selectedCount === 1 && localItems, run: () => renameSelection() },
+            { text: one !== "" ? "Compress “" + one + "”" : "Compress " + selectedCount + " Items", enabled: local && localItems && !inTrash, run: () => compress() },
             { text: "Duplicate", enabled: local, run: () => duplicate() },
+            { text: "Make Alias", enabled: local && localItems && !inTrash, run: () => makeAlias() },
             { text: one !== "" ? "Quick Look “" + one + "”" : "Quick Look " + selectedCount + " Items", run: () => { if (!lookOpen) toggleLook(); } },
             { separator: true },
             { text: one !== "" ? "Copy “" + one + "”" : "Copy " + selectedCount + " Items", run: () => copySelection() },

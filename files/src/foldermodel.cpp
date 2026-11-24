@@ -279,6 +279,10 @@ std::vector<quint32> sortedOrder(const Listing &l, const Keys &keys, Column colu
         QHash<QString, QString> cache;
         kinds.reserve(n);
         for (size_t i = 0; i < n; ++i) {
+            if (l.entries[i].flags & FolderModel::Symlink) {
+                kinds.push_back(QStringLiteral("Alias"));
+                continue;
+            }
             const QString name = QString::fromUtf8(l.strings.data() + l.entries[i].display);
             const bool dir = l.entries[i].flags & FolderModel::Dir;
             const QString ext = dir ? QString() : name.section(QLatin1Char('.'), -1).toLower();
@@ -1255,6 +1259,9 @@ QVariant FolderModel::data(const QModelIndex &index, int role) const
     case KindShortRole: {
         if (app)
             return QStringLiteral("Application");
+        // A link is an alias, whatever it points to, as in Finder.
+        if (e.flags & Symlink)
+            return QStringLiteral("Alias");
         const QString name = displayOf(r);
         const QString ext = dir ? QString() : name.section(QLatin1Char('.'), -1).toLower();
         auto it = m_kinds.find(ext);

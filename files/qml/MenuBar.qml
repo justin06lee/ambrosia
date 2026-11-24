@@ -27,6 +27,12 @@ Platform.MenuBar {
         Platform.MenuItem { text: "Get Info"; shortcut: "Ctrl+I"; onTriggered: bar.finder.act("info", bar.finder.getInfo) }
         Platform.MenuItem { text: "Rename"; enabled: bar.finder.selectedCount === 1 && bar.finder.localItems; onTriggered: bar.finder.act("rename", bar.finder.renameSelection) }
         Platform.MenuItem { text: "Duplicate"; shortcut: "Ctrl+D"; enabled: bar.finder.hasSelection && bar.finder.local; onTriggered: bar.finder.act("duplicate", bar.finder.duplicate) }
+        Platform.MenuItem { text: "Make Alias"; enabled: bar.finder.hasSelection && bar.finder.local && bar.finder.localItems; onTriggered: bar.finder.act("alias", bar.finder.makeAlias) }
+        Platform.MenuItem {
+            text: bar.finder.selectedCount === 1 ? "Compress “" + bar.finder.model.nameAt(bar.finder.shownRow) + "”" : bar.finder.selectedCount > 1 ? "Compress " + bar.finder.selectedCount + " Items" : "Compress"
+            enabled: bar.finder.hasSelection && bar.finder.local && bar.finder.localItems
+            onTriggered: bar.finder.act("compress", bar.finder.compress)
+        }
         Platform.MenuItem {
             text: bar.finder.selectedCount === 1 ? "Quick Look “" + bar.finder.model.nameAt(bar.finder.shownRow) + "”"
                 : bar.finder.selectedCount > 1 ? "Quick Look " + bar.finder.selectedCount + " Items" : "Quick Look"
@@ -108,6 +114,15 @@ Platform.MenuBar {
         Platform.MenuItem { text: "as List"; shortcut: "Ctrl+2"; checkable: true; checked: bar.finder.view === "list"; onTriggered: bar.finder.act("list", () => bar.finder.view = "list") }
         Platform.MenuItem { text: "as Columns"; shortcut: "Ctrl+3"; checkable: true; checked: bar.finder.view === "column"; onTriggered: bar.finder.act("columns", () => bar.finder.view = "column") }
         Platform.MenuItem { text: "as Gallery"; shortcut: "Ctrl+4"; checkable: true; checked: bar.finder.view === "gallery"; onTriggered: bar.finder.act("gallery", () => bar.finder.view = "gallery") }
+        Platform.MenuSeparator {}
+        Platform.Menu {
+            title: "Sort By"
+            enabled: !bar.finder.searching
+            Platform.MenuItem { text: "Name"; checkable: true; checked: bar.finder.model.sortColumn === "name"; onTriggered: bar.finder.act("sortName", () => bar.finder.sortBy("name")) }
+            Platform.MenuItem { text: "Kind"; checkable: true; checked: bar.finder.model.sortColumn === "kind"; onTriggered: bar.finder.act("sortKind", () => bar.finder.sortBy("kind")) }
+            Platform.MenuItem { text: "Date Modified"; checkable: true; checked: bar.finder.model.sortColumn === "date"; onTriggered: bar.finder.act("sortDate", () => bar.finder.sortBy("date")) }
+            Platform.MenuItem { text: "Size"; checkable: true; checked: bar.finder.model.sortColumn === "size"; onTriggered: bar.finder.act("sortSize", () => bar.finder.sortBy("size")) }
+        }
         Platform.MenuSeparator {}
         Platform.MenuItem {
             text: bar.finder.showPreview ? "Hide Preview" : "Show Preview"
