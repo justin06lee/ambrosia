@@ -3,3 +3,5 @@
 // KWin frames it with Ambrosia's traffic lights. Customize › Title Bar
 // switches it back.
 pref("browser.tabs.inTitlebar", 0);
+// Open and Save through the desktop portal: Files' panels, not GTK's dialog.
+pref("widget.use-xdg-desktop-portal.file-picker", 1);

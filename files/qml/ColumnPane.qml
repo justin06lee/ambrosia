@@ -400,6 +400,7 @@ FocusScope {
 
             delegate: Item {
                 id: rowItem
+                opacity: owner.finder.dimmed(name, isDir) ? 0.4 : 1
                 required property int index
                 required property string name
                 required property bool isDir

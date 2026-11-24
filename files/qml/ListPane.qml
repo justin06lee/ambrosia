@@ -334,6 +334,8 @@ FocusScope {
 
             delegate: Item {
                 id: rowItem
+                // In another app's panel, what can't be chosen is dimmed.
+                opacity: pane.finder.dimmed(name, isDir) ? 0.4 : 1
                 required property int index
                 required property string name
                 required property string dateText

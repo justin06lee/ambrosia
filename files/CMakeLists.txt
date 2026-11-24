@@ -36,6 +36,7 @@ qt_add_qml_module(ambrosia-files
         src/metadata.h src/metadata.cpp
         src/format.h src/format.cpp
         src/places.h src/places.cpp
+        src/portal.h src/portal.cpp
         src/sortkey.h src/sortkey.cpp
         src/tags.h src/tags.cpp
         src/thumbnailer.h src/thumbnailer.cpp
@@ -69,6 +70,10 @@ qt_add_qml_module(ambrosia-files
         qml/TagField.qml
         qml/Thumbnail.qml
         qml/PathBar.qml
+        qml/PanelBar.qml
+        qml/PanelName.qml
+        qml/PanelAlert.qml
+        qml/PushButton.qml
         qml/FileIcon.qml
         qml/TagDots.qml
         qml/SearchField.qml
@@ -99,6 +104,10 @@ install(FILES org.ambrosia.files.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/ap
 # Files runs from login, as Finder does: a user unit for the Ambrosia session,
 # wanted by Plasma's workspace target (installed enabled, like the shell's).
 install(FILES ambrosia-files.service DESTINATION lib/systemd/user)
+# Every app's Open and Save (src/portal.h): Files is a backend of the desktop
+# portal, named here and started for it if it isn't running.
+install(FILES ambrosia.portal DESTINATION ${CMAKE_INSTALL_DATADIR}/xdg-desktop-portal/portals)
+install(FILES org.freedesktop.impl.portal.desktop.ambrosia.service DESTINATION ${CMAKE_INSTALL_DATADIR}/dbus-1/services)
 install(CODE "
     set(wants \"\$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/lib/systemd/user/plasma-workspace.target.wants\")
     file(MAKE_DIRECTORY \"\${wants}\")

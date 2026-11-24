@@ -44,6 +44,13 @@ __aurorae__svg__Ambrosia*)
   done ;;
 esac
 
+# Open and Save are Files' own panels in every app that asks the desktop
+# portal for one (session/xdg/xdg-desktop-portal/portals.conf). Qt and KDE
+# apps ask it when Plasma's platform theme is told to, GTK apps when GTK is.
+export PLASMA_INTEGRATION_USE_PORTAL=1
+export GTK_USE_PORTAL=1
+export GDK_DEBUG=portals
+
 set -a
 . /usr/share/ambrosia/environment.d/50-ambrosia-fonts.conf
 set +a

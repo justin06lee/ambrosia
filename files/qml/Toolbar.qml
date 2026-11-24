@@ -50,7 +50,7 @@ Item {
         width: (toolbar.compact ? viewButton.x : viewSwitcher.x) - x - 8
         verticalAlignment: Text.AlignVCenter
         elide: Text.ElideRight
-        text: toolbar.finder.title
+        text: toolbar.finder.placeName
         style: Theme.text.title3
         color: toolbar.finder.looksActive ? Theme.color.label.primary : Theme.color.label.tertiary
     }

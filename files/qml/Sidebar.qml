@@ -31,6 +31,8 @@ Item {
     }
 
     TrafficLights {
+        // Another app's panel has none: Cancel closes it.
+        visible: !sidebar.finder.isPanel
         x: Finder.lightsX - Finder.sidebarInset
         y: Finder.lightsY - Finder.sidebarInset
         window: sidebar.finder.window
