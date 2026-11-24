@@ -537,7 +537,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
    the choice goes through `Appearance`, so everything follows at once).
    Who sees it: `Settings.qml` sets `welcome` true only in the branch
    where it finds neither `~/.config/ambrosia/settings.json` nor the old
-   state file, which is an account's first login; the end clears it. An
+   state file, which is an account's first login; the end clears it.
+   That branch must also do what `onLoaded` does (migrate, then
+   `loaded = true`): nothing is read back after the shell writes the
+   defaults, and until round 33 a new account's first session never had
+   `Settings.loaded`, so nothing waiting on it ran. An
    existing account never has the key, so it reads false. The live
    image's user must not see it (the installer starts there by itself):
    `ambrosia-live-user.service` writes that user an empty settings file.

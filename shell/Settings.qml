@@ -88,9 +88,13 @@ Singleton {
             if (old) {
                 setText(old);
             } else {
-                // No settings at all: an account's first login.
+                // No settings at all: an account's first login. Nothing is
+                // read back after this write, so what onLoaded does is
+                // done here.
                 adapter.welcome = true;
                 writeAdapter();
+                settings.migrate();
+                Qt.callLater(() => settings.loaded = true);
             }
         }
 
