@@ -7,6 +7,7 @@ import type { Mode } from "../../../design/tokens";
 import { toKde, withAlpha, type RGBA } from "../color";
 import { flat, type Resolved, type ResolvedMode } from "../resolve";
 import { HEADER, pt } from "./shared";
+import { SOUND_THEME } from "./sounds";
 
 function colorSet(m: ResolvedMode, bg: RGBA, alternate: RGBA): Record<string, RGBA> {
   const a = m.accents[t.accent.default]!;
@@ -50,7 +51,7 @@ const section = (name: string, entries: Record<string, RGBA | string | number>) 
     .map(([k, v]) => `${k}=${typeof v === "object" ? toKde(v) : v}`)
     .join("\n")}`;
 
-type Extra = { General?: Record<string, string>; KDE?: Record<string, string>; WM?: Record<string, string> };
+type Extra = { General?: Record<string, string>; KDE?: Record<string, string>; Sounds?: Record<string, string>; WM?: Record<string, string> };
 
 export function kde(r: Resolved, mode: Mode, extra: Extra = {}): string {
   const m = r.modes[mode];
@@ -81,6 +82,7 @@ export function kde(r: Resolved, mode: Mode, extra: Extra = {}): string {
     section("Colors:Window", windowSet),
     section("General", { ColorScheme: `Ambrosia${title}`, Name: `Ambrosia ${title}`, shadeSortColumn: "true", ...extra.General }),
     section("KDE", { contrast: 4, ...extra.KDE }),
+    ...(extra.Sounds ? [section("Sounds", extra.Sounds)] : []),
     section("WM", {
       activeBackground: window,
       activeBlend: flat(m.label.primary, window),
@@ -115,6 +117,9 @@ export function kdeglobals(r: Resolved): string {
     },
     // Plasma applies this look-and-feel's defaults at login (session/look-and-feel).
     KDE: { LookAndFeelPackage: "org.ambrosia.desktop" },
+    // The sounds KDE plays (notifications, KWin's bell, the volume keys) are
+    // ours (targets/sounds.ts).
+    Sounds: { Theme: SOUND_THEME },
     WM: { activeFont: qfont(ui, headline.size, headline.weight) },
   });
 }

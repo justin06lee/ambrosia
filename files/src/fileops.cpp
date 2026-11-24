@@ -18,6 +18,7 @@
 #include <QGuiApplication>
 #include <QMessageBox>
 #include <QMimeData>
+#include <QProcess>
 #include <QRegularExpression>
 #include <QSysInfo>
 
@@ -484,6 +485,12 @@ int FileOps::trash(const QList<QUrl> &urls)
     KIO::CopyJob *job = KIO::trash(urls, KIO::HideProgressInfo);
     FileUndoManager::self()->recordJob(FileUndoManager::Trash, urls, QUrl(QStringLiteral("trash:/")), job);
     m_jobs->add(job, QStringLiteral("Move"), QStringLiteral("Moving %1 to the Trash").arg(itemsWords(urls)));
+    // The thump of something landing in the Trash, once it has (the sound
+    // theme's trash-fill, played by the theme package's helper).
+    connect(job, &KJob::result, this, [](KJob *job) {
+        if (!job->error())
+            QProcess::startDetached(QStringLiteral("/usr/lib/ambrosia/sound"), {QStringLiteral("trash-fill")});
+    });
     // Finder calls it a move, since that is what it is.
     return start(job, {}, QStringLiteral("Move of ") + itemsText(urls));
 }

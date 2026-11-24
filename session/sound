@@ -1,0 +1,51 @@
+#!/bin/sh
+# Plays one of the sound theme's sounds by name: `sound screen-capture`.
+# For the sounds nothing else plays: the shell's (a screenshot, the Trash
+# emptied from the Dock) and Files' (something moved to the Trash). KDE
+# plays its own from the same theme: notifications, KWin's bell, the volume
+# keys.
+#
+# The theme is the one Settings' Sound names ([Sounds] Theme in kdeglobals;
+# "ambrosia" in this session), then the themes it inherits, then
+# freedesktop's, as the sound theme spec has it. Played as an alert is:
+# through the sound server in the event role, so the alert volume and the
+# device chosen for alerts hold. Says nothing and plays nothing when there
+# is no such sound or sounds are switched off ([Sounds] Enable=false).
+event=${1:?usage: sound NAME}
+
+# The first config file, the user's own before the session's, that has the key.
+setting() { # key
+  for dir in "${XDG_CONFIG_HOME:-$HOME/.config}" $(printf %s "${XDG_CONFIG_DIRS:-/etc/xdg}" | tr : ' '); do
+    [ -r "$dir/kdeglobals" ] || continue
+    value=$(awk -F= -v key="$1" '/^\[/ { on = ($0 == "[Sounds]") } on && $1 == key { print $2; exit }' "$dir/kdeglobals")
+    [ -z "$value" ] || { printf %s "$value"; return; }
+  done
+}
+[ "$(setting Enable)" != false ] || exit 0
+theme=$(setting Theme)
+theme=${theme:-ambrosia}
+
+folders="${XDG_DATA_HOME:-$HOME/.local/share} $(printf %s "${XDG_DATA_DIRS:-/usr/local/share:/usr/share}" | tr : ' ')"
+# The file for the sound in one theme, wherever the theme is installed.
+find_in() { # theme
+  for dir in $folders; do
+    for kind in oga ogg wav; do
+      file=$dir/sounds/$1/stereo/$event.$kind
+      [ -r "$file" ] && { printf %s "$file"; return 0; }
+    done
+  done
+  return 1
+}
+inherited() { # theme
+  for dir in $folders; do
+    [ -r "$dir/sounds/$1/index.theme" ] || continue
+    sed -n 's/^Inherits=//p' "$dir/sounds/$1/index.theme" | tr ',' ' '
+    return
+  done
+}
+for name in "$theme" $(inherited "$theme") freedesktop; do
+  if file=$(find_in "$name"); then
+    exec paplay --property=media.role=event "$file"
+  fi
+done
+exit 0

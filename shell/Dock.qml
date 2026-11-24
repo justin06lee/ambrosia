@@ -290,7 +290,12 @@ PanelWindow {
                     { text: "Empty Trash…", action: () => Popups.confirm(dock.screen, {
                         title: "Are you sure you want to permanently erase the items in the Trash?",
                         text: "You can't undo this action.", accept: "Empty Trash",
-                        action: () => Quickshell.execDetached(["kioclient", "empty-trash"]) }) },
+                        // Paper crumpled, when there was anything to crumple.
+                        action: () => {
+                            if (dock.trashFull)
+                                Session.sound("trash-empty");
+                            Quickshell.execDetached(["ktrash6", "--empty"]);
+                        } }) },
                 ])
 
                 // Files dragged onto it go to the trash; it darkens and shows

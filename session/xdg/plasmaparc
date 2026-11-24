@@ -1,0 +1,8 @@
+# Ambrosia session defaults for the volume keys (plasma-pa). A user's own
+# plasmaparc wins.
+
+# No pop at each step of the volume, a Mac's default. Settings' Sound has
+# the switch ("Play feedback when volume is changed"); the pop is the sound
+# theme's audio-volume-change.
+[General]
+AudioFeedback=false

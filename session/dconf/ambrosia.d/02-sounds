@@ -1,0 +1,5 @@
+# The sounds GTK apps play by name come from our sound theme, as KDE's do
+# (kdeglobals' [Sounds] Theme). In the Ambrosia session only, and under a
+# theme the user picked for themselves.
+[org/gnome/desktop/sound]
+theme-name='ambrosia'

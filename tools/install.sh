@@ -56,6 +56,13 @@ mkdir -p "$data/icons"
 cp -a "$dist/icons/Ambrosia" "$data/icons/"
 echo "  $data/icons/Ambrosia"
 
+# The sound theme. Choose it in the desktop's settings ("Ambrosia"), or:
+# kwriteconfig6 --file kdeglobals --group Sounds --key Theme ambrosia
+rm -rf "$data/sounds/ambrosia"
+mkdir -p "$data/sounds"
+cp -a "$dist/sounds/ambrosia" "$data/sounds/"
+echo "  $data/sounds/ambrosia"
+
 if command -v plasma-apply-colorscheme >/dev/null 2>&1; then
   scheme=AmbrosiaLight
   [ "$mode" = dark ] && scheme=AmbrosiaDark

@@ -188,6 +188,12 @@ Rules:
   is how far past the edge and `d` is the viewport size.
 - Tooltips appear after 600 ms. Once one is showing, the next appears immediately.
 - Minimum hit target: 24 × 24.
+- **Sounds** are few, short and soft, and ours (`design/sounds.ts`): each a
+  recipe of struck tones and filtered noise, synthesized at build. One alert
+  (a wooden note at E5, under half a second) for every warning; a shutter for
+  a screenshot; a thump into the Trash and paper crumpled when it is emptied;
+  a pop for the volume keys, off until asked for. Nothing peaks above -6 dBFS
+  or lasts much over a second. Nobody has listened to them yet.
 - **The pointer** is ours, drawn once (`design/cursors.ts`) for every toolkit.
   It is a black arrow with a white rim and a soft shadow, so it reads on any
   ground. The shapes that stand in for it (resize arrows, the I-beam, the

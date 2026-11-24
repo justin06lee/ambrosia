@@ -33,11 +33,12 @@ Singleton {
     }
     // Moves files (URLs) to the trash. While Files runs it does the moving,
     // so Edit > Undo there can put them back; KIO's own move (kioclient)
-    // can't be undone.
+    // can't be undone. Either way they land with the Trash's thump: Files
+    // plays it itself.
     function trash(urls) {
         Quickshell.execDetached(["sh", "-c",
             'busctl --user --auto-start=no call org.ambrosia.files /org/ambrosia/files org.ambrosia.Files Trash as "$#" "$@" >/dev/null 2>&1'
-            + ' || exec kioclient move "$@" trash:/', "sh"].concat(urls));
+            + ' || { kioclient move "$@" trash:/ && exec /usr/lib/ambrosia/sound trash-fill; }', "sh"].concat(urls));
     }
     // System Settings (ambrosia-settings), on one of its panes: general,
     // about, wifi, network, bluetooth, sound, battery, datetime…
@@ -66,6 +67,12 @@ Singleton {
     // menu opens Force Quit Applications instead; ⌥⌘Esc is still this.)
     function forceQuit() {
         Quickshell.execDetached(["dbus-send", "--session", "--type=method_call", "--dest=org.kde.KWin", "/KWin", "org.kde.KWin.killWindow"]);
+    }
+    // One of the sound theme's sounds by name (design/sounds.ts), for the
+    // ones nothing else plays: session/sound finds it in the theme chosen
+    // in Settings and plays it as an alert is played.
+    function sound(name) {
+        Quickshell.execDetached(["/usr/lib/ambrosia/sound", name]);
     }
     function screenshot() {
         Quickshell.execDetached(["spectacle", "--region"]);
