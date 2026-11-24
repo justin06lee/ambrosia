@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "protocol.h"
+
 #include "effect/effect.h"
 #include "opengl/glutils.h"
 #include "scene/item.h"
@@ -65,6 +67,9 @@ struct WindowGlass
     /// protocols ask (KWin's blur's own bookkeeping).
     std::optional<KWin::RegionF> content;
     std::optional<KWin::RegionF> frame;
+    /// A pane one of KWin's own windows names (its ambrosia_glass_pane
+    /// property): it isn't a Wayland client, so it can't speak the protocol.
+    std::optional<Pane> own;
 
     std::vector<Sheet> sheets;
 };

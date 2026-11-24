@@ -57,6 +57,33 @@ namespace Ambrosia
 static const QByteArray s_blurAtomName = QByteArrayLiteral("_KDE_NET_WM_BLUR_BEHIND_REGION");
 static const QString s_blur = QStringLiteral("blur");
 
+static const char s_ownPane[] = "ambrosia_glass_pane";
+
+/// The pane one of KWin's own windows names: x, y, width, height, radius
+/// and a material's name (decoration/qml's BlurBehind writes it).
+static std::optional<Pane> ownPane(const QWindow *window)
+{
+    const QVariantList named = window->property(s_ownPane).toList();
+    if (named.size() != 6) {
+        return std::nullopt;
+    }
+    Pane pane;
+    pane.rect = RectF(named[0].toReal(), named[1].toReal(), named[2].toReal(), named[3].toReal());
+    if (pane.rect.width() <= 0 || pane.rect.height() <= 0) {
+        return std::nullopt;
+    }
+    pane.clip = pane.rect;
+    pane.radius = std::clamp(named[4].toReal(), 0.0, std::min(pane.rect.width(), pane.rect.height()) / 2);
+    pane.material = Tokens::fallbackMaterial;
+    const QByteArray material = named[5].toString().toLatin1();
+    for (int i = 0; i < Tokens::materialCount; ++i) {
+        if (material == Tokens::materials[i].name) {
+            pane.material = i;
+        }
+    }
+    return pane;
+}
+
 static QMatrix4x4 saturationMatrix(qreal saturation)
 {
     if (qFuzzyCompare(saturation, 1.0)) {
@@ -229,11 +256,13 @@ void GlassEffect::updateWindow(EffectWindow *w)
         content = surface->blurRegion();
     }
 
+    std::optional<Pane> own;
     if (auto internal = w->internalWindow()) {
         const auto property = internal->property("kwin_blur");
         if (property.isValid()) {
             content = property.value<RegionF>();
         }
+        own = ownPane(internal);
     }
 
     if (w->decorationHasAlpha() && decorationSupportsBlurBehind(w)) {
@@ -241,7 +270,7 @@ void GlassEffect::updateWindow(EffectWindow *w)
     }
 
     const bool paned = surface && GlassProtocol::self()->has(surface);
-    if (!paned && !content.has_value() && !frame.has_value()) {
+    if (!paned && !own.has_value() && !content.has_value() && !frame.has_value()) {
         forget(w);
         return;
     }
@@ -249,6 +278,7 @@ void GlassEffect::updateWindow(EffectWindow *w)
     WindowGlass &glass = m_windows[w];
     glass.content = content;
     glass.frame = frame;
+    glass.own = own;
     layOut(w, glass);
 }
 
@@ -273,10 +303,11 @@ void GlassEffect::layOut(EffectWindow *w, WindowGlass &glass)
     // taken for one.
     const int material = (w->isPopupWindow() || w->isPopupMenu() || w->isDropdownMenu() || w->isComboBox()) ? Tokens::menuMaterial : Tokens::fallbackMaterial;
 
-    if (surface && GlassProtocol::self()->has(surface)) {
+    const bool paned = surface && GlassProtocol::self()->has(surface);
+    if (paned || glass.own.has_value()) {
         // Panes are in the surface's coordinates: inside a frame, the contents'.
         const QPointF origin = w->decoration() ? contents.topLeft() : QPointF();
-        const QList<Pane> panes = GlassProtocol::self()->panes(surface);
+        const QList<Pane> panes = paned ? GlassProtocol::self()->panes(surface) : QList<Pane>{*glass.own};
         for (const Pane &pane : panes) {
             const RectF box = pane.rect.translated(origin);
             const RectF rect = box & pane.clip.translated(origin) & contents;
@@ -415,7 +446,7 @@ bool GlassEffect::eventFilter(QObject *watched, QEvent *event)
     auto internal = qobject_cast<QWindow *>(watched);
     if (internal && event->type() == QEvent::DynamicPropertyChange) {
         QDynamicPropertyChangeEvent *pe = static_cast<QDynamicPropertyChangeEvent *>(event);
-        if (pe->propertyName() == "kwin_blur") {
+        if (pe->propertyName() == "kwin_blur" || pe->propertyName() == s_ownPane) {
             if (auto w = effects->findWindow(internal)) {
                 updateWindow(w);
             }

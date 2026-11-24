@@ -58,6 +58,21 @@ void BlurBehind::setRadius(qreal radius)
     update();
 }
 
+QString BlurBehind::material() const
+{
+    return m_material;
+}
+
+void BlurBehind::setMaterial(const QString &material)
+{
+    if (m_material == material) {
+        return;
+    }
+    m_material = material;
+    Q_EMIT materialChanged();
+    update();
+}
+
 void BlurBehind::classBegin()
 {
 }
@@ -72,6 +87,7 @@ void BlurBehind::clear()
 {
     if (m_window) {
         KWindowEffects::enableBlurBehind(m_window, false);
+        m_window->setProperty("ambrosia_glass_pane", QVariant());
     }
     m_window = nullptr;
 }
@@ -94,6 +110,9 @@ void BlurBehind::update()
     QPainterPath outline;
     outline.addRoundedRect(rect, radius, radius);
     KWindowEffects::enableBlurBehind(m_window, true, QRegion(outline.toFillPolygon().toPolygon()));
+    // For Ambrosia's glass effect, which draws the pane to its true corner:
+    // x, y, width, height, radius, material.
+    m_window->setProperty("ambrosia_glass_pane", QVariantList{rect.x(), rect.y(), rect.width(), rect.height(), radius, m_material});
 }
 
 }
