@@ -264,7 +264,7 @@ PanelWindow {
     }
 
     screen: home
-    visible: open || veil.opacity > 0
+    visible: (open || veil.opacity > 0) && shown
     anchors { top: true; bottom: true; left: true; right: true }
     exclusionMode: ExclusionMode.Ignore
     color: "transparent"
@@ -278,10 +278,13 @@ PanelWindow {
     // takes the keyboard away. So when it goes, this stops asking for a
     // moment and asks again. Quickshell sends what a window asks for with
     // the window's next frame, so each change has to draw one (`redrawn`).
+    // Should that not bring it back (no frame went out: seen with the
+    // screen dimmed), the window is put up afresh, which always does.
     property bool asking: true
+    property bool shown: true
     readonly property bool hasKeyboard: veil.Window.active
     onHasKeyboardChanged: {
-        if (open && asking && !hasKeyboard) {
+        if (open && asking && shown && !hasKeyboard) {
             asking = false;
             askAgain.start();
         }
@@ -289,7 +292,19 @@ PanelWindow {
     Timer {
         id: askAgain
         interval: 80
-        onTriggered: installer.asking = true
+        onTriggered: {
+            installer.asking = true;
+            afresh.start();
+        }
+    }
+    Timer {
+        id: afresh
+        interval: 300
+        onTriggered: {
+            if (!installer.open || installer.hasKeyboard) return;
+            installer.shown = false;
+            Qt.callLater(() => installer.shown = true);
+        }
     }
 
     // The desktop behind, blurred by the compositor and quietened.
