@@ -780,7 +780,8 @@ shortcut menu; v1 scope unless marked):
 - the shortcut menu's Share and Quick Actions, and on empty space Show
   View Options, View and Use Groups (Open With, Compress, Make Alias and
   Sort By are in since 2026-11-25: below);
-- renaming and deleting a tag, and a Tags row in the gallery's pane;
+- a Tags row in the gallery's pane (renaming and deleting a tag are in
+  since 2026-11-25: a sidebar tag's menu);
 - This Computer reaching other drives and the installed apps;
 - spring-loaded folders;
 - tabs (not v1).
@@ -814,6 +815,21 @@ shortcut menu; v1 scope unless marked):
   (`FinderWindow.sortBy`); the list's headers show the same choice.
 - Seen in the test VM (2026-11-25): each of the above by the pointer, Open
   With also by the keyboard alone.
+
+**A tag's name and its end (2026-11-25).** A sidebar tag's menu has Rename
+and Delete Tag… over its colors. Rename puts a field over the name in the
+sidebar (Return or a click elsewhere takes it, Esc leaves it); Delete asks
+first on the window's alert card (`PanelAlert.question`, which the Save
+panel's "replace?" uses too). `Tags.rename` and `Tags.removeTag` change the
+list and every item the index knows to have the tag (`Index::find` by tag):
+an item on a disk the index doesn't cover keeps the old name. Neither is one
+of Undo's, as in Finder.
+
+**Clicks in a menu stop at the menu (2026-11-25).** Rows of `ContextMenu`,
+`PopupMenu` and the tag editor's suggestions are `MouseArea`s, and the
+shortcut menu is modal: a `TapHandler` there let the same tap reach the
+handlers under the menu (Rename over the Orange tag went to Orange; a row
+under "Move to Trash" could be chosen as it ran).
 
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).

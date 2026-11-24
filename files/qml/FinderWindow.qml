@@ -709,10 +709,20 @@ Window {
         shortcuts.openAt(x, y);
     }
     // A sidebar tag's menu: its color (Finder's tag color editor).
+    // and, as Finder's, its name and its end.
+    property string tagRenaming: ""
     function tagMenu(name, x, y) {
         shortcuts.urls = [];
         shortcuts.colorOf = name;
-        shortcuts.items = [{ tags: true }];
+        shortcuts.items = [
+            { text: "Rename “" + name + "”", run: () => tagRenaming = name },
+            { text: "Delete Tag “" + name + "”…", run: () => panelAlert.question(
+                "Are you sure you want to delete the tag “" + name + "”?",
+                "Deleting a tag removes it from every item it is attached to.", "Delete Tag",
+                () => { if (tagShown && url.toString().indexOf(encodeURIComponent(name)) >= 0) goPlace("home"); Tags.removeTag(name); }) },
+            { separator: true },
+            { tags: true },
+        ];
         shortcuts.openAt(x, y);
     }
     ContextMenu {

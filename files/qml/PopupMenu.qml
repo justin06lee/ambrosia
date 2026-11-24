@@ -125,8 +125,11 @@ Controls.Popup {
                 HoverHandler {
                     onHoveredChanged: if (hovered && row.usable) menu.lit = row.index
                 }
-                TapHandler {
-                    onTapped: menu.choose(row.index)
+                // Not a TapHandler: a tap would reach what lies under the
+                // menu too (ContextMenu.qml).
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: menu.choose(row.index)
                 }
             }
         }

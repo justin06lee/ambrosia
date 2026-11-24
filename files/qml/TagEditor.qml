@@ -156,8 +156,9 @@ Controls.Popup {
                         color: pick.hovered ? Theme.accent.fg : Theme.color.label.primary
                     }
                     HoverHandler { id: pick }
-                    TapHandler {
-                        onTapped: {
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
                             editor.add(choice.modelData.name);
                             input.text = "";
                         }

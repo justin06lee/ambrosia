@@ -192,6 +192,13 @@ Controls.Popup {
     padding: 5
     // A submenu takes the keys only when → enters it (openSub).
     focus: above === null
+    // Nothing under the menu takes its clicks, nor the one beside it that
+    // puts it away (a tap otherwise reaches every handler beneath: a
+    // sidebar row under a menu's row went to its place). A submenu isn't
+    // modal itself, or the pointer couldn't go back to the menu it hangs
+    // off.
+    modal: above === null
+    dim: false
     // With a submenu open a press on it is a press outside this one: the
     // submenu says what became of it (subClosed).
     closePolicy: belowRow >= 0 ? Controls.Popup.NoAutoClose
@@ -318,9 +325,13 @@ Controls.Popup {
                         }
                     }
                 }
-                TapHandler {
+                // A MouseArea, not a TapHandler: a tap reaches the handlers
+                // of whatever lies under the menu as well (the row under
+                // "Move to Trash" would be chosen as it ran).
+                MouseArea {
+                    anchors.fill: parent
                     enabled: row.usable
-                    onTapped: menu.run(row.index)
+                    onClicked: menu.run(row.index)
                 }
 
                 // Finder's colors, then under them what a click would do.
@@ -369,8 +380,10 @@ Controls.Popup {
                                         menu.hint = "";
                                 }
                             }
-                            TapHandler {
-                                onTapped: {
+                            MouseArea {
+                                anchors.fill: parent
+                                anchors.margins: -2
+                                onClicked: {
                                     menu.close();
                                     if (menu.colorOf !== "")
                                         menu.colorChosen(dot.color_);
