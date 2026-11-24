@@ -11,7 +11,8 @@
 // ours: a window's blur is a list of sheets, each with its own material
 // (blur, saturation), outline and opacity, where KWin has one region and one
 // setting for everything; the sheets come from ambrosia_glass_v1 (protocol.h)
-// where a surface speaks it; the grain is drawn in the last pass.
+// where a surface speaks it; a pane's rim bends what shows through it; the
+// grain is drawn in the last pass.
 
 #include "glass.h"
 #include "protocol.h"
@@ -90,6 +91,8 @@ GlassEffect::GlassEffect()
         m_onscreenPass.cornerRadiusLocation = m_onscreenPass.shader->uniformLocation("cornerRadius");
         m_onscreenPass.opacityLocation = m_onscreenPass.shader->uniformLocation("opacity");
         m_onscreenPass.noiseLocation = m_onscreenPass.shader->uniformLocation("noise");
+        m_onscreenPass.rimLocation = m_onscreenPass.shader->uniformLocation("rim");
+        m_onscreenPass.texelLocation = m_onscreenPass.shader->uniformLocation("texel");
     }
 
     m_downsamplePass.shader = ShaderManager::instance()->generateShaderFromFile(ShaderTrait::MapTexture,
@@ -784,7 +787,13 @@ void GlassEffect::drawSheet(Sheet &sheet, const RenderTarget &renderTarget, cons
         // (a box far wider than anything drawn).
         QVector4D box(0, 0, 1.0e6, 1.0e6);
         QVector4D corners;
+        // Only a pane has a rim to bend at: another app's blur is a blur.
+        QVector3D rim;
         if (sheet.pane) {
+            // The colors' bends differ by the dispersion, as a share of the bend.
+            const Tokens::Refraction &refraction = Tokens::refraction;
+            rim = QVector3D(refraction.edge * viewport.scale() * std::min(data.xScale(), data.yScale()), refraction.strength, refraction.dispersion / refraction.strength);
+
             const RectF outline = RectF{
                 w->pos().x() + sheet.box.x() * data.xScale() + data.xTranslation(),
                 w->pos().y() + sheet.box.y() * data.yScale() + data.yTranslation(),
@@ -818,6 +827,8 @@ void GlassEffect::drawSheet(Sheet &sheet, const RenderTarget &renderTarget, cons
         m_onscreenPass.shader->setUniform(m_onscreenPass.cornerRadiusLocation, corners);
         m_onscreenPass.shader->setUniform(m_onscreenPass.opacityLocation, modulation);
         m_onscreenPass.shader->setUniform(m_onscreenPass.noiseLocation, Tokens::noise);
+        m_onscreenPass.shader->setUniform(m_onscreenPass.rimLocation, rim);
+        m_onscreenPass.shader->setUniform(m_onscreenPass.texelLocation, QVector2D(1.0 / scaledBackgroundRect.width(), 1.0 / scaledBackgroundRect.height()));
 
         read->colorAttachment()->bind();
 
