@@ -270,8 +270,27 @@ PanelWindow {
     color: "transparent"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.namespace: "ambrosia-installer"
-    WlrLayershell.keyboardFocus: open ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    WlrLayershell.keyboardFocus: open && asking ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     BackgroundEffect.blurRegion: Region { item: veil }
+
+    // KWin hands a layer surface the keyboard when it starts to ask for it,
+    // not for as long as it asks: a window that opens while this is up
+    // takes the keyboard away. So when it goes, this stops asking for a
+    // moment and asks again. Quickshell sends what a window asks for with
+    // the window's next frame, so each change has to draw one (`redrawn`).
+    property bool asking: true
+    readonly property bool hasKeyboard: veil.Window.active
+    onHasKeyboardChanged: {
+        if (open && asking && !hasKeyboard) {
+            asking = false;
+            askAgain.start();
+        }
+    }
+    Timer {
+        id: askAgain
+        interval: 80
+        onTriggered: installer.asking = true
+    }
 
     // The desktop behind, blurred by the compositor and quietened.
     Rectangle {
@@ -280,6 +299,14 @@ PanelWindow {
         color: Theme.color.material.thin.tint
         opacity: installer.open ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
+
+        // Something that changes with `asking`, so that a frame is drawn.
+        Rectangle {
+            id: redrawn
+            width: 1
+            height: 1
+            color: installer.asking ? "#01000000" : "#02000000"
+        }
 
         // Nothing under it takes a click while it is up.
         MouseArea {
