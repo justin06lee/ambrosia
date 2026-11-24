@@ -261,7 +261,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
    `dist/gtk-{3,4}.0` over `/usr/share/ambrosia/` in the test VM
    (`pacman -S gtk3-demos gtk4-demos python-gobject`), run
    `gtk3-widget-factory` or `gtk4-widget-factory` as the user and read
-   `journalctl --user` for "Theme parsing error".
+   `journalctl --user` for "Theme parsing error". What can be measured is
+   better measured than looked at: `tools/px.py shot.png row Y X0 X1`
+   prints the runs of color along a line of a screenshot (a control's
+   width, the gap between two, the color a row took), and
+   `tools/vm-try.sh pull` brings a file out of the VM.
    **The volume and brightness keys have a display** (round 5, 2026-11-18,
    `shell/Hud.qml` and `HudPanel.qml`): a glass capsule under the menu
    bar's right end with a glyph and a level, or the name of the output

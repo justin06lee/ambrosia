@@ -7,6 +7,7 @@
 #                                  priority, with root SSH (systemd credentials); wait a minute
 #   tools/vm-try.sh ssh '<cmd>'    run a command in it as root
 #   tools/vm-try.sh push <src> <dst>   copy a file or folder into it
+#   tools/vm-try.sh pull <src> <dst>   copy one out of it
 #   tools/vm-try.sh type 'text'    type at its keyboard (a-z, 0-9, space, - . /)
 #   tools/vm-try.sh key ret ...    press keys (QEMU sendkey names)
 #   tools/vm-try.sh shot <name>    photograph its screen into /var/tmp/vm-try/<name>.png
@@ -22,7 +23,7 @@ root=$(cd "$(dirname "$0")/.." && pwd)
 key=/var/tmp/ambrosia-packaging/vmkey
 opts=(-q -i "$key" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8)
 hmp() { printf '%s\n' "$*" | socat - "UNIX-CONNECT:$D/monitor.sock" >/dev/null; }
-cmd=${1:?usage: tools/vm-try.sh up|ssh|push|type|key|shot|stop}
+cmd=${1:?usage: tools/vm-try.sh up|ssh|push|pull|type|key|shot|stop}
 shift
 case $cmd in
 up)
@@ -59,6 +60,7 @@ UNIT
   echo "vm-try: started; the login screen is up in about a minute" ;;
 ssh) ssh "${opts[@]}" -p 10022 root@localhost "$@" ;;
 push) scp "${opts[@]}" -P 10022 -r "$1" "root@localhost:$2" ;;
+pull) scp "${opts[@]}" -P 10022 -r "root@localhost:$1" "$2" ;;
 type)
   text=$1
   for ((i = 0; i < ${#text}; i++)); do
