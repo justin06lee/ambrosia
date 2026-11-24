@@ -158,6 +158,7 @@ shell/         the shell in QML for Quickshell: wallpaper, the desktop's icons a
                status items) and menus, Search,
                Dock, control center, notifications, Force Quit, the emoji picker (its list, emoji.js, is written
                by tools/emoji.ts), password prompts (the shell is the polkit agent),
+               a new account's welcome (Choose Your Look),
                the volume and brightness keys' display,
                a screenshot's thumbnail in the corner,
                the plain tile under app icons that have none (AppTile.qml)

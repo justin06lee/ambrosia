@@ -58,6 +58,8 @@ Singleton {
     property alias searchOff: adapter.searchOff
     // How the desktop's icons are ordered: "name", "kind" or "date".
     property alias desktopSort: adapter.desktopSort
+    // A new account's welcome is still to be shown (Welcome.qml).
+    property alias welcome: adapter.welcome
     // Read once: from here on, a change is one somebody made.
     property bool loaded: false
 
@@ -83,10 +85,17 @@ Singleton {
             if (error !== FileViewError.FileNotFound)
                 return;
             const old = before.text();
-            if (old)
+            if (old) {
                 setText(old);
-            else
+            } else {
+                // No settings at all: an account's first login. Nothing is
+                // read back after this write, so what onLoaded does is
+                // done here.
+                adapter.welcome = true;
                 writeAdapter();
+                settings.migrate();
+                Qt.callLater(() => settings.loaded = true);
+            }
         }
 
         JsonAdapter {
@@ -126,6 +135,8 @@ Singleton {
             property list<string> notificationsOff: []
             property list<string> searchOff: []
             property string desktopSort: "name"
+            // True from an account's first login until its welcome is done.
+            property bool welcome: false
             // How many of migrate()'s steps this file has been through.
             property int migrated: 0
         }

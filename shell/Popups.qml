@@ -28,6 +28,8 @@ Singleton {
     property var stack: null
 
     property bool searchOpen: false
+    // A new account's welcome (Welcome.qml), which covers the first screen.
+    property bool welcomeOpen: false
     property ShellScreen searchScreen: null
 
     readonly property bool menuOpen: kind === "menu"

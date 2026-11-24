@@ -7,6 +7,10 @@ ConditionPathExists=!/home/live
 Type=oneshot
 ExecStart=/usr/bin/useradd --create-home --groups wheel,video,audio,input --comment "Ambrosia" live
 ExecStart=/usr/bin/passwd --delete live
+# Settings of its own, so the shell doesn't take it for a new account and
+# put its welcome over the installer.
+ExecStart=/usr/bin/install -d -o live -g live /home/live/.config /home/live/.config/ambrosia
+ExecStart=/bin/sh -c 'echo "{}" > /home/live/.config/ambrosia/settings.json && chown live:live /home/live/.config/ambrosia/settings.json'
 
 [Install]
 WantedBy=multi-user.target

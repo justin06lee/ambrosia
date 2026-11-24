@@ -16,6 +16,7 @@ Item {
     readonly property ShellScreen screen: Quickshell.screens[0]
     readonly property alias bar: bar
     readonly property alias dock: dock
+    readonly property alias welcome: welcome
     // What the app in front publishes as its menus (see DBusMenuSource).
     property var menus: [
         { text: "File", children: [
@@ -63,4 +64,5 @@ Item {
     Dock { id: dock; screen: desk.screen }
     Search { screen: desk.screen; home: desk.screen }
     Notifications {}
+    Welcome { id: welcome; home: desk.screen }
 }

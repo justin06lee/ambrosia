@@ -531,6 +531,24 @@ package repo below), and they carry `shell/` and `session/` as they are.
    app's field to come back before it writes. Someone who chooses another
    input method in KDE's settings (fcitx5 for Chinese, Japanese or Korean)
    displaces it; the picker falls back to copying.
+   **A new account gets a welcome** (round 33, 2026-11-25,
+   `shell/Welcome.qml`): a layer surface over the first screen with two
+   pages, Welcome to Ambrosia and Choose Your Look (Light, Dark, Auto;
+   the choice goes through `Appearance`, so everything follows at once).
+   Who sees it: `Settings.qml` sets `welcome` true only in the branch
+   where it finds neither `~/.config/ambrosia/settings.json` nor the old
+   state file, which is an account's first login; the end clears it.
+   That branch must also do what `onLoaded` does (migrate, then
+   `loaded = true`): nothing is read back after the shell writes the
+   defaults, and until round 33 a new account's first session never had
+   `Settings.loaded`, so nothing waiting on it ran. An
+   existing account never has the key, so it reads false. The live
+   image's user must not see it (the installer starts there by itself):
+   `ambrosia-live-user.service` writes that user an empty settings file.
+   To see it again: `ambrosia welcome`; as a new account would, in the
+   test VM: remove the user's settings.json and
+   `~/.local/state/quickshell/by-shell/*/settings.json`, restart
+   ambrosia-shell. Its sizes are `size.welcome` in the tokens.
    **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
    grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
    kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the
