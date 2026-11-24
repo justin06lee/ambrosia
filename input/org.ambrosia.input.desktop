@@ -1,0 +1,11 @@
+# The session's input method: KWin starts it (kwinrc, [Wayland] InputMethod)
+# and it types what the shell hands it into the app in front. KDE's Virtual
+# Keyboard settings list it beside any other, to switch back to.
+[Desktop Entry]
+Type=Application
+Name=Ambrosia
+Comment=Types the emoji picker's choice into the app in front
+Exec=/usr/lib/ambrosia/ambrosia-input
+NoDisplay=true
+StartupNotify=false
+X-KDE-Wayland-VirtualKeyboard=true

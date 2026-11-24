@@ -96,6 +96,12 @@ export const size = {
    *  so many across and at most so many rows before it scrolls; a cell, the
    *  icon in it, and the panel's own padding. By eye, not measured yet. */
   stack: { columns: 4, rows: 4, cell: 96, icon: 56, padding: 16, newest: 24 },
+  /** The emoji picker (⌃⌘Space): so many across and so many rows showing
+   *  before it scrolls; a cell and the emoji drawn in it, the row a group's
+   *  name gets, the strip of groups along the bottom, the field on top, and
+   *  the panel's own padding. `recent` is how many it remembers. By eye
+   *  from macOS 26, not measured yet. */
+  emoji: { columns: 8, rows: 6, cell: 40, glyph: 28, heading: 26, bar: 38, field: 28, padding: 10, recent: 24 },
   /** ⌘Tab's strip of apps: an icon, the room round it its highlight takes
    *  (`pad`), the strip's own margin, the row the chosen app's name gets,
    *  and how small icons may get when there are many. By eye from macOS 26,

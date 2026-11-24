@@ -3,22 +3,23 @@
 # ambrosia-theme   the generated themes (Qt/QML, KDE, GTK, fontconfig)
 # ambrosia-decoration the window frame with the traffic lights, a KWin plugin (decoration/)
 # ambrosia-style   the Qt widget style: other apps' buttons, boxes and menus (style/)
+# ambrosia-input   the session's input method: the emoji picker types through it (input/)
 # ambrosia-shell   the Quickshell shell and the Ambrosia session on KWin
 # ambrosia-files   Files, Ambrosia's Finder (files/, built with CMake)
 # ambrosia-settings System Settings (settings/, built with CMake)
 # ambrosia-desktop everything a fresh install needs, the ISO installs this
 
 pkgbase=ambrosia
-pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-shell ambrosia-files ambrosia-settings ambrosia-desktop)
+pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-shell ambrosia-files ambrosia-settings ambrosia-desktop)
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A Linux desktop that looks and moves as one thing"
-# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-decoration and ambrosia-style; the rest are arch=(any).
+# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-decoration, ambrosia-style and ambrosia-input; the rest are arch=(any).
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
 makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kservice kwindowsystem taglib karchive freetype2
-             kdecoration kcoreaddons pulseaudio-qt networkmanager-qt bluez-qt libkscreen)
+             kdecoration kcoreaddons pulseaudio-qt networkmanager-qt bluez-qt libkscreen wayland wayland-protocols)
 options=(!debug)
 
 _root="$(realpath "$startdir/..")"
@@ -43,6 +44,8 @@ build() {
   cmake --build "$srcdir/build-settings"
   cmake -S style -B "$srcdir/build-style" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-style"
+  cmake -S input -B "$srcdir/build-input" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build "$srcdir/build-input"
 }
 
 package_ambrosia-keyring() {
@@ -113,6 +116,14 @@ package_ambrosia-style() {
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-style"
 }
 
+package_ambrosia-input() {
+  pkgdesc="Ambrosia's input method for KWin: the shell types into the app in front through it (the emoji picker's choice)"
+  # KWin starts it: the session's kwinrc names its desktop file ([Wayland]
+  # InputMethod). It draws nothing and takes no keys.
+  depends=(wayland kwin)
+  DESTDIR="$pkgdir" cmake --install "$srcdir/build-input"
+}
+
 package_ambrosia-shell() {
   pkgdesc="The Ambrosia shell (menu bar, dock, control center) and session on KWin"
   arch=(any)
@@ -121,8 +132,10 @@ package_ambrosia-shell() {
   # kde-cli-tools: kstart and kioclient, which start apps in their own
   # scopes; dbus: dbus-test-tool holds the app menu view's bus name.
   # ambrosia-style: the widget style the look-and-feel names.
-  depends=(ambrosia-theme ambrosia-decoration ambrosia-style quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
-           qt6-svg qt6-imageformats upower dconf)
+  # ambrosia-input and noto-fonts-emoji: the emoji picker types through the
+  # one and draws with the other.
+  depends=(ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input quickshell-dbusmenu-source kwin plasma-workspace kde-cli-tools kconfig dbus
+           qt6-svg qt6-imageformats upower dconf noto-fonts-emoji)
   backup=(etc/xdg/ambrosia/kdeglobals etc/xdg/ambrosia/kwinrc etc/xdg/ambrosia/kwinrulesrc
           etc/xdg/ambrosia/breezerc etc/xdg/ambrosia/mimeapps.list etc/xdg/ambrosia/kcminputrc
           etc/xdg/ambrosia/konsolerc)
@@ -137,7 +150,7 @@ package_ambrosia-shell() {
   install -Dm644 session/org.ambrosia.shell.desktop session/org.ambrosia.search.desktop \
     session/org.ambrosia.fullscreen.desktop session/org.ambrosia.screenshot.desktop \
     session/org.ambrosia.screenshot-region.desktop session/org.ambrosia.force-quit.desktop \
-    session/org.ambrosia.quit.desktop -t "$pkgdir/usr/share/applications/"
+    session/org.ambrosia.quit.desktop session/org.ambrosia.emoji.desktop -t "$pkgdir/usr/share/applications/"
   install -Dm644 session/ambrosia.desktop -t "$pkgdir/usr/share/wayland-sessions/"
   local units="$pkgdir/usr/lib/systemd/user"
   install -Dm644 session/ambrosia-shell.service -t "$units/"
@@ -211,7 +224,7 @@ package_ambrosia-desktop() {
   pkgdesc="The Ambrosia desktop: the shell plus the system services and apps a new install needs"
   arch=(any)
   depends=(
-    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-style
+    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-style ambrosia-input
     # Low Power Mode (Battery), and printing (Printers & Scanners): ipp-usb
     # for the printers that plug in, started when one does.
     power-profiles-daemon cups avahi nss-mdns ipp-usb

@@ -4,7 +4,7 @@ import QtQuick
 import Ambrosia
 
 // A screen's layer for transient UI: menus, the control center, the
-// notification center, a Dock stack and confirmations. While something is open it covers the screen below the menu
+// notification center, a Dock stack, the emoji picker and confirmations. While something is open it covers the screen below the menu
 // bar, so a click anywhere else closes it and goes no further, as on a Mac.
 // The menu bar stays uncovered, so moving along its titles switches menus.
 //
@@ -54,6 +54,7 @@ PopupWindow {
             if (notificationCenter.shown) list.push(notificationCenter.blurArea);
             if (confirm.visible) list.push(confirm.blurArea);
             if (forceQuit.visible) list.push(forceQuit.blurArea);
+            if (emoji.visible) list.push(emoji.blurArea);
             if (stack.visible) list.push(stack.blurArea);
             return list;
         }
@@ -76,7 +77,8 @@ PopupWindow {
         Item {
             id: keys
             anchors.fill: parent
-            focus: overlay.active
+            // The emoji picker's field takes the keys itself.
+            focus: overlay.active && Popups.kind !== "emoji"
 
             Keys.onPressed: event => {
                 const depth = Popups.menuOpen ? Popups.levels.length : 0;
@@ -182,6 +184,13 @@ PopupWindow {
             visible: overlay.active && Popups.kind === "forceQuit"
             anchors.centerIn: parent
             anchors.verticalCenterOffset: -parent.height / 6
+        }
+
+        EmojiPicker {
+            id: emoji
+            visible: overlay.active && Popups.kind === "emoji"
+            anchors.centerIn: parent
+            anchors.verticalCenterOffset: -parent.height / 8
         }
 
         ConfirmDialog {

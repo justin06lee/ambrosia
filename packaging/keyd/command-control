@@ -3,5 +3,5 @@
 f = C-M-f
 # ⌃⌘Q locks the screen.
 q = M-l
-# ⌃⌘Space the emoji picker.
-space = M-dot
+# ⌃⌘Space the emoji picker (session/org.ambrosia.emoji.desktop).
+space = C-M-A-space

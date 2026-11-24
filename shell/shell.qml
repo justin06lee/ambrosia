@@ -79,6 +79,10 @@ ShellRoot {
         function forceQuit(): void {
             Popups.toggleForceQuit(Quickshell.screens[0]);
         }
+        // ⌃⌘Space: the emoji picker, on the screen the app in front is on.
+        function emoji(): void {
+            Popups.toggleEmoji(Quickshell.screens[0]);
+        }
         // ⌘Q for an app with no Quit of its own on Ctrl+Q: every window of
         // the app in front is asked to close.
         function quit(): void {

@@ -8,7 +8,8 @@ import QtQuick
 Singleton {
     id: popups
 
-    // "" (nothing), "menu", "controlCenter", "notificationCenter" or "confirm".
+    // "" (nothing), "menu", "controlCenter", "notificationCenter", "stack",
+    // "forceQuit", "emoji" or "confirm".
     property string kind: ""
     property ShellScreen screen: null
 
@@ -143,6 +144,19 @@ Singleton {
         owner = "";
         levels = [];
         kind = "forceQuit";
+    }
+
+    // The emoji picker (EmojiPicker.qml).
+    function toggleEmoji(screen) {
+        if (kind === "emoji") {
+            close();
+            return;
+        }
+        searchOpen = false;
+        popups.screen = screen;
+        owner = "";
+        levels = [];
+        kind = "emoji";
     }
 
     function toggleSearch(screen) {
