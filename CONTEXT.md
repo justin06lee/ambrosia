@@ -123,7 +123,8 @@ package repo below), and they carry `shell/` and `session/` as they are.
    corners all round and all three glyphs on hover, as on a Mac. The glyphs
    are macOS 26's shapes, fitted at 2x and kept once in the tokens; the frame,
    Files and GTK's titlebuttons all draw them. GTK 3's lights match too (14
-   wide, 23 apart); GTK 4's CSS is untested, as tenet has no GTK 4 app. A
+   wide, 23 apart), and GTK 4's since round 32 (measured in the test VM;
+   there the light is the button's image, see GTK apps' controls below). A
    running KWin keeps the plugin it loaded, so a new frame shows after the
    next login (test it in a nested `kwin_wayland --wayland-display`).
    The Dock's Trash is Mac-style since 2026-10-21: the current macOS
@@ -234,6 +235,37 @@ package repo below), and they carry `shell/` and `session/` as they are.
    ~/work/ambrosia/out/build/style/ambrosia-style-gallery --show`), which
    is how the progress bars were caught. Not drawn: scroll bars that hide
    (a Mac with a mouse shows them always, as ours do).
+   **GTK apps' controls are ours too** (round 32, 2026-11-25,
+   `tools/gen/targets/gtkcontrols.ts`): CSS over the stock themes, from
+   the tokens the Qt style reads, written into `dist/gtk-4.0/gtk.css` and
+   `dist/gtk-3.0/gtk-{light,dark}.css`, which each user's `gtk.css`
+   imports. A user's stylesheet outranks a theme's rule whatever its
+   selector, so a rule on `button` reaches every button and each kind a
+   theme tells apart (flat, linked, round, in a bar, a stepper's, a
+   table header's) has to be told apart again there; anything named
+   after the controls (the traffic lights) must be at least as specific
+   as the controls' rules that would touch it (`button.image-button`
+   pads). GTK 4 names colors by `--amb-*` variables, defined for light
+   and dark; GTK 3 has neither variables nor a dark query, and Adwaita
+   there has its colors written in, so its file per mode also sets
+   windows, views, lists and selections. Don't put rules on `.view` or
+   `window` in the GTK 4 file: they outrank libadwaita's own exceptions
+   (a pop-up row's label got a dark box). GTK recolors a symbolic picture
+   by filling its paths, so a mark is a filled outline, never a stroke.
+   Dark: GTK 4 and libadwaita ask the portal (it answers from KDE's
+   color scheme; `gsettings color-scheme` is not what they read here,
+   as the session sets `GDK_DEBUG=portals`); GTK 3 is told by
+   `/usr/lib/ambrosia/gtk-appearance light|dark`, which the shell runs
+   at its start and on a change (`Appearance.qml`), for apps opened
+   after. To try a change: `bun tools/gen/index.ts`, copy
+   `dist/gtk-{3,4}.0` over `/usr/share/ambrosia/` in the test VM
+   (`pacman -S gtk3-demos gtk4-demos python-gobject`), run
+   `gtk3-widget-factory` or `gtk4-widget-factory` as the user and read
+   `journalctl --user` for "Theme parsing error". What can be measured is
+   better measured than looked at: `tools/px.py shot.png row Y X0 X1`
+   prints the runs of color along a line of a screenshot (a control's
+   width, the gap between two, the color a row took), and
+   `tools/vm-try.sh pull` brings a file out of the VM.
    **The volume and brightness keys have a display** (round 5, 2026-11-18,
    `shell/Hud.qml` and `HudPanel.qml`): a glass capsule under the menu
    bar's right end with a glyph and a level, or the name of the output

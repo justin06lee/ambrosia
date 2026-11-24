@@ -145,6 +145,8 @@ package_ambrosia-shell() {
   cp -r shell/. "$pkgdir/usr/share/ambrosia/shell/"
 
   install -Dm755 session/startambrosia session/ambrosia -t "$pkgdir/usr/bin/"
+  # Light or dark for GTK 3 apps, run by the shell.
+  install -Dm755 session/gtk-appearance -t "$pkgdir/usr/lib/ambrosia/"
   # The shell's grant to KWin's window list, Super+Space for Search and
   # Super+Ctrl+F for full screen.
   install -Dm644 session/org.ambrosia.shell.desktop session/org.ambrosia.search.desktop \

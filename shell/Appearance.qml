@@ -6,8 +6,10 @@ import Ambrosia
 
 // Light or dark, the accent color and Night Light, for the shell and for
 // apps: the shell follows Settings; apps get the matching Ambrosia color
-// scheme and accent through Plasma, which passes them on to GTK apps too,
-// whichever of Control Center and the Settings app changed them. In Auto,
+// scheme and accent through Plasma, whichever of Control Center and the
+// Settings app changed them. GTK 4 apps hear of light or dark from the
+// portal, which answers from that scheme; GTK 3 apps are told by
+// gtk-appearance (session/), for the ones opened from then on. In Auto,
 // light or dark follows KDE's night-time service.
 Singleton {
     id: appearance
@@ -22,12 +24,34 @@ Singleton {
         Settings.accent = name;
     }
 
+    // Made when something first names it, which may be after the settings are in.
+    Component.onCompleted: {
+        if (Settings.loaded)
+            tellGtk();
+    }
+    // Once things have settled: at the start the settings arrive in pieces,
+    // and two of these at once would each rewrite the same two files.
+    function tellGtk() {
+        gtk.restart();
+    }
+    Timer {
+        id: gtk
+        interval: 500
+        onTriggered: Quickshell.execDetached(["/usr/lib/ambrosia/gtk-appearance", Settings.dark ? "dark" : "light"])
+    }
+
     Connections {
         target: Settings
+        // What GTK 3 reads may be from before this session, or another's.
+        function onLoadedChanged() {
+            if (Settings.loaded)
+                appearance.tellGtk();
+        }
         // A scheme brings its own accent, so the chosen one goes on after it.
         function onDarkChanged() {
             if (!Settings.loaded)
                 return;
+            appearance.tellGtk();
             Quickshell.execDetached(["sh", "-c", `plasma-apply-colorscheme ${Settings.dark ? "AmbrosiaDark" : "AmbrosiaLight"}; ` +
                 `plasma-apply-colorscheme --accent-color '${Theme.color.accents[Settings.accent].bg}'`]);
         }

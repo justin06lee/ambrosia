@@ -10,6 +10,7 @@ import type { Mode } from "../../../design/tokens";
 import { toCss, type RGBA } from "../color";
 import type { Resolved, ResolvedMode } from "../resolve";
 import { HEADER, fontStack, pt, svgPath, windowGlyphPolygons } from "./shared";
+import { checkGlyphs, controlVars, controls } from "./gtkcontrols";
 
 const WHITE: RGBA = { r: 255, g: 255, b: 255, a: 1 };
 const DARK_FG: RGBA = { r: 0, g: 0, b: 0, a: 0.8 };
@@ -91,23 +92,35 @@ function accentPicker(m: ResolvedMode): Record<string, RGBA> {
  *  -gtk-icon-size, the light's own 14. */
 const GTK3_ICON = 16;
 
-/** The glyph images titlebuttons show on hover, one file each (GTK calls zoom
- *  "maximize"), in solid black: the image's opacity makes them 50%, since GTK 3
- *  recolours them as symbolic icons and would drop the SVG's own. GTK 3's are
- *  16px canvases with the light's 14px box centred, so the glyph isn't scaled. */
+/** The pictures beside each CSS file: the glyphs titlebuttons show on hover,
+ *  one file each (GTK calls zoom "maximize"), and the marks of a checkbox and
+ *  a radio button. GTK 3's glyphs are solid black: the image's opacity makes
+ *  them 50%, since GTK 3 recolours them as symbolic icons and would drop the
+ *  SVG's own. They are 16px canvases with the light's 14px box centred, so
+ *  the glyph isn't scaled. */
 export const titlebuttonGlyphs = (gtk: "gtk-3.0" | "gtk-4.0"): Record<string, string> => {
   const glyphs = windowGlyphPolygons();
   const d = t.size.windowControls.diameter;
-  const canvas = gtk === "gtk-3.0" ? GTK3_ICON : d;
+  const four = gtk === "gtk-4.0";
+  const canvas = four ? d : GTK3_ICON;
   const o = -(canvas - d) / 2;
-  return Object.fromEntries(
-    (["close", "minimize", "maximize"] as const).map((name) => [
-      `assets/${name}.svg`,
-      `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas}" height="${canvas}" viewBox="${o} ${o} ${canvas} ${canvas}">` +
-        `<path d="${svgPath(glyphs[name === "maximize" ? "zoom" : name])}" fill="#000"/></svg>\n`,
-    ]),
-  );
+  // GTK 4 paints its glyph as the light's background, a picture scaled to
+  // the light: four times the size, so it stays sharp on a dense screen,
+  // and with the opacity in the file.
+  const px = four ? canvas * GTK4_GLYPH_SCALE : canvas;
+  const fill = four ? `fill="#000" fill-opacity="${t.windowGlyphs.opacity}"` : `fill="#000"`;
+  return {
+    ...Object.fromEntries(
+      (["close", "minimize", "maximize"] as const).map((name) => [
+        `assets/${name}.svg`,
+        `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px}" viewBox="${o} ${o} ${canvas} ${canvas}">` +
+          `<path d="${svgPath(glyphs[name === "maximize" ? "zoom" : name])}" ${fill}/></svg>\n`,
+      ]),
+    ),
+    ...checkGlyphs(),
+  };
 };
+const GTK4_GLYPH_SCALE = 4;
 
 /** GTK 3's Adwaita headerbar: 46 tall, 6 of padding at each end, and 6
  *  between its buttons (a widget property CSS can't reach). */
@@ -157,6 +170,48 @@ ${buttons}:active { box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, ${rim}), inset 0
 `;
 }
 
+/**
+ * GTK 4's: the button is stretched to the bar's height, so the light is its
+ * image (a 14px circle in the button's middle), the icon GTK put there made
+ * invisible, and the glyph a background picture on it while the pointer is
+ * over any of the three.
+ */
+function titlebuttons4(m: ResolvedMode, mode: Mode): string {
+  const c = m.windowControls;
+  const d = t.size.windowControls.diameter;
+  const gap = t.size.windowControls.gap;
+  const rim = mode === "light" ? 0.12 : 0.25;
+  const B = "windowcontrols > button";
+  // Named by their classes, so these outrank the controls' rules for a
+  // button with an icon and for one in a titlebar.
+  const every = ["close", "minimize", "maximize"]
+    .flatMap((cls) => ["", ":hover", ":active", ":checked", ":backdrop", ":focus-visible"].map((s) => `${B}.${cls}${s}`))
+    .join(", ");
+  const light = (cls: string, fill: RGBA, edge: RGBA) => `${B}.${cls} > image { background-color: ${toCss(fill)}; box-shadow: inset 0 0 0 0.5px ${toCss(edge)}; }
+windowcontrols:hover > button.${cls} > image { background-color: ${toCss(fill)}; background-image: url("assets/${cls}.svg"); }`;
+  return `
+/* Window controls: traffic lights. */
+windowcontrols { border-spacing: ${gap}px; }
+windowcontrols.start:not(.empty) { margin-left: ${GTK4_LIGHTS_INSET}px; margin-right: ${GTK4_LIGHTS_INSET}px; }
+${every} {
+  min-width: ${d}px; min-height: ${d}px; padding: 0; margin: 0;
+  border: none; border-radius: 0; outline: none; background: none; box-shadow: none;
+}
+${B} > image, ${B}:hover > image, ${B}:active > image {
+  min-width: ${d}px; min-height: ${d}px; padding: 0; margin: 0; border-radius: 50%;
+  -gtk-icon-size: ${d}px; color: transparent; transition: none;
+  background-size: ${d}px ${d}px; background-repeat: no-repeat; background-position: center;
+}
+${light("close", c.close, c.closeRim)}
+${light("minimize", c.minimize, c.minimizeRim)}
+${light("maximize", c.zoom, c.zoomRim)}
+${B}:backdrop > image, ${B}:disabled > image { background-color: ${toCss(c.inactive)}; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, ${rim}); }
+${B}:active > image { box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, ${rim}), inset 0 0 0 ${d}px rgba(0, 0, 0, 0.18); }
+`;
+}
+/** How far GTK 4's first light sits from the bar's own padding. */
+const GTK4_LIGHTS_INSET = 10;
+
 const vars = (entries: Record<string, RGBA>, indent: string) =>
   Object.entries(entries).map(([k, c]) => `${indent}--${k}: ${toCss(c)};`).join("\n");
 
@@ -174,22 +229,23 @@ export function gtk4(r: Resolved): string {
 
 :root {
 ${vars({ ...roles(light, "light"), ...accentPicker(light) }, "  ")}
+${controlVars(light, "light", "  ")}
 ${fonts}
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
 ${vars({ ...roles(dark, "dark"), ...accentPicker(dark) }, "    ")}
+${controlVars(dark, "dark", "    ")}
   }
 }
-${titlebuttons(light, "light", GTK4_BUTTONS, "windowcontrols")}
+${controls(4)}${titlebuttons4(light, "light")}
 @media (prefers-color-scheme: dark) {
-${titlebuttons(dark, "dark", GTK4_BUTTONS, "windowcontrols")}
+${titlebuttons4(dark, "dark")}
 }
 `;
 }
 
-const GTK4_BUTTONS = "windowcontrols > button";
 const GTK3_BUTTONS = "button.titlebutton";
 
 export function gtk3(r: Resolved, mode: Mode): string {
@@ -212,5 +268,5 @@ export function gtk3(r: Resolved, mode: Mode): string {
     "",
     ...Object.entries(legacy).map(([k, c]) => `@define-color ${k} ${toCss(c)};`),
   ];
-  return `/* ${HEADER} */\n/* ${mode} */\n\n${lines.join("\n")}\n${titlebuttons(m, mode, GTK3_BUTTONS, null)}`;
+  return `/* ${HEADER} */\n/* ${mode} */\n\n${lines.join("\n")}\n${controls(3, m, mode)}${titlebuttons(m, mode, GTK3_BUTTONS, null)}`;
 }
