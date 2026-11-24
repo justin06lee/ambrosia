@@ -1,0 +1,31 @@
+#!/bin/sh
+# Light or dark for GTK 3 apps: `gtk-appearance light|dark`. The shell runs it
+# when it starts and when the appearance changes (shell/Appearance.qml).
+#
+# GTK 4 and libadwaita need nothing from here: they ask the portal, which
+# answers from KDE's color scheme, and their CSS holds both modes. GTK 3 has
+# no such question to ask. Its CSS is one file per mode, named by the import
+# in the user's gtk.css, and Adwaita's own dark half comes from settings.ini;
+# both are read when an app starts, so an app already open keeps the mode it
+# opened in.
+mode=${1:-}
+case $mode in light | dark) ;; *) echo "usage: gtk-appearance light|dark" >&2; exit 2 ;; esac
+config=${XDG_CONFIG_HOME:-$HOME/.config}/gtk-3.0
+
+# Only the line that names our file: anything else in gtk.css is the user's.
+css=$config/gtk.css
+if [ -f "$css" ] && grep -q '/ambrosia/gtk-3.0/gtk-[a-z]*\.css' "$css"; then
+  sed -i "s#/ambrosia/gtk-3.0/gtk-[a-z]*\.css#/ambrosia/gtk-3.0/gtk-$mode.css#" "$css"
+fi
+
+ini=$config/settings.ini
+key=gtk-application-prefer-dark-theme
+[ "$mode" = dark ] && value=true || value=false
+if grep -q "^$key" "$ini" 2>/dev/null; then
+  sed -i "s/^$key.*/$key=$value/" "$ini"
+elif grep -q '^\[Settings\]' "$ini" 2>/dev/null; then
+  sed -i "/^\[Settings\]/a $key=$value" "$ini"
+elif [ "$mode" = dark ]; then
+  mkdir -p "$config"
+  printf '[Settings]\n%s=%s\n' "$key" "$value" >> "$ini"
+fi

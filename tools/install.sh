@@ -33,6 +33,12 @@ fi
 echo "ambrosia: installing themes ($mode)"
 place "$dist/gtk-4.0/gtk.css" "$config/gtk-4.0/gtk.css"
 place "$dist/gtk-3.0/gtk-$mode.css" "$config/gtk-3.0/gtk.css"
+# The pictures the two stylesheets name (window-button glyphs, a checkbox's mark).
+for gtk in gtk-4.0 gtk-3.0; do
+  mkdir -p "$config/$gtk/assets"
+  cp "$dist/$gtk/assets/"*.svg "$config/$gtk/assets/"
+  echo "  $config/$gtk/assets"
+done
 place "$dist/kde/AmbrosiaLight.colors" "$data/color-schemes/AmbrosiaLight.colors"
 place "$dist/kde/AmbrosiaDark.colors" "$data/color-schemes/AmbrosiaDark.colors"
 place "$dist/fontconfig/50-ambrosia.conf" "$config/fontconfig/conf.d/50-ambrosia.conf"

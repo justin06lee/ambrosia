@@ -122,8 +122,8 @@ an accent or a label color is identical in GTK, KDE and the shell.
 
 | Output | For |
 |---|---|
-| `dist/gtk-4.0/gtk.css` | libadwaita apps (CSS variables, light and dark) |
-| `dist/gtk-3.0/gtk-{light,dark}.css` | GTK3 apps on adw-gtk3 / Adwaita |
+| `dist/gtk-4.0/gtk.css` | GTK 4 and libadwaita apps: colors as CSS variables, the controls and the traffic lights, light and dark |
+| `dist/gtk-3.0/gtk-{light,dark}.css` | GTK 3 apps on Adwaita: colors, surfaces, the controls and the traffic lights, one file per mode |
 | `dist/kde/Ambrosia{Light,Dark}.colors` | Qt and KDE apps |
 | `dist/qml/Ambrosia/Theme.qml` | the shell (`import Ambrosia`, then `Theme.color…`) |
 | `dist/fontconfig/50-ambrosia.conf` | Inter and JetBrains Mono as system fonts, grayscale AA, slight hinting |
@@ -206,7 +206,10 @@ assets/        banner, icon and the "nectar" day/night wallpapers
 4. **Compositor**: a KWin effect for glass refraction and window animations on
    the spring tokens. Window frames are done: our own KWin decoration gives
    every app the traffic lights, and GTK's own titlebars match.
-5. **Toolkits**: a full GTK theme beyond colors, and a Qt widget style, which
+5. **Toolkits**: GTK apps' controls (begun: CSS over GTK 3's and GTK 4's
+   stock themes draws buttons, fields, checkboxes, switches, sliders,
+   menus, tabs and scroll bars from the same tokens, and GTK 3 follows
+   dark), and a Qt widget style, which
    is begun (`style/`): push buttons, checkboxes, radio buttons, text
    fields, pop-ups, steppers, sliders, progress and scroll bars, menus,
    tabs, group boxes, the rows and headers of lists, trees and tables, and
