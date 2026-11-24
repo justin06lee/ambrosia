@@ -44,6 +44,13 @@ public:
     // A tag's color ("red" … "gray", or "" for none), as the sidebar's
     // tag menu sets it.
     Q_INVOKABLE void setColor(const QString &name, const QString &color);
+    // A tag's new name, on the list and on every item the index knows to
+    // have it. False where another tag has that name already, or it is
+    // empty. Not one of Undo's, as in Finder.
+    Q_INVOKABLE bool rename(const QString &name, const QString &to);
+    // Takes the tag off the list and off every item the index knows to
+    // have it.
+    Q_INVOKABLE void removeTag(const QString &name);
     // Puts each item's tags back as they were (Undo and Redo), without
     // recording it as an edit.
     void restore(const QList<QUrl> &urls, const QList<QStringList> &tags);
@@ -60,6 +67,8 @@ private:
     void load();
     void save() const;
     void edit(const QList<QUrl> &urls, const QString &name, bool on);
+    // On every item with the tag: its name changed to `to`, or (empty) gone.
+    void retag(const QString &name, const QString &to);
     static bool write(const QUrl &url, const QStringList &names);
 
     struct Tag {

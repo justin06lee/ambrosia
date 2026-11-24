@@ -2,19 +2,32 @@ import QtQuick
 import QtQuick.Effects
 import Ambrosia
 
-// A Save panel asking before it writes over something: the panel dims and
-// a card asks, Cancel the default as on a Mac.
+// The window asking before it does something that can't be taken back (a
+// Save panel writing over a file, a tag deleted): the window dims and a
+// card asks, Cancel the default as on a Mac.
 Rectangle {
     id: alert
 
     required property var finder
     property string name
-    property string folderName
+    property string title
+    property string detail
+    property string acceptText
+    // What the other button does; replaced() when it is null.
+    property var then: null
     signal replaced()
 
     function ask(name, folderName) {
         alert.name = name;
-        alert.folderName = folderName;
+        question("“" + name + "” already exists. Do you want to replace it?",
+                 "A file or folder with the same name already exists in the folder " + folderName
+                 + ". Replacing it will overwrite its current contents.", "Replace", null);
+    }
+    function question(title, detail, acceptText, then) {
+        alert.title = title;
+        alert.detail = detail;
+        alert.acceptText = acceptText;
+        alert.then = then;
         visible = true;
         card.forceActiveFocus();
     }
@@ -61,15 +74,14 @@ Rectangle {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
-                text: "“" + alert.name + "” already exists. Do you want to replace it?"
+                text: alert.title
                 style: Theme.text.headline
             }
             Label {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.Wrap
-                text: "A file or folder with the same name already exists in the folder " + alert.folderName
-                    + ". Replacing it will overwrite its current contents."
+                text: alert.detail
                 style: Theme.text.caption
             }
             Row {
@@ -78,8 +90,18 @@ Rectangle {
                 spacing: 10
                 PushButton {
                     width: (column.width - 10) / 2
-                    text: "Replace"
-                    onClicked: { alert.visible = false; alert.replaced(); }
+                    text: alert.acceptText
+                    onClicked: {
+                        const then = alert.then;
+                        alert.then = null;
+                        if (then) {
+                            alert.dismiss();
+                            then();
+                        } else {
+                            alert.visible = false;
+                            alert.replaced();
+                        }
+                    }
                 }
                 PushButton {
                     width: (column.width - 10) / 2

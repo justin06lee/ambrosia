@@ -1,4 +1,5 @@
 #include "tags.h"
+#include "index.h"
 
 #include <QDir>
 #include <QFile>
@@ -225,4 +226,61 @@ void Tags::setColor(const QString &name, const QString &color)
             Q_EMIT listChanged();
             return;
         }
+}
+
+void Tags::retag(const QString &name, const QString &to)
+{
+    Index::Query query;
+    query.tag = name;
+    query.limit = 1000000;
+    const Index::Result found = Index::instance()->find(query);
+    QList<QUrl> done;
+    for (const std::string &path : found.paths) {
+        const QUrl url = QUrl::fromLocalFile(QString::fromStdString(path));
+        QStringList names = read(url.toLocalFile());
+        const qsizetype at = names.indexOf(name);
+        if (at < 0)
+            continue;
+        if (to.isEmpty() || names.contains(to))
+            names.removeAt(at);
+        else
+            names[at] = to;
+        if (write(url, names))
+            done << url;
+    }
+    if (!done.isEmpty())
+        Q_EMIT changed(done);
+}
+
+bool Tags::rename(const QString &name, const QString &given)
+{
+    QString to = given.trimmed();
+    to.replace(QLatin1Char(','), QLatin1Char(' '));
+    if (to.isEmpty() || to == name)
+        return false;
+    Tag *tag = nullptr;
+    for (Tag &each : m_tags) {
+        if (each.name == name)
+            tag = &each;
+        else if (each.name.compare(to, Qt::CaseInsensitive) == 0)
+            return false;
+    }
+    if (!tag)
+        return false;
+    retag(name, to);
+    tag->name = to;
+    save();
+    Q_EMIT listChanged();
+    return true;
+}
+
+void Tags::removeTag(const QString &name)
+{
+    const auto at = std::find_if(m_tags.begin(), m_tags.end(), [&](const Tag &tag) { return tag.name == name; });
+    if (at == m_tags.end())
+        return;
+    retag(name, QString());
+    m_tags.erase(at);
+    save();
+    Q_EMIT listChanged();
 }
