@@ -1,0 +1,11 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Description": "KWin's Show Desktop, whoever asks for it, becomes Ambrosia's: the windows slide off and the shell stays",
+        "EnabledByDefault": false,
+        "Id": "ambrosia_desktop",
+        "License": "MIT",
+        "Name": "Ambrosia Show Desktop"
+    },
+    "X-Plasma-API": "javascript"
+}
