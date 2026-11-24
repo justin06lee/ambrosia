@@ -32,7 +32,8 @@ works on real hardware: the menu bar with the focused app's own menus, Search
 reorder, magnification, a live Trash, Downloads as a stack), the control center, notification
 banners and Notification Center, and a Mac-first keyboard (Command where a
 Mac has it). Glass is a compositor effect of our own: each pane blurs and
-saturates what is behind it as its material asks, and bends it at the rim.
+saturates what is behind it as its material asks, and bends it at the rim;
+Files' and Settings' sidebars are panes of it.
 Its look still trails the design preview in places.
 
 Two first-party apps are in. Files (a Finder look-alike) has icon, list,

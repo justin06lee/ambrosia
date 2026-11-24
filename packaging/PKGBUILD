@@ -233,7 +233,8 @@ package_ambrosia-files() {
   # Files makes every thumbnail itself (ffmpeg, taglib, karchive, freetype2)
   # and searches contents itself: no KIO thumbnailers, no ripgrep. solid
   # (KIO's own dependency, with udisks2) lists the sidebar's other disks.
-  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kio kio-extras kservice solid kwindowsystem inter-font ffmpeg taglib karchive freetype2)
+  # ambrosia-glass: the sidebar's QML imports org.ambrosia.glass.
+  depends=(ambrosia-theme ambrosia-glass qt6-base qt6-declarative qt6-svg kio kio-extras kservice solid kwindowsystem inter-font ffmpeg taglib karchive freetype2)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-files"
 }
 
@@ -245,7 +246,7 @@ package_ambrosia-settings() {
   # bluez-qt: Bluetooth; bluedevil's agent asks for pairing codes.
   # libkscreen: Displays; powerdevil's brightness service dims them.
   # The QML and art are in the binary.
-  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg kwindowsystem kconfig kservice kcmutils hwdata inter-font
+  depends=(ambrosia-theme ambrosia-glass qt6-base qt6-declarative qt6-svg kwindowsystem kconfig kservice kcmutils hwdata inter-font
            pulseaudio-qt libpulse plasma-pa networkmanager-qt networkmanager bluez-qt bluez bluedevil libkscreen powerdevil)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-settings"
 }

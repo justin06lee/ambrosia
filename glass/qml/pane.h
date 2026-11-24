@@ -23,6 +23,10 @@ class GlassPane : public QQuickItem
     // backdrop.
     Q_PROPERTY(QString material READ material WRITE setMaterial NOTIFY materialChanged)
     Q_PROPERTY(qreal radius READ radius WRITE setRadius NOTIFY radiusChanged)
+    // Whether the compositor has the effect at all: a window that would be
+    // see-through under its pane stays solid where this is false. Known from
+    // the pane's first moment (the compositor is asked and waited for).
+    Q_PROPERTY(bool available READ available NOTIFY availableChanged)
 
 public:
     explicit GlassPane(QQuickItem *parent = nullptr);
@@ -32,6 +36,7 @@ public:
     void setMaterial(const QString &material);
     qreal radius() const;
     void setRadius(qreal radius);
+    bool available() const;
 
     /// The material's number in the protocol.
     int materialNumber() const;
@@ -39,6 +44,7 @@ public:
 Q_SIGNALS:
     void materialChanged();
     void radiusChanged();
+    void availableChanged();
 
 protected:
     void itemChange(ItemChange change, const ItemChangeData &value) override;

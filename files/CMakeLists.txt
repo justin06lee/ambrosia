@@ -52,6 +52,7 @@ qt_add_qml_module(ambrosia-files
         qml/MenuBar.qml
         qml/Finder.qml
         qml/Sidebar.qml
+        qml/Backing.qml
         qml/SidebarFlush.qml
         qml/SidebarList.qml
         qml/RenameField.qml

@@ -42,8 +42,10 @@ struct GlassResource;
 /**
  * The compositor's side of ambrosia_glass_v1: which panes of glass each
  * surface has. It is made when the effect first loads and then lives as long
- * as KWin does, whether or not the effect is loaded: clients keep their
- * objects, and an effect loaded again finds every pane as it stands.
+ * as KWin does, whether or not the effect is loaded: clients' objects call
+ * into it. Clients are offered it only while the effect is loaded
+ * (announce), so a window that is see-through under its glass can tell when
+ * nothing would be drawn there.
  */
 class GlassProtocol : public QObject
 {
@@ -51,6 +53,10 @@ class GlassProtocol : public QObject
 
 public:
     static GlassProtocol *self();
+
+    /// Offers the protocol to clients, or takes the offer back: the effect
+    /// as it comes up and as it goes.
+    void announce(bool up);
 
     /// Whether the surface has a glass object whose panes a commit has
     /// brought: they then stand in for any blur region it asks for.

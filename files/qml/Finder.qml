@@ -199,6 +199,10 @@ QtObject {
     // Window colors, light and dark
     readonly property color content: dark ? "#282824" : "#ffffff"
     readonly property color sidebar: dark ? "#191915" : "#f8f8f8"
+    // The sidebar as glass (the window in front, where the compositor has
+    // our effect): its color over what shows through. Set by eye: nothing
+    // here could be measured from a Mac.
+    readonly property color sidebarGlass: Qt.rgba(sidebar.r, sidebar.g, sidebar.b, dark ? 0.8 : 0.82)
     readonly property color sidebarRim: dark ? "#1affffff" : "#ffffff"
     readonly property color stripe: dark ? "#32322e" : "#f4f5f5"
     readonly property color separator: dark ? "#454541" : "#dddddd"

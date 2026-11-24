@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Effects
 import Ambrosia
 import Settings
+import org.ambrosia.glass
 
 // The floating sidebar (macOS 26's System Settings): an inset, rounded
 // glass panel holding the traffic lights, the search field and the panes
@@ -15,20 +16,78 @@ Item {
     // Positions inside the panel, from the window's.
     readonly property int inset: Look.sidebarInset
 
-    Rectangle {
+    // Glass where the compositor has our effect (org.ambrosia.glass), and
+    // see-through only in the window in front, as a Mac's sidebar is: the
+    // window leaves a hole under it then (Backing.qml). Solid otherwise.
+    readonly property bool glassy: pane.available
+    readonly property bool clear: glassy && sidebar.settings.looksActive
+    readonly property int room: 24
+
+    // The panel's shadow on the window around it, cut away under the panel
+    // itself: glass is only as dark as its tint.
+    Item {
+        id: cast
         anchors.fill: parent
-        radius: Look.sidebarRadius
-        color: Look.sidebar
-        border.width: 0.5
-        border.color: Look.sidebarRim
+        anchors.margins: -sidebar.room
         layer.enabled: true
         layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowColor: "black"
-            shadowOpacity: Theme.dark ? 0.4 : 0.09
-            shadowBlur: 0.5
-            shadowVerticalOffset: 1
-            blurMax: 24
+            maskEnabled: true
+            maskInverted: true
+            maskSource: outline
+        }
+
+        Rectangle {
+            x: sidebar.room
+            y: sidebar.room
+            width: sidebar.width
+            height: sidebar.height
+            radius: Look.sidebarRadius
+            color: Look.sidebar
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                shadowEnabled: true
+                shadowColor: "black"
+                shadowOpacity: Theme.dark ? 0.4 : 0.09
+                shadowBlur: 0.5
+                shadowVerticalOffset: 1
+                blurMax: 24
+            }
+        }
+    }
+
+    Item {
+        id: outline
+        anchors.fill: cast
+        visible: false
+        layer.enabled: true
+
+        Rectangle {
+            x: sidebar.room
+            y: sidebar.room
+            width: sidebar.width
+            height: sidebar.height
+            radius: Look.sidebarRadius
+        }
+    }
+
+    GlassPane {
+        id: pane
+        anchors.fill: parent
+        radius: Look.sidebarRadius
+        material: "regular"
+        visible: panel.color.a < 1
+    }
+
+    Rectangle {
+        id: panel
+        anchors.fill: parent
+        radius: Look.sidebarRadius
+        color: sidebar.clear ? Look.sidebarGlass : Look.sidebar
+        border.width: 0.5
+        border.color: Look.sidebarRim
+
+        Behavior on color {
+            ColorAnimation { duration: 120 }
         }
     }
 

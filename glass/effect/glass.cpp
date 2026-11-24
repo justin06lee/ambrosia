@@ -180,6 +180,7 @@ GlassEffect::GlassEffect()
     }
 
     m_valid = true;
+    GlassProtocol::self()->announce(true);
     retireBlur();
     effects->addRepaintFull();
 }
@@ -187,6 +188,7 @@ GlassEffect::GlassEffect()
 GlassEffect::~GlassEffect()
 {
     if (m_valid) {
+        GlassProtocol::self()->announce(false);
         waylandServer()->backgroundEffectManager()->removeBlurCapability();
     }
 }
