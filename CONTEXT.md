@@ -361,6 +361,27 @@ package repo below), and they carry `shell/` and `session/` as they are.
    pictures answer the two commands through `Quickshell.shotRun` (sheet
    `desktop-icons`; HOME there is `/home/ada`, so the Mac's own Desktop
    is never read).
+   **Open and Save are Files** (round 30): the resident Files owns
+   `org.freedesktop.impl.portal.desktop.ambrosia` and answers
+   `FileChooser` (`files/src/portal.cpp`; `files/ambrosia.portal` and a
+   D-Bus service file that starts it). A request makes a `FinderWindow`
+   with `panel` set (kind, title, accept, multiple, name, filters); its
+   `panelAccepted(urls, filter)` or its closing is the answer.
+   xdg-desktop-portal picks Files from `/etc/xdg/ambrosia/
+   xdg-desktop-portal/portals.conf` (it reads the first portals.conf on
+   `XDG_CONFIG_DIRS`), and apps ask the portal because `startambrosia`
+   sets `PLASMA_INTEGRATION_USE_PORTAL`, `GTK_USE_PORTAL` and
+   `GDK_DEBUG=portals` (a session from before keeps KDE's dialog until
+   the next login). **To try the panel without the portal**:
+   `ambrosia-files --panel open|save|folder [folder]` opens a stand-in
+   one (`files/tools/tenet.sh grab NAME --panel save …` photographs it),
+   and a real request can be sent over the bus: `busctl --user
+   --timeout=300 call org.freedesktop.impl.portal.desktop.ambrosia
+   /org/freedesktop/portal/desktop org.freedesktop.impl.portal.FileChooser
+   SaveFile osssa{sv} /org/freedesktop/portal/desktop/request/t/a1 "" ""
+   "Save As" 1 current_name s "notes.txt"` prints the answer (`0` and
+   the URLs, `1` cancelled). **End to end**: `kdialog --getopenfilename
+   ~` started inside the session prints what the panel chose.
    **The picture while starting up is a Plymouth theme** (round 29,
    generated: `tools/gen/targets/plymouth.ts` → `dist/plymouth/ambrosia`,
    installed by ambrosia-theme; `dist/plymouth/sheet.png` is a drawing of

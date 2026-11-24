@@ -758,6 +758,13 @@ stopped by its button (gone within a second, no file or part left), and
 a 6-byte file (no window). Not tried: two jobs at once, a move, the
 Trash, the sliding piece, dark.
 
+**Open and Save panels** (2026-11-24, `docs/GAPS.md` gap 20): Files is
+the session's file chooser for the desktop portal. `FinderWindow` with
+`panel` set is the panel: `PanelBar.qml` (Cancel, the choosing button, New
+Folder, the filters), `PanelName.qml` (Save As), `PanelAlert.qml` (replace?),
+`FinderWindow.dimmed()` for what can't be chosen; `src/portal.cpp` is the
+D-Bus side. `--panel open|save|folder` opens one to look at.
+
 **Still short of Finder** (listed 2026-11-10, after search and the
 shortcut menu; v1 scope unless marked):
 - the shortcut menu's Open With, Compress, Make Alias, Share and Quick

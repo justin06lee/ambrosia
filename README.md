@@ -172,7 +172,8 @@ decoration/    the KWin window frame every app gets: a KDecoration3 plugin built
 style/         the Qt widget style the session names: other apps' buttons, boxes, sliders and menus, over Breeze;
                its gallery draws them all into a picture with no display (make gallery),
                or opens them as a window to use (ambrosia-style-gallery --show)
-files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks (bench/)
+files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks (bench/);
+               it is also every app's Open and Save panel (the desktop portal's file chooser, src/portal.cpp)
                and tools/tenet.sh to build and photograph it on tenet
 settings/      Settings, Ambrosia's System Settings: Qt Quick window, C++ core, art
 docs/GAPS.md   what still tells Ambrosia from a Mac, biggest first, and the rounds closing it
@@ -213,8 +214,8 @@ assets/        banner, icon and the "nectar" day/night wallpapers
    hands, a wheel of our own for busy), icons for the apps a new install
    starts with, and folders and kinds of file as Files draws them, over
    Breeze for the rest.
-6. **Apps**: the core first-party apps, plus an XDG portal file chooser so file
-   dialogs in other apps match too.
+6. **Apps**: the core first-party apps. Open and Save in other apps are
+   Files' own panels already, through the desktop portal.
 7. **Onboarding**: a first-party onboarding app in place of the installer
    script (asking Mac-first or Linux-first). The picture while starting up
    is there already.
