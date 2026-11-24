@@ -598,7 +598,10 @@ package repo below), and they carry `shell/` and `session/` as they are.
    asks. Both watch `Window.active` and, when it goes, stop asking for
    80 ms and ask again; Quickshell sends a changed keyboard mode only
    with the window's next frame, so the change must draw one (the 1 px
-   `redrawn`). `quickshell log --path /usr/share/ambrosia/shell` is
+   `redrawn`). From the packages, with the VM's screen dimmed, that
+   alone did not bring it back, so 300 ms later a window still without
+   the keyboard is unmapped and mapped again (`shown`), which always
+   does (seen with `redrawn` taken out). `quickshell log --path /usr/share/ambrosia/shell` is
    where the shell's `console.log` goes, not the journal.
    **Seen from an image** (`ambrosia-2026.11.24`, built 2026-11-25 from
    r487): `tools/vm.sh live` with `VM_DISK` a new file, the assistant
