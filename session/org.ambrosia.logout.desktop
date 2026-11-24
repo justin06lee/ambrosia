@@ -1,0 +1,12 @@
+# Super+Ctrl+Alt+Shift+Q asks to log out: ⇧⌘Q on the Mac-first keyboard,
+# which keyd hands on as exactly this. The question is the Ambrosia menu's
+# Log Out…. It can be changed in System Settings, Shortcuts, like Search's.
+[Desktop Entry]
+Type=Application
+Name=Log Out
+Comment=Ask to quit all apps and log out
+Icon=system-log-out
+Exec=/usr/bin/ambrosia log-out
+NoDisplay=true
+StartupNotify=false
+X-KDE-Shortcuts=Meta+Ctrl+Alt+Shift+Q

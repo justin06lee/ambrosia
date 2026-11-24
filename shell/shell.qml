@@ -97,6 +97,10 @@ ShellRoot {
         function forceQuit(): void {
             Popups.toggleForceQuit(Quickshell.screens[0]);
         }
+        // ⇧⌘Q: the Ambrosia menu's Log Out…, asked the same way.
+        function logOut(): void {
+            Session.askLogOut(Quickshell.screens[0]);
+        }
         // ⌃⌘Space: the emoji picker, on the screen the app in front is on.
         function emoji(): void {
             Popups.toggleEmoji(Quickshell.screens[0]);

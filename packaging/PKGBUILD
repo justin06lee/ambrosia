@@ -180,7 +180,8 @@ package_ambrosia-shell() {
   install -Dm644 session/org.ambrosia.shell.desktop session/org.ambrosia.search.desktop \
     session/org.ambrosia.fullscreen.desktop session/org.ambrosia.screenshot.desktop \
     session/org.ambrosia.screenshot-region.desktop session/org.ambrosia.force-quit.desktop \
-    session/org.ambrosia.quit.desktop session/org.ambrosia.emoji.desktop -t "$pkgdir/usr/share/applications/"
+    session/org.ambrosia.quit.desktop session/org.ambrosia.emoji.desktop \
+    session/org.ambrosia.logout.desktop -t "$pkgdir/usr/share/applications/"
   install -Dm644 session/ambrosia.desktop -t "$pkgdir/usr/share/wayland-sessions/"
   local units="$pkgdir/usr/lib/systemd/user"
   install -Dm644 session/ambrosia-shell.service -t "$units/"

@@ -57,6 +57,12 @@ Singleton {
     function logOut() {
         shutdownCall("logout");
     }
+    // The question before it (the Ambrosia menu's row, and ⇧⌘Q).
+    function askLogOut(screen) {
+        Popups.confirm(screen, {
+            title: "Are you sure you want to quit all apps and log out now?",
+            accept: "Log Out", action: () => logOut() });
+    }
     function restart() {
         shutdownCall("logoutAndReboot");
     }

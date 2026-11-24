@@ -4,6 +4,7 @@
 #   ambrosia control-center   open or close the control center
 #   ambrosia notification-center   open or close Notification Center
 #   ambrosia force-quit       open or close Force Quit Applications
+#   ambrosia log-out          ask to quit all apps and log out
 #   ambrosia emoji            open or close the emoji picker
 #   ambrosia welcome          show a new account's welcome again
 #   ambrosia install          open the installer's assistant (the live image)
@@ -19,6 +20,7 @@ case $1 in
   control-center) function=controlCenter ;;
   notification-center) function=notificationCenter ;;
   force-quit) function=forceQuit ;;
+  log-out) function=logOut ;;
   emoji) function=emoji ;;
   welcome) function=welcome ;;
   install)
@@ -28,7 +30,7 @@ case $1 in
   quit) function=quit ;;
   window-menu) function=windowMenu ;;
   screenshot) function=screenshot; [ $# -gt 1 ] || set -- screenshot screen ;;
-  *) echo "usage: ambrosia search | control-center | notification-center | force-quit | emoji | welcome | install | quit | screenshot [screen|region] | window-menu X Y" >&2; exit 2 ;;
+  *) echo "usage: ambrosia search | control-center | notification-center | force-quit | log-out | emoji | welcome | install | quit | screenshot [screen|region] | window-menu X Y" >&2; exit 2 ;;
 esac
 shift
 exec quickshell ipc --path "$shell" call shell "$function" "$@"
