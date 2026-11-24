@@ -1,0 +1,12 @@
+# Super+Ctrl+Alt+Space opens the emoji picker: ⌃⌘Space on the Mac-first
+# keyboard, which keyd hands on as exactly this (shell/EmojiPicker.qml).
+# It can be changed in System Settings, Shortcuts, like Search's.
+[Desktop Entry]
+Type=Application
+Name=Emoji & Symbols
+Comment=Choose an emoji to type
+Icon=face-smile
+Exec=/usr/bin/ambrosia emoji
+NoDisplay=true
+StartupNotify=false
+X-KDE-Shortcuts=Meta+Ctrl+Alt+Space

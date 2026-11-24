@@ -73,6 +73,14 @@ ApplicationsMode=1
 LayoutName=org.ambrosia.desktop
 HighlightWindows=false
 
+# The session's input method is ours (input/, ambrosia-input): it draws
+# nothing and takes no keys, and is how the emoji picker's choice is typed
+# into the app in front. Choosing another in KDE's Virtual Keyboard settings
+# (fcitx5, say) takes its place; the picker then copies its choice instead.
+[Wayland]
+InputMethod=/usr/share/applications/org.ambrosia.input.desktop
+VirtualKeyboardEnabled=true
+
 # Super alone does nothing: it's Command, held for shortcuts. (Plasma's
 # default opens plasmashell's launcher, which isn't running here.)
 [ModifierOnlyShortcuts]

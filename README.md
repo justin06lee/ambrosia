@@ -59,7 +59,7 @@ open preview/index.html    # the mock desktop on its own (xdg-open on Linux)
 On an Arch machine, the distro builds from the same checkout:
 
 ```sh
-make package               # ambrosia-keyring, -theme, -shell, -files, -desktop into out/pkg/
+make package               # ambrosia-keyring, -theme, -shell, -input, -files, -desktop and the rest into out/pkg/
 make quickshell            # our Quickshell (with the app menu and popup patches) for the installed Qt
 sudo make iso              # the installer image, out/iso/ambrosia-*.iso
 tools/vm.sh install        # install the image unattended in a headless VM
@@ -156,7 +156,8 @@ tools/         install.sh (per-user themes), build-iso.sh, vm.sh, shot.sh, remot
                publish-repo.sh (the hosted repo), repo-test.sh + repo-check.sh (its VM test)
 shell/         the shell in QML for Quickshell: wallpaper, the desktop's icons and menu, menu bar (with apps' own
                status items) and menus, Search,
-               Dock, control center, notifications, Force Quit, password prompts (the shell is the polkit agent),
+               Dock, control center, notifications, Force Quit, the emoji picker (its list, emoji.js, is written
+               by tools/emoji.ts), password prompts (the shell is the polkit agent),
                the volume and brightness keys' display,
                a screenshot's thumbnail in the corner,
                the plain tile under app icons that have none (AppTile.qml)
@@ -169,6 +170,8 @@ session/       the Ambrosia session: start script, systemd units, KWin and KDE d
                the look-and-feel package with ⌘Tab's app switcher (a KWin switcher layout)
 decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens;
                qml/ is a small QML module for our QML inside KWin (the blur behind ⌘Tab, apps' names)
+input/         the session's input method (ambrosia-input, plain C on libwayland): KWin starts it, and the
+               shell types into the app in front through it (the emoji picker's choice)
 style/         the Qt widget style the session names: other apps' buttons, boxes, sliders and menus, over Breeze;
                its gallery draws them all into a picture with no display (make gallery),
                or opens them as a window to use (ambrosia-style-gallery --show)

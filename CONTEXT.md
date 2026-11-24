@@ -39,7 +39,8 @@ package repo below), and they carry `shell/` and `session/` as they are.
     address), `ambrosia-theme` (themes, wallpapers, icons), `ambrosia-shell`
     (the QML shell, the session, KDE/KWin defaults), `ambrosia-files` (Files,
     built with CMake from `files/`), `ambrosia-settings` (Settings, from
-    `settings/`; both x86_64) and `ambrosia-desktop` (the meta package: SDDM,
+    `settings/`; both x86_64), `ambrosia-input` (the session's input method,
+    from `input/`, x86_64) and `ambrosia-desktop` (the meta package: SDDM,
     portals, NetworkManager, PipeWire, Bluetooth, power-profiles-daemon, CUPS
     and Avahi, Konsole, Dolphin, Files, Settings, GTK skel, os-release).
   - `packaging/quickshell/PKGBUILD` is our Quickshell build: upstream v0.3.2
@@ -480,6 +481,24 @@ package repo below), and they carry `shell/` and `session/` as they are.
    Super+Ctrl+Alt+Esc); `ambrosia quit` asks the app in front's windows
    to close (`org.ambrosia.quit.desktop`, for apps named "quit" in
    `keys.json`).
+   **⌃⌘Space opens an emoji picker of ours** (round 31,
+   `shell/EmojiPicker.qml` on the Overlay, kind "emoji"; `ambrosia emoji`;
+   `session/org.ambrosia.emoji.desktop` holds Super+Ctrl+Alt+Space, which
+   keyd's ⌃⌘Space sends). Its list is `shell/emoji.js`, written by
+   `bun tools/emoji.ts` from Unicode's emoji-test.txt and CLDR's English
+   annotations (run by hand when Unicode adds emoji; the result is in the
+   repo). The ones chosen lately are kept in Quickshell's state folder
+   (`emoji.json`). A choice is typed into the app in front by
+   **`ambrosia-input`** (`input/`, its own package): KWin starts it as the
+   session's input method (`[Wayland] InputMethod` in the session's
+   `kwinrc`, the one program KWin gives the input-method protocol), it
+   listens on `$XDG_RUNTIME_DIR/ambrosia-input`, and `ambrosia-input type
+   TEXT` commits TEXT at the insertion point of whatever field has the
+   keyboard (ends 1 when none does: the picker then copies its choice). The
+   picker has the keyboard while it is up, so the helper waits for the
+   app's field to come back before it writes. Someone who chooses another
+   input method in KDE's settings (fcitx5 for Chinese, Japanese or Korean)
+   displaces it; the picker falls back to copying.
    **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
    grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
    kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the

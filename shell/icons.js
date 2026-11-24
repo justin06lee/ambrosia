@@ -81,4 +81,22 @@ var glyphs = {
         stroke: circle(12, 12, 8.5) +
             "M3.5 12h17M12 3.5c2.4 2.5 3.5 5.5 3.5 8.5s-1.1 6-3.5 8.5c-2.4-2.5-3.5-5.5-3.5-8.5s1.1-6 3.5-8.5z",
     },
+    // The emoji picker's groups (EmojiPicker.qml), in its order: lately
+    // used, faces and people, animals, food, sport, places, things, signs,
+    // flags. Our own drawings, as every glyph here is.
+    clock: { stroke: circle(12, 12, 8.5) + "M12 7.5V12l3 2" },
+    face: { stroke: circle(12, 12, 8.5) + "M9 9.8v.9M15 9.8v.9M8.3 14.2a4.2 4.2 0 0 0 7.4 0" },
+    paw: {
+        stroke: circle(6.6, 10.6, 1.6) + circle(10, 6.6, 1.6) + circle(14, 6.6, 1.6) + circle(17.4, 10.6, 1.6) +
+            "M12 11.8c-2.6 0-5 2.6-5 4.9 0 1.6 1.2 2.3 2.5 2.3 1 0 1.6-.5 2.5-.5s1.5.5 2.5.5c1.3 0 2.5-.7 2.5-2.3 0-2.3-2.4-4.9-5-4.9z",
+    },
+    cup: { stroke: "M5.5 9.5h11V14a5.5 5.5 0 0 1-11 0zM16.5 11h1.3a2.2 2.2 0 0 1 0 4.4h-1.6M5 20.5h12M9 6.5V4.5M13 6.5V4.5" },
+    ball: { stroke: circle(12, 12, 8.5) + "M3.5 12h17M12 3.5v17M6 6c2.6 3.4 2.6 8.6 0 12M18 6c-2.6 3.4-2.6 8.6 0 12" },
+    car: {
+        stroke: "M4.5 17.5v-5l1.9-5a1.6 1.6 0 0 1 1.5-1h8.2a1.6 1.6 0 0 1 1.5 1l1.9 5v5zM4.5 12.5h15M6.5 17.5v1.5M17.5 17.5v1.5" +
+            "M7.4 15h1.2M15.4 15h1.2",
+    },
+    bulb: { stroke: "M9.5 17.5h5M10.5 20.5h3M9 14.9a6 6 0 1 1 6 0c-.5.5-.5 1.2-.5 2.6h-5c0-1.4 0-2.1-.5-2.6z" },
+    heart: { stroke: "M12 19.5s-7.5-4.4-7.5-9.6A4 4 0 0 1 12 7.6a4 4 0 0 1 7.5 2.3c0 5.2-7.5 9.6-7.5 9.6z" },
+    flag: { stroke: "M6 20.5v-16M6 5.5c4-2 7 2 11.5 0v8c-4.5 2-7.5-2-11.5 0" },
 };
