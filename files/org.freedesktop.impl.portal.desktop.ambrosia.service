@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.impl.portal.desktop.ambrosia
+Exec=/usr/bin/ambrosia-files --background
+SystemdService=ambrosia-files.service

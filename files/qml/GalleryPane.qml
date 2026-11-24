@@ -130,6 +130,7 @@ FocusScope {
 
         delegate: Item {
             id: cell
+            opacity: pane.finder.dimmed(pane.finder.model.nameAt(index), isDir) ? 0.4 : 1
             required property int index
             required property bool isDir
             required property string badge

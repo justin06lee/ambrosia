@@ -6,6 +6,7 @@
 #include <QQuickWindow>
 #include <QSize>
 #include <QUrl>
+#include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 
 class QQmlEngine;
@@ -40,6 +41,7 @@ public:
         QString select;     // the item to select in the first folder, for grabs
         bool active = false; // draw the first window active, for grabs
         QString sidebar;    // which sidebar windows have
+        QString panel;      // the first window as an Open or Save panel: open, folder, save
     };
 
     App(QQmlEngine *engine, const Options &options);
@@ -62,6 +64,14 @@ public:
     Q_INVOKABLE void openFile(const QUrl &url);
     // Get Info (⌘I): the item's Info window, brought forward if it's open.
     Q_INVOKABLE void openInfo(const QUrl &url);
+    // An Open or Save panel (Portal): a Finder window with `panel` set, not
+    // shown yet, so it can be put over the window that asked first.
+    QQuickWindow *openPanel(const QUrl &folder, const QVariantMap &panel);
+    // Whether a panel's filter takes a file by its name: any of the globs,
+    // or a type that is one of the MIME types (image/* for a whole family).
+    Q_INVOKABLE bool accepts(const QString &name, const QStringList &globs, const QStringList &mimes) const;
+    // Whether a Save would write over something.
+    Q_INVOKABLE bool exists(const QUrl &url) const;
     // The progress window, for the copies and moves in FileOps.jobs: made
     // when one has run for a second; it closes itself after the last.
     void openProgress();

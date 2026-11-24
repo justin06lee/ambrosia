@@ -171,6 +171,8 @@ package_ambrosia-shell() {
   install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/kwinrulesrc session/xdg/breezerc session/xdg/mimeapps.list \
     session/xdg/kcminputrc session/xdg/konsolerc session/xdg/klaunchrc session/xdg/plasmashellrc \
     -t "$pkgdir/etc/xdg/ambrosia/"
+  # Open and Save in every app are Files' panels (the desktop portal).
+  install -Dm644 session/xdg/xdg-desktop-portal/portals.conf -t "$pkgdir/etc/xdg/ambrosia/xdg-desktop-portal/"
   # Konsole's profile and key table for the session (konsolerc names the
   # profile): Command chords Konsole has no use for don't reach the shell.
   install -Dm644 session/konsole/Ambrosia.profile session/konsole/ambrosia.keytab -t "$pkgdir/usr/share/konsole/"

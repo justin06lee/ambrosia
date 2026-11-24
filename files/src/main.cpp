@@ -1,5 +1,6 @@
 #include "app.h"
 #include "index.h"
+#include "portal.h"
 #include "thumbnailer.h"
 
 #include <QApplication>
@@ -130,13 +131,14 @@ int main(int argc, char *argv[])
     const QCommandLineOption select(QStringLiteral("select"), QStringLiteral("The item to select in the first folder (for grabs)."), QStringLiteral("name"));
     const QCommandLineOption active(QStringLiteral("active"), QStringLiteral("Draw the first window as the active one (for grabs, where no window has the keyboard)."));
     const QCommandLineOption sidebar(QStringLiteral("sidebar"), QStringLiteral("The sidebar: floating (the default) or flush."), QStringLiteral("style"));
+    const QCommandLineOption panel(QStringLiteral("panel"), QStringLiteral("The first window as another app's panel: open, folder or save (to look it over)."), QStringLiteral("kind"));
     const QCommandLineOption benchSearchOption(QStringLiteral("bench-search"),
                                                QStringLiteral("Time the index and these searches (comma-separated), with no window, then quit."),
                                                QStringLiteral("queries"));
     const QCommandLineOption benchThumbsOption(QStringLiteral("bench-thumbs"),
                                                QStringLiteral("Time thumbnails on thumbfix.sh's fixtures in this folder, with no window, then quit."),
                                                QStringLiteral("folder"));
-    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, active, sidebar, benchSearchOption, benchThumbsOption});
+    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, active, sidebar, panel, benchSearchOption, benchThumbsOption});
     parser.addPositionalArgument(QStringLiteral("urls"), QStringLiteral("Folders to open."), QStringLiteral("[urls...]"));
     parser.process(app);
 
@@ -156,13 +158,14 @@ int main(int argc, char *argv[])
     options.expand = parser.value(expand).split(QLatin1Char(','), Qt::SkipEmptyParts);
     options.select = parser.value(select);
     options.active = parser.isSet(active);
+    options.panel = parser.value(panel);
     // The sidebar, from the command line or ~/.config/ambrosia/files.conf.
     const QSettings settings(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QStringLiteral("/ambrosia/files.conf"),
                              QSettings::IniFormat);
     options.sidebar = parser.isSet(sidebar) ? parser.value(sidebar) : settings.value(QStringLiteral("sidebar"), QStringLiteral("floating")).toString();
     if (const QStringList wh = parser.value(size).split(QLatin1Char('x')); wh.size() == 2)
         options.size = QSize(wh[0].toInt(), wh[1].toInt());
-    const bool oneShot = options.bench || !options.grab.isEmpty();
+    const bool oneShot = options.bench || !options.grab.isEmpty() || !options.panel.isEmpty();
     const bool quiet = parser.isSet(background) && urls.isEmpty();
 
     // One process serves every window: a second launch hands its folders to
@@ -197,6 +200,10 @@ int main(int argc, char *argv[])
         bus.registerObject(QStringLiteral("/org/freedesktop/FileManager1"), new FileManager1(&files), QDBusConnection::ExportScriptableSlots);
         bus.interface()->registerService(QStringLiteral("org.freedesktop.FileManager1"), QDBusConnectionInterface::QueueService,
                                          QDBusConnectionInterface::DontAllowReplacement);
+        // Every app's Open and Save come here too (portal.h): Files is the
+        // session's file chooser for the desktop portal.
+        bus.registerObject(QStringLiteral("/org/freedesktop/portal/desktop"), new Portal(&files), QDBusConnection::ExportScriptableSlots);
+        bus.registerService(QStringLiteral("org.freedesktop.impl.portal.desktop.ambrosia"));
     }
     if (!quiet)
         files.Open(urls);

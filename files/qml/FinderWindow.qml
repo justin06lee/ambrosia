@@ -198,6 +198,80 @@ Window {
 
     readonly property alias model: folder
 
+    // Another app's Open or Save panel (the desktop portal's file chooser,
+    // files/src/portal.h): the same window with Cancel and a button that
+    // chooses under the folder, a name field over it when saving, and no
+    // traffic lights or menus of Files' own. null in a Finder window.
+    // {kind: "open" | "folder" | "save" | "saveFiles", title, accept,
+    // multiple, name, filters: [{text, value, globs, mimes}], filter}.
+    property var panel: null
+    readonly property bool isPanel: panel !== null
+    readonly property string panelKind: panel?.kind ?? ""
+    property int panelFilter: panel?.filter ?? -1
+    property string panelName: panel?.name ?? ""
+    // The choice: the items' URLs, and the filter that was showing.
+    signal panelAccepted(var urls, int filter)
+    // What can't be chosen is dimmed, as on a Mac: when opening, a file
+    // the app's filter leaves out; when saving or choosing a folder, every
+    // file.
+    function dimmed(name, isDir) {
+        if (!isPanel || isDir)
+            return false;
+        if (panelKind !== "open")
+            return true;
+        const filter = panel.filters[panelFilter];
+        return filter !== undefined && !App.accepts(name, filter.globs, filter.mimes);
+    }
+    // One folder selected: the button goes into it when opening files.
+    readonly property bool panelOnFolder: selectedCount === 1 && shownRow >= 0 && folder.isDirAt(shownRow)
+    readonly property string panelVerb: !isPanel ? "" : panelKind === "open" && panelOnFolder ? "Open" : panel.accept
+    readonly property bool panelCanChoose: {
+        if (!isPanel)
+            return false;
+        if (panelKind === "save")
+            return local && panelName.trim() !== "" && panelName.indexOf("/") < 0;
+        if (panelKind !== "open")
+            return local && (!hasSelection || panelOnFolder);
+        if (!hasSelection || (selectedCount > 1 && !panel.multiple))
+            return false;
+        if (panelOnFolder)
+            return true;
+        for (const row of Object.keys(selected))
+            if (folder.isDirAt(Number(row)) || dimmed(folder.nameAt(Number(row)), false))
+                return false;
+        return true;
+    }
+    function panelChoose() {
+        if (!panelCanChoose || panelAlert.visible)
+            return;
+        if (panelKind === "save") {
+            const name = panelName.trim();
+            const target = Qt.url(url.toString().replace(/\/+$/, "") + "/" + encodeURIComponent(name));
+            if (App.exists(target))
+                panelAlert.ask(name, folder.name);
+            else
+                panelAccepted([target], panelFilter);
+        } else if (panelKind === "open" && panelOnFolder) {
+            open(shownRow);
+        } else if (panelKind === "open") {
+            panelAccepted(selectedUrls(), panelFilter);
+        } else {
+            panelAccepted([panelOnFolder ? folder.urlAt(shownRow) : url], panelFilter);
+        }
+    }
+    // The keyboard goes back to a save's name, or to the folder.
+    function panelFocus() {
+        if (nameRow.item)
+            nameRow.item.focusField();
+        else
+            focusResults();
+    }
+    // A file clicked while saving lends its name, as on a Mac.
+    onSelectedChanged: {
+        if (panelKind === "save" && selectedCount === 1 && shownRow >= 0 && !folder.isDirAt(shownRow))
+            panelName = folder.nameAt(shownRow);
+    }
+
     // A window keeps its active look while one of its menus is open, as on
     // a Mac: the menu bar's menu takes the keyboard, so Qt calls the window
     // inactive. The count clears whenever the window has the keyboard again.
@@ -213,11 +287,14 @@ Window {
     minimumHeight: Finder.minHeight
     visible: true
     color: "transparent"
-    flags: Qt.Window | Qt.FramelessWindowHint
+    flags: (isPanel ? Qt.Dialog : Qt.Window) | Qt.FramelessWindowHint
     // Another disk's own folder goes by the disk's name (its folder's is
     // the label, or a string of digits when it has none).
     readonly property var volume: Places.sections.length > 0 && local ? Places.volumeOf(url) : ({})
-    title: volume.url !== undefined && volume.url.toString().replace(/\/+$/, "") === url.toString().replace(/\/+$/, "") ? volume.name : folder.name
+    // The folder's name, which the toolbar shows; a panel's window goes by
+    // what the app called it ("Open", "Save As").
+    readonly property string placeName: volume.url !== undefined && volume.url.toString().replace(/\/+$/, "") === url.toString().replace(/\/+$/, "") ? volume.name : folder.name
+    title: isPanel && panel.title !== "" ? panel.title : placeName
 
     readonly property Appearance appearance: Appearance {}
 
@@ -364,7 +441,11 @@ Window {
         pane.item.positionAt(row);
     }
     function click(row, modifiers) {
-        select(row, modifiers & Qt.ShiftModifier, modifiers & Qt.ControlModifier);
+        // A panel that takes one item selects one; a dimmed file, none.
+        const many = !isPanel || panel.multiple;
+        if (isPanel && panelKind === "open" && row >= 0 && row < folder.count && dimmed(folder.nameAt(row), folder.isDirAt(row)))
+            return;
+        select(row, many && (modifiers & Qt.ShiftModifier), many && (modifiers & Qt.ControlModifier));
     }
     function open(row) {
         const target = folder.urlAt(row);
@@ -372,6 +453,8 @@ Window {
             browse(target, null, true);
         else if (folder.isDirAt(row))
             go(target);
+        else if (isPanel)
+            panelChoose(); // a double click chooses, if it can be chosen
         else
             App.openFile(target);
     }
@@ -520,7 +603,11 @@ Window {
         return copy ? Qt.CopyAction : Qt.MoveAction;
     }
 
-    MenuBar { finder: win }
+    // Files' own menus, in a Finder window: a panel belongs to another app.
+    Loader {
+        active: !win.isPanel
+        sourceComponent: Component { MenuBar { finder: win } }
+    }
 
     // Quick Look (Space, ⌘Y): its panel shows the item selected while it's
     // open, and closes when nothing is.
@@ -776,8 +863,11 @@ Window {
         Item {
             id: main
             x: sidebar.x + sidebar.width
+            // A panel keeps a row over the folder for a save's name, and a
+            // bar of buttons under it.
+            y: win.panelKind === "save" ? Finder.panelName : 0
             width: parent.width - x
-            height: parent.height
+            height: parent.height - y - (win.isPanel ? Finder.panelBar : 0)
 
             Loader {
                 id: pane
@@ -843,6 +933,33 @@ Window {
                 width: parent.width - (win.previewShown ? Finder.previewPane : 0)
                 finder: win
             }
+        }
+
+        Loader {
+            id: nameRow
+            active: win.panelKind === "save"
+            x: main.x
+            width: main.width
+            sourceComponent: Component {
+                PanelName {
+                    finder: win
+                    Component.onCompleted: focusField()
+                }
+            }
+        }
+        Loader {
+            active: win.isPanel
+            x: main.x
+            y: parent.height - Finder.panelBar
+            width: main.width
+            sourceComponent: Component { PanelBar { finder: win } }
+        }
+        PanelAlert {
+            id: panelAlert
+            anchors.fill: parent
+            z: 2
+            finder: win
+            onReplaced: win.panelAccepted([Qt.url(win.url.toString().replace(/\/+$/, "") + "/" + encodeURIComponent(name))], win.panelFilter)
         }
 
         // Resizing by the edges and corners.
@@ -971,7 +1088,7 @@ Window {
             break;
         case Qt.Key_N:
             if (ctrl && shift) win.act("newFolder", win.newFolder);
-            else if (ctrl) win.act("new", () => App.openWindow(win.url));
+            else if (ctrl && !win.isPanel) win.act("new", () => App.openWindow(win.url));
             break;
         case Qt.Key_Backspace:
             if (ctrl) win.act("trash", win.trashSelection);
@@ -980,6 +1097,7 @@ Window {
         case Qt.Key_Return:
         case Qt.Key_Enter:
             if (ctrl) win.act("open", win.openSelection);
+            else if (win.isPanel) win.act("choose", win.panelChoose);
             else win.act("rename", win.renameSelection);
             break;
         case Qt.Key_W:
@@ -1008,6 +1126,7 @@ Window {
         case Qt.Key_Escape:
             if (win.lookOpen) win.closeLook();
             else if (win.searchOpen && (!win.hasSelection || win.view === "gallery")) win.closeSearch();
+            else if (win.isPanel) win.close(); // Cancel
             else if (win.view !== "gallery") win.clearSelection();
             break;
         default:

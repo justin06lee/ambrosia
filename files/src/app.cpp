@@ -1,6 +1,7 @@
 #include "app.h"
 #include "fileops.h"
 #include "index.h"
+#include "portal.h"
 #include "thumbnailer.h"
 
 #include <KDesktopFile>
@@ -10,13 +11,16 @@
 #include <KWindowShadow>
 
 #include <QDir>
+#include <QFileInfo>
 #include <QGuiApplication>
+#include <QMimeDatabase>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPalette>
 #include <QQmlComponent>
 #include <QQmlEngine>
 #include <QQuickWindow>
+#include <QRegularExpression>
 #include <QStyleHints>
 #include <QTimer>
 
@@ -81,6 +85,49 @@ void App::openWindow(const QUrl &url, const QString &select)
     connect(window, &QQuickWindow::closing, window, &QObject::deleteLater);
     window->setProperty("first", m_first);
     m_first = false;
+}
+
+QQuickWindow *App::openPanel(const QUrl &folder, const QVariantMap &panel)
+{
+    QQmlComponent component(m_engine, QStringLiteral("Files"), QStringLiteral("FinderWindow"));
+    QObject *object = component.createWithInitialProperties({{QStringLiteral("startUrl"), folder},
+                                                             {QStringLiteral("panel"), panel},
+                                                             {QStringLiteral("visible"), false},
+                                                             {QStringLiteral("width"), 800},
+                                                             {QStringLiteral("height"), 520}});
+    if (!object) {
+        qWarning().noquote() << component.errorString();
+        return nullptr;
+    }
+    auto *window = qobject_cast<QQuickWindow *>(object);
+    connect(window, &QQuickWindow::closing, window, &QObject::deleteLater);
+    return window;
+}
+
+bool App::accepts(const QString &name, const QStringList &globs, const QStringList &mimes) const
+{
+    static QHash<QString, QRegularExpression> patterns;
+    for (const QString &glob : globs) {
+        auto it = patterns.find(glob);
+        if (it == patterns.end())
+            it = patterns.insert(glob, QRegularExpression::fromWildcard(glob, Qt::CaseInsensitive));
+        if (it->match(name).hasMatch())
+            return true;
+    }
+    if (mimes.isEmpty())
+        return false;
+    static const QMimeDatabase db;
+    const QMimeType type = db.mimeTypeForFile(name, QMimeDatabase::MatchExtension);
+    for (const QString &mime : mimes) {
+        if (mime.endsWith(QLatin1String("/*")) ? type.name().startsWith(QStringView(mime).chopped(1)) : type.inherits(mime))
+            return true;
+    }
+    return false;
+}
+
+bool App::exists(const QUrl &url) const
+{
+    return url.isLocalFile() && QFileInfo::exists(url.toLocalFile());
 }
 
 void App::openInfo(const QUrl &url)
@@ -234,6 +281,20 @@ int App::modifiers() const
 
 void App::Open(const QStringList &urls)
 {
+    // --panel: the first window as an Open or Save panel, to look it over.
+    if (m_first && !m_options.panel.isEmpty()) {
+        m_first = false;
+        const QUrl folder = urls.isEmpty() ? QUrl::fromLocalFile(QDir::homePath()) : QUrl(urls.first());
+        if (QQuickWindow *window = openPanel(folder, Portal::samplePanel(m_options.panel))) {
+            if (m_options.size.isValid())
+                window->resize(m_options.size);
+            if (!m_options.view.isEmpty())
+                window->setProperty("view", m_options.view);
+            window->setProperty("first", true);
+            window->show();
+        }
+        return;
+    }
     if (urls.isEmpty())
         openWindow(QUrl::fromLocalFile(QDir::homePath()));
     for (const QString &url : urls)

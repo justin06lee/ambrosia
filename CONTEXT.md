@@ -361,6 +361,27 @@ package repo below), and they carry `shell/` and `session/` as they are.
    pictures answer the two commands through `Quickshell.shotRun` (sheet
    `desktop-icons`; HOME there is `/home/ada`, so the Mac's own Desktop
    is never read).
+   **Open and Save are Files** (round 30): the resident Files owns
+   `org.freedesktop.impl.portal.desktop.ambrosia` and answers
+   `FileChooser` (`files/src/portal.cpp`; `files/ambrosia.portal` and a
+   D-Bus service file that starts it). A request makes a `FinderWindow`
+   with `panel` set (kind, title, accept, multiple, name, filters); its
+   `panelAccepted(urls, filter)` or its closing is the answer.
+   xdg-desktop-portal picks Files from `/etc/xdg/ambrosia/
+   xdg-desktop-portal/portals.conf` (it reads the first portals.conf on
+   `XDG_CONFIG_DIRS`), and apps ask the portal because `startambrosia`
+   sets `PLASMA_INTEGRATION_USE_PORTAL`, `GTK_USE_PORTAL` and
+   `GDK_DEBUG=portals` (a session from before keeps KDE's dialog until
+   the next login). **To try the panel without the portal**:
+   `ambrosia-files --panel open|save|folder [folder]` opens a stand-in
+   one (`files/tools/tenet.sh grab NAME --panel save …` photographs it),
+   and a real request can be sent over the bus: `busctl --user
+   --timeout=300 call org.freedesktop.impl.portal.desktop.ambrosia
+   /org/freedesktop/portal/desktop org.freedesktop.impl.portal.FileChooser
+   SaveFile osssa{sv} /org/freedesktop/portal/desktop/request/t/a1 "" ""
+   "Save As" 1 current_name s "notes.txt"` prints the answer (`0` and
+   the URLs, `1` cancelled). **End to end**: `kdialog --getopenfilename
+   ~` started inside the session prints what the panel chose.
    **The picture while starting up is a Plymouth theme** (round 29,
    generated: `tools/gen/targets/plymouth.ts` → `dist/plymouth/ambrosia`,
    installed by ambrosia-theme; `dist/plymouth/sheet.png` is a drawing of
@@ -377,12 +398,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
    socket every 0.2 s: the splash is up for under two seconds in the VM).
    `plymouthd --mode=boot --tty=tty1; plymouth show-splash` with SDDM
    stopped holds it still, and `plymouth ask-for-password` shows the
-   field. **Not run yet:** the installer's own use of it and the live
-   image's splash (`iso/`: the package, the hook in `archiso.conf`,
-   `quiet splash` on the first entries, `etc/plymouth/plymouthd.conf`).
-   The next `sudo make iso` should be followed by `tools/vm.sh live`,
-   `install` and `installed`, photographed while starting (`install`
-   deletes `out/vm/vars.fd`; give it `VM_DISK` to spare `disk.qcow2`).
+   field. **Run from an image** (2026-11-24, `ambrosia-2026.11.24`): the
+   live image and an install made from it both start behind the picture.
+   `tools/vm.sh install` deletes `out/vm/vars.fd` (and stale variables
+   make `live` hang in the firmware: delete the file first); give it
+   `VM_DISK` to spare `disk.qcow2`. `tools/vm-try.sh` takes
+   `VM_TRY_DISK` and `VM_TRY_VARS` to copy another install than
+   `fresh.qcow2`: that day's is kept as `out/vm/fresh-1124.qcow2` with
+   `vars-fresh-1124.fd` (today's Arch, KDE 6.8.3, plymouth on; user
+   test, password ambrosia).
    **The shell is the polkit agent** (round 28, `shell/Authorization.qml`
    on `Quickshell.Services.Polkit`): a session has one agent, so
    `plasma-polkit-agent.service` has a drop-in that skips it in our

@@ -12,6 +12,8 @@
 #   tools/vm-try.sh shot <name>    photograph its screen into /var/tmp/vm-try/<name>.png
 #   tools/vm-try.sh stop           power it off and delete the overlay
 #
+# VM_TRY_DISK and VM_TRY_VARS name another install to copy (a disk image and
+# its firmware variables), such as one tools/vm.sh install just made.
 # The install it copies is never written to. Needs the Packaging lane's VM
 # key (/var/tmp/ambrosia-packaging/vmkey) and 5 GB of memory to spare.
 set -eu
@@ -28,8 +30,8 @@ up)
   [ ! -S $D/monitor.sock ] || { echo "vm-try: already up (tools/vm-try.sh stop)" >&2; exit 1; }
   avail=$(free -m | awk '/Mem:/{print $7}')
   [ "$avail" -ge 5000 ] || { echo "vm-try: only $avail MB available" >&2; exit 1; }
-  qemu-img create -q -f qcow2 -b "$root/out/vm/fresh.qcow2" -F qcow2 $D/disk.qcow2
-  cp "$root/out/vm/vars-fresh.fd" $D/vars.fd
+  qemu-img create -q -f qcow2 -b "${VM_TRY_DISK:-$root/out/vm/fresh.qcow2}" -F qcow2 $D/disk.qcow2
+  cp "${VM_TRY_VARS:-$root/out/vm/vars-fresh.fd}" $D/vars.fd
   keys=$(base64 -w0 < "$key.pub")
   unit=$(base64 -w0 <<'UNIT'
 [Unit]
