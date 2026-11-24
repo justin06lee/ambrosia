@@ -11,6 +11,9 @@
 #include "wayland/display.h"
 #include "wayland/surface.h"
 #include "wayland_server.h"
+#include "window.h"
+
+#include <qqml.h>
 
 #include <wayland-server-core.h>
 
@@ -126,6 +129,34 @@ GlassProtocol::GlassProtocol()
 {
     wl_display *display = *KWin::waylandServer()->display();
     m_global = wl_global_create(display, &ambrosia_glass_manager_v1_interface, 1, nullptr, managerBind);
+    connect(this, &GlassProtocol::changed, this, &GlassProtocol::panesChanged);
+    qmlRegisterSingletonInstance("org.ambrosia.glass.kwin", 1, 0, "Panes", this);
+}
+
+QVariantList GlassProtocol::panesOf(QObject *window) const
+{
+    QVariantList list;
+    auto known = qobject_cast<KWin::Window *>(window);
+    if (!known || !known->surface()) {
+        return list;
+    }
+    const QList<Pane> all = panes(known->surface());
+    for (const Pane &pane : all) {
+        const KWin::RectF seen = pane.rect & pane.clip;
+        if (seen.isEmpty()) {
+            continue;
+        }
+        list.append(QVariantMap{
+            {QStringLiteral("x"), pane.rect.x()},
+            {QStringLiteral("y"), pane.rect.y()},
+            {QStringLiteral("width"), pane.rect.width()},
+            {QStringLiteral("height"), pane.rect.height()},
+            {QStringLiteral("radius"), pane.radius},
+            {QStringLiteral("opacity"), pane.opacity},
+            {QStringLiteral("material"), QString::fromLatin1(Tokens::materials[pane.material].name)},
+        });
+    }
+    return list;
 }
 
 bool GlassProtocol::has(KWin::SurfaceInterface *surface) const

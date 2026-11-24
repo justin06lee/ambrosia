@@ -11,6 +11,7 @@
 #include <QHash>
 #include <QList>
 #include <QObject>
+#include <QVariantList>
 
 struct wl_client;
 struct wl_global;
@@ -56,12 +57,21 @@ public:
     bool has(KWin::SurfaceInterface *surface) const;
     QList<Pane> panes(KWin::SurfaceInterface *surface) const;
 
+    /// For QML that runs inside KWin and draws a window as a picture
+    /// (Mission Control, the bar and the Dock): the window's panes, each a
+    /// map of x, y, width, height, radius, opacity and material (a name),
+    /// in the window's own coordinates. The singleton Panes of
+    /// org.ambrosia.glass.kwin, there while this effect has been loaded.
+    Q_INVOKABLE QVariantList panesOf(QObject *window) const;
+
     // For the requests' handlers.
     void attach(KWin::SurfaceInterface *surface, GlassResource *glass);
     void detach(GlassResource *glass);
 
 Q_SIGNALS:
     void changed(KWin::SurfaceInterface *surface);
+    /// The same, for QML: some window's panes are no longer what they were.
+    void panesChanged();
 
 private Q_SLOTS:
     void surfaceCommitted();

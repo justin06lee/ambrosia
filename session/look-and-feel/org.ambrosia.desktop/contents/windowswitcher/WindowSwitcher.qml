@@ -76,7 +76,7 @@ KWin.TabBoxSwitcher {
 
             // KWin blurs behind its own windows only where it is told to
             // (the shell's glass asks as a Wayland client; this can't).
-            AmbrosiaKWin.BlurBehind { item: strip; radius: strip.radius }
+            AmbrosiaKWin.BlurBehind { item: strip; radius: strip.radius; material: "thick" }
 
             SwitcherStrip {
                 id: strip

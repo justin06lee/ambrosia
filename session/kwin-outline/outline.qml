@@ -27,7 +27,7 @@ Window {
     Binding { target: Theme; property: "dark"; value: system.window.hslLightness < 0.5 }
 
     // KWin blurs behind its own windows only where it is told to.
-    AmbrosiaKWin.BlurBehind { item: glass; radius: glass.radius }
+    AmbrosiaKWin.BlurBehind { item: glass; radius: glass.radius; material: "clear" }
 
     Rectangle {
         id: glass

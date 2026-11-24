@@ -124,6 +124,25 @@ Item {
         }
     }
 
+    // Glass behind those pictures of the bar and the Dock: the wallpaper
+    // again, blurred, in each of their panes (FixtureGlass.qml, which needs
+    // Ambrosia's glass effect; without it nothing loads and nothing shows).
+    Repeater {
+        model: onScreen
+
+        delegate: Loader {
+            required property QtObject window
+
+            x: window.x - view.screen.geometry.x
+            y: window.y - view.screen.geometry.y
+            z: 3
+            Component.onCompleted: {
+                if (view.isFixture(window))
+                    setSource("FixtureGlass.qml", { window: window, windows: onScreen, view: view });
+            }
+        }
+    }
+
     // A click beside the windows leaves, on the Dock or the menu bar too
     // (their pictures take no clicks).
     MouseArea {

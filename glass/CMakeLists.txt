@@ -58,7 +58,7 @@ add_library(ambrosia_glass MODULE
 )
 set_target_properties(ambrosia_glass PROPERTIES PREFIX "")
 target_include_directories(ambrosia_glass PRIVATE "${AMBROSIA_TOKENS}" "${CMAKE_CURRENT_BINARY_DIR}")
-target_link_libraries(ambrosia_glass PRIVATE KWin::kwin KDecoration3::KDecoration KF6::CoreAddons Qt6::Core Qt6::Gui PkgConfig::WAYLAND_SERVER)
+target_link_libraries(ambrosia_glass PRIVATE KWin::kwin KDecoration3::KDecoration KF6::CoreAddons Qt6::Core Qt6::Gui Qt6::Qml PkgConfig::WAYLAND_SERVER)
 # Clients' glass objects call into this until KWin itself ends, whether or
 # not the effect is still loaded: it is never unloaded.
 target_link_options(ambrosia_glass PRIVATE -Wl,-z,nodelete)

@@ -1133,6 +1133,21 @@ package repo below), and they carry `shell/` and `session/` as they are.
     stale. To see a bend, photograph the same screen before and after and
     compare a row through an edge with `tools/px.py`: it is a few levels
     behind a light blur and none behind a heavy one.
+  - **KWin's own windows and pictures of windows** (round 40). A window
+    of KWin's (⌘Tab's strip, the tiling preview) names its pane by a
+    property of its `QWindow`, `ambrosia_glass_pane` (x, y, width, height,
+    radius, material), which `BlurBehind { material: "thick" }` writes.
+    Mission Control draws the bar and the Dock as `WindowThumbnail`s, which
+    no compositor blur gets behind: `FixtureGlass.qml` asks the effect for
+    their panes (`import org.ambrosia.glass.kwin`, `Panes.panesOf(window)`)
+    and blurs the wallpaper's picture itself. It is loaded with
+    `Loader.setSource`, never imported: the module only exists once the
+    glass effect has loaded. `MultiEffect`'s `blurMax` against the Gaussian
+    it gives is a table in that file, measured by running a strip a setting
+    as a Quickshell window in the VM; `autoPaddingEnabled: false` keeps the
+    blur from fading at the screen's edge. KWin keeps QML it has loaded:
+    an edited effect file shows after KWin starts again, not after
+    `unloadEffect`.
   - **To try it on a card without the session**: `tools/glass-try.sh
     out.png` (a headless KWin of its own; tenet's is NVIDIA on OpenGL ES,
     where KWin converts the `#version 140` shaders itself).
