@@ -83,6 +83,10 @@ effects.windowDataChanged.connect((window, role) => {
 });
 
 effect.animationEnded.connect(window => {
+    if (window.ambrosiaLeaving) {
+        left(window);
+        return;
+    }
     delete window.ambrosiaOpening;
     hold(window, false);
 });
@@ -121,8 +125,10 @@ function hides(window) {
 let quiet = null;
 let quietOn = null;
 
-function quietStart(time) {
-    const on = effects.stackingOrder.find(window => window.visible && !window.deleted);
+// It rides on a window that stays drawn for that long: none of `leaving`.
+function quietStart(time, leaving) {
+    const on = effects.stackingOrder.find(window =>
+        window.visible && !window.deleted && !(leaving || []).includes(window));
     if (quiet || !on) {
         return false;
     }
@@ -169,7 +175,8 @@ function forget() {
     hidden = hidden.filter(window => !window.deleted && window.minimized);
 }
 
-function putAway(windows) {
+// `into` is the list that remembers them: Hide's, or Show Desktop's.
+function putAway(windows, into) {
     busy = true;
     quietly(() => {
         for (const window of windows) {
@@ -178,7 +185,7 @@ function putAway(windows) {
             }
             window.minimized = true;
             if (window.minimized) {
-                hidden.push(window);
+                (into || hidden).push(window);
             }
         }
     });
@@ -243,6 +250,10 @@ effects.windowActivated.connect(window => {
     if (busy || !window || !hides(window)) {
         return;
     }
+    // Show Desktop is over once anything comes forward.
+    if (aside.length > 0) {
+        showWindows(window);
+    }
     forget();
     const app = appOf(window);
     const rest = hidden.filter(other => appOf(other) == app);
@@ -257,4 +268,148 @@ effects.windowDeleted.connect(window => {
         quietEnded();
     }
     hidden = hidden.filter(other => other != window);
+    aside = aside.filter(other => other != window);
+    if (window.ambrosiaLeaving) {
+        left(window);
+    }
 });
+
+// Show Desktop, as a Mac's thumb and three fingers spread (and its F11):
+// every window on this desktop slides off past the edge nearest it, and
+// the same way back when asked again or when any window is brought
+// forward. Once off the screen they are put away as Hide puts them (to
+// KWin, minimized), so the desktop under them can be used; KWin's own Show
+// Desktop would put the shell's wallpaper and menu bar aside too.
+const slideTime = animationTime(350);
+// The windows put aside, and those still on their way out.
+let aside = [];
+let leaving = [];
+
+// How far `window` has to go to be off its screen, past the nearest edge.
+function wayOut(window) {
+    const frame = window.geometry;
+    const screen = window.screen ? window.screen.geometry : effects.virtualScreenGeometry;
+    const room = 48;
+    const x = frame.x + frame.width / 2 - (screen.x + screen.width / 2);
+    const y = frame.y + frame.height / 2 - (screen.y + screen.height / 2);
+    if (Math.abs(x) / screen.width >= Math.abs(y) / screen.height) {
+        return x >= 0 ? { x: screen.x + screen.width - frame.x + room, y: 0 }
+            : { x: -(frame.x + frame.width - screen.x) - room, y: 0 };
+    }
+    return y >= 0 ? { x: 0, y: screen.y + screen.height - frame.y + room }
+        : { x: 0, y: -(frame.y + frame.height - screen.y) - room };
+}
+
+function showDesktop() {
+    if (leaving.length > 0 || aside.length > 0 || effects.hasActiveFullScreenEffect) {
+        return;
+    }
+    const windows = effects.stackingOrder.filter(window =>
+        hides(window) && window.visible && !window.minimized && window.onCurrentDesktop);
+    if (windows.length == 0) {
+        return;
+    }
+    // The screen is this effect's until a little after the slide, so that
+    // putting the windows away at its end plays no Genie.
+    quietStart(slideTime + 250, windows);
+    for (const window of windows) {
+        stop(window);
+        const way = wayOut(window);
+        window.ambrosiaWay = way;
+        // Held where it ends, off the screen, until the window is brought
+        // back; the second animation is only there to say when the slide
+        // is over (a held one never ends).
+        window.ambrosiaHeld = set({
+            window: window,
+            // A window closed meanwhile just goes: kept alive by this, it
+            // would never be let go of.
+            keepAlive: false,
+            curve: QEasingCurve.InOutCubic,
+            duration: slideTime,
+            animations: [{ type: Effect.Translation, to: { value1: way.x, value2: way.y } }],
+        });
+        window.ambrosiaLeaving = animate({
+            window: window,
+            keepAlive: false,
+            duration: slideTime,
+            animations: [{ type: Effect.Opacity, from: 1, to: 1 }],
+        });
+        leaving.push(window);
+    }
+}
+
+// `window` is off the screen; the last one out puts them all away. KWin
+// says an animation ended from the middle of its own pass over them, so
+// nothing here may start or cancel one (it crashed KWin when it did): the
+// windows are only minimized, and what holds them is cancelled when they
+// are brought back.
+function left(window) {
+    delete window.ambrosiaLeaving;
+    if (leaving.some(other => other.ambrosiaLeaving && !other.deleted)) {
+        return;
+    }
+    const gone = leaving.filter(other => !other.deleted);
+    leaving = [];
+    busy = true;
+    for (const other of gone) {
+        other.minimized = true;
+        if (other.minimized) {
+            aside.push(other);
+        }
+    }
+    busy = false;
+}
+
+// Back the way they went, `front` (if any) on top.
+function showWindows(front) {
+    if (leaving.length > 0) {
+        return;
+    }
+    const back = aside.filter(window => !window.deleted);
+    aside = [];
+    if (back.length == 0) {
+        return;
+    }
+    busy = true;
+    for (const window of back) {
+        if (window.ambrosiaHeld) {
+            cancel(window.ambrosiaHeld);
+            delete window.ambrosiaHeld;
+        }
+    }
+    quietly(() => {
+        for (const window of back) {
+            window.minimized = false;
+        }
+    });
+    for (const window of back) {
+        const way = window.ambrosiaWay;
+        delete window.ambrosiaWay;
+        if (way) {
+            animate({
+                window: window,
+                curve: QEasingCurve.InOutCubic,
+                duration: slideTime,
+                animations: [{ type: Effect.Translation, from: { value1: way.x, value2: way.y }, to: { value1: 0, value2: 0 } }],
+            });
+        }
+        effects.activeWindow = window;
+    }
+    if (front) {
+        effects.activeWindow = front;
+    }
+    busy = false;
+}
+
+// The toggle has a key; the other two are what the trackpad's spread and
+// pinch run (the Mission Control effect hears the fingers and presses
+// these by name).
+registerShortcut("Ambrosia Show Desktop", "Show the Desktop, or the Windows Again", "Meta+Ctrl+Alt+D", () => {
+    if (aside.length > 0) {
+        showWindows(null);
+    } else {
+        showDesktop();
+    }
+});
+registerShortcut("Ambrosia Windows Aside", "Show the Desktop", "", showDesktop);
+registerShortcut("Ambrosia Windows Back", "Bring the Windows Back from Show Desktop", "", () => showWindows(null));

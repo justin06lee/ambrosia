@@ -531,6 +531,28 @@ package repo below), and they carry `shell/` and `session/` as they are.
    app's field to come back before it writes. Someone who chooses another
    input method in KDE's settings (fcitx5 for Chinese, Japanese or Korean)
    displaces it; the picker falls back to copying.
+   **Trackpad gestures** (round 34, 2026-11-25): the fingers are heard
+   in the Mission Control effect's `main.qml` (`SwipeGestureHandler`,
+   `PinchGestureHandler`; KWin's own three- and four-finger sideways
+   swipe switches desktops). An effect can't run a program or call
+   another effect, so the pinches press shortcuts by name through
+   kglobalaccel (`KWin.DBusCall`, `invokeShortcut`). Show Desktop is in
+   `ambrosia_windows/contents/code/main.js`. Three traps from building
+   it: KWin emits `animationEnded` from inside its own pass over the
+   animations, so a handler there must not `animate`, `set` or `cancel`
+   (it crashed KWin seconds later; it may minimize); a `set` or
+   `animate` keeps a closing window alive unless `keepAlive: false`;
+   an effect's window has `geometry`, not `frameGeometry`. The test VM's
+   KWin renders in software and loads no scripted animation effect
+   (`isEffectSupported` false) unless the account has
+   `KWIN_EFFECTS_FORCE_ANIMATIONS=1` in `~/.config/environment.d/`. A
+   changed effect QML needs a new KWin (in the VM: reboot); reloading a
+   JS effect by `unloadEffect`/`loadEffect` works but check
+   `coredumpctl list` after any effect test. Fingers for the VM:
+   `tools/fake-touchpad.py` as root there (`systemd-run
+   --unit=fake-touchpad python3 /root/fake-touchpad.py`, needs
+   python-evdev), then `echo "swipe 3 up" > /run/fake-touchpad`,
+   `pinch 4 out`.
    **A new account gets a welcome** (round 33, 2026-11-25,
    `shell/Welcome.qml`): a layer surface over the first screen with two
    pages, Welcome to Ambrosia and Choose Your Look (Light, Dark, Auto;
