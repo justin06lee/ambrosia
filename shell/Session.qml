@@ -67,6 +67,12 @@ Singleton {
     function forceQuit() {
         Quickshell.execDetached(["dbus-send", "--session", "--type=method_call", "--dest=org.kde.KWin", "/KWin", "org.kde.KWin.killWindow"]);
     }
+    // One of the sound theme's sounds by name (design/sounds.ts), for the
+    // ones nothing else plays: session/sound finds it in the theme chosen
+    // in Settings and plays it as an alert is played.
+    function sound(name) {
+        Quickshell.execDetached(["/usr/lib/ambrosia/sound", name]);
+    }
     function screenshot() {
         Quickshell.execDetached(["spectacle", "--region"]);
     }

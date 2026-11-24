@@ -576,6 +576,24 @@ package repo below), and they carry `shell/` and `session/` as they are.
    test VM: remove the user's settings.json and
    `~/.local/state/quickshell/by-shell/*/settings.json`, restart
    ambrosia-shell. Its sizes are `size.welcome` in the tokens.
+   **Sounds** (round 36, 2026-11-25): a freedesktop sound theme of ours,
+   `ambrosia`, synthesized at build from recipes (`design/sounds.ts`:
+   layers of tones, noise bursts, grains; `tools/gen/targets/sounds.ts`
+   → `dist/sounds/ambrosia/stereo/*.wav`, other names as links), in
+   ambrosia-theme. The session's kdeglobals names it (`[Sounds] Theme`,
+   which KWin's bell, KDE's notifications and the volume keys read) and
+   dconf does for GTK. What nothing else plays goes through
+   `/usr/lib/ambrosia/sound NAME` (`session/sound`): the shell's
+   `Session.sound()` for a screenshot and Empty Trash, Files for a move
+   to the Trash. The volume pop is off by default
+   (`session/xdg/plasmaparc`), as a Mac's. **Nobody has heard them**: to
+   judge one, `paplay dist/sounds/ambrosia/stereo/bell.wav` on a machine
+   with ears (or `afplay` on the Mac), then tune its recipe. To see what
+   plays without ears, in the test VM: `pactl list sink-inputs` in a
+   loop names each stream's file; `parec -d auto_null.monitor` records
+   the output to measure; `strace -e openat` shows which file
+   libcanberra or KWin opened; `pactl list samples` shows the volume
+   pop once cached.
    **Downloads in the Dock opens as a stack** (round 7, 2026-11-18): a
    grid of the folder's newest things on the Overlay (`Popups.toggleStack`,
    kind "stack"; `shell/Stack.qml` reads the folder, `StackGrid.qml` is the

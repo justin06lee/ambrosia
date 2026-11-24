@@ -15,6 +15,7 @@ import { kde, kdeglobals } from "./targets/kde";
 import { plymouth } from "./targets/plymouth";
 import { qml, qmldir } from "./targets/qml";
 import { qstyle } from "./targets/qstyle";
+import { soundTheme } from "./targets/sounds";
 import { web } from "./targets/web";
 
 const root = join(import.meta.dir, "../..");
@@ -30,6 +31,7 @@ const art = Object.fromEntries(
   await Promise.all(Object.entries(ART).map(async ([name, path]) => [name, await Bun.file(join(root, path)).text()])),
 ) as Art;
 const icons = iconTheme(drawn, art);
+const heard = soundTheme();
 
 const files: Record<string, string | Uint8Array> = {
   "web/tokens.css": web(r),
@@ -63,6 +65,9 @@ const files: Record<string, string | Uint8Array> = {
   ...pointer.files,
   // The picture while the computer starts: a Plymouth theme.
   ...plymouth(),
+  // The sound theme (dist/sounds/ambrosia): each sound synthesized from its
+  // recipe in design/sounds.ts.
+  ...heard.files,
 };
 
 await rm(dist, { recursive: true, force: true });
@@ -71,8 +76,8 @@ for (const [path, content] of Object.entries(files)) {
   await mkdir(dirname(out), { recursive: true });
   await Bun.write(out, content);
 }
-// The other names an icon or a pointer goes by, as links beside it.
-const links = { ...icons.links, ...pointer.links };
+// The other names an icon, a pointer or a sound goes by, as links beside it.
+const links = { ...icons.links, ...pointer.links, ...heard.links };
 for (const [path, target] of Object.entries(links)) await symlink(target, join(dist, path));
 
 const fonts = join(root, "node_modules/@fontsource-variable");
@@ -85,4 +90,4 @@ console.log(`ambrosia: generated ${Object.keys(files).length} files into dist/`)
 // The icon theme's files by the hundred would bury the rest.
 const theme = Object.keys(files).filter((p) => p.startsWith("icons/Ambrosia/"));
 for (const path of Object.keys(files).filter((p) => !theme.includes(p))) console.log(`  ${path}`);
-console.log(`  icons/Ambrosia/ (${theme.length} files, ${Object.keys(links).length} links)`);
+console.log(`  icons/Ambrosia/ (${theme.length} files, ${Object.keys({ ...icons.links, ...pointer.links }).length} links)`);

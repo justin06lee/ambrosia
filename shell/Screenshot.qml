@@ -27,6 +27,8 @@ Scope {
         shoot.running = true;
     }
     function show(path) {
+        // The shutter, once there is a picture.
+        Session.sound("screen-capture");
         file = path;
         up = true;
         linger.restart();

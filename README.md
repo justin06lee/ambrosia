@@ -113,8 +113,9 @@ markdown you can paste into a chat.
 
 `design/tokens.ts` holds every value: type scale, 4px spacing grid, concentric
 radii, OKLCH colors, glass materials, shadows and spring motion;
-`design/cursors.ts` holds every shape the pointer takes and `design/icons.ts`
-the app icons and what goes on folders and files. `tools/gen`
+`design/cursors.ts` holds every shape the pointer takes, `design/icons.ts`
+the app icons and what goes on folders and files, and `design/sounds.ts` the
+recipes of the few sounds the desktop makes. `tools/gen`
 resolves them once and writes each target from the same resolved model. It
 converts colors to gamut-mapped sRGB, derives each accent's text and fill
 colors to meet contrast targets, and solves the springs. Because of that,
@@ -168,6 +169,7 @@ session/       the Ambrosia session: start script, systemd units, KWin and KDE d
                round a tiled window (kwin-scripts/),
                the lock screen (plasma-shell/: the login screen's own file, for KDE's locker),
                GTK's button layout (dconf), the `ambrosia` command and the shell's desktop files,
+               what plays one of the sound theme's sounds by name (sound),
                the look-and-feel package with ⌘Tab's app switcher (a KWin switcher layout)
 decoration/    the KWin window frame every app gets: a KDecoration3 plugin built on the tokens;
                qml/ is a small QML module for our QML inside KWin (the blur behind ⌘Tab, apps' names)

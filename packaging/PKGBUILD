@@ -64,7 +64,9 @@ package_ambrosia-keyring() {
 package_ambrosia-theme() {
   pkgdesc="Ambrosia's design tokens as Qt/QML, KDE, GTK and fontconfig themes"
   arch=(any)
-  depends=(inter-font ttf-jetbrains-mono)
+  # libpulse: paplay, which /usr/lib/ambrosia/sound plays with.
+  depends=(inter-font ttf-jetbrains-mono libpulse)
+  optdepends=('ocean-sound-theme: the sounds Ambrosia has none of its own for')
   cd "$_root/dist"
 
   install -Dm644 qml/Ambrosia/Theme.qml qml/Ambrosia/qmldir -t "$pkgdir/usr/lib/qt6/qml/Ambrosia/"
@@ -86,6 +88,12 @@ package_ambrosia-theme() {
   # or a shape goes by is a link (cp -a keeps them links).
   install -d "$pkgdir/usr/share/icons"
   cp -a icons/Ambrosia "$pkgdir/usr/share/icons/Ambrosia"
+  # The sound theme ("ambrosia": the alert, the Trash, a screenshot, the
+  # volume), its other names as links, and what plays one by name for the
+  # shell and Files.
+  install -d "$pkgdir/usr/share/sounds"
+  cp -a sounds/ambrosia "$pkgdir/usr/share/sounds/ambrosia"
+  install -Dm755 "$_root/session/sound" -t "$pkgdir/usr/lib/ambrosia/"
   # The picture while the computer starts (a Plymouth theme; it shows once
   # ambrosia-desktop's boot-picture has switched it on).
   install -Dm644 plymouth/ambrosia/* -t "$pkgdir/usr/share/plymouth/themes/ambrosia/"
@@ -185,7 +193,7 @@ package_ambrosia-shell() {
   install -Dm644 session/kwin-outline/outline.qml -t "$pkgdir/usr/share/kwin/outline/ambrosia/"
   install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/kwinrulesrc session/xdg/breezerc session/xdg/mimeapps.list \
     session/xdg/kcminputrc session/xdg/konsolerc session/xdg/klaunchrc session/xdg/plasmashellrc \
-    -t "$pkgdir/etc/xdg/ambrosia/"
+    session/xdg/plasmaparc -t "$pkgdir/etc/xdg/ambrosia/"
   # Open and Save in every app are Files' panels (the desktop portal).
   install -Dm644 session/xdg/xdg-desktop-portal/portals.conf -t "$pkgdir/etc/xdg/ambrosia/xdg-desktop-portal/"
   # Konsole's profile and key table for the session (konsolerc names the
@@ -195,7 +203,7 @@ package_ambrosia-shell() {
   # pacman hook compiles the database.
   install -Dm644 session/dconf/profile "$pkgdir/etc/dconf/profile/ambrosia"
   install -Dm644 session/dconf/ambrosia.d/00-window-controls session/dconf/ambrosia.d/01-icons \
-    -t "$pkgdir/etc/dconf/db/ambrosia.d/"
+    session/dconf/ambrosia.d/02-sounds -t "$pkgdir/etc/dconf/db/ambrosia.d/"
 }
 
 package_ambrosia-files() {
