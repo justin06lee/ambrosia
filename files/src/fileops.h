@@ -95,6 +95,13 @@ public:
     Q_INVOKABLE int rename(const QUrl &url, const QString &name);
     // Copies beside the originals: "notes copy.md", "notes copy 2.md".
     Q_INVOKABLE int duplicate(const QList<QUrl> &urls);
+    // A link to each beside it: "notes.md alias", then "notes.md alias 2"
+    // (Finder's Make Alias).
+    Q_INVOKABLE int makeAlias(const QList<QUrl> &urls);
+    // A zip beside them, written in the background: "notes.md.zip" for one
+    // item, "Archive.zip" for several, then "Archive 2.zip" (Finder's
+    // Compress). Local items only; not one of Undo's.
+    Q_INVOKABLE int compress(const QList<QUrl> &urls);
     Q_INVOKABLE int copy(const QList<QUrl> &urls, const QUrl &dir);
     Q_INVOKABLE int move(const QList<QUrl> &urls, const QUrl &dir);
     Q_INVOKABLE int trash(const QList<QUrl> &urls);

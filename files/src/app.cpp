@@ -4,9 +4,12 @@
 #include "portal.h"
 #include "thumbnailer.h"
 
+#include <KApplicationTrader>
 #include <KDesktopFile>
 #include <KIO/ApplicationLauncherJob>
+#include <KIO/JobUiDelegateFactory>
 #include <KIO/OpenUrlJob>
+#include <KJobUiDelegate>
 #include <KService>
 #include <KWindowShadow>
 
@@ -179,6 +182,31 @@ void App::openFile(const QUrl &url)
         }
     }
     auto *job = new KIO::OpenUrlJob(url);
+    job->start();
+}
+
+QVariantList App::appsFor(const QUrl &url) const
+{
+    const QString mime = QMimeDatabase().mimeTypeForUrl(url).name();
+    QVariantList apps;
+    QStringList seen;
+    for (const KService::Ptr &app : KApplicationTrader::queryByMimeType(mime)) {
+        if (app->noDisplay() || seen.contains(app->name()))
+            continue;
+        seen << app->name();
+        apps.append(QVariantMap{{QStringLiteral("name"), app->name()}, {QStringLiteral("id"), app->storageId()},
+                                {QStringLiteral("icon"), app->icon()}});
+    }
+    return apps;
+}
+
+void App::openWith(const QList<QUrl> &urls, const QString &id)
+{
+    const KService::Ptr app = id.isEmpty() ? KService::Ptr() : KService::serviceByStorageId(id);
+    // With no app named, the job asks which (KDE's Open With window).
+    auto *job = app ? new KIO::ApplicationLauncherJob(app) : new KIO::ApplicationLauncherJob();
+    job->setUrls(urls);
+    job->setUiDelegate(KIO::createDefaultJobUiDelegate(KJobUiDelegate::AutoHandlingEnabled, nullptr));
     job->start();
 }
 

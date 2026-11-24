@@ -777,14 +777,43 @@ D-Bus side. `--panel open|save|folder` opens one to look at.
 
 **Still short of Finder** (listed 2026-11-10, after search and the
 shortcut menu; v1 scope unless marked):
-- the shortcut menu's Open With, Compress, Make Alias, Share and Quick
-  Actions, and on empty space Sort By and Show View Options;
+- the shortcut menu's Share and Quick Actions, and on empty space Show
+  View Options, View and Use Groups (Open With, Compress, Make Alias and
+  Sort By are in since 2026-11-25: below);
 - renaming and deleting a tag, and a Tags row in the gallery's pane;
 - This Computer reaching other drives and the installed apps;
 - spring-loaded folders;
 - tabs (not v1).
 - Quick Look's full screen as Finder's: black, its bar hidden until the
   pointer moves (ours keeps the panel's bar and grey margins).
+
+**The shortcut menu's submenus, Compress and Make Alias (2026-11-25).**
+- `ContextMenu.qml` rows may carry `submenu` (rows, or a function giving
+  them), `icon` (an icon theme name) and `checked`. A submenu is another
+  `ContextMenu` beside its row (left of it where the window ends first:
+  the menus are drawn in the window). The pointer on the row opens it
+  after 100 ms, and it stays 280 ms after the pointer leaves the row, so
+  the pointer can cross other rows on its way in; with the arrows a row
+  waits for →, which enters it, and ← or Escape leaves it. A menu is
+  placed by its rows' own heights (`tall`): the layout's height is still
+  the last menu's when the next one opens, which used to put a short menu
+  after a long one far above the pointer.
+- **Open With** lists the apps KDE has for the kind (`App.appsFor`, the
+  default first and marked), each with its icon, then Other…, which is
+  KDE's Choose Application window (`App.openWith` with no app).
+- **Compress** (`FileOps.compress`) writes a zip beside the items with
+  KZip on a thread, under a hidden name until it is whole: `notes.md.zip`
+  for one item, `Archive.zip` for several, then `Archive 2.zip`; hidden
+  files inside a folder go in. Not one of Undo's, and no progress is
+  shown: a large folder's zip simply appears when it is done.
+- **Make Alias** (`FileOps.makeAlias`) makes a link beside the item,
+  `notes.md alias`; Undo takes it away. A link's Kind is Alias in the
+  list, whatever it points to.
+- **Sort By** (the menu on empty space, and View in the menu bar): Name
+  and Kind from A, Date Modified from the newest, Size from the largest
+  (`FinderWindow.sortBy`); the list's headers show the same choice.
+- Seen in the test VM (2026-11-25): each of the above by the pointer, Open
+  With also by the keyboard alone.
 
 **Branch** `feat/files`. A worktree is fine for development; publishing is
 always from the main checkout (packaging trap gyv6e).

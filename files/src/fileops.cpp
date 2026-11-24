@@ -11,16 +11,20 @@
 #include <KIO/Paste>
 #include <KIO/RestoreJob>
 #include <KJobUiDelegate>
+#include <KZip>
 
 #include <QClipboard>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QFutureWatcher>
 #include <QGuiApplication>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProcess>
 #include <QRegularExpression>
 #include <QSysInfo>
+#include <QtConcurrentRun>
 
 #include <algorithm>
 #include <cmath>
@@ -442,6 +446,82 @@ int FileOps::duplicate(const QList<QUrl> &urls)
         }
     }
     return -1;
+}
+
+int FileOps::makeAlias(const QList<QUrl> &urls)
+{
+    if (urls.isEmpty())
+        return -1;
+    // A link job for each, each with its own name; the last one reports.
+    QList<QUrl> made;
+    for (int i = 0; i < urls.size(); ++i) {
+        const QUrl dir = parentUrl(urls[i]);
+        const QString original = urls[i].adjusted(QUrl::StripTrailingSlash).fileName();
+        QString name = original + QStringLiteral(" alias");
+        for (int n = 2; exists(childUrl(dir, name)) || made.contains(childUrl(dir, name)); ++n)
+            name = QStringLiteral("%1 alias %2").arg(original).arg(n);
+        const QUrl to = childUrl(dir, name);
+        made << to;
+        KIO::CopyJob *job = KIO::linkAs(urls[i], to, KIO::HideProgressInfo);
+        FileUndoManager::self()->recordCopyJob(job);
+        if (i + 1 < urls.size()) {
+            job->setUiDelegate(KIO::createDefaultJobUiDelegate(KJobUiDelegate::AutoHandlingEnabled, nullptr));
+            job->start();
+        } else {
+            return start(job, made, QStringLiteral("Make Alias"));
+        }
+    }
+    return -1;
+}
+
+int FileOps::compress(const QList<QUrl> &urls)
+{
+    QStringList paths;
+    for (const QUrl &url : urls)
+        if (url.isLocalFile())
+            paths << url.adjusted(QUrl::StripTrailingSlash).toLocalFile();
+    if (paths.isEmpty() || paths.size() != urls.size())
+        return -1;
+    const QDir dir(QFileInfo(paths.first()).absolutePath());
+    const QString stem = paths.size() == 1 ? QFileInfo(paths.first()).fileName() : QStringLiteral("Archive");
+    QString name = stem + QStringLiteral(".zip");
+    for (int n = 2; dir.exists(name); ++n)
+        name = QStringLiteral("%1 %2.zip").arg(stem).arg(n);
+    const QString to = dir.filePath(name);
+    // Written under another name and given its own at the end, so a zip
+    // half made is never seen as one.
+    const QString part = dir.filePath(QStringLiteral(".%1.part").arg(name));
+
+    const int id = ++m_next;
+    auto *watcher = new QFutureWatcher<bool>(this);
+    connect(watcher, &QFutureWatcher<bool>::finished, this, [this, watcher, id, to, urls]() {
+        const bool ok = watcher->result();
+        watcher->deleteLater();
+        if (!ok)
+            alert(QStringLiteral("%1 couldn’t be compressed.").arg(urls.size() == 1 ? itemsText(urls) : QStringLiteral("The items")),
+                  QStringLiteral("The folder may not be one you can write to, or the disk may be full."));
+        Q_EMIT finished(id, ok ? QList<QUrl>{QUrl::fromLocalFile(to)} : QList<QUrl>(), ok);
+    });
+    watcher->setFuture(QtConcurrent::run([paths, part, to]() {
+        bool ok = false;
+        {
+            KZip zip(part);
+            if (zip.open(QIODevice::WriteOnly)) {
+                ok = true;
+                for (const QString &path : paths) {
+                    const QFileInfo info(path);
+                    ok = ok && (info.isDir() && !info.isSymLink() ? zip.addLocalDirectory(path, info.fileName())
+                                                                  : zip.addLocalFile(path, info.fileName()));
+                }
+                ok = zip.close() && ok;
+            }
+        }
+        ok = ok && QFile::rename(part, to);
+        if (!ok)
+            QFile::remove(part);
+        return ok;
+    }));
+    return id;
 }
 
 int FileOps::copy(const QList<QUrl> &urls, const QUrl &dir)
