@@ -165,7 +165,7 @@ PanelWindow {
 
         Glass {
             anchors.fill: parent
-            tint: Theme.color.material.regular.tint
+            material: "regular"
             radius: dock.corner
             shadow: Theme.color.shadow.panel
             ring: true

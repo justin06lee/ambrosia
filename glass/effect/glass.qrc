@@ -1,0 +1,9 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/effects/ambrosia_glass/">
+  <file>shaders/downsample.frag</file>
+  <file>shaders/onscreen.frag</file>
+  <file>shaders/onscreen.vert</file>
+  <file>shaders/upsample.frag</file>
+  <file>shaders/vertex.vert</file>
+</qresource>
+</RCC>

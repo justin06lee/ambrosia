@@ -3,6 +3,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import QtQuick
 import Ambrosia
+import org.ambrosia.glass
 
 // A new account's first minutes, as a Mac's setup ends: a welcome, then
 // Choose Your Look (light, dark or auto, each as a small picture of the
@@ -113,6 +114,8 @@ PanelWindow {
         anchors.fill: parent
         color: Theme.color.material.thin.tint
         opacity: welcome.open ? 1 : 0
+
+        GlassPane { anchors.fill: parent; material: "thin" }
         Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
 
         // Something that changes with `asking`, so that a frame is drawn.
@@ -165,7 +168,7 @@ PanelWindow {
 
             Glass {
                 anchors.fill: parent
-                tint: Theme.color.material.thick.tint
+                material: "thick"
                 radius: Theme.radius.panel
                 shadow: Theme.color.shadow.window
             }

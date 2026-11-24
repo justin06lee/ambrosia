@@ -39,7 +39,7 @@ Item {
 
     Glass {
         anchors.fill: parent
-        tint: Theme.color.material.thick.tint
+        material: "thick"
         radius: strip.radius
         shadow: Theme.color.shadow.panel
         ring: true

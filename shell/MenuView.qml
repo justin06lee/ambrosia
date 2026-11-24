@@ -82,7 +82,7 @@ Item {
 
     Glass {
         anchors.fill: parent
-        tint: Theme.color.material.thick.tint
+        material: "thick"
         radius: Theme.radius.popover
         shadow: Theme.color.shadow.popover
     }

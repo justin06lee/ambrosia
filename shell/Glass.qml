@@ -2,17 +2,23 @@ import QtQuick
 import QtQuick.Effects
 import QtQuick.Shapes
 import Ambrosia
+import org.ambrosia.glass
 import "icons.js" as Icons
 
 // A glass surface, the recipe of preview/glass.css: the material's tint over
-// the compositor's blur (its window lists this item as a blur region), light
+// what the compositor shows through it (a GlassPane tells Ambrosia's KWin
+// effect where it is and of which material; under KWin's own blur the window
+// lists this item as a blur region instead), light
 // caught along its top edge, a specular ring lit from the top left, a
 // hairline edge outside, and an elevation's shadow cast around it but not
 // under it, so the glass is only as dark as its tint.
 Item {
     id: glass
 
-    property color tint: Theme.color.material.regular.tint
+    // One of the design's materials by name (thin, regular, thick, clear):
+    // its tint here, and how the compositor blurs and saturates behind it.
+    property string material: "regular"
+    property color tint: Theme.color.material[material].tint
     property real radius: Theme.radius.popover
     // One of Theme.color.shadow's elevations, or null for none.
     property QtObject shadow: null
@@ -78,6 +84,12 @@ Item {
             height: glass.height
             radius: glass.corner
         }
+    }
+
+    GlassPane {
+        anchors.fill: parent
+        material: glass.material
+        radius: glass.corner
     }
 
     Rectangle {

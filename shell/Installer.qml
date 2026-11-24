@@ -3,6 +3,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
 import Ambrosia
+import org.ambrosia.glass
 
 // Install Ambrosia, as an assistant of ours: the live image's installer
 // (`ambrosia install`, which /usr/local/bin/ambrosia-install runs there).
@@ -313,6 +314,8 @@ PanelWindow {
         anchors.fill: parent
         color: Theme.color.material.thin.tint
         opacity: installer.open ? 1 : 0
+
+        GlassPane { anchors.fill: parent; material: "thin" }
         Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
 
         // Something that changes with `asking`, so that a frame is drawn.
@@ -368,7 +371,7 @@ PanelWindow {
 
             Glass {
                 anchors.fill: parent
-                tint: Theme.color.material.thick.tint
+                material: "thick"
                 radius: Theme.radius.panel
                 shadow: Theme.color.shadow.window
             }

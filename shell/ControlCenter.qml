@@ -8,6 +8,7 @@ import QtQuick
 import QtQuick.Effects
 import QtQuick.Shapes
 import Ambrosia
+import org.ambrosia.glass
 import "icons.js" as Icons
 
 // The control center: one capsule module per control, on a grid of
@@ -63,6 +64,10 @@ Item {
         id: modules
         anchors.fill: parent
         opacity: cc.open ? 1 : 0
+
+        // What is behind the modules, only blurred: they carry the glass.
+        // First, so the modules' own panes lie over it.
+        GlassPane { anchors.fill: parent; material: "backdrop"; radius: Theme.radius.controlCenter }
 
         Behavior on opacity {
             NumberAnimation {
@@ -340,6 +345,8 @@ Item {
         color: Theme.color.material.thin.tint
         border.width: 1
         border.color: Theme.color.glass.rim
+
+        GlassPane { anchors.fill: parent; material: "thin"; radius: parent.radius }
     }
 
     // A round toggle: on is a solid circle, accent with a white glyph in light

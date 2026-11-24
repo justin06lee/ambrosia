@@ -9,6 +9,7 @@ import { adopted } from "../../design/icons";
 import { cursorTheme } from "./targets/cursors";
 import { ART, iconTheme, type Art } from "./targets/icons";
 import { fontEnvironment, fontconfig } from "./targets/fontconfig";
+import { glassTokens } from "./targets/glass";
 import { gtk3, gtk4, titlebuttonGlyphs } from "./targets/gtk";
 import { kdecoration } from "./targets/kdecoration";
 import { kde, kdeglobals } from "./targets/kde";
@@ -50,6 +51,7 @@ const files: Record<string, string | Uint8Array> = {
   "qml/Ambrosia/qmldir": qmldir,
   "kdecoration/tokens.h": kdecoration(r),
   "qstyle/tokens.h": qstyle(r),
+  "glass/tokens.h": glassTokens(),
   "fontconfig/50-ambrosia.conf": fontconfig(),
   "environment.d/50-ambrosia-fonts.conf": fontEnvironment(),
   // Everything resolved, for consumers without a dedicated target (the

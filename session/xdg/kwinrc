@@ -22,6 +22,12 @@ BorderActivate=9
 TopLeft=None
 
 [Plugins]
+# Glass is an effect of ours (glass/effect, in ambrosia-glass): each pane
+# blurs and saturates what is behind it as its material asks. Once it is up
+# it unloads KWin's blur, which stays switched on here for the day ours
+# can't load (it is built for one KWin version, and a newer KWin refuses it
+# until it is rebuilt): every glass then gets [Effect-blur] below.
+ambrosia_glassEnabled=true
 blurEnabled=true
 # Menus snap open, as the preview's do.
 fadingpopupsEnabled=false
@@ -62,12 +68,13 @@ AnimationDuration=400
 [Outline]
 QmlPath=kwin/outline/ambrosia/outline.qml
 
-# How glass treats what's behind it. KWin has one setting for every surface,
-# where the design asks for a light, untinted blur behind the control center
-# and a heavy, saturated one (160-180%) behind menus, the Dock and the menu
-# bar. KWin's defaults, a blur stronger than 9 and a saturation boost, turn
-# the control center's backdrop into a solid blue panel; the control center's
-# look wins: a middle strength, and saturation left as is (100 = 100%).
+# KWin's own blur, which only draws where our glass effect could not load.
+# It has one setting for every surface, where the design asks for a light,
+# untinted blur behind the control center and a heavy, saturated one
+# (160-180%) behind menus, the Dock and the menu bar. KWin's defaults, a blur
+# stronger than 9 and a saturation boost, turn the control center's backdrop
+# into a solid blue panel; the control center's look wins: a middle
+# strength, and saturation left as is (100 = 100%).
 [Effect-blur]
 BlurStrength=6
 Saturation=100
