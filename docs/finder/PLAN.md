@@ -197,6 +197,14 @@ Considered and passed over:
 > Mac with a floating sidebar, or (B) keep the house rule, flush. Justin
 > picked (A): Files' sidebar is the floating inset glass panel, an exception
 > to the house rule for this app only. The flush variant is dropped.
+>
+> **Seen 2026-11-25:** this Mac has since moved to macOS 27.2.1, whose
+> Finder draws its sidebar flush again: the window's whole left side, top
+> to bottom, the lights inside it, a little lighter than the content
+> (`#292624` beside `#222120` in dark, behind another window). Files stays
+> with 26's floating panel, which is what was decided; whether to follow 27
+> is Justin's to say. The panel is real glass since that day (GAPS, round
+> 41).
 
 ## 3. v1 scope
 
@@ -402,7 +410,9 @@ KIO and recorded in KIO's undo manager):
   KIO's undo.
 - The sidebar is swappable behind one interface (`SidebarList.qml` holds the
   shared contents). The default is the floating inset glass panel
-  (`Sidebar.qml`). The flush behind-window panel (`SidebarFlush.qml`) is
+  (`Sidebar.qml`): a pane of regular glass in the window in front where
+  the compositor has our effect (`Backing.qml` is the window's color with
+  a hole under it), solid otherwise. The flush behind-window panel (`SidebarFlush.qml`) is
   kept as an unpolished stub, chosen with `--sidebar flush` or
   `sidebar=flush` in `~/.config/ambrosia/files.conf`.
 - Not yet: a progress view for long copies (jobs run with KIO's progress

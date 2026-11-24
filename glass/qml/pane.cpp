@@ -73,6 +73,33 @@ private:
         };
         m_registry = wl_display_get_registry(wayland->display());
         wl_registry_add_listener(m_registry, &listener, this);
+
+        // That listener hears of the manager some time after the first
+        // frame, and a window that leaves a hole for its glass must know
+        // before it. So the compositor is asked once more on a queue of our
+        // own and waited for; the manager it names is bound at once.
+        static const wl_registry_listener asking = {
+            .global = [](void *data, wl_registry *, uint32_t name, const char *interface, uint32_t) {
+                if (std::strcmp(interface, ambrosia_glass_manager_v1_interface.name) == 0) {
+                    *static_cast<uint32_t *>(data) = name;
+                }
+            },
+            .global_remove = [](void *, wl_registry *, uint32_t) {},
+        };
+        uint32_t found = 0;
+        wl_event_queue *queue = wl_display_create_queue(wayland->display());
+        auto display = static_cast<wl_display *>(wl_proxy_create_wrapper(wayland->display()));
+        wl_proxy_set_queue(reinterpret_cast<wl_proxy *>(display), queue);
+        wl_registry *registry = wl_display_get_registry(display);
+        wl_proxy_wrapper_destroy(display);
+        wl_registry_add_listener(registry, &asking, &found);
+        wl_display_roundtrip_queue(wayland->display(), queue);
+        wl_registry_destroy(registry);
+        wl_event_queue_destroy(queue);
+        if (found && !m_manager) {
+            m_manager = static_cast<ambrosia_glass_manager_v1 *>(wl_registry_bind(m_registry, found, &ambrosia_glass_manager_v1_interface, 1));
+            m_name = found;
+        }
     }
 
     wl_registry *m_registry = nullptr;
@@ -234,6 +261,7 @@ private:
 GlassPane::GlassPane(QQuickItem *parent)
     : QQuickItem(parent)
 {
+    connect(GlassConnection::self(), &GlassConnection::managerChanged, this, &GlassPane::availableChanged);
 }
 
 GlassPane::~GlassPane()
@@ -271,6 +299,11 @@ void GlassPane::setRadius(qreal radius)
     m_radius = radius;
     Q_EMIT radiusChanged();
     changed();
+}
+
+bool GlassPane::available() const
+{
+    return GlassConnection::self()->manager() != nullptr;
 }
 
 int GlassPane::materialNumber() const

@@ -101,13 +101,15 @@ FocusScope {
     }
 
     // The columns that have scrolled away to the left, under the sidebar:
-    // blurred, they show in the window's margin around it.
+    // blurred, they show in the window's margin around it (and through the
+    // sidebar's glass, in the desktop's place: underSidebar).
+    readonly property bool underSidebar: sidebarEdge > 0 && strip.contentX > 0
     ShaderEffectSource {
         x: -pane.sidebarEdge
         y: Finder.windowRadius // clear of the window's rounded corner
         width: pane.sidebarEdge
         height: pane.height - y
-        visible: pane.sidebarEdge > 0 && strip.contentX > 0
+        visible: pane.underSidebar
         sourceItem: lane
         sourceRect: Qt.rect(strip.contentX - pane.sidebarEdge, y, width, height)
         layer.enabled: visible

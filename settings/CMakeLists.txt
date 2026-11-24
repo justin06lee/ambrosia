@@ -68,6 +68,7 @@ qt_add_qml_module(ambrosia-settings
         qml/PaneIcon.qml
         qml/TrafficLights.qml
         qml/Sidebar.qml
+        qml/Backing.qml
         qml/SearchField.qml
         qml/Toolbar.qml
         qml/Capsule.qml

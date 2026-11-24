@@ -116,6 +116,9 @@ QtObject {
     // tinted a little warm by its wallpaper).
     readonly property color window: dark ? "#272724" : "#ffffff"
     readonly property color sidebar: dark ? "#191916" : "#f8f8f8"
+    // The sidebar as glass (the window in front, where the compositor has
+    // our effect): its color over what shows through. Set by eye, as Files'.
+    readonly property color sidebarGlass: Qt.rgba(sidebar.r, sidebar.g, sidebar.b, dark ? 0.8 : 0.82)
     readonly property color sidebarRim: dark ? "#1affffff" : "#ffffff"
     readonly property color search: dark ? "#2f2f2e" : "#e4e4e4"
     readonly property color selectionInactive: dark ? "#464646" : "#dcdcdc"

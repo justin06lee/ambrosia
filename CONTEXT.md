@@ -1148,6 +1148,20 @@ package repo below), and they carry `shell/` and `session/` as they are.
     blur from fading at the screen's edge. KWin keeps QML it has loaded:
     an edited effect file shows after KWin starts again, not after
     `unloadEffect`.
+  - **An app's window under its own glass** (round 41: Files' and
+    Settings' sidebars). The window must be see-through there, so it must
+    know the glass is really behind it: `GlassPane.available` is true only
+    while the compositor offers the protocol, and the effect offers it only
+    while it is loaded (`GlassProtocol::announce`). The frame is then a
+    `Backing` (the window's color with a hole a pixel inside the pane) in
+    place of a filled rectangle; without the effect nothing changes. A
+    shadow under glass must be cut away (`maskInverted`), or the glass is
+    as dark as its shadow. Only the active window's sidebar is see-through
+    (`looksActive`). To try it in the VM: start the app inside the session
+    (`systemd-run --user ambrosia-settings`), or it comes up light; make it
+    active with a click; `/usr/local/bin/place X Y W H` there moves the
+    active window (a KWin script). `pkill -x` wants `ambrosia-settin`: a
+    process's name is 15 letters.
   - **To try it on a card without the session**: `tools/glass-try.sh
     out.png` (a headless KWin of its own; tenet's is NVIDIA on OpenGL ES,
     where KWin converts the `#version 140` shaders itself).

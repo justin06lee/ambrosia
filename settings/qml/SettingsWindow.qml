@@ -142,9 +142,19 @@ Window {
         id: frame
         anchors.fill: parent
         radius: Look.windowRadius
-        color: Look.window
+        // Under the sidebar's glass the window is open to the desktop.
+        color: sidebar.glassy ? "transparent" : Look.window
         border.width: 0.5
         border.color: Theme.dark ? "#33ffffff" : "#26000000"
+
+        Backing {
+            visible: sidebar.glassy
+            anchors.fill: parent
+            color: Look.window
+            radius: Look.windowRadius
+            hole: Qt.rect(sidebar.x, sidebar.y, sidebar.width, sidebar.height)
+            holeRadius: Look.sidebarRadius
+        }
 
         // The window moves by its toolbar's empty space and the sidebar's.
         // Off under a sheet: they'd take its clicks too (and its focus).

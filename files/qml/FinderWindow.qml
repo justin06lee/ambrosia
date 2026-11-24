@@ -820,9 +820,22 @@ Window {
         id: frame
         anchors.fill: parent
         radius: Finder.windowRadius
-        color: Finder.content
+        // Under the sidebar's glass the window is open to the desktop,
+        // unless columns have scrolled in under it.
+        readonly property bool glassy: sidebar.item?.glassy ?? false
+        color: glassy ? "transparent" : Finder.content
         border.width: 0.5
         border.color: Theme.dark ? "#33ffffff" : "#26000000"
+
+        Backing {
+            visible: frame.glassy
+            anchors.fill: parent
+            color: Finder.content
+            radius: Finder.windowRadius
+            hole: Qt.rect(sidebar.x, sidebar.y, sidebar.width, sidebar.height)
+            holeRadius: Finder.sidebarRadius
+            open: !(pane.item?.underSidebar ?? false)
+        }
 
         Keys.onPressed: (event) => win.keyPressed(event)
 

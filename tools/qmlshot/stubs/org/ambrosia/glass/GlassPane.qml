@@ -5,4 +5,5 @@ import QtQuick
 Item {
     property string material: "regular"
     property real radius: 0
+    readonly property bool available: false
 }

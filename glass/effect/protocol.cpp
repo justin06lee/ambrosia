@@ -13,6 +13,7 @@
 #include "wayland_server.h"
 #include "window.h"
 
+#include <QTimer>
 #include <qqml.h>
 
 #include <wayland-server-core.h>
@@ -127,10 +128,25 @@ GlassProtocol *GlassProtocol::self()
 
 GlassProtocol::GlassProtocol()
 {
-    wl_display *display = *KWin::waylandServer()->display();
-    m_global = wl_global_create(display, &ambrosia_glass_manager_v1_interface, 1, nullptr, managerBind);
     connect(this, &GlassProtocol::changed, this, &GlassProtocol::panesChanged);
     qmlRegisterSingletonInstance("org.ambrosia.glass.kwin", 1, 0, "Panes", this);
+}
+
+void GlassProtocol::announce(bool up)
+{
+    if (up && !m_global) {
+        wl_display *display = *KWin::waylandServer()->display();
+        m_global = wl_global_create(display, &ambrosia_glass_manager_v1_interface, 1, nullptr, managerBind);
+    } else if (!up && m_global) {
+        // Clients are told it has gone now; it is taken down a while later,
+        // once any of them still binding it has been answered.
+        wl_global *gone = m_global;
+        m_global = nullptr;
+        wl_global_remove(gone);
+        QTimer::singleShot(5000, this, [gone]() {
+            wl_global_destroy(gone);
+        });
+    }
 }
 
 QVariantList GlassProtocol::panesOf(QObject *window) const
