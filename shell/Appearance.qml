@@ -29,8 +29,15 @@ Singleton {
         if (Settings.loaded)
             tellGtk();
     }
+    // Once things have settled: at the start the settings arrive in pieces,
+    // and two of these at once would each rewrite the same two files.
     function tellGtk() {
-        Quickshell.execDetached(["/usr/lib/ambrosia/gtk-appearance", Settings.dark ? "dark" : "light"]);
+        gtk.restart();
+    }
+    Timer {
+        id: gtk
+        interval: 500
+        onTriggered: Quickshell.execDetached(["/usr/lib/ambrosia/gtk-appearance", Settings.dark ? "dark" : "light"])
     }
 
     Connections {
