@@ -545,8 +545,8 @@ it is a copy.
     fourteen, no startup chime, no sound for a sent mail or a finished
     copy, none of the sounds apps bring; the pop plays at each step, a
     Mac's only when the key is let go.
-24. **The first minutes: a new account is welcomed, seen on KWin; the
-    installer still asks with kdialog.** Since round 33 an account's first
+24. **The first minutes: a new account is welcomed and the installer is
+    an assistant of ours, both seen on KWin.** Since round 33 an account's first
     login ends as a Mac's setup does (`shell/Welcome.qml`): over the whole
     first screen, the desktop blurred behind it, a panel of glass says
     Welcome to Ambrosia under the mark, then Choose Your Look: Light,
@@ -567,12 +567,38 @@ it is a copy.
     choice where a Mac asks a dozen (language, region, accessibility,
     an account online, Siri, the screen's time); no "hello" in many
     languages before it, no sound; the pictures are drawn, not the
-    desktop itself in each look. An app that opens while it is up (one
-    started by the session; nothing can be clicked under it) takes the
-    keyboard from it, and Return then does nothing until it is clicked
-    (seen in the test VM in round 35, with apps started by command). The installer is the other half and
-    still asks with kdialog in a Konsole window (our controls, KDE's
-    flow): an assistant of our own is not built.
+    desktop itself in each look. An app that opens while it is up used to
+    take the keyboard from it for good (seen in round 35); since round
+    37 it and the installer take it back at once. The installer is the other half. Since
+    round 37 it is an assistant of the shell's (`shell/Installer.qml`,
+    opened by `ambrosia install`, which the live image's
+    `ambrosia-install` runs), on the welcome's panel over the blurred
+    desktop: Install Ambrosia; Connect to the Internet, only when there
+    is none (the Wi-Fi networks in reach, a password, or a cable; it
+    moves on by itself once connected); Choose a Disk (each as a tile);
+    Create Your Account (name, account name following it, password
+    twice); Select Your Time Zone (guessed, searchable); Ready to Install,
+    which says what will be erased; a bar that fills with what it is
+    doing under it; Ambrosia Is Installed and Restart, or what went wrong
+    and Show Log. Return continues, Escape goes back, Tab moves between
+    fields, the arrows choose. The computer is named after the account
+    (`minas-ambrosia`), as a Mac names itself, and no longer asked for.
+    The script does the asking of the system and all of the work
+    (`ambrosia-install disks|online|wifi|join|timezone|timezones|run`);
+    its old dialogs remain as `ambrosia-install --dialogs`, which it
+    falls back to when the shell can't be asked. Seen from an image built that day
+    (2026-11-25): the live image opened it by itself, and by the VM's
+    keyboard alone it installed for real onto an empty disk in about
+    three and a half minutes; the disk then started at our login screen
+    as Mina Park, on Seoul's time, the new account was welcomed, and a
+    terminal's prompt read `mina@minas-ambrosia`. Wi-Fi was not: no VM
+    has any, so the list and joining were run against a stand-in
+    `nmcli` only, and the page was seen on the Mac's sheets. Short of a
+    Mac's: no language or keyboard to choose (English, US), no choice of
+    part of a disk or of keeping what is on it, no disk password, no
+    time left to say while it installs (the bar follows pacman's count
+    of packages), the time zones are a list and not a map, and it
+    installs in one pass where a Mac restarts into its setup.
 
 ### Apps
 
@@ -609,6 +635,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 37, 2026-11-25 | 24, the installer | `shell/Installer.qml` (a layer surface as the welcome's; pages as inline `Page`s, `Field` a focus scope round a TextInput, `Asked` a named field with its hint, `Choice` a list's row; the script's answers through `Process`es, the answers to `run` written to its input and `progress FRACTION words` lines read back), `Popups.installerOpen`, the shell's IPC `install` and `ambrosia install` (only where the live image's script is), `size.installer` tokens, the `drive` and `warning` icons. `iso/airootfs/usr/local/bin/ambrosia-install` reworked into subcommands, a progress filter over the root half's output (pacman's count of packages, each named as fetched and as installed), `AMBROSIA_INSTALL_PRETEND=1` and `--dialogs`; the launcher no longer opens a terminal. Sheets: `desktop-install` and eight more, one a page, on `parts/Installing.qml`, which answers for the script; the stand-in `Process` can now end with a code. | `make shell-shots`: nine pages, light and dark, driven by keys. Test VM (the installed system, the script in pretend mode): opened by `ambrosia install` and gone through by the VM's keyboard alone, Return, Tab and typing: the disk, the account (the account name followed the full name; Continue dimmed until the passwords matched), the time zones (598, the guessed one in view; typing "seo" chose Seoul), Ready to Install, the bar filling over half a minute, Ambrosia Is Installed; a run killed midway showed The Installation Couldn't Finish. `wifi` and `join` against a stand-in `nmcli`: strongest first, a name twice listed once, a colon in a name kept, hidden ones left out, an open network joined without a password, a refused one reported. The image (`sudo make iso`, packages r487) in a UEFI VM with an empty 40 GB disk: the live desktop came up with the assistant open; Return, the disk tile, "Mina Park", Tab, Tab, the password twice, Return, "seoul", Return, Ready to Install, Return; the bar reached "Installing the system…" at 45 s and Ambrosia Is Installed by 3.5 min. Booted from the disk: our login screen with Mina Park at 3:49 (Seoul), password, the welcome, Search to a terminal: `[mina@minas-ambrosia ~]$`, `Timezone=Asia/Seoul`, ambrosia-shell r487. That install is kept as `out/vm/fresh-1125.qcow2` (user mina, password nectar). Not seen: Wi-Fi for real, a BIOS computer, two disks, the failure page from a real failure, the dialogs' fallback. The keyboard's return after a window opens over the welcome (a later commit) was seen on that install: the log's `Window.active` went true, false, true as Konsole opened, and Return moved the welcome on. |
 | 36, 2026-11-25 | 23, sounds | `design/sounds.ts` (seven recipes: layers of struck tones with partials, band-kept noise bursts, grains) and `tools/gen/targets/sounds.ts` (a seeded synthesizer, 48 kHz 16-bit WAVs, `index.theme` inheriting Ocean, the other names as links) into `dist/sounds/ambrosia`; `tools/gen/sounds.test.ts`. The session names the theme (`[Sounds] Theme` in the generated kdeglobals, GTK's `org.gnome.desktop.sound theme-name` in dconf) and has the volume pop off (`session/xdg/plasmaparc`). `session/sound` (`/usr/lib/ambrosia/sound NAME`, in ambrosia-theme: the theme chosen, what it inherits, freedesktop; `paplay` in the event role). Played by `shell/Screenshot.qml`, the Dock's Empty Trash and Files' `FileOps::trash`. Found on the way: the Dock's Empty Trash had never emptied anything (`kioclient empty-trash` is no command; now `ktrash6 --empty`). | `bun test` (9 tests of the waveforms). Test VM, the files copied in, a new login: the helper played our alert, crumple and a linked name, Ocean's for a sound we lack, nothing for an unknown one (the server's streams listed while they played); the alert recorded from the null sink's monitor measured peak -6.0 dB, 660 Hz, 255 ms; `strace` showed libcanberra (`canberra-gtk-play -i bell`) and KWin (a GTK 4 window's `beep()`) opening `ambrosia/stereo/bell.wav`; the volume key cached no sample by default and `ambrosia/stereo/audio-volume-change.wav` once switched on; `ambrosia screenshot screen` played the shutter; Empty Trash from the Dock's menu played the crumple and left the Trash empty (2 files to 0). From packages r484 there, a new login: the links are links, Files played the thump for a file moved to the Trash through its DBus `Trash` and the shell's fallback did with Files closed (a later commit, copied in), Settings' Sound showed Ambrosia as the alert sound with the feedback switch off, and F11 slid the windows off and back (round 35's script, from the package). Never heard: the VM has no sound card and nobody listened; on tenet the files are installed and nothing was played. |
 | 35, 2026-11-25 | 15, Show Desktop's keys | `session/kwin-scripts/ambrosia_desktop`, a KWin script: a script is told of KWin's Show Desktop only window by window (`hiddenByShowDesktopChanged`), so at the first one it waits for KWin's pass to end (a `QTimer` of 0 ms), toggles KWin's off again and presses `Ambrosia Show Desktop` through kglobalaccel. `kwinrc` enables it and switches off KWin's two Show Desktop animations (`windowaperture`, `eyeonscreen`). keyd's `[main]` sends F11 as Super+Ctrl+Alt+D. | Test VM on packages r479 with the three files copied in: KWin's `Show Desktop` shortcut pressed by name, `org.kde.KWin.showDesktop true` over DBus and F11 at the VM's keyboard each slid the windows off with the wallpaper, menu bar and Dock in place (a picture mid-slide, one after) and brought them back; eight shortcut presses 150 ms apart and six DBus on/off pairs, then no KWin core dump and `showingDesktop` false. Not on tenet: its running KWin has neither the script nor the effect's Show Desktop until the next login. |
 | 34, 2026-11-25 | 15, trackpad gestures | In `ambrosia_mission/contents/ui/main.qml`: three-finger swipes up and down beside the four-finger ones; `PinchGestureHandler`s for four fingers, which press shortcuts by name through kglobalaccel (`DBusCall`: Search's `_launch`, the windows effect's `Ambrosia Windows Aside` and `Ambrosia Windows Back`). In `ambrosia_windows/contents/code/main.js`: Show Desktop (`showDesktop`, `left`, `showWindows`; a held `set` Translation per window off its nearest edge, a twin animation to say when it is over, then minimized into `aside`; back by cancelling the hold, unminimizing quietly and sliding in), three shortcuts. `tools/fake-touchpad.py` now in the repo, with `swipe N DIR` and `pinch N in|out` | `bun test`, the Mission Control sheet. In the test VM as the new account, with `KWIN_EFFECTS_FORCE_ANIMATIONS=1` (KWin on software rendering loads no animation effect otherwise): swipes of 3 and 4 fingers each way (the desktop's id changing and changing back; `ambrosia_mission` among the active effects and gone again), spread (the screen's row 500 bare wallpaper), pinch (the windows where they were), pinch again (Search's panel), a new window while the desktop was shown (all back). Found on the way: KWin's own Show Desktop blackens our screen (so ours); the first version cancelled and started animations inside `animationEnded` and KWin crashed 3.5 s later in `AnimationEffect::postPaintScreen` (four core dumps): nothing there but minimizing now; a window closed mid-slide was held for good (`keepAlive: false`). Then the stress run of the gap's text: no new dump, `activeEffects` back to `blur`. From the r479 packages in the VM after a restart: spread, pinch and three fingers up again, no dump. On tenet the packages are in; its running KWin keeps the effects it loaded, so there they start with the next login (and it has no trackpad) |

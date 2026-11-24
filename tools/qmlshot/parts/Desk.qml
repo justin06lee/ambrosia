@@ -17,6 +17,7 @@ Item {
     readonly property alias bar: bar
     readonly property alias dock: dock
     readonly property alias welcome: welcome
+    readonly property alias installer: installer
     // What the app in front publishes as its menus (see DBusMenuSource).
     property var menus: [
         { text: "File", children: [
@@ -65,4 +66,5 @@ Item {
     Search { screen: desk.screen; home: desk.screen }
     Notifications {}
     Welcome { id: welcome; home: desk.screen }
+    Installer { id: installer; home: desk.screen }
 }

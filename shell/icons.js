@@ -76,6 +76,10 @@ var glyphs = {
     download: { stroke: circle(12, 12, 8.5) + "M12 7.5v8M8.5 12.5 12 16l3.5-3.5" },
     trash: { stroke: "M5 7h14M9.5 7V5h5v2M6.5 7l1 12.5h9l1-12.5M10 10.5v6M14 10.5v6" },
     lock: { stroke: rect(5, 10.5, 14, 10, 2.5) + "M8 10.5V8a4 4 0 0 1 8 0v2.5" },
+    // The installer's (Installer.qml): a disk inside a computer, with its
+    // light, and a warning's triangle.
+    drive: { stroke: rect(3.5, 6.5, 17, 11, 2.5) + "M3.5 13.5h17M15 15.5h2.5", width: 1.2 },
+    warning: { stroke: "M12 4.5 3.5 19h17zM12 10v4.5M12 16.8v.2", width: 1.4 },
     power: { stroke: "M12 3.5v8M7.2 6.3a7.5 7.5 0 1 0 9.6 0" },
     globe: {
         stroke: circle(12, 12, 8.5) +

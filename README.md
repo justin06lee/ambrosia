@@ -74,8 +74,9 @@ the installer lists `[ambrosia]` first in their pacman.conf, and
 `ambrosia-keyring` trusts its key.
 
 `dd` the image onto a USB drive and boot it (UEFI). It starts a live Ambrosia
-desktop and opens the installer, which asks for a disk, a name and a password
-and does the rest; the installer needs the internet. Installing the packages
+desktop and opens the installer, an assistant of our own that asks for a disk,
+a name, a password and a time zone and does the rest; the installer needs the
+internet (it offers the Wi-Fi networks in reach when there is none). Installing the packages
 with `pacman -U` on an existing Arch system adds an "Ambrosia" session to the
 login screen instead. `tools/remote.sh <host> <command>` runs a command in the
 build box's own git checkout, synced from this one over SSH, and `tools/shot.sh`
@@ -159,7 +160,7 @@ shell/         the shell in QML for Quickshell: wallpaper, the desktop's icons a
                status items) and menus, Search,
                Dock, control center, notifications, Force Quit, the emoji picker (its list, emoji.js, is written
                by tools/emoji.ts), password prompts (the shell is the polkit agent),
-               a new account's welcome (Choose Your Look),
+               a new account's welcome (Choose Your Look), the installer's assistant (Installer.qml),
                the volume and brightness keys' display,
                a screenshot's thumbnail in the corner,
                the plain tile under app icons that have none (AppTile.qml)
@@ -188,7 +189,8 @@ docs/settings/ the Settings plan: the panes, their backends, the order of work
 packaging/     PKGBUILDs: ambrosia-* and the Quickshell rebuild (with our DBusMenuSource patch),
                the repo's public key (keyring/), the os-release that names the system,
                what switches on the picture while starting up (plymouth/)
-iso/           the archiso profile: live desktop, installer (ambrosia-install)
+iso/           the archiso profile: live desktop, installer (ambrosia-install: the script under
+               the shell's assistant, shell/Installer.qml)
 preview/       the mock desktop, styled only from dist/web/tokens.css; glass.css is shared
 site/          the design review site and its server
 assets/        banner, icon and the "nectar" day/night wallpapers
@@ -225,8 +227,8 @@ assets/        banner, icon and the "nectar" day/night wallpapers
    Breeze for the rest.
 6. **Apps**: the core first-party apps. Open and Save in other apps are
    Files' own panels already, through the desktop portal.
-7. **Onboarding**: a first-party onboarding app in place of the installer
-   script (asking Mac-first or Linux-first). The picture while starting up
+7. **Onboarding**: the installer is an assistant of our own and a new
+   account is welcomed; asking Mac-first or Linux-first is still to do. The picture while starting up
    is there already.
 
 Later: an ARM64 build for the Jetson Orin Nano.

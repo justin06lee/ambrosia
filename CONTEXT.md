@@ -67,8 +67,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
   - `iso/`: archiso profile from Arch's releng: live user autologin into the
     Ambrosia session, NetworkManager, the Ambrosia packages as a local repo on
     the image (`/opt/ambrosia/repo`, listed first in pacman.conf), and the
-    installer (`ambrosia-install` asks with kdialog and joins Wi-Fi itself when
-    offline, `ambrosia-install-system` installs as root; UEFI only; needs the
+    installer (`ambrosia-install` opens the shell's assistant,
+    `shell/Installer.qml`, and answers its questions; `--dialogs` asks with
+    kdialog instead; `ambrosia-install-system` installs as root; needs the
     internet).
   - **The package repo** (2026-10-20): installed systems update from
     `[ambrosia]`, the rolling `repo` release of the public
@@ -576,6 +577,35 @@ package repo below), and they carry `shell/` and `session/` as they are.
    test VM: remove the user's settings.json and
    `~/.local/state/quickshell/by-shell/*/settings.json`, restart
    ambrosia-shell. Its sizes are `size.welcome` in the tokens.
+   **The installer is an assistant of the shell's** (round 37,
+   2026-11-25, `shell/Installer.qml`, `Popups.installerOpen`, `ambrosia
+   install`): pages on the welcome's panel; nothing in it touches a disk.
+   The live image's `/usr/local/bin/ambrosia-install` is its other half:
+   `disks`, `online`, `wifi`, `join SSID` (password on standard input),
+   `timezone`, `timezones` print tab-separated lines; `run` reads
+   `key=value` lines and then `start` from standard input (it must not
+   wait for the end of input: Quickshell's `Process` keeps the pipe
+   open) and prints `progress FRACTION words`, then `done` or `failed`.
+   To look at the assistant without a disk to lose, on any installed
+   system: put the script somewhere, a wrapper at
+   `/usr/local/bin/ambrosia-install` that sets
+   `AMBROSIA_INSTALL_PRETEND=1` and runs it, then `ambrosia install`.
+   With no arguments the script asks the shell for ten seconds (it may
+   still be starting at login) and then opens the old dialogs in a
+   terminal. A window that opens while it or the welcome is up takes
+   the keyboard: KWin hands a layer surface the keyboard at the moment
+   it starts to ask (`handleAcceptsFocusChanged`), not for as long as it
+   asks. Both watch `Window.active` and, when it goes, stop asking for
+   80 ms and ask again; Quickshell sends a changed keyboard mode only
+   with the window's next frame, so the change must draw one (the 1 px
+   `redrawn`). `quickshell log --path /usr/share/ambrosia/shell` is
+   where the shell's `console.log` goes, not the journal.
+   **Seen from an image** (`ambrosia-2026.11.24`, built 2026-11-25 from
+   r487): `tools/vm.sh live` with `VM_DISK` a new file, the assistant
+   driven by `tools/vm.sh key` and `type`, the install real, then
+   `tools/vm.sh installed`. Kept as `out/vm/fresh-1125.qcow2` with
+   `vars-fresh-1125.fd` (user mina, password nectar; `tools/vm-try.sh`
+   takes it by `VM_TRY_DISK` and `VM_TRY_VARS`).
    **Sounds** (round 36, 2026-11-25): a freedesktop sound theme of ours,
    `ambrosia`, synthesized at build from recipes (`design/sounds.ts`:
    layers of tones, noise bursts, grains; `tools/gen/targets/sounds.ts`
