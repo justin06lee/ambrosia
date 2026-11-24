@@ -377,12 +377,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
    socket every 0.2 s: the splash is up for under two seconds in the VM).
    `plymouthd --mode=boot --tty=tty1; plymouth show-splash` with SDDM
    stopped holds it still, and `plymouth ask-for-password` shows the
-   field. **Not run yet:** the installer's own use of it and the live
-   image's splash (`iso/`: the package, the hook in `archiso.conf`,
-   `quiet splash` on the first entries, `etc/plymouth/plymouthd.conf`).
-   The next `sudo make iso` should be followed by `tools/vm.sh live`,
-   `install` and `installed`, photographed while starting (`install`
-   deletes `out/vm/vars.fd`; give it `VM_DISK` to spare `disk.qcow2`).
+   field. **Run from an image** (2026-11-24, `ambrosia-2026.11.24`): the
+   live image and an install made from it both start behind the picture.
+   `tools/vm.sh install` deletes `out/vm/vars.fd` (and stale variables
+   make `live` hang in the firmware: delete the file first); give it
+   `VM_DISK` to spare `disk.qcow2`. `tools/vm-try.sh` takes
+   `VM_TRY_DISK` and `VM_TRY_VARS` to copy another install than
+   `fresh.qcow2`: that day's is kept as `out/vm/fresh-1124.qcow2` with
+   `vars-fresh-1124.fd` (today's Arch, KDE 6.8.3, plymouth on; user
+   test, password ambrosia).
    **The shell is the polkit agent** (round 28, `shell/Authorization.qml`
    on `Quickshell.Services.Polkit`): a session has one agent, so
    `plasma-polkit-agent.service` has a drop-in that skips it in our
