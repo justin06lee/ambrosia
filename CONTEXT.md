@@ -537,7 +537,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
    swipe switches desktops). An effect can't run a program or call
    another effect, so the pinches press shortcuts by name through
    kglobalaccel (`KWin.DBusCall`, `invokeShortcut`). Show Desktop is in
-   `ambrosia_windows/contents/code/main.js`. Three traps from building
+   `ambrosia_windows/contents/code/main.js`; KWin's own (Super+D, an
+   app's request, `org.kde.KWin.showDesktop`) would hide the shell's
+   wallpaper and menu bar, so `session/kwin-scripts/ambrosia_desktop`
+   switches it off the moment it comes on and presses ours (round 35; a
+   script hears of it only as each window's `hiddenByShowDesktopChanged`,
+   from inside KWin's pass over the windows, so it acts on a 0 ms timer). Three traps from building
    it: KWin emits `animationEnded` from inside its own pass over the
    animations, so a handler there must not `animate`, `set` or `cancel`
    (it crashed KWin seconds later; it may minimize); a `set` or

@@ -44,6 +44,13 @@ ambrosia_tilesEnabled=true
 # would answer the same gesture.
 overviewEnabled=false
 ambrosia_missionEnabled=true
+# Show Desktop is ours too (the windows effect: they slide off, the shell
+# stays). KWin's own would hide the shell's wallpaper and menu bar, so a
+# script of ours (session/kwin-scripts/ambrosia_desktop) turns every request
+# for it into ours, and KWin's animation for it is off.
+ambrosia_desktopEnabled=true
+windowapertureEnabled=false
+eyeonscreenEnabled=false
 
 # The Genie at a Mac's unhurried pace (KWin's own is 250 ms). By eye:
 # there is no recording to measure yet.
