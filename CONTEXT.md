@@ -672,9 +672,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
    whose text wrapped was overlapped by the next app's, and the Dock
    placed its menus by `mapToItem(null)` (now its own `contentItem`).
    Still apart from the preview: Breeze's menu radius and row height (ours once
-   the style above is switched on), real apps' icons (no Ambrosia icon theme),
-   and the bend at a pane's rim. (Per-surface blur and saturation came
-   with the glass effect, 2026-11-25: see "Glass" under the traps.)
+   the style above is switched on), real apps' icons (no Ambrosia icon theme).
+   (Per-surface blur and saturation, and the rim's bend, came with the
+   glass effect, 2026-11-25: see "Glass" under the traps.)
 2. Gaps in the shell (Shell lane, 2026-11-10). **Notification Center** is
    on the clock, as macOS 26 (`NotificationCenter.qml`, its store
    `NotificationStore.qml`, one card for it and the banners): past
@@ -1124,6 +1124,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
     and `mv` over, or let pacman. A changed effect needs KWin started again
     (it is linked never to unload: clients' glass objects call into it
     until KWin ends).
+  - **The rim** (the design's refraction) is in the last pass only
+    (`shaders/onscreen.frag`): the picture read further out along the
+    outline's normal. The effect captures a pane's own rectangle and no
+    more, so past the edge it reads the edge (clamped): a margin round the
+    pane would need repaints KWin doesn't promise there (its
+    `BackgroundEffectItem` is cut to the window), and the cache would go
+    stale. To see a bend, photograph the same screen before and after and
+    compare a row through an edge with `tools/px.py`: it is a few levels
+    behind a light blur and none behind a heavy one.
   - **To try it on a card without the session**: `tools/glass-try.sh
     out.png` (a headless KWin of its own; tenet's is NVIDIA on OpenGL ES,
     where KWin converts the `#version 140` shaders itself).

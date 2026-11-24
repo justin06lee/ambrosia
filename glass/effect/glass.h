@@ -13,6 +13,7 @@
 #include "scene/item.h"
 
 #include <QList>
+#include <QVector3D>
 #include <QVector4D>
 
 #include <memory>
@@ -134,6 +135,8 @@ private:
         int cornerRadiusLocation;
         int opacityLocation;
         int noiseLocation;
+        int rimLocation;
+        int texelLocation;
     } m_onscreenPass;
 
     struct
