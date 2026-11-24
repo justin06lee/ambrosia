@@ -79,13 +79,15 @@ PanelWindow {
         }
     }
 
+    // The shortcuts beside our own rows are the Mac-first keyboard's
+    // (docs/keyboard.md): only chords that do the row's thing are named.
     function ambrosiaMenu() {
         return [
             { text: "About This Computer", action: () => Session.settings("about") },
             { separator: true },
             { text: "System Settings…", action: () => Session.settings() },
             { separator: true },
-            { text: "Force Quit…", action: () => Popups.toggleForceQuit(bar.screen) },
+            { text: "Force Quit…", shortcut: "⌥⌘⎋", action: () => Popups.toggleForceQuit(bar.screen) },
             { separator: true },
             { text: "Sleep", action: () => Session.sleep() },
             { text: "Restart…", action: () => Popups.confirm(bar.screen, {
@@ -95,7 +97,7 @@ PanelWindow {
                 title: "Are you sure you want to shut down your computer now?",
                 text: "Open apps are asked to close first.", accept: "Shut Down", action: () => Session.shutDown() }) },
             { separator: true },
-            { text: "Lock Screen", action: () => Session.lock() },
+            { text: "Lock Screen", shortcut: "⌃⌘Q", action: () => Session.lock() },
             { text: `Log Out ${Session.userName}…`, action: () => Popups.confirm(bar.screen, {
                 title: "Are you sure you want to quit all apps and log out now?",
                 accept: "Log Out", action: () => Session.logOut() }) },
@@ -112,11 +114,11 @@ PanelWindow {
         ];
         const row = Apps.activeRow;
         return [
-            { text: `Hide ${Apps.activeName}`, action: () => Apps.hideFront() },
-            { text: "Hide Others", action: () => Apps.hideOthers() },
+            { text: `Hide ${Apps.activeName}`, shortcut: "⌘H", action: () => Apps.hideFront() },
+            { text: "Hide Others", shortcut: "⌥⌘H", action: () => Apps.hideOthers() },
             { text: "Show All", action: () => Apps.showAll() },
             { separator: true },
-            { text: `Quit ${Apps.activeName}`, action: () => Apps.quit(row) },
+            { text: `Quit ${Apps.activeName}`, shortcut: "⌘Q", action: () => Apps.quit(row) },
         ];
     }
 
@@ -124,12 +126,12 @@ PanelWindow {
         const window = Apps.focusedWindow();
         const any = window.row >= 0;
         return [
-            { text: "Minimize", enabled: any, action: () => Apps.minimizeWindow(window) },
+            { text: "Minimize", shortcut: "⌘M", enabled: any, action: () => Apps.minimizeWindow(window) },
             { text: "Zoom", enabled: any, action: () => Apps.zoomWindow(window) },
             { text: "Center", enabled: any, action: () => Apps.placeWindow(window, "Window Move Center") },
             { separator: true },
             { text: "Move & Resize", enabled: any, submenu: () => Apps.placeEntries(window) },
-            { text: "Enter Full Screen", enabled: any, action: () => Apps.fullScreenWindow(window) },
+            { text: "Enter Full Screen", shortcut: "⌃⌘F", enabled: any, action: () => Apps.fullScreenWindow(window) },
             { separator: true },
             { text: "Close Window", enabled: any, action: () => Apps.closeWindow(window) },
         ];
