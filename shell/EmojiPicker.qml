@@ -21,7 +21,7 @@ Item {
     property var pointer: undefined
 
     // Every emoji, read from emoji.js the first time this opens: a list of
-    // { title, glyph, items }, an item { emoji, name, words }.
+    // { title, glyph, items }, an item { emoji, name, key, words }.
     property var groups: []
     readonly property var glyphs: ["face", "paw", "cup", "ball", "car", "bulb", "heart", "flag"]
     function load() {
@@ -31,7 +31,8 @@ Item {
             glyph: glyphs[at],
             items: group[1].split("\n").map(line => {
                 const parts = line.split("\t");
-                return { emoji: parts[0], name: parts[1], words: parts[2] ?? "" };
+                // `key` is the name as it is searched: a flag's has capitals.
+                return { emoji: parts[0], name: parts[1], key: parts[1].toLowerCase(), words: parts[2] ?? "" };
             }),
         }));
     }
@@ -92,20 +93,26 @@ Item {
         list.positionViewAtBeginning();
     }
 
-    // The emoji a query finds, best first: a name that starts with it, a
-    // word of the name that does, a word it is found by that does. Every
-    // word typed has to find it.
+    // The emoji a query finds, best first: the name itself, a whole word of
+    // the name, a name that starts with it, a word of the name that does,
+    // then the same for the words it is found by. Every word typed has to
+    // find it.
     function find(q) {
         const parts = q.split(/\s+/).filter(part => part !== "");
         const found = [];
         for (const group of groups) {
             for (const item of group.items) {
+                const names = item.key.split(/[\s:,-]+/);
+                const words = item.words.split(" ");
                 let total = 0;
                 for (const part of parts) {
                     let score = 0;
-                    if (item.name.startsWith(part)) score = 4;
-                    else if (item.name.split(/[\s:,-]+/).some(word => word.startsWith(part))) score = 3;
-                    else if (item.words.split(" ").some(word => word.startsWith(part))) score = 2;
+                    if (item.key === part) score = 7;
+                    else if (names.includes(part)) score = 6;
+                    else if (item.key.startsWith(part)) score = 5;
+                    else if (names.some(word => word.startsWith(part))) score = 4;
+                    else if (words.includes(part)) score = 3;
+                    else if (words.some(word => word.startsWith(part))) score = 2;
                     if (score === 0) {
                         total = 0;
                         break;
@@ -171,6 +178,8 @@ Item {
         pointer = undefined;
         list.positionViewAtBeginning();
         field.forceActiveFocus();
+        // A read-only field hides its caret unless told.
+        field.cursorVisible = true;
     }
 
     width: size.columns * size.cell + 2 * size.padding
@@ -216,9 +225,22 @@ Item {
             selectionColor: Theme.accent.highlight
             clip: true
             focus: panel.visible
+            // Not a field as the input method sees one: while the picker
+            // has the keyboard, the session's input method must have no
+            // field to write to, or the choice would be typed here as this
+            // closes (ambrosia-input writes to the field that is active).
+            // Read-only is how Qt is told that; the keys are put in by hand.
+            readOnly: true
 
             Keys.onPressed: event => {
+                const command = event.modifiers & (Qt.ControlModifier | Qt.MetaModifier);
                 switch (event.key) {
+                case Qt.Key_Backspace:
+                case Qt.Key_Delete:
+                    if (command) text = "";
+                    else if (selectedText !== "") remove(selectionStart, selectionEnd);
+                    else if (cursorPosition > 0) remove(cursorPosition - 1, cursorPosition);
+                    break;
                 case Qt.Key_Escape:
                     if (text !== "") text = "";
                     else Popups.close();
@@ -240,9 +262,20 @@ Item {
                     panel.accept();
                     break;
                 default:
-                    return;
+                    if (event.matches(StandardKey.Paste)) {
+                        write(Quickshell.clipboardText.split("\n")[0]);
+                        break;
+                    }
+                    // A letter, a digit, a space: anything that prints.
+                    if (command || (event.modifiers & Qt.AltModifier) || event.text === "" || event.text.charCodeAt(0) < 32 || event.text.charCodeAt(0) === 127)
+                        return;
+                    write(event.text);
                 }
                 event.accepted = true;
+            }
+            function write(letters) {
+                if (selectedText !== "") remove(selectionStart, selectionEnd);
+                insert(cursorPosition, letters);
             }
 
             Label {

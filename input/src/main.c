@@ -13,9 +13,15 @@
 // front, by the same road a Japanese or Chinese input method's text takes.
 //
 // The shell's picker has the keyboard while it is up, so the app's field is
-// inactive at the moment a choice is made, and comes back a few milliseconds
-// after the picker closes. A request therefore waits: for the field to be
-// active and to have stayed so for a moment, or to give up after a second.
+// inactive at the moment a choice is made, and comes back after the picker
+// closes, in two steps: KWin hands it the text focus at once (the app sends
+// its state: `commit_state`), and the keyboard a little later (50 to 100 ms,
+// seen on KWin 6.8), at which the app sends its state again. Qt drops text
+// that arrives between the two, having no focused object to give it to, and
+// nothing tells us. So a request waits for a field that has gone quiet: one
+// that has sent its state twice since it became active and nothing for a
+// moment, or nothing at all for a longer while (a field that was active all
+// along, or an app that sends once). It gives up after a second and a half.
 #define _GNU_SOURCE
 #include <errno.h>
 #include <poll.h>
@@ -32,9 +38,10 @@
 
 #include "input-method-v1.h"
 
-// How long a field must have been active, untouched, before we write to it,
-// and how long a request waits for one.
-enum { SETTLE_MS = 90, GIVE_UP_MS = 1000 };
+// How long a field must have been quiet before we write to it: after its
+// second round of state, or with no second round; what tells two rounds
+// apart; and how long a request waits for a field at all.
+enum { QUIET_MS = 40, LONG_QUIET_MS = 250, ROUND_MS = 25, GIVE_UP_MS = 1500 };
 
 static struct zwp_input_method_v1 *method;
 static struct zwp_input_method_context_v1 *context;
@@ -45,7 +52,11 @@ static int asker = -1;
 static char text[4096];
 static size_t length;
 static bool complete;
-static long long settled, deadline;
+static long long deadline;
+// When the field last changed hands or sent its state, and how many rounds
+// of state it has sent since it became active.
+static long long touched_at;
+static int rounds;
 
 static long long now(void)
 {
@@ -53,6 +64,11 @@ static long long now(void)
     clock_gettime(CLOCK_MONOTONIC, &t);
     return t.tv_sec * 1000LL + t.tv_nsec / 1000000;
 }
+
+// AMBROSIA_INPUT_DEBUG=1 in its environment: each thing that happens, with
+// the time in milliseconds, on stderr (which KWin passes on to its own).
+static bool debug;
+#define LOG(...) do { if (debug) { fprintf(stderr, "ambrosia-input %lld: ", now()); fprintf(stderr, __VA_ARGS__); fputc('\n', stderr); } } while (0)
 
 static bool socket_path(struct sockaddr_un *address)
 {
@@ -68,6 +84,7 @@ static void answer(const char *word)
 {
     if (asker < 0)
         return;
+    LOG("answer %.2s", word);
     (void)!write(asker, word, strlen(word));
     close(asker);
     asker = -1;
@@ -75,19 +92,23 @@ static void answer(const char *word)
     complete = false;
 }
 
-// The field changed hands: let it come to rest before writing.
-static void touched(void)
+// When the field in front may be written to (see the top), or -1 with none.
+static long long ready_at(void)
 {
-    settled = now() + SETTLE_MS;
+    if (!context)
+        return -1;
+    return touched_at + (rounds >= 2 ? QUIET_MS : LONG_QUIET_MS);
 }
 
 static void on_surrounding_text(void *data, struct zwp_input_method_context_v1 *c, const char *t, uint32_t cursor, uint32_t anchor)
 {
-    (void)data, (void)c, (void)t, (void)cursor, (void)anchor;
+    (void)data, (void)c, (void)cursor, (void)anchor;
+    LOG("surrounding_text %zu bytes", strlen(t));
 }
 static void on_reset(void *data, struct zwp_input_method_context_v1 *c)
 {
     (void)data, (void)c;
+    LOG("reset");
 }
 static void on_content_type(void *data, struct zwp_input_method_context_v1 *c, uint32_t hint, uint32_t purpose)
 {
@@ -100,8 +121,14 @@ static void on_invoke_action(void *data, struct zwp_input_method_context_v1 *c, 
 static void on_commit_state(void *data, struct zwp_input_method_context_v1 *c, uint32_t s)
 {
     (void)data;
-    if (c == context)
-        serial = s;
+    LOG("commit_state %u%s", s, c == context ? "" : " (an old field)");
+    if (c != context)
+        return;
+    serial = s;
+    const long long at = now();
+    if (at - touched_at >= ROUND_MS || rounds == 0)
+        rounds++;
+    touched_at = at;
 }
 static void on_preferred_language(void *data, struct zwp_input_method_context_v1 *c, const char *language)
 {
@@ -123,16 +150,19 @@ static void on_activate(void *data, struct zwp_input_method_v1 *m, struct zwp_in
         zwp_input_method_context_v1_destroy(context);
     context = c;
     serial = 0;
+    rounds = 0;
+    touched_at = now();
+    LOG("activate %p", (void *)c);
     zwp_input_method_context_v1_add_listener(context, &context_listener, NULL);
-    touched();
 }
 static void on_deactivate(void *data, struct zwp_input_method_v1 *m, struct zwp_input_method_context_v1 *c)
 {
     (void)data, (void)m;
+    LOG("deactivate %p", (void *)c);
     if (c == context)
         context = NULL;
     zwp_input_method_context_v1_destroy(c);
-    touched();
+    touched_at = now();
 }
 static const struct zwp_input_method_v1_listener method_listener = {
     .activate = on_activate,
@@ -189,6 +219,7 @@ int main(int argc, char **argv)
         return 2;
     }
 
+    debug = getenv("AMBROSIA_INPUT_DEBUG") != NULL;
     // WAYLAND_SOCKET, from KWin, is the connection that may be the input method.
     struct wl_display *display = wl_display_connect(NULL);
     if (!display) {
@@ -222,7 +253,8 @@ int main(int argc, char **argv)
 
         if (asker >= 0) {
             const long long at = now();
-            if (complete && context && at >= settled) {
+            if (complete && context && at >= ready_at()) {
+                LOG("commit to %p, serial %u, after %d rounds", (void *)context, serial, rounds);
                 zwp_input_method_context_v1_commit_string(context, serial, text);
                 wl_display_flush(display);
                 answer("ok\n");
@@ -234,8 +266,8 @@ int main(int argc, char **argv)
         int timeout = -1;
         if (asker >= 0) {
             long long until = deadline;
-            if (complete && context && settled < until)
-                until = settled;
+            if (complete && context && ready_at() < until)
+                until = ready_at();
             const long long left = until - now();
             timeout = left < 0 ? 0 : (int)left;
         }
@@ -265,8 +297,6 @@ int main(int argc, char **argv)
                 complete = true;
                 if (length == 0)
                     answer("no\n");
-                else if (settled < now() + SETTLE_MS / 2)
-                    settled = now() + SETTLE_MS / 2;
             }
             if (length >= sizeof text - 1) {
                 text[length] = '\0';
@@ -281,6 +311,7 @@ int main(int argc, char **argv)
                 (void)!write(fd, "no\n", 3);
                 close(fd);
             } else if (fd >= 0) {
+                LOG("asked, the field %s", context ? "active" : "not active");
                 asker = fd;
                 length = 0;
                 complete = false;
