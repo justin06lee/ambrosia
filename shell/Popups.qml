@@ -30,6 +30,8 @@ Singleton {
     property bool searchOpen: false
     // A new account's welcome (Welcome.qml), which covers the first screen.
     property bool welcomeOpen: false
+    // The live image's installer (Installer.qml), which covers it too.
+    property bool installerOpen: false
     property ShellScreen searchScreen: null
 
     readonly property bool menuOpen: kind === "menu"

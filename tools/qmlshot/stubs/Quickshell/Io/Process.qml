@@ -3,8 +3,9 @@ import Quickshell
 
 // A command that is never started. If the sheet's Quickshell.shotRun
 // answers for it (a function given the command, returning what it would
-// have printed), that reaches stdout and it ends well; otherwise it stays
-// as a command that hasn't finished.
+// have printed, or a number: the code it ended with, having printed
+// nothing), that reaches stdout and it ends; otherwise it stays as a
+// command that hasn't finished.
 QtObject {
     id: process
 
@@ -24,8 +25,11 @@ QtObject {
     function shotStart() {
         shotQueued = false;
         if (!running) return;
-        const printed = typeof Quickshell.shotRun === "function" ? Quickshell.shotRun(command) : undefined;
-        if (typeof printed !== "string") return;
+        const answer = typeof Quickshell.shotRun === "function" ? Quickshell.shotRun(command) : undefined;
+        // What it printed, or a number: it printed nothing and ended with that code.
+        if (typeof answer !== "string" && typeof answer !== "number") return;
+        const printed = typeof answer === "string" ? answer : "";
+        started();
         if (stdout && "text" in stdout) {
             stdout.text = printed;
             stdout.streamFinished();
@@ -33,7 +37,7 @@ QtObject {
             for (const line of printed.split("\n")) stdout.read(line);
         }
         running = false;
-        exited(0, 0);
+        exited(typeof answer === "number" ? answer : 0, 0);
     }
     // After the sheet has had its say (its Component.onCompleted).
     function shotQueue() {

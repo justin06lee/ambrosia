@@ -60,6 +60,15 @@ ShellRoot {
             home: modelData
         }
     }
+    // Install Ambrosia: the live image's assistant.
+    Variants {
+        model: Quickshell.screens.slice(0, 1)
+
+        Installer {
+            required property ShellScreen modelData
+            home: modelData
+        }
+    }
     Notifications {}
     // What the volume and brightness keys show.
     Hud {}
@@ -95,6 +104,10 @@ ShellRoot {
         // The welcome a new account gets, again.
         function welcome(): void {
             Popups.welcomeOpen = true;
+        }
+        // Install Ambrosia (the live image's /usr/local/bin/ambrosia-install asks).
+        function install(): void {
+            Popups.installerOpen = true;
         }
         // ⌘Q for an app with no Quit of its own on Ctrl+Q: every window of
         // the app in front is asked to close.

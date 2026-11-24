@@ -1,62 +1,197 @@
 #!/usr/bin/env bash
-# Asks the few questions an install needs, then runs ambrosia-install-system
-# as root. With `ambrosia.autoinstall` on the kernel command line it asks
-# nothing: it erases the first disk, installs with test answers and powers
-# off. That is how the image is tested in a VM.
+# Installs Ambrosia on this computer: the user's half. It gets the few
+# answers an install needs and runs ambrosia-install-system as root.
+#
+#   ambrosia-install            open the assistant (the shell's, shell/Installer.qml);
+#                               if the shell can't be asked, ask in dialogs instead
+#   ambrosia-install --dialogs  ask in dialogs (kdialog), in a terminal
+#
+# With `ambrosia.autoinstall` on the kernel command line it asks nothing: it
+# erases the first disk, installs with test answers and powers off. That is
+# how the image is tested in a VM.
+#
+# What the assistant asks of this script, each printing lines of
+# tab-separated text:
+#   ambrosia-install disks      NAME SIZE MODEL of each disk Ambrosia can go on
+#   ambrosia-install online     succeeds when the internet can be reached
+#   ambrosia-install wifi       SSID SIGNAL(0-100) SECURITY of each network in
+#                               reach, strongest first; fails with no Wi-Fi card
+#   ambrosia-install join SSID  join it; its password is read from standard
+#                               input (empty for an open network)
+#   ambrosia-install timezone   the time zone this computer seems to be in
+#   ambrosia-install timezones  every time zone
+#   ambrosia-install run        install. The answers are read from standard
+#                               input as lines of key=value (disk, fullname,
+#                               user, hostname, timezone, password), then a
+#                               line saying `start`. Prints
+#                               `progress FRACTION What it is doing` as it
+#                               goes, and `done` or `failed` at the end.
+# AMBROSIA_INSTALL_PRETEND=1 makes `run` go through the motions in half a
+# minute and touch nothing, to look at the assistant without a disk to lose.
 set -euo pipefail
 
 title="Install Ambrosia"
+log=/tmp/ambrosia-install.log
 ask() { kdialog --title "$title" "$@"; }
 online() { curl -fsI --max-time 5 https://geo.mirror.pkgbuild.com >/dev/null; }
 
-# Joins Wi-Fi from here: pick a network (strongest first), type its password.
-join_wifi() {
+# Disks to offer: whole disks, never the one the live system started from.
+# NAME, SIZE and MODEL, a tab between.
+disks() {
+  local live_dev live_disk="" name size type model
+  live_dev=$(findmnt -no SOURCE /run/archiso/bootmnt 2>/dev/null || true)
+  if [[ -n "$live_dev" ]]; then
+    live_disk=$(lsblk -no PKNAME "$live_dev" 2>/dev/null | head -n1)
+    live_disk=/dev/${live_disk:-$(basename "$live_dev")}
+  fi
+  while read -r name size type model; do
+    [[ "$type" == disk && "$name" != "$live_disk" && "$name" != /dev/zram* ]] || continue
+    printf '%s\t%s\t%s\n' "$name" "$size" "${model:-Disk}"
+  done < <(lsblk -dnpo NAME,SIZE,TYPE,MODEL)
+}
+
+# Wi-Fi networks in reach, each once, strongest first: SSID, SIGNAL, SECURITY.
+wifi() {
   nmcli -t -f TYPE device | grep -qx wifi || return 1
   nmcli device wifi rescan 2>/dev/null || true
   sleep 3
-  local networks=() ssid password
-  mapfile -t networks < <(nmcli -t -f SSID device wifi list | grep -v '^$' | awk '!seen[$0]++')
-  ((${#networks[@]})) || return 1
-  ssid=$(ask --combobox "Ambrosia needs the internet to install. Choose your Wi-Fi network:" \
-    "${networks[@]}" --default "${networks[0]}") || return 1
-  password=$(ask --password "Password for $ssid (leave it empty for an open network)") || return 1
+  # nmcli escapes a colon inside a name as \: ; names can't hold a tab.
+  nmcli -t -f SIGNAL,SECURITY,SSID device wifi list | sed 's/\\:/\x01/g' |
+    awk -F: '$3 != "" && !seen[$3]++ { print $3 "\t" $1 "\t" $2 }' | tr '\001' ':' | sort -t$'\t' -k2,2nr
+}
+
+join() { # ssid, the password on standard input
+  local password
+  IFS= read -r password || true
   if [[ -n "$password" ]]; then
-    nmcli device wifi connect "$ssid" password "$password" >/dev/null 2>&1
+    nmcli device wifi connect "$1" password "$password" >/dev/null 2>&1
   else
-    nmcli device wifi connect "$ssid" >/dev/null 2>&1
+    nmcli device wifi connect "$1" >/dev/null 2>&1
   fi
 }
+
+timezone() {
+  local guess
+  guess=$(curl -fs --max-time 5 https://geoip.kde.org/v1/calamares | sed -n 's/.*"time_zone" *: *"\([^"]*\)".*/\1/p' || true)
+  echo "${guess:-UTC}"
+}
+
+# The root half's output as what the assistant shows: a fraction done and a
+# line of words. Most of the time goes to pacman, which says how many
+# packages there are and then names each as it is fetched and as it is
+# installed.
+progress() {
+  awk '
+    function say(fraction, words) { printf "progress %.3f %s\n", fraction, words; fflush() }
+    /Erasing \/dev/ { say(0.01, "Preparing the disk…") }
+    /Installing Ambrosia/ { say(0.03, "Getting ready…") }
+    /^Packages \([0-9]+\)/ { total = substr($2, 2) + 0 }
+    /downloading\.\.\.$/ && total { fetched++; say(0.04 + 0.4 * (fetched < total ? fetched / total : 1), "Downloading the system…") }
+    /^(\( *[0-9]+\/[0-9]+\) )?installing / && total { placed++; say(0.45 + 0.37 * (placed < total ? placed / total : 1), "Installing the system…") }
+    /Running post-transaction hooks/ { say(0.83, "Finishing up…") }
+    /Setting up / { say(0.9, "Setting up your account…") }
+    /Making it bootable/ { say(0.94, "Making the disk start up…") }
+    /^.\[1mDone/ { say(1, "Done") }
+  '
+}
+
+# Installs from answers in the environment (disk fullname user hostname
+# timezone password); the password leaves here as a hash only.
+install_system() {
+  local answers status
+  if [[ -n "${AMBROSIA_INSTALL_PRETEND:-}" ]]; then
+    pretend | tee "$log" | progress
+    return 0
+  fi
+  answers=$(mktemp)
+  chmod 600 "$answers"
+  {
+    printf 'disk=%q\nfullname=%q\nuser=%q\nhostname=%q\ntimezone=%q\n' "$disk" "$fullname" "$user" "$hostname" "$timezone"
+    printf 'password_hash=%q\n' "$(openssl passwd -6 -stdin <<<"$password")"
+  } >"$answers"
+  unset password
+  status=0
+  sudo /usr/local/bin/ambrosia-install-system "$answers" 2>&1 | tee "$log" | "${1:-cat}" || status=$?
+  rm -f "$answers"
+  return $status
+}
+
+# What an install prints, quickly and with nothing behind it.
+pretend() {
+  local i
+  printf '\n\033[1mErasing %s\033[0m\n' "$disk"; sleep 1
+  printf '\n\033[1mInstalling Ambrosia\033[0m\n'; sleep 1
+  echo "Packages (120) acl-2.3.2-1  ambrosia-desktop-0.1.0-1"
+  for ((i = 1; i <= 120; i++)); do echo " package-$i-1.0-1-x86_64 downloading..."; sleep 0.08; done
+  for ((i = 1; i <= 120; i++)); do echo "installing package-$i..."; sleep 0.08; done
+  echo ":: Running post-transaction hooks..."; sleep 2
+  printf '\n\033[1mSetting up %s\033[0m\n' "$hostname"; sleep 2
+  printf '\n\033[1mMaking it bootable\033[0m\n'; sleep 3
+  printf '\n\033[1mDone\033[0m\n'
+}
+
+case ${1:-} in
+  disks) disks; exit ;;
+  online) online; exit ;;
+  wifi) wifi; exit ;;
+  join) join "${2:?usage: ambrosia-install join SSID}"; exit ;;
+  timezone) timezone; exit ;;
+  timezones) timedatectl list-timezones; exit ;;
+  run)
+    disk="" fullname="" user="" hostname="" timezone="" password=""
+    while IFS='=' read -r key value; do
+      case $key in
+        disk | fullname | user | hostname | timezone | password) printf -v "$key" %s "$value" ;;
+        start) break ;;
+      esac
+    done
+    [[ -n "$disk" && "$user" =~ ^[a-z_][a-z0-9_-]{0,31}$ && -n "$password" && -n "$timezone" ]] || { echo failed; exit 2; }
+    hostname=$(tr '[:upper:]' '[:lower:]' <<<"${hostname:-ambrosia}" | tr -c 'a-z0-9-\n' '-')
+    if install_system progress; then echo done; else echo failed; exit 1; fi
+    exit ;;
+  "" | --dialogs) ;;
+  *) echo "usage: ambrosia-install [--dialogs | disks | online | wifi | join SSID | timezone | timezones | run]" >&2; exit 2 ;;
+esac
+
 auto=false
 grep -qw ambrosia.autoinstall /proc/cmdline && auto=true
 
-# Disks to offer: whole disks, never the one the live system started from.
-live_dev=$(findmnt -no SOURCE /run/archiso/bootmnt 2>/dev/null || true)
-live_disk=""
-if [[ -n "$live_dev" ]]; then
-  live_disk=$(lsblk -no PKNAME "$live_dev" 2>/dev/null | head -n1)
-  live_disk=/dev/${live_disk:-$(basename "$live_dev")}
+# The assistant is the shell's. Right after login the shell may still be
+# starting, so it is asked for a while before the dialogs stand in.
+if ! $auto && [[ ${1:-} != --dialogs ]]; then
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    ambrosia install 2>/dev/null && exit 0
+    sleep 1
+  done
+  exec konsole --hide-menubar --hide-tabbar -e "$0" --dialogs
 fi
-disks=()
-while read -r name size type model; do
-  [[ "$type" == disk && "$name" != "$live_disk" && "$name" != /dev/zram* ]] || continue
-  disks+=("$name" "$size  ${model:-Disk}  ($name)")
-done < <(lsblk -dnpo NAME,SIZE,TYPE,MODEL)
 
-if ((${#disks[@]} == 0)); then
+mapfile -t found < <(disks)
+if ((${#found[@]} == 0)); then
   $auto || ask --error "There's no disk to install Ambrosia on."
   echo "ambrosia-install: no disk to install on" >&2
   exit 1
 fi
+# For the dialogs: each disk's name, then how it is shown.
+shown=()
+for line in "${found[@]}"; do
+  IFS=$'\t' read -r name size model <<<"$line"
+  shown+=("$name" "$size  $model  ($name)")
+done
 
 if $auto; then
-  disk=${disks[0]} fullname="Ambrosia Test" user=test password=ambrosia hostname=ambrosia-test timezone=UTC
+  disk=${shown[0]} fullname="Ambrosia Test" user=test password=ambrosia hostname=ambrosia-test timezone=UTC
 else
   ask --yesno "Ambrosia will be installed on this computer. You'll choose a disk and set up your account; the rest is automatic." \
     --yes-label Continue --no-label Quit || exit 0
 
   # The Wi-Fi joined here carries over to the installed system.
   until online; do
-    if join_wifi; then
+    mapfile -t networks < <(wifi | cut -f1)
+    if ((${#networks[@]})) &&
+      ssid=$(ask --combobox "Ambrosia needs the internet to install. Choose your Wi-Fi network:" "${networks[@]}" --default "${networks[0]}") &&
+      secret=$(ask --password "Password for $ssid (leave it empty for an open network)") &&
+      join "$ssid" <<<"$secret"; then
       for _ in 1 2 3 4 5; do online && break 2; sleep 2; done
     fi
     kcmshell6 kcm_networkmanagement >/dev/null 2>&1 &
@@ -65,7 +200,7 @@ else
   done
 
   radio=()
-  for ((i = 0; i < ${#disks[@]}; i += 2)); do radio+=("${disks[i]}" "${disks[i + 1]}" "$([[ $i == 0 ]] && echo on || echo off)"); done
+  for ((i = 0; i < ${#shown[@]}; i += 2)); do radio+=("${shown[i]}" "${shown[i + 1]}" "$([[ $i == 0 ]] && echo on || echo off)"); done
   disk=$(ask --radiolist "Where should Ambrosia go? Everything on that disk will be erased." "${radio[@]}") || exit 0
 
   fullname=$(ask --inputbox "Your name" "") || exit 0
@@ -81,28 +216,18 @@ else
     [[ -n "$password" && "$password" == "$again" ]] && break
     ask --sorry "The passwords didn't match. Try again."
   done
+  unset again
   hostname=$(ask --inputbox "Computer name" "ambrosia") || exit 0
   hostname=$(tr '[:upper:]' '[:lower:]' <<<"$hostname" | tr -c 'a-z0-9-\n' '-')
 
-  guess=$(curl -fs --max-time 5 https://geoip.kde.org/v1/calamares | sed -n 's/.*"time_zone" *: *"\([^"]*\)".*/\1/p' || true)
-  timezone=$(ask --combobox "Time zone" $(timedatectl list-timezones) --default "${guess:-UTC}") || exit 0
+  timezone=$(ask --combobox "Time zone" $(timedatectl list-timezones) --default "$(timezone)") || exit 0
 
-  for ((i = 0; i < ${#disks[@]}; i += 2)); do [[ "${disks[i]}" == "$disk" ]] && label=${disks[i + 1]}; done
+  for ((i = 0; i < ${#shown[@]}; i += 2)); do [[ "${shown[i]}" == "$disk" ]] && label=${shown[i + 1]}; done
   ask --warningcontinuecancel "Erase the disk ${label:-$disk} and install Ambrosia? Everything on it will be lost." \
     --continue-label "Erase and Install" || exit 0
 fi
 
-# Hand the answers to the root half; the password goes as a hash only.
-answers=$(mktemp)
-chmod 600 "$answers"
-{
-  printf 'disk=%q\nfullname=%q\nuser=%q\nhostname=%q\ntimezone=%q\n' "$disk" "$fullname" "$user" "$hostname" "$timezone"
-  printf 'password_hash=%q\n' "$(openssl passwd -6 -stdin <<<"$password")"
-} >"$answers"
-unset password again
-
-if sudo /usr/local/bin/ambrosia-install-system "$answers" 2>&1 | tee /tmp/ambrosia-install.log; then
-  rm -f "$answers"
+if install_system; then
   if $auto; then
     systemctl poweroff
   elif ask --yesno "Ambrosia is installed. Restart now, and remove the USB drive when the screen goes dark." \
@@ -110,8 +235,7 @@ if sudo /usr/local/bin/ambrosia-install-system "$answers" 2>&1 | tee /tmp/ambros
     systemctl reboot
   fi
 else
-  rm -f "$answers"
   $auto && systemctl poweroff
-  ask --error "The install stopped with an error. The details are in /tmp/ambrosia-install.log."
+  ask --error "The install stopped with an error. The details are in $log."
   exit 1
 fi

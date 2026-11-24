@@ -107,6 +107,11 @@ export const size = {
    *  the gap to it) and the room between pictures. By eye from macOS 26's
    *  setup, not measured. */
   welcome: { width: 800, height: 560, padding: 48, mark: 96, lookWidth: 192, lookHeight: 120, lookGap: 32, ring: 4, ringGap: 4 },
+  /** The installer's assistant, on the welcome's panel: a text field and the
+   *  name before it, a list (networks, time zones) and a row of one, a
+   *  disk's tile and its drawing, the bar that fills. By eye from macOS 26's
+   *  setup and installer, not measured. */
+  installer: { field: 260, label: 120, list: 380, row: 36, disk: 152, driveIcon: 64, bar: 320, barHeight: 6 },
   /** ⌘Tab's strip of apps: an icon, the room round it its highlight takes
    *  (`pad`), the strip's own margin, the row the chosen app's name gets,
    *  and how small icons may get when there are many. By eye from macOS 26,
