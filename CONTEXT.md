@@ -143,7 +143,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
    other names, as Xcursor files from 24 to 96 and as SVGs for KWin) and
    **app icons** (`design/icons.ts`, `tools/gen/targets/icons.ts`: Terminal,
    a text editor, picture and document viewers, Calculator, an archiver,
-   the store, Screenshot, a system monitor, system information and Font Book, under the icon names
+   the store, Screenshot, a system monitor, system information, Font Book and Disk Utility, under the icon names
    Konsole, Kate, Gwenview, Okular, KCalc, Ark, Discover, Spectacle and
    Info Center ask for; KDE's settings and Dolphin wear Settings' and
    Files', our Preview the picture viewer's, our TextEdit the text
@@ -1263,6 +1263,36 @@ package repo below), and they carry `shell/` and `session/` as they are.
     (not its pane) needs its scroll bar parented to the pane. Its corner
     mask is off off-screen, so `--grab` shows square corners; `--view`,
     `--family NAME`, `--info` and a font file choose what a grab shows.
+  - **Disk Utility** (`disk-utility/`, 2026-11-28) is one window, an Info
+    window per disk or volume asked about, one process
+    (`org.ambrosia.diskutility` on the bus; a second launch hands over the
+    disk images it was given). `Disks` (C++) reads UDisks2 on the system
+    bus (`GetManagedObjects`, again 200 ms after anything there changes,
+    and every five seconds for the room on each volume, which `statvfs`
+    tells, not UDisks2) into plain maps and does every deed through
+    UDisks2's own methods (Mount, Unmount, Lock and Unlock, Check and
+    Repair, Format, CreatePartitionAndFormat, LoopSetup, Loop.Delete,
+    PowerOff, Eject), so each asks for a password by polkit exactly when
+    UDisks2's rules say so and nothing of ours runs as root.
+    `qml/disks.mjs` makes of the maps the disks, their volumes, the
+    sidebar, a page's words, what each button may do and the Info rows,
+    and is what bun tests. A volume is a block holding a file system or an
+    encrypted one (its `fs` is the opened inside, when there is one); the
+    EFI partition (UDisks2's `HintIgnore`), swap and an extended
+    partition's shell are parts of the disk's bar and child count but not
+    rows. A disk with no partition map is one volume under the key
+    `PATH#whole`. Nothing unmounts, checks or erases what is mounted
+    outside `/run/media`, `/media` and `/mnt` (`systemMount`). Which file
+    systems Erase offers and First Aid checks is asked of UDisks2
+    (`CanFormat`, `CanCheck`: the tools installed). A disk image opened
+    is a loop device; its volumes are mounted as UDisks2 comes to know
+    them (`mountNew`, a few seconds), as is an unlocked volume's inside.
+    Opening an image asks for an administrator's password: UDisks2's
+    `loop-setup` is `auth_admin_keep` since 2025, and we ship no rule
+    against it. The toolbar has no Volume, Partition or Restore: nothing
+    is behind them. `--show sda1`, `--all` and `--sheet erase|firstaid|info`
+    choose what a grab shows. In the VM a test disk is a file: `truncate
+    -s 300M x.img`, then `ambrosia-disk-utility x.img`.
   - **Terminal is Konsole, dressed** (round 52, `session/konsole/`,
     `session/xdg/konsolerc`). Its menus and toolbars come from two XML
     files built into its library (zstd frames in

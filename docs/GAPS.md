@@ -690,7 +690,8 @@ it is a copy.
     Kate's place and the default for plain text and RTF) and, since round
     51, Activity Monitor (`activity-monitor/`, ambrosia-activity-monitor),
     since round 58 Font Book (`fontbook/`, ambrosia-fontbook, the default
-    for font files).
+    for font files) and, since round 60, Disk Utility (`disk-utility/`,
+    ambrosia-disk-utility, the default for disk images).
     Calculator is a Mac's basic one by measure, dark
     in either appearance, 230 by 408 with round keys 47 across, the
     operators orange, the sum shown as it is typed with × and ÷ before +
@@ -869,13 +870,47 @@ it is a copy.
     typeface is dragged nowhere (collections fill from the menu); the
     sizes at the slider's ends, the chosen card's look, the front
     window's colors and all the light ones are ours, not measured;
-    closing the window ends the app. Stand-ins,
+    closing the window ends the app. Disk Utility is measured from macOS
+    27's (a volume's page and a disk's, both listings, the Erase and First
+    Aid sheets and the Info window, in Dark): 1099 by 518 with the sidebar
+    256 wide (Internal, External, Disk Images; only volumes, or every
+    device with its volumes under it, by the View button or ⌘1 and ⌘2), a
+    toolbar 66 tall of round buttons over their names, and the page: the
+    disk's picture, its name and kind, its capacity in a box, a bar of
+    what is on it (used and free for a volume, its partitions in colors
+    for a disk) with a legend, and the table of two columns. It reads
+    UDisks2 and does everything through it: Mount and Unmount, Eject (the
+    mark in the sidebar, ⌘E: an image is detached, a drive powered off),
+    First Aid (asks, unmounts, checks, repairs if it must, mounts again,
+    with what it did under Show Details), Erase (a name and a format, and
+    for a whole disk a scheme, GUID or Master Boot Record; the new volume
+    is mounted), Get Info (⌘I: a window of rows as a Mac's), File > Open
+    Disk Image… (⌥⌘O, or opening an ISO or raw image from Files: its
+    volumes are mounted), and an encrypted (LUKS) volume asks for its
+    password on Mount and is locked again on Unmount. What the system
+    runs from can be looked at and nothing else. Short of a Mac's: no
+    Volume (+ and −), Partition or Restore, and their buttons are left
+    out rather than drawn dead; no new blank image, no image from a
+    folder, no converting or resizing one, no RAID, no Rename in the
+    sidebar; Erase has no Security Options and makes no encrypted volume;
+    First Aid checks volumes only (not a disk's partition map) and not the
+    volume the system runs from, which a Mac checks live; opening a disk
+    image asks for an administrator's password (UDisks2's rule for loop
+    devices since 2025, left as it is) and shows Disk Utility's window,
+    where a Mac mounts it silently; a volume's name is its label
+    ("Untitled" without one), APFS's containers and snapshots have no
+    like here (a Btrfs volume's subvolumes aren't shown), LVM's volumes
+    stand alone among the internal ones; S.M.A.R.T. says Verified,
+    Failing or Not Supported from UDisks2's flag alone; the disks'
+    pictures are ours, three kinds (inside, plugged in, image); the front
+    window's colors and all the light ones are ours, not measured;
+    closing the window ends the app, as a Mac's does. Stand-ins,
     in Breeze's dress, under a Mac's name since round 54 where it has
     one for them (`session/mac-names`): Spectacle as Screenshot, Info
     Center as System Information; Ark keeps its name, for looking inside
     an archive; Discover (App Store) and Firefox (Safari) keep theirs.
     Nothing yet for
-    Disk Utility, Calendar, Notes, Reminders, Music,
+    Calendar, Notes, Reminders, Music,
     Photos, Mail. Which to build and which to dress is the
     largest open piece of work on this list.
 26. **Files.** Since round 43 the shortcut menu has Open With (the apps
@@ -929,6 +964,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 60, 2026-11-28 | 25, Disk Utility | `disk-utility/` (ambrosia-disk-utility, `org.ambrosia.diskutility`, package of its own; the default for ISO and raw disk images in `session/xdg/mimeapps.list`): `src/disks.cpp` (UDisks2 over the system bus read into plain maps; Mount, Unmount, Lock, Unlock, Check, Repair, Format, CreatePartitionAndFormat, LoopSetup, Loop.Delete, PowerOff and Eject, each UDisks2's own method with polkit asking when its rules say so), `qml/disks.mjs` (the disks and their volumes, the sidebar both ways, a page's words, bar and table, what each button may do, the Info rows, a name each file system can carry; 22 tests in `disks.test.ts`), `DiskUtilityWindow`, `Toolbar`, `Sidebar`, `DiskPage`, `DiskIcon`, `Sheets` (Erase, the First Aid alert, the password, the sheet that stays while a job runs), `InfoWindow`, `Look.qml` (the measures); its icon in `design/icons.ts`. | `bun test` (149), `bun run build`. Measured from macOS 27's Disk Utility in Dark, in the background: a volume's page and a disk's, Show Only Volumes and Show All Devices, the Erase sheet, the First Aid alert and the Info window (the Erase and First Aid sheets were opened on an external volume and cancelled by name). VM, dev build: the system's volume with everything but Info gray; a blank 300 MB image opened (the shell's password prompt for the loop device), shown as an uninitialized disk; Erase with GUID and ext4 made "Untitled", mounted and chosen, the steps under Show Details; First Aid asked, unmounted, verified and mounted again; Get Info's window; Unmount and Mount; every device listed with the disk's page (EFI and the system's volume along the bar); the eject mark detached the image; an encrypted image listed locked, a wrong password told, the right one mounted it under its own name as "ext4 (Encrypted)", Unmount locked it again; Light by an off-screen grab. Not seen: a real USB disk or card (power off, a busy volume's refusal), a FAT or ExFAT volume, a failing check and Repair, Master Boot Record, an optical disc, LVM, NVMe's S.M.A.R.T., erasing a system device's other partition (polkit's administrator prompt), the legend past three parts, 2x |
 | 59, 2026-11-28 | 25 and 10, Preview's Settings; a key that opened the wrong thing | `preview-app/qml/SettingsWindow.qml` (the kit's window at 500: General, Images, PDF, rows placed by the Mac's measures), `qml/Prefs.qml` (`~/.config/ambrosia/preview.conf`: ground, separate, printout, lastPage and where each PDF was left), read by `PreviewWindow` (the ground), `Main` (`View.groups(…, separately)`), `PdfView` (⌘0 through `View.printScale`; the page it was left at); `kit/PrefRadio.qml`, `kit/PreferencesWindow.qml` (`wide`, two more glyphs); **`kit/firstshortcut.h`**, called first thing in all seven apps: Qt's platform menu items keep -1 for "no shortcut", which is also the number of an app's first shortcut, so the menu item that took it was never struck off when its window closed and another item built in its place answered the key | Measured from macOS 27's Preview Settings in Dark, in the background (three tabs). VM, dev build: the window on ⌘, with each tab as the Mac's; a PDF left on page 3 reopened there; ⌘0 gave a page 612 wide with "1 point equals 1 screen pixel" and a wider one as printed; two pictures opened in two windows with "each file in its own window"; a color picked for the background showed in every window at once, Reset put it back. The fault: in a PDF window opened after the first was closed, ⌘, opened About on every other press; with the fix, Settings three times of three. VM, from the packages (r554): Preview's Settings on ⌘,; a PDF closed and opened again, then ⌘, twice from it: Settings both times; the same in TextEdit with a second document: Settings both times, never About; Font Book starts. Not seen: the same sequence in Files (same cause, same fix), a real screen's density, the color panel in Light, 2x |
 | 58, 2026-11-28 | 25, Font Book | `fontbook/`: `src/library.cpp` (the `Library`: fontconfig's list through a configuration of its own, families with their styles, what each can write and its languages; FreeType for a file's names, glyph count and embedding; install into `~/.local/share/fonts`, remove to the Trash, a watcher on the folder; `Repertoire`, a model of every character a face draws), `qml/fontbook.mjs` (the sidebar's places, what each lists, search, the letters and line that stand for a typeface by script, the info pane's rows, collections; 31 tests), the window (`FontBookWindow`, `Sidebar`, `Toolbar` with `Segments` and `SizeSlider`, `GridPane`, `SamplesPane`, `ListPane`, `TypefacePage`, `InfoPane`), `FontFileWindow` (a font file's preview with Install), menus and About from the kit; `design/icons.ts` (Font Book's icon, a font file's page); `packaging/PKGBUILD` (ambrosia-fontbook); `session/xdg/mimeapps.list` (font files open in it); `kit/PrefPopup.qml` (`below`: a long menu drops under its button) | Measured from macOS 27's Font Book in Dark, in the background (the three views, a page, the info pane with its four parts open, a font file's preview). VM, dev build: the grid, samples and list as the Mac's; a card chosen and opened to its page; the styles' menu; the page's samples with the info pane; a typeface opened to its styles in the list; a font file (Amiri Bold) opened to its preview, installed (the file in `~/.local/share/fonts`, its page shown in its own face, its names read), found under My Fonts, removed after the alert (the file in the Trash); a collection made by ⌘N, named, filled from a card's menu, listed and kept; search; Light; a narrow window with the sidebar hidden. From the packages (r551) in the VM: it is the default for font files, a font opened through KDE's opener came up in its preview, installed and showed its page, was removed to the Trash; the About panel; its icon in the Dock. Outside a desktop session `xdg-open` knows a `.ttf` only as what `file` calls it and hands it to the browser: `font/sfnt` is now among Font Book's kinds. Not seen: a font with several files removed, a `.ttc`, a Type 1 font, a second language in the sidebar, a drop of files on the window, a double click on a font in Files, 2x |
 | 57, 2026-11-28 | 25 and 10, TextEdit's Settings; a window brought forward from the menu | `textedit/qml/SettingsWindow.qml` (a Mac's by measure: 439 wide, the box with its two tabs astride its top edge, bold headings, Restore All Defaults; only what our TextEdit does, so the box ends sooner) over `textedit/qml/Prefs.qml` (a singleton over `~/.config/ambrosia/textedit.conf`, QML's own `Settings`): a new document's format, its window's width in characters and height in lines (`Prefs.windowSize`: the Mac's measured sizes at 96 by 30, in proportion otherwise), the plain and rich fonts (Change… opens the platform's font panel), the ruler, RTF shown as its code, ".txt" added to a plain document's name, the encoding plain text is read and written in (`App.read`/`App.write`: UTF-8, UTF-16 with its mark, Latin 1, or the file's own). TextEdit > Settings… and ⌘,. `session/kwin-scripts/ambrosia_forward`: a window KWin marks as wanting attention is activated when the active window is its own app's | Mac: TextEdit's Settings captured in Dark, both tabs (439 by 676; box 22 in from 65; tabs 24 tall; rows read off the pictures to a point). Test VM, dev build copied in, script loaded by hand: the window as the Mac's; Plain text and a width of 60 gave a new plain window 434 wide; RTF as code showed Notes.rtf's code; saved as UTF-16 the file began ff fe; Change… opened the font panel and "Hack 10" was taken; the ruler gone from a new rich document; Restore All Defaults put all back; ⌘, brought the window forward from behind a document, and so did Settings… from the menu once the script was loaded (not before). From the packages (r548, the VM restarted): both scripts loaded at login, and Settings… from the menu brought the window over a document. The ⌘Tab switcher says Terminal for Konsole (a leftover of round 54, seen now) |

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Disk Utility
+GenericName=Disk Manager
+Comment=See the computer's disks and volumes; mount, eject, check and erase them
+Icon=org.ambrosia.diskutility
+Exec=ambrosia-disk-utility %F
+Categories=Qt;System;Utility;
+MimeType=application/x-cd-image;application/vnd.efi.iso;application/x-raw-disk-image;application/vnd.efi.img;
+Keywords=disk;drive;volume;partition;format;erase;mount;unmount;eject;image;iso;first aid;
+StartupNotify=true
+StartupWMClass=org.ambrosia.diskutility

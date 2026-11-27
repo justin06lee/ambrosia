@@ -3,8 +3,9 @@
 # Preview (the kinds its desktop file names), plain text and RTF in
 # TextEdit, and an archive is expanded beside itself by Archive Utility
 # (Files; Ark is still there to look inside one), and a font file opens
-# in Font Book, which shows it and offers to install it. A user's own
-# ~/.config/mimeapps.list still wins.
+# in Font Book, which shows it and offers to install it, and a disk image
+# (an ISO, a raw image) in Disk Utility, which attaches it and mounts its
+# volumes. A user's own ~/.config/mimeapps.list still wins.
 [Default Applications]
 inode/directory=org.ambrosia.files.desktop;
 application/pdf=org.ambrosia.preview.desktop;
@@ -75,3 +76,7 @@ application/x-font-truetype=org.ambrosia.fontbook.desktop;
 application/x-font-opentype=org.ambrosia.fontbook.desktop;
 application/vnd.ms-opentype=org.ambrosia.fontbook.desktop;
 application/x-font-type1=org.ambrosia.fontbook.desktop;
+application/x-cd-image=org.ambrosia.diskutility.desktop;
+application/vnd.efi.iso=org.ambrosia.diskutility.desktop;
+application/x-raw-disk-image=org.ambrosia.diskutility.desktop;
+application/vnd.efi.img=org.ambrosia.diskutility.desktop;

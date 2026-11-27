@@ -55,6 +55,9 @@ Energy, Disk, Network) over a panel about the whole computer, inspects one
 and quits one. Font Book shows the computer's typefaces as cards, samples
 or a list, a typeface's styles and every character it draws, what its
 files say of it, and installs a font file for the user or removes one.
+Disk Utility lists the computer's disks and volumes with what is on each,
+mounts, unmounts and ejects them, checks and repairs a volume (First Aid),
+erases a volume or a whole disk, opens disk images and encrypted volumes.
 
 ## Quick start
 
@@ -218,6 +221,9 @@ activity-monitor/ Activity Monitor (ambrosia-activity-monitor): the window in QM
 fontbook/      Font Book (ambrosia-fontbook): the windows in QML, the fonts listed through fontconfig and
                their files read with FreeType by src/library.cpp, what is listed and in what words in
                qml/fontbook.mjs, which fontbook.test.ts runs under bun
+disk-utility/  Disk Utility (ambrosia-disk-utility): the windows in QML, the disks read from UDisks2 and
+               everything done to them through it by src/disks.cpp, what is listed, said and allowed in
+               qml/disks.mjs, which disks.test.ts runs under bun
 docs/GAPS.md   what still tells Ambrosia from a Mac, biggest first, and the rounds closing it
 docs/finder/   the Files plan: research, stack, v1 scope, performance targets
 docs/settings/ the Settings plan: the panes, their backends, the order of work
