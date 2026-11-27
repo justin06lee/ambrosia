@@ -1148,6 +1148,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
     blur from fading at the screen's edge. KWin keeps QML it has loaded:
     an edited effect file shows after KWin starts again, not after
     `unloadEffect`.
+  - **Calculator** (`calculator/`, 2026-11-27) is the pattern for a small
+    app of ours: a frameless Qt Quick window that draws its corners and
+    lights, `App.decorate` for KWin's shadow (`src/shadow.cpp`, lifted from
+    Settings), menus by `Qt.labs.platform`, the logic in an `.mjs` module
+    that QML imports and bun tests (`calculator/calc.test.ts`; QML's `.js`
+    files can't `export`). Dev build on tenet: rsync `calculator/` to
+    `/root/ambrosia-calculator/src`, `cmake -S src -B build -G Ninja`,
+    `cmake --build build -j2` under `systemd-run --scope -p MemoryMax=3G`.
+    `ui.py type` can't type `+`: use `key shift+8` for × and the pointer.
   - **An app's window under its own glass** (round 41: Files' and
     Settings' sidebars). The window must be see-through there, so it must
     know the glass is really behind it: `GlassPane.available` is true only

@@ -8,14 +8,15 @@
 # ambrosia-shell   the Quickshell shell and the Ambrosia session on KWin
 # ambrosia-files   Files, Ambrosia's Finder (files/, built with CMake)
 # ambrosia-settings System Settings (settings/, built with CMake)
+# ambrosia-calculator Calculator (calculator/, built with CMake)
 # ambrosia-desktop everything a fresh install needs, the ISO installs this
 
 pkgbase=ambrosia
-pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-glass ambrosia-shell ambrosia-files ambrosia-settings ambrosia-desktop)
+pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-glass ambrosia-shell ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-desktop)
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A Linux desktop that looks and moves as one thing"
-# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-decoration, ambrosia-style, ambrosia-input and ambrosia-glass; the rest are arch=(any).
+# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-calculator, ambrosia-decoration, ambrosia-style, ambrosia-input and ambrosia-glass; the rest are arch=(any).
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
@@ -44,6 +45,8 @@ build() {
   cmake --build "$srcdir/build-decoration"
   cmake -S settings -B "$srcdir/build-settings" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-settings"
+  cmake -S calculator -B "$srcdir/build-calculator" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build "$srcdir/build-calculator"
   cmake -S style -B "$srcdir/build-style" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-style"
   cmake -S input -B "$srcdir/build-input" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
@@ -252,11 +255,19 @@ package_ambrosia-settings() {
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-settings"
 }
 
+package_ambrosia-calculator() {
+  pkgdesc="Calculator, Ambrosia's"
+  # ambrosia-theme: the Ambrosia QML Theme module and the calculator's icon
+  # (accessories-calculator in the icon theme). The QML is in the binary.
+  depends=(ambrosia-theme qt6-base qt6-declarative kwindowsystem inter-font)
+  DESTDIR="$pkgdir" cmake --install "$srcdir/build-calculator"
+}
+
 package_ambrosia-desktop() {
   pkgdesc="The Ambrosia desktop: the shell plus the system services and apps a new install needs"
   arch=(any)
   depends=(
-    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-style ambrosia-input
+    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-style ambrosia-input
     # Low Power Mode (Battery), and printing (Printers & Scanners): ipp-usb
     # for the printers that plug in, started when one does.
     power-profiles-daemon cups avahi nss-mdns ipp-usb
@@ -271,7 +282,7 @@ package_ambrosia-desktop() {
     # GTK windows keep theirs; GTK 4 has no modules.
     appmenu-gtk-module
     # The apps a new install starts with, and Discover to get more.
-    firefox kate gwenview okular ark kcalc discover packagekit-qt6 flatpak
+    firefox kate gwenview okular ark discover packagekit-qt6 flatpak
   )
   # Not a dependency: an installed system gets it by asking
   # (/usr/lib/ambrosia/boot-picture), a new one from the installer.
