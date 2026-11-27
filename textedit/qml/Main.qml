@@ -23,7 +23,7 @@ QtObject {
     }
     function newDocument() {
         untitled += 1;
-        make({ rich: !App.plain, untitledName: untitled === 1 ? "Untitled" : "Untitled " + untitled });
+        make({ rich: !App.plain && Prefs.rich, untitledName: untitled === 1 ? "Untitled" : "Untitled " + untitled });
     }
     function open(files) {
         for (const file of files) {

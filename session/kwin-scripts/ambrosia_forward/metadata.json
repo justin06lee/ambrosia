@@ -1,0 +1,11 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Description": "A window its own app asks to bring forward comes forward while that app is in front, as on a Mac (Settings… chosen again from the menu)",
+        "EnabledByDefault": false,
+        "Id": "ambrosia_forward",
+        "License": "MIT",
+        "Name": "Ambrosia Window Forward"
+    },
+    "X-Plasma-API": "javascript"
+}

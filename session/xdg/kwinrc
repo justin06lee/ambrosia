@@ -58,6 +58,10 @@ ambrosia_desktopEnabled=true
 # A window that resizes itself keeps its top left corner (KWin grows it
 # around its middle): session/kwin-scripts/ambrosia_anchor.
 ambrosia_anchorEnabled=true
+# An app in front may bring another window of its forward even when asked
+# from our menu bar (KWin refuses without a key press in the app):
+# session/kwin-scripts/ambrosia_forward.
+ambrosia_forwardEnabled=true
 windowapertureEnabled=false
 eyeonscreenEnabled=false
 

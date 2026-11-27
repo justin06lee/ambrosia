@@ -1,4 +1,6 @@
 #include "app.h"
+
+#include <optional>
 #include "shadow.h"
 
 #include <KWindowShadow>
@@ -116,7 +118,20 @@ QString App::iconName(const QUrl &file) const
     return QMimeDatabase().mimeTypeForFile(file.toLocalFile()).iconName();
 }
 
-QVariantMap App::read(const QUrl &file) const
+// TextEdit's Settings name an encoding for plain text ("utf-8", "utf-16",
+// "latin1"); anything else is Automatic: the file's own mark, else UTF-8.
+static std::optional<QStringConverter::Encoding> named(const QString &encoding)
+{
+    if (encoding == QLatin1String("utf-8"))
+        return QStringConverter::Utf8;
+    if (encoding == QLatin1String("utf-16"))
+        return QStringConverter::Utf16;
+    if (encoding == QLatin1String("latin1"))
+        return QStringConverter::Latin1;
+    return std::nullopt;
+}
+
+QVariantMap App::read(const QUrl &file, const QString &encoding) const
 {
     QFile source(file.toLocalFile());
     if (!source.open(QIODevice::ReadOnly))
@@ -130,7 +145,7 @@ QVariantMap App::read(const QUrl &file) const
     }
     out[QStringLiteral("rtf")] = false;
     const auto marked = QStringConverter::encodingForData(data);
-    QStringDecoder decoder(marked.value_or(QStringConverter::Utf8));
+    QStringDecoder decoder(named(encoding).value_or(marked.value_or(QStringConverter::Utf8)));
     QString text = decoder.decode(data);
     if (decoder.hasError())
         text = QString::fromLatin1(data);
@@ -141,12 +156,19 @@ QVariantMap App::read(const QUrl &file) const
     return out;
 }
 
-QString App::write(const QUrl &file, const QString &text, bool bytes) const
+QString App::write(const QUrl &file, const QString &text, bool bytes, const QString &encoding) const
 {
     QSaveFile target(file.toLocalFile());
     if (!target.open(QIODevice::WriteOnly))
         return target.errorString();
-    target.write(bytes ? text.toLatin1() : text.toUtf8());
+    if (bytes) {
+        target.write(text.toLatin1());
+    } else {
+        // UTF-16 carries its mark, so it is read back as what it is.
+        const auto to = named(encoding).value_or(QStringConverter::Utf8);
+        QStringEncoder encoder(to, to == QStringConverter::Utf16 ? QStringConverter::Flag::WriteBom : QStringConverter::Flag::Default);
+        target.write(encoder.encode(text));
+    }
     if (!target.commit())
         return target.errorString();
     return {};
