@@ -1,3 +1,4 @@
+#include "../../kit/firstshortcut.h"
 #include "app.h"
 
 #include <QApplication>
@@ -33,6 +34,7 @@ int main(int argc, char *argv[])
     // Ambrosia session sets this too, but not every session does).
     qputenv("QT_NO_SYNTHESIZED_BOLD", "1");
     QApplication app(argc, argv);
+    takeFirstShortcutId(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-settings"));
     QApplication::setApplicationDisplayName(QStringLiteral("System Settings"));
     QApplication::setApplicationVersion(QStringLiteral(SETTINGS_VERSION));

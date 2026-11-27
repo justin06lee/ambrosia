@@ -70,7 +70,7 @@ In every app but a terminal:
 | ⌘[ ⌘] | back, forward | Alt+←, Alt+→ |
 | ⌥← ⌥→ | by word (with ⇧, select) | Ctrl+←, Ctrl+→ |
 | ⌥⌫ ⌥⌦ | delete the word before, after | Ctrl+Backspace, Ctrl+Delete |
-| ⌘, | the app's settings, where it has them on Ctrl+, : Files' and TextEdit's own Settings windows, and every KDE app's in this session (its kdeglobals moves KDE's "Configure…" there from Ctrl+Shift+,) | Ctrl+, |
+| ⌘, | the app's settings, where it has them on Ctrl+, : Files', TextEdit's and Preview's own Settings windows, and every KDE app's in this session (its kdeglobals moves KDE's "Configure…" there from Ctrl+Shift+,) | Ctrl+, |
 
 In a terminal (any app whose desktop file says `TerminalEmulator`):
 

@@ -1,3 +1,4 @@
+#include "../../kit/firstshortcut.h"
 #include "app.h"
 
 #include <QApplication>
@@ -16,6 +17,7 @@ int main(int argc, char *argv[])
     // doesn't change).
     qputenv("QT_FONT_DPI", "72");
     QApplication app(argc, argv);
+    takeFirstShortcutId(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-textedit"));
     QApplication::setApplicationDisplayName(QStringLiteral("TextEdit"));
     QApplication::setApplicationVersion(QStringLiteral(TEXTEDIT_VERSION));

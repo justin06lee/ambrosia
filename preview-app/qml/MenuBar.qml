@@ -22,6 +22,8 @@ Platform.MenuBar {
         onAboutToHide: bar.preview.shellOpen = false
         title: "Preview"
         Platform.MenuItem { text: "About Preview"; onTriggered: About.show("Preview", "org.ambrosia.preview") }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Settings…"; shortcut: "Ctrl+,"; onTriggered: bar.preview.act("settings", () => Preferences.show("Preview", "SettingsWindow")) }
     }
 
     component Menu: Platform.Menu {

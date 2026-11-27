@@ -79,4 +79,13 @@ test("pictures open together, PDFs each in a window of its own", () => {
     expect(View.groups(["a.png", "b.pdf", "c.jpg", "d.pdf"], isPdf)).toEqual([["a.png", "c.jpg"], ["b.pdf"], ["d.pdf"]]);
     expect(View.groups(["b.pdf"], isPdf)).toEqual([["b.pdf"]]);
     expect(View.groups([], isPdf)).toEqual([]);
+    expect(View.groups(["a.png", "b.pdf", "c.jpg"], isPdf, true)).toEqual([["a.png"], ["c.jpg"], ["b.pdf"]]);
+});
+
+test("a PDF at the size of its printout: the screen's density over 72", () => {
+    expect(View.printScale(96 / 25.4)).toBeCloseTo(96 / 72, 6);
+    expect(View.printScale(109 / 25.4)).toBeCloseTo(109 / 72, 6);
+    // No density worth believing: a point for a point.
+    expect(View.printScale(0)).toBe(1);
+    expect(View.printScale(40)).toBe(1);
 });

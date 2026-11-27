@@ -1313,6 +1313,19 @@ package repo below), and they carry `shell/` and `session/` as they are.
     way to KWin, so the panel's is a zero-width space; `pkill -x` matches
     a process name only up to 15 letters (`ambrosia-texted`), and `pkill
     -f` with the path also kills the ssh shell that typed it.
+  - **Every app takes Qt's first shortcut number itself**
+    (`kit/firstshortcut.h`, `takeFirstShortcutId(&app)` right after the
+    application object, round 59). Qt numbers shortcuts down from -1 and
+    its platform menu items (`Qt.labs.platform`, our menu bars) keep -1
+    to mean "none": the item that takes the app's first shortcut is never
+    struck from Qt's table when its window closes, and the item next
+    built at that address answers the key (About on every other ⌘, in a
+    second Preview window), or nothing is there. Any new app of ours
+    calls it too.
+  - **Preview's settings are QML's own** (`preview-app/qml/Prefs.qml`,
+    as TextEdit's): the ground, pictures apart or together, a PDF's
+    100%, and the page each PDF was left at (the latest 200, as text).
+    Its Settings window is the kit's at `wide: 500`, with `PrefRadio`.
   - **An app's Settings window is the kit's** (round 56, Files' first):
     `kit/PreferencesWindow.qml` takes `tabs: [{ title, glyph, page }]`
     (a glyph by name from its own few, or paths; a page is a Component

@@ -39,15 +39,19 @@ Window {
         sidebar: { stroke: "M6 4.5h12a3 3 0 0 1 3 3v9a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-9a3 3 0 0 1 3-3zM9.6 4.5v15M5.4 8.3h1.9M5.4 11h1.9M5.4 13.7h1.9" },
         document: { stroke: "M7 3.5h6.5L18.5 8.5v10.5a1.5 1.5 0 0 1-1.5 1.5H7a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 7 3.5zM13.5 3.5V8.5h5" },
         folder: { stroke: "M3.5 7.2a2 2 0 0 1 2-2h3.6l2 2.3h7.4a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" },
+        pictures: { stroke: "M8.5 7.5h10a2.5 2.5 0 0 1 2.5 2.5v7a2.5 2.5 0 0 1-2.5 2.5h-10A2.5 2.5 0 0 1 6 17v-7a2.5 2.5 0 0 1 2.5-2.5zM6 16.8l3.6-3.4 2.9 2.6 2.6-2.2 5.6 4.6M5.9 16.2H5.5A2.5 2.5 0 0 1 3 13.7v-7a2.5 2.5 0 0 1 2.5-2.5h10A2.5 2.5 0 0 1 18 6.7v.6", fill: "M15.9 11.6a1.3 1.3 0 1 0 2.6 0a1.3 1.3 0 1 0-2.6 0z" },
+        page: { stroke: "M7 3.5h6.5L18.5 8.5v10.5a1.5 1.5 0 0 1-1.5 1.5H7a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 7 3.5zM13.5 3.5V8.5h5M8.8 12.3h6.4M8.8 15.3h6.4" },
     })
 
     flags: Qt.Window | Qt.CustomizeWindowHint | Qt.WindowTitleHint | Qt.WindowCloseButtonHint | Qt.WindowMinimizeButtonHint
     // As tall as the page; fixed (no zoom, no resizing by hand).
     readonly property real tall: stripHeight + 0.5 + (page.item?.implicitHeight ?? 100)
-    width: 377
+    // Finder Settings' width; Preview's is 500.
+    property real wide: 377
+    width: wide
     height: tall
-    minimumWidth: 377
-    maximumWidth: 377
+    minimumWidth: wide
+    maximumWidth: wide
     minimumHeight: tall
     maximumHeight: tall
     color: ground
