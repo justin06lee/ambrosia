@@ -21,7 +21,12 @@ Window {
     property string icon
 
     readonly property real bar: Theme.size.titlebar.height
-    readonly property color ink: Theme.color.label.primary
+    // The system's appearance, read here: not every app of ours tells the
+    // theme which is on (Calculator is dark whatever it is), and the frame
+    // round the panel follows the system.
+    readonly property bool dark: Qt.styleHints.colorScheme === Qt.ColorScheme.Dark
+    readonly property QtObject colors: dark ? Theme.darkColors : Theme.lightColors
+    readonly property color ink: colors.label.primary
 
     // No title, as a Mac's has none. An empty one, or one of spaces, is
     // filled in with the app's name on the way to the frame: this is a
@@ -36,7 +41,7 @@ Window {
     maximumWidth: 284
     minimumHeight: tall
     maximumHeight: tall
-    color: Theme.color.bg.window
+    color: colors.bg.window
 
     // A baseline's y in the Mac's panel, top of the bar and all.
     component Line: Text {
