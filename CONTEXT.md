@@ -1194,7 +1194,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
     which is all in pixels; fontconfig lists a family's weights as
     families too ("Inter Black"), which `App::families` drops; an item
     property called `left` or `right` can't be declared (Item's anchor
-    lines). Its mask doesn't draw off-screen either, so there `--grab`
+    lines). In Dark the QTextDocument holds colors as they show
+    (lightness turned over, `Editor::shown`) and the model the true ones
+    (`Editor::stored`, with a table of what came from the file so writing
+    gives it back exactly); `setDark` re-colors an open document without
+    touching undo's history or "Edited". Its mask doesn't draw off-screen either, so there `--grab`
     goes without it and shows the whole window. In the VM, `ui.py type`
     takes one word: `key space` between words.
   - **A key that is both a `Shortcut` and a menu item's shortcut**

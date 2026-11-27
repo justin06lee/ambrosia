@@ -150,6 +150,121 @@ qreal lineHeightOf(const QTextBlockFormat &format)
 {
     return format.lineHeightType() == QTextBlockFormat::ProportionalHeight && format.lineHeight() > 0 ? format.lineHeight() / 100 : 1;
 }
+
+// A color with its lightness turned over and its hue kept.
+QColor flipped(const QColor &color)
+{
+    float h, s, l, a;
+    color.getHslF(&h, &s, &l, &a);
+    return QColor::fromHslF(qMax(0.0f, h), s, 1 - l, a).toRgb();
+}
+}
+
+QColor Editor::shown(const QColor &stored)
+{
+    if (!m_dark || !stored.isValid())
+        return stored;
+    const QColor shown = flipped(stored);
+    m_trueColors.insert(shown.rgb(), stored.rgb());
+    return shown;
+}
+
+QColor Editor::stored(const QColor &shown) const
+{
+    if (!m_dark || !shown.isValid())
+        return shown;
+    const auto known = m_trueColors.constFind(shown.rgb());
+    return known != m_trueColors.constEnd() ? QColor(*known) : flipped(shown);
+}
+
+QString Editor::storedName(const QColor &shown) const
+{
+    return shown.isValid() ? stored(shown).name() : QString();
+}
+
+// A format with the true colors, as it shows.
+QTextCharFormat Editor::dressed(QTextCharFormat format)
+{
+    if (!m_dark)
+        return format;
+    if (format.hasProperty(QTextFormat::ForegroundBrush))
+        format.setForeground(shown(format.foreground().color()));
+    if (format.hasProperty(QTextFormat::BackgroundBrush))
+        format.setBackground(shown(format.background().color()));
+    return format;
+}
+
+void Editor::setDark(bool dark)
+{
+    if (m_dark == dark)
+        return;
+    if (text_())
+        recolor(dark);
+    m_dark = dark;
+    if (!m_dark)
+        m_trueColors.clear();
+    Q_EMIT darkChanged();
+    m_changed.start();
+}
+
+// The appearance changed under an open document: every color in it is
+// shown the other way. Not an edit: nothing to undo, and it is no more
+// changed than it was.
+void Editor::recolor(bool dark)
+{
+    QTextDocument *document = text_();
+    struct Piece {
+        int from, to;
+        QTextCharFormat format;
+    };
+    QList<Piece> pieces;
+    QHash<QRgb, QRgb> trueColors;
+    const auto turn = [&](QTextCharFormat &format) {
+        bool any = false;
+        for (const QTextFormat::Property property : {QTextFormat::ForegroundBrush, QTextFormat::BackgroundBrush}) {
+            if (!format.hasProperty(property))
+                continue;
+            const QColor was = format.brushProperty(property).color();
+            const QColor real = stored(was);
+            const QColor now = dark ? flipped(real) : real;
+            if (dark)
+                trueColors.insert(now.rgb(), real.rgb());
+            format.setProperty(property, QBrush(now));
+            any = true;
+        }
+        return any;
+    };
+    QList<QPair<QTextBlock, QTextCharFormat>> blocks;
+    for (QTextBlock block = document->begin(); block.isValid(); block = block.next()) {
+        QTextCharFormat own = block.charFormat();
+        if (turn(own))
+            blocks.append({block, own});
+        for (auto it = block.begin(); !it.atEnd(); ++it) {
+            const QTextFragment fragment = it.fragment();
+            QTextCharFormat format = fragment.charFormat();
+            if (turn(format))
+                pieces.append({fragment.position(), fragment.position() + fragment.length(), format});
+        }
+    }
+    if (pieces.isEmpty() && blocks.isEmpty()) {
+        m_trueColors = trueColors;
+        return;
+    }
+    const bool modified = document->isModified();
+    m_loading = true;
+    document->setUndoRedoEnabled(false);
+    QTextCursor cursor(document);
+    for (const Piece &piece : std::as_const(pieces)) {
+        cursor.setPosition(piece.from);
+        cursor.setPosition(piece.to, QTextCursor::KeepAnchor);
+        cursor.setCharFormat(piece.format);
+    }
+    for (const auto &[block, format] : std::as_const(blocks))
+        QTextCursor(block).setBlockCharFormat(format);
+    document->setUndoRedoEnabled(true);
+    document->setModified(modified);
+    m_loading = false;
+    m_trueColors = trueColors;
 }
 
 Editor::Editor(QObject *parent)
@@ -499,7 +614,7 @@ void Editor::bigger(qreal by)
 
 void Editor::setColor(const QString &name)
 {
-    const QColor color = name.isEmpty() ? QColor() : QColor(name);
+    const QColor color = shown(name.isEmpty() ? QColor() : QColor(name));
     changeChars([&color](QTextCharFormat &format) {
         if (color.isValid())
             format.setForeground(color);
@@ -510,7 +625,7 @@ void Editor::setColor(const QString &name)
 
 void Editor::setHighlight(const QString &name)
 {
-    const QColor color = name.isEmpty() ? QColor() : QColor(name);
+    const QColor color = shown(name.isEmpty() ? QColor() : QColor(name));
     changeChars([&color](QTextCharFormat &format) {
         if (color.isValid())
             format.setBackground(color);
@@ -655,6 +770,15 @@ QVariantMap Editor::model() const
         return {};
     QHash<const QTextList *, int> ids;
     int lastId = 0, nextId = 1;
+    // A run with the colors the file is to hold, not the ones shown.
+    const auto trueRun = [this](QVariantMap run) {
+        for (const QString &key : {QStringLiteral("color"), QStringLiteral("background")}) {
+            const QString name = run.value(key).toString();
+            if (m_dark && !name.isEmpty())
+                run[key] = stored(QColor(name)).name();
+        }
+        return run;
+    };
     for (QTextBlock block = document->begin(); block.isValid(); block = block.next()) {
         const QTextBlockFormat format = block.blockFormat();
         QVariantMap paragraph{
@@ -696,10 +820,10 @@ QVariantMap Editor::model() const
             QString text = fragment.text();
             text.remove(QChar::ObjectReplacementCharacter);
             if (!text.isEmpty())
-                runs << runOf(text, fragment.charFormat(), document);
+                runs << trueRun(runOf(text, fragment.charFormat(), document));
         }
         if (runs.isEmpty())
-            runs << runOf(QString(), block.charFormat(), document);
+            runs << trueRun(runOf(QString(), block.charFormat(), document));
         paragraph[QStringLiteral("runs")] = runs;
         paragraphs << paragraph;
     }
@@ -713,6 +837,7 @@ void Editor::setModel(const QVariantMap &model)
         return;
     m_loading = true;
     m_pendingAt = -1;
+    m_trueColors.clear();
     document->setUndoRedoEnabled(false);
     document->clear();
     QTextCursor cursor(document);
@@ -734,7 +859,7 @@ void Editor::setModel(const QVariantMap &model)
         const QVariantList runs = paragraph.value(QStringLiteral("runs")).toList();
         // (A paragraph's own character format without the highlight:
         // see settle().)
-        QTextCharFormat opening = runs.isEmpty() ? QTextCharFormat() : formatOf(runs.first().toMap());
+        QTextCharFormat opening = runs.isEmpty() ? QTextCharFormat() : dressed(formatOf(runs.first().toMap()));
         opening.clearProperty(QTextFormat::BackgroundBrush);
         if (first) {
             cursor.setBlockFormat(format);
@@ -747,7 +872,7 @@ void Editor::setModel(const QVariantMap &model)
             const QVariantMap run = item.toMap();
             const QString text = run.value(QStringLiteral("text")).toString();
             if (!text.isEmpty())
-                cursor.insertText(text, formatOf(run));
+                cursor.insertText(text, dressed(formatOf(run)));
         }
         const QVariantMap list = paragraph.value(QStringLiteral("list")).toMap();
         if (!list.isEmpty()) {

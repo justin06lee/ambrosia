@@ -301,6 +301,7 @@ Window {
     Editor {
         id: hands
         document: win.edit ? win.edit.textDocument : null
+        dark: Look.dark
         cursorPosition: win.edit?.cursorPosition ?? 0
         selectionStart: win.edit?.selectionStart ?? 0
         selectionEnd: win.edit?.selectionEnd ?? 0

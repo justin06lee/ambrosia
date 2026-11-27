@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QColor>
+#include <QHash>
 #include <QObject>
 #include <QPointer>
 #include <QQuickTextDocument>
@@ -32,6 +33,11 @@ class Editor : public QObject
     Q_PROPERTY(int selectionStart READ selectionStart WRITE setSelectionStart NOTIFY selectionChanged)
     Q_PROPERTY(int selectionEnd READ selectionEnd WRITE setSelectionEnd NOTIFY selectionChanged)
     Q_PROPERTY(bool modified READ modified WRITE setModified NOTIFY modifiedChanged)
+    // The window is dark: the document's colors show with their lightness
+    // turned over, hue kept, as a Mac's TextEdit shows them in Dark (black
+    // text white, a pale highlight a deep one under it). The document here
+    // holds the colors as shown; the model, and so the file, the true ones.
+    Q_PROPERTY(bool dark READ dark WRITE setDark NOTIFY darkChanged)
     Q_PROPERTY(bool empty READ empty NOTIFY formatChanged)
     // The characters' format at the cursor, or where the selection begins.
     Q_PROPERTY(bool bold READ bold NOTIFY formatChanged)
@@ -70,6 +76,8 @@ public:
     bool modified() const;
     void setModified(bool modified);
     bool empty() const;
+    bool dark() const { return m_dark; }
+    void setDark(bool dark);
 
     bool bold() const;
     bool italic() const;
@@ -107,7 +115,9 @@ public:
     Q_INVOKABLE void setSize(qreal size);
     // Each run a point (or `by`) larger than it is.
     Q_INVOKABLE void bigger(qreal by);
-    // By name ("#rrggbb"); nothing for the text's own color, no highlight.
+    // By name ("#rrggbb"), the true color; nothing for the text's own
+    // color, no highlight. storedName: a shown color's true one.
+    Q_INVOKABLE QString storedName(const QColor &shown) const;
     Q_INVOKABLE void setColor(const QString &name);
     Q_INVOKABLE void setHighlight(const QString &name);
     Q_INVOKABLE void setAlignment(const QString &alignment);
@@ -134,6 +144,7 @@ Q_SIGNALS:
     void documentChanged();
     void selectionChanged();
     void modifiedChanged();
+    void darkChanged();
     void formatChanged();
 
 private:
@@ -145,6 +156,10 @@ private:
     void contentsChanged(int position, int removed, int added);
     void settle();
     void moved();
+    QColor shown(const QColor &stored);
+    QColor stored(const QColor &shown) const;
+    QTextCharFormat dressed(QTextCharFormat format);
+    void recolor(bool dark);
 
     QPointer<QQuickTextDocument> m_document;
     QPointer<QTextDocument> m_connected;
@@ -164,5 +179,9 @@ private:
     int m_touchedTo = -1;
     bool m_settling = false;
     bool m_loading = false;
+    bool m_dark = false;
+    // In Dark: each shown color's true one, where it came from a file or a
+    // well, so that writing gives back exactly what was read.
+    QHash<QRgb, QRgb> m_trueColors;
     QTimer m_changed;
 };

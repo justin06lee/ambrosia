@@ -40,7 +40,9 @@ Item {
         x: 98.5
         y: Look.controlY
         shown: bar.editor.color.valid ? bar.editor.color : Look.text
-        current: bar.editor.color.valid ? String(bar.editor.color) : "#000000"
+        // The colors offered are the true ones, which a file holds; in
+        // Dark the text shows each with its lightness turned over.
+        current: bar.editor.color.valid ? bar.editor.storedName(bar.editor.color) : "#000000"
         colors: Look.textColors
         // Black is the text's own color, whatever the appearance.
         onChosen: (color) => bar.editor.setColor(color === "#000000" ? "" : color)
@@ -50,7 +52,7 @@ Item {
         y: Look.controlY
         marker: true
         shown: bar.editor.highlight.valid ? bar.editor.highlight : "transparent"
-        current: bar.editor.highlight.valid ? String(bar.editor.highlight) : ""
+        current: bar.editor.highlight.valid ? bar.editor.storedName(bar.editor.highlight) : ""
         colors: Look.highlights
         onChosen: (color) => bar.editor.setHighlight(color)
     }
