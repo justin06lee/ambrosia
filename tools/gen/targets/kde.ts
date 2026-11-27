@@ -51,7 +51,7 @@ const section = (name: string, entries: Record<string, RGBA | string | number>) 
     .map(([k, v]) => `${k}=${typeof v === "object" ? toKde(v) : v}`)
     .join("\n")}`;
 
-type Extra = { General?: Record<string, string>; KDE?: Record<string, string>; Sounds?: Record<string, string>; WM?: Record<string, string> };
+type Extra = { General?: Record<string, string>; KDE?: Record<string, string>; Sounds?: Record<string, string>; Shortcuts?: Record<string, string>; WM?: Record<string, string> };
 
 export function kde(r: Resolved, mode: Mode, extra: Extra = {}): string {
   const m = r.modes[mode];
@@ -83,6 +83,7 @@ export function kde(r: Resolved, mode: Mode, extra: Extra = {}): string {
     section("General", { ColorScheme: `Ambrosia${title}`, Name: `Ambrosia ${title}`, shadeSortColumn: "true", ...extra.General }),
     section("KDE", { contrast: 4, ...extra.KDE }),
     ...(extra.Sounds ? [section("Sounds", extra.Sounds)] : []),
+    ...(extra.Shortcuts ? [section("Shortcuts", extra.Shortcuts)] : []),
     section("WM", {
       activeBackground: window,
       activeBlend: flat(m.label.primary, window),
@@ -120,6 +121,10 @@ export function kdeglobals(r: Resolved): string {
     // The sounds KDE plays (notifications, KWin's bell, the volume keys) are
     // ours (targets/sounds.ts).
     Sounds: { Theme: SOUND_THEME },
+    // KDE apps open their settings on Ctrl+Shift+, and a Mac's on ⌘, (which
+    // keyd hands apps as Ctrl+,). Every KDE app reads its standard shortcuts
+    // from here; Konsole's, a terminal's, stays as it was (session/xdg/konsolerc).
+    Shortcuts: { Preferences: "Ctrl+," },
     WM: { activeFont: qfont(ui, headline.size, headline.weight) },
   });
 }

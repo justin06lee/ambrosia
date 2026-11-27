@@ -20,3 +20,9 @@ NewTabButton=false
 SearchTabsButton=HideSearchTabsButton
 TabBarPosition=Top
 TabBarVisibility=ShowTabBarWhenNeeded
+
+# Settings… on ⌘, : a terminal is handed Ctrl+Shift for ⌘ (docs/keyboard.md),
+# so Konsole keeps KDE's own shortcut, which the session's kdeglobals moves
+# to Ctrl+, for every other KDE app.
+[Shortcuts]
+Preferences=Ctrl+Shift+,

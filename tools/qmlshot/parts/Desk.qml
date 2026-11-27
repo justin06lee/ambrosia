@@ -25,14 +25,16 @@ Item {
             { text: "Open Recent", children: ["DESIGN.md", "tokens.ts", "-", "Clear List"] }, "-",
             { text: "Save", shortcut: [["Control", "S"]] }, { text: "Save As…", shortcut: [["Control", "Shift", "S"]] },
             { text: "Revert", enabled: false }, "-", { text: "Print…", shortcut: [["Control", "P"]] }, "-",
-            { text: "Close", shortcut: [["Control", "W"]] }] },
+            { text: "Close", shortcut: [["Control", "W"]] }, "-", { text: "Quit", shortcut: [["Control", "Q"]] }] },
         { text: "Edit", children: ["Undo", "Redo", "-", "Cut", "Copy", "Paste"] },
         { text: "View", children: ["Zoom In", "Zoom Out"] },
         { text: "Selection", children: ["Select All"] },
         { text: "Go", children: ["Go to Line…"] },
         { text: "Tools", children: ["Spelling…"] },
         { text: "Window", children: ["Minimize", "Zoom"] },
-        { text: "Help", children: ["Kate Handbook"] },
+        { text: "Settings", children: ["Configure Keyboard Shortcuts…", "Configure Toolbars…", "-",
+            { text: "Configure Kate…", shortcut: [["Control", "comma"]] }] },
+        { text: "Help", children: ["Kate Handbook", "-", "About Kate", "About KDE"] },
     ]
     property var running: ["org.ambrosia.files", "org.kde.kate", "org.kde.kcalc"]
     property string active: "org.kde.kate"

@@ -59,6 +59,7 @@ Scope {
         return categories.includes("TerminalEmulator") ? "terminal" : "default";
     }
     onProfileChanged: send()
+    Binding { target: Apps; property: "keyLayer"; value: layer.profile }
     // Also at the start, whatever it is: the shell before this one may have
     // left a terminal's layer on.
     Component.onCompleted: {

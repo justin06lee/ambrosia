@@ -3,7 +3,9 @@
 # menu at a given DBus service and path, so the menu bar can show the focused
 # app's own menus (the address comes from KDE's task manager model). It also
 # gives DBusMenuItem the `shortcut` the app publishes, for the menus' shortcut
-# column, and calls the app's AboutToShow each time one of its menus opens.
+# column, calls the app's AboutToShow each time one of its menus opens, and
+# lets a menu's rows be read without opening it (`loadedChildren`): the menu
+# bar looks in them for the app's About, Settings and Quit (shell/AppMenu.qml).
 # popup-grab.patch lets a popup that takes the keyboard open before the shell
 # has had a click or a key: Qt refuses one until then, and the shell's menus
 # and panels are such a popup (shell/Overlay.qml), opened by commands too
@@ -23,7 +25,7 @@
 pkgname=quickshell
 # The pinned commit's `git describe --long --tags`, as 0.3.2.rN.gHASH.
 pkgver=0.3.2.r0.g4f508be
-pkgrel=5
+pkgrel=6
 pkgdesc='Flexible toolkit for making desktop shells with QtQuick'
 arch=(x86_64 aarch64)
 url="https://git.outfoxxed.me/$pkgname/$pkgname"
@@ -61,7 +63,7 @@ source=("git+$url.git#commit=$_commit"
         dbusmenu-source.patch
         popup-grab.patch)
 sha256sums=('SKIP'
-            '900d559297ced8ee350f877ccf843504c7740197e8fbc70769155379fccfe5e8'
+            '3e2e27fe908cda9436baa8d30f3270885a0f4e6a687f62988d0e83d2d6440d64'
             'beb68e0502558f778385da19e65af048a1e847a27d587d0f9fe81afc1a01f7d3')
 
 prepare() {
