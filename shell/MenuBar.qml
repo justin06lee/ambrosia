@@ -28,7 +28,7 @@ PanelWindow {
     // An app's Help is the last title on a Mac, after Window: where it is the
     // app's last, it is drawn after ours.
     readonly property var appHelp: hasAppMenu && appEntries[appEntries.length - 1]?.text === "Help" ? appEntries[appEntries.length - 1] : null
-    readonly property var appTitles: !hasAppMenu ? [] : appHelp ? appEntries.slice(0, -1) : appEntries
+    readonly property var appTitles: !hasAppMenu ? [] : appEntries.filter(entry => entry !== appHelp && entry !== lifted.own)
     readonly property bool appHasWindowMenu: appTitles.some(entry => entry.text === "Window")
 
     readonly property bool hides: Settings.menuBarAutohide === "always"
@@ -125,6 +125,14 @@ PanelWindow {
         const row = Apps.activeRow;
         const own = bar.lifted;
         const list = [];
+        // An app's own menu of its name, row for row, read as it stands
+        // now (a submenu in it is not shown).
+        for (const item of own.own?.loadedChildren?.values ?? []) {
+            if (item.isSeparator) list.push({ separator: true });
+            else if (!item.hasChildren) list.push({ text: item.text, shortcut: item.shortcut, enabled: item.enabled,
+                checked: item.checkState === Qt.Checked, action: () => item.triggered() });
+        }
+        if (list.length > 0) list.push({ separator: true });
         if (own.about) list.push(
             { text: `About ${Apps.activeName}`, enabled: own.about.enabled, action: () => own.about.triggered() },
             { separator: true });

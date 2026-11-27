@@ -25,6 +25,9 @@ qt_add_executable(ambrosia-settings
 )
 target_compile_definitions(ambrosia-settings PRIVATE SETTINGS_VERSION="${PROJECT_VERSION}")
 set_source_files_properties(qml/Look.qml qml/Panes.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+# The About panel every app of ours shows, from one source (../kit).
+set_source_files_properties(../kit/AboutWindow.qml PROPERTIES QT_RESOURCE_ALIAS AboutWindow.qml)
+set_source_files_properties(../kit/About.qml PROPERTIES QT_RESOURCE_ALIAS About.qml QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-settings
     URI Settings
     VERSION 1.0
@@ -57,6 +60,8 @@ qt_add_qml_module(ambrosia-settings
         src/printers.h src/printers.cpp
         src/access.h src/access.cpp
     QML_FILES
+        ../kit/AboutWindow.qml
+        ../kit/About.qml
         qml/SettingsWindow.qml
         qml/MenuBar.qml
         qml/Appearance.qml

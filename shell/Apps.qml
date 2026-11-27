@@ -48,6 +48,18 @@ Singleton {
         activeName = get(index, TaskManager.AbstractTasksModel.AppName) || get(index, Qt.DisplayRole) || "";
         menuService = get(index, TaskManager.AbstractTasksModel.ApplicationMenuServiceName) ?? "";
         menuPath = get(index, TaskManager.AbstractTasksModel.ApplicationMenuObjectPath) ?? "";
+        // A window with no menus of its own (an About panel, an inspector)
+        // keeps its app's, as on a Mac, where menus are the app's: those of
+        // another of the app's windows.
+        if (menuService === "") {
+            for (const window of windowsOf(activeRow)) {
+                const service = get(window, TaskManager.AbstractTasksModel.ApplicationMenuServiceName) ?? "";
+                if (service === "") continue;
+                menuService = service;
+                menuPath = get(window, TaskManager.AbstractTasksModel.ApplicationMenuObjectPath) ?? "";
+                break;
+            }
+        }
     }
 
     // The windows of an app's row: its children when grouped, else itself.

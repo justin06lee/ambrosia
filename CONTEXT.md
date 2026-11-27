@@ -1262,6 +1262,20 @@ package repo below), and they carry `shell/` and `session/` as they are.
     (`setQuitLockEnabled(false)` in `main.cpp`), or a job with no window
     open ended Files. `files/tools/archives.sh` makes the archives to
     try it on, the hostile ones too.
+  - **What our apps share is in `kit/`** (round 55: the About panel),
+    one source compiled into each app: its `CMakeLists.txt` lists
+    `../kit/X.qml` with `QT_RESOURCE_ALIAS` (and `QT_QML_SINGLETON_TYPE`
+    for `About.qml`), so the type is in the app's own QML module. A dev
+    build needs `kit/` beside the app's `src/` on tenet
+    (`files/tools/tenet.sh build` syncs it). An app's menu of its own
+    name (`MenuBar.qml`'s first) is its app menu in Ambrosia's bar
+    (`lifted.own` in `shell/AppMenu.qml`); the title must be the desktop
+    entry's `Name` exactly ("System Settings"). Traps met: `baseline` is
+    already a property of every Item, final (the error names only the
+    line); a Window's empty or blank title becomes the app's name on the
+    way to KWin, so the panel's is a zero-width space; `pkill -x` matches
+    a process name only up to 15 letters (`ambrosia-texted`), and `pkill
+    -f` with the path also kills the ssh shell that typed it.
   - **The app menu's About, Settings… and Quit are the app's own rows**
     (round 53, `shell/AppMenu.qml`'s `lifted`): found by their text among
     the rows right under the app's titles, shown in `MenuBar.appNameMenu`

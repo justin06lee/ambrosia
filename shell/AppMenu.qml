@@ -23,14 +23,21 @@ Item {
     // app menu and leaves them out where the app put them. Only rows right
     // under a title are looked at, read from what the app has already sent
     // (`loadedChildren`, from our Quickshell): opening each menu to look
-    // would tell the app its menus were open.
+    // would tell the app its menus were open. An app that knows about this
+    // (ours do) publishes a menu titled with its own name instead: that is
+    // `own`, its rows are the app menu's as they stand, and it is no title
+    // of the bar's.
     readonly property var lifted: {
-        const found = { about: null, settings: null, quit: null };
+        const found = { about: null, settings: null, quit: null, own: null };
         // KDE's "Configure …" rows that are not the app's own settings; the
         // app's own comes last of them.
         const other = /^Configure (Keyboard |Custom |Global )?(Shortcuts|Toolbars|Notifications|Language|Extensions|Spell)/i;
         let named = false;
         for (const top of appMenu.entries) {
+            if (!found.own && appMenu.appName !== "" && top?.text === appMenu.appName) {
+                found.own = top;
+                continue;
+            }
             for (const row of top?.loadedChildren?.values ?? []) {
                 if (!row || row.isSeparator || row.hasChildren) continue;
                 const text = (row.text ?? "").trim();
