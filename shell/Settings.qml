@@ -102,7 +102,7 @@ Singleton {
             id: adapter
             property list<string> dock: [
                 "org.ambrosia.files", "firefox", "org.kde.konsole", "org.kde.kate",
-                "org.kde.gwenview", "org.kde.discover", "org.ambrosia.settings",
+                "org.ambrosia.preview", "org.kde.discover", "org.ambrosia.settings",
             ]
             property string appearance: "light"
             property bool dark: false
@@ -155,6 +155,12 @@ Singleton {
             adapter.dock = adapter.dock.map(id => id === "systemsettings" ? "org.ambrosia.settings" : id);
             adapter.appearance = adapter.dark ? "dark" : "light";
             adapter.migrated = 2;
+        }
+        if (adapter.migrated < 3) {
+            // Preview took over from Gwenview.
+            if (!adapter.dock.includes("org.ambrosia.preview"))
+                adapter.dock = adapter.dock.map(id => id === "org.kde.gwenview" ? "org.ambrosia.preview" : id);
+            adapter.migrated = 3;
         }
     }
 }

@@ -45,7 +45,8 @@ Window {
         if (next)
             sum = next;
     }
-    // A key that is also a menu item's shortcut reaches both, and runs once.
+    // A key that is also a menu item's shortcut is handed to one of the two
+    // in turn, the window's own marked ambiguous: either way it runs, once.
     property var lastAct: ({ name: "", at: 0 })
     function act(name, run) {
         const now = Date.now();
@@ -113,11 +114,11 @@ Window {
         onTriggered: win.flashed = ""
     }
 
-    Shortcut { sequences: ["Ctrl+C", "Meta+C"]; onActivated: win.act("copy", win.copy) }
-    Shortcut { sequences: ["Ctrl+V", "Meta+V"]; onActivated: win.act("paste", win.paste) }
-    Shortcut { sequences: ["Ctrl+W", "Meta+W"]; onActivated: win.act("close", win.close) }
-    Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized) }
-    Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: Qt.quit() }
+    Shortcut { sequences: ["Ctrl+C", "Meta+C"]; onActivated: win.act("copy", win.copy); onActivatedAmbiguously: win.act("copy", win.copy) }
+    Shortcut { sequences: ["Ctrl+V", "Meta+V"]; onActivated: win.act("paste", win.paste); onActivatedAmbiguously: win.act("paste", win.paste) }
+    Shortcut { sequences: ["Ctrl+W", "Meta+W"]; onActivated: win.act("close", win.close); onActivatedAmbiguously: win.act("close", win.close) }
+    Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized); onActivatedAmbiguously: win.act("minimize", win.showMinimized) }
+    Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: Qt.quit(); onActivatedAmbiguously: Qt.quit() }
 
     Loader {
         sourceComponent: Component { MenuBar { calculator: win } }

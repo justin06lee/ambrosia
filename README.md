@@ -44,7 +44,9 @@ Settings (a System Settings look-alike) has every pane of its plan built on
 the system's own services, from Wi-Fi and Bluetooth to Printers &
 Scanners, Accessibility and Spotlight (`docs/settings/PLAN.md` says what each
 leaves out). Calculator is a Mac's basic one: round keys, the sum shown as it
-is typed, the keyboard throughout.
+is typed, the keyboard throughout. Preview opens pictures and PDFs: pages
+or pictures down a sidebar, zoom, turning, a PDF's table of contents, its
+text searched, selected and copied.
 
 ## Quick start
 
@@ -193,6 +195,9 @@ files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks 
 settings/      Settings, Ambrosia's System Settings: Qt Quick window, C++ core, art
 calculator/    Calculator (ambrosia-calculator): the window in QML, its arithmetic in qml/calc.mjs,
                which calc.test.ts runs under bun
+preview-app/   Preview (ambrosia-preview), for pictures and PDFs: the window in QML, PDFs through Qt's PDF
+               library (src/document.cpp, src/pages.cpp), its zoom and layout arithmetic in qml/view.mjs,
+               which view.test.ts runs under bun (preview/ is the older mock desktop, not this)
 docs/GAPS.md   what still tells Ambrosia from a Mac, biggest first, and the rounds closing it
 docs/finder/   the Files plan: research, stack, v1 scope, performance targets
 docs/settings/ the Settings plan: the panes, their backends, the order of work

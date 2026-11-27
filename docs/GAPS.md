@@ -651,19 +651,39 @@ it is a copy.
 
 ### Apps
 
-25. **The apps a Mac comes with.** Ours: Files, Settings and, since round
-    48, Calculator (`calculator/`, ambrosia-calculator, in KCalc's place):
-    a Mac's basic one by measure, dark in either appearance, 230 by 408
-    with round keys 47 across, the operators orange, the sum shown as it
-    is typed with × and ÷ before + and −, the result under the sum that
-    gave it, a percentage a share of what it is added to; every key on the
-    keyboard too (Return, Esc, Delete, ⌥− for the sign), ⌘C and ⌘V, its
+25. **The apps a Mac comes with.** Ours: Files, Settings, Calculator
+    (round 48) and, since round 49, Preview (`preview-app/`,
+    ambrosia-preview, in Gwenview's and Okular's place and the default for
+    pictures and PDFs). Calculator is a Mac's basic one by measure, dark
+    in either appearance, 230 by 408 with round keys 47 across, the
+    operators orange, the sum shown as it is typed with × and ÷ before +
+    and −, the result under the sum that gave it, a percentage a share of
+    what it is added to; every key on the keyboard too, ⌘C and ⌘V, its
     menus in the menu bar. Short of a Mac's: no Scientific, Programmer or
     Convert, no history at the side, no brackets, and the two round
-    buttons at the top of a Mac's window (the history and the mode) are
-    left out rather than drawn dead. Stand-ins, in
-    Breeze's dress: Konsole (Terminal), Kate (TextEdit), Gwenview and Okular
-    (Preview), Ark (Archive Utility), Discover (App
+    buttons at the top of a Mac's window are left out rather than drawn
+    dead. Preview is measured from macOS 27's (a picture and a PDF, in
+    Dark): the toolbar 52 tall with its capsules 36, the sidebar 205 wide
+    and flush with thumbnails 159 across, a picture opened at its own size
+    with 26 of ground above and below, a PDF's pages 10 apart at actual
+    size. It opens pictures (several of one launch together, down the
+    sidebar) and PDFs (a window each; one with a password asks for it);
+    zooms by the toolbar, ⌘+ ⌘− ⌘0 ⌘9 or a pinch, a
+    picture that was fitted following the window; turns a page or picture
+    (⌘L, ⌘R); shows a PDF's table of contents; searches a PDF's text as it
+    is typed, with Return and ⌘G through what it found; selects text by a
+    drag and copies it, or a picture, with ⌘C; and asks with Files' Open
+    panel when started with nothing (⌘O too). Short of a Mac's: nothing
+    is ever written (a turn isn't saved; no Export, Print, Markup,
+    highlighting, signatures, cropping or color adjustment, and none of
+    their toolbar buttons); no inspector or Share; what a search found is
+    marked on the pages and counted in the field, not listed in the
+    sidebar; a selection stays on one page; a PDF's links aren't
+    followed; no Contact Sheet, single or two-page view, full screen or
+    Go to Page; a page zoomed past about five times goes soft; an
+    animated GIF shows its first frame; its light colors aren't measured
+    (that Mac stays in Dark). Stand-ins, in Breeze's dress: Konsole
+    (Terminal), Kate (TextEdit), Ark (Archive Utility), Discover (App
     Store), Spectacle (Screenshot), Firefox (Safari). Nothing yet for
     Activity Monitor, Disk Utility, Calendar, Notes, Reminders, Music,
     Photos, Mail, Font Book. Which to build and which to dress is the
@@ -701,6 +721,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 49, 2026-11-27 | 25, Preview | `preview-app/`: `src/document.cpp` (a PDF through Qt's PDF library: page sizes, outline, a search that goes through the pages a few milliseconds at a time, text between two points with each moved onto the nearest line), `src/pages.cpp` (pages drawn off the main thread as `image://page/…`), `qml/view.mjs` (zoom steps, fitting, the pages' layout, the window a document opens in; `view.test.ts`, 10 tests under bun), `qml/PreviewWindow.qml` with `Toolbar`, `Sidebar`, `PdfView`, `ImageView`, `MenuBar`, and `Main.qml` (a window per document, one process); ambrosia-preview in the packages, in Gwenview's and Okular's place, the default for pictures and PDFs (`session/xdg/mimeapps.list`), in the Dock's default with a migration. Found on the way: a key that is both a window's `Shortcut` and a menu item's was acted on only every second press (Settings, Calculator); every such `Shortcut` now acts when handed over as ambiguous too | This Mac's Preview measured in the background (`screencapture -l`, `tools/px.py`, the new `tools/crop.py`). Test VM, a build moved in: a 3-page PDF (window 913 wide as the Mac's, sidebar, page at 612, dark colors as measured), a 65-page and a 477-page manual (contents, a click on an entry, "color" found 1,761 times in about two seconds, Return through them), zoom in, a page turned, the sidebar's menu, a drag from the margin selecting a line and ⌘C read back by `wl-paste`, a locked PDF (wrong then right password), three pictures together (arrows between them, 100% for one that fits, zoom, turn, ⌘C as an image), a file that isn't a picture, a second launch handing over, ⌘O through Files' panel, the toolbar's double click zooming the window and back. The Calculator's ⌘C four times in a row after the fix (every second failed before). From the r521 packages, logged in afresh: the Dock's Gwenview pin had become Preview's (the picture icon), a PDF double-clicked in Files opened in `/usr/bin/ambrosia-preview` with the menu bar saying Preview and the tile lit, the packaged Calculator copied three times running, Search found Preview by its name, Return on it with nothing to open brought Files' Open panel up in Pictures, and Escape there left no Preview running; Dark chosen in Settings turned an open Preview window dark at once, to the colors measured. Not seen: a pinch (no trackpad; a wheel with ⌘ held was tried and taken out: a Mac's Preview has none), 2x scale, HEIF or a camera's turned JPEG, a picture past 8192 pixels, resizing by the edges, the Zoom light, a picture opened from Firefox or another app |
 | 48, 2026-11-27 | 25, Calculator | `calculator/`: `qml/calc.mjs` (the arithmetic as a module: what has been typed as a row of numbers and operators, `press`, `evaluate` with × and ÷ first and a percentage's two meanings, `format` to fifteen figures with thousands apart, copy and paste), `calc.test.ts` (13 tests under bun), `qml/CalculatorWindow.qml` (frameless, its own corners and lights, the display fitting its figures, twenty keys from one list), `Key.qml` (the three faces, the delete and sign glyphs drawn), `MenuBar.qml`, `src/` (the shadow as Settings makes it, the clipboard, `--grab` and `--keys`). A package, ambrosia-calculator, which ambrosia-desktop asks for in KCalc's place | Sizes from this Mac's Calculator (macOS 27.2.1), opened in the background and its window captured: 230 by 408, the corner 15, keys 47 across and 54 apart from 10.5 and 133.5, the lights' first center at 26 and 27, the figure "0" 22 high ending 12 from the right edge, the faces' grays (it was behind another window, so its orange was not seen: ours is the theme's). `bun test`. Test VM, a build moved in: opened by its command, 12 × 3 Return on the keyboard (36 under a small 12×3), 5 + 8 = by clicks on the keys, ⌘C, AC, ⌘V (13 again), Delete, the File menu in the menu bar; with Konsole in front the keys and lights gray. From the r518 packages there, logged in afresh: Search finding Calculator first for "calcul" (KCalc, still installed there, under it), Return opening it, 200 + 10% Return giving 220 under 200+10%, ⌘Q closing it; and round 47 from the package: a file dragged over Photos, held, and dropped on the opened folder's empty space (the file in Photos, the window back in its folder). On tenet r518 is in, ambrosia-calculator with it; KCalc is still installed there (`pacman -Rns kcalc` removes it). Not seen: a 2x scale, its Dock tile, on tenet's screen |
 | 47, 2026-11-27 | 26, spring-loaded folders | `FinderWindow.qml`: `springOver` (what takes drops says which folder the drag rests on), a half-second wait, two blinks (`springDim`), `springOpen` (the folder in this window; in columns the next column, by `browse`), `springEnd` (the history, place and first column as the drag found them) at a drop, a drag given up, or 250 ms after the drag left everything that takes drops; a `DropArea` under the whole window so the toolbar counts as inside. `ListPane`, `IconPane`, `ColumnPane`, `SidebarList`, `PathBar` report to it; `Finder.springDelay`, `springBlink`. `tools/chord.py` (keys pressed together on a keyboard keyd takes) | Test VM, a build moved in, drags by a virtual pointer held down: list view, a file over Photos (opened), over Inner in it (opened), dropped: the file in `Photos/Inner`, the window back in Try with Back and Forward dimmed; a file over the sidebar's Documents (opened) and dropped on its empty space (the file in Documents); a file sprung into Photos and carried to the menu bar (back in Try while still held, nothing moved); columns: Photos as a second column, Inner as a third, the pointer over the toolbar for two seconds (still open), out of the window (one column again: the journal's order was left, 250 ms, end). Found on the way: in columns a sprung folder restarted the columns, and the toolbar counted as outside. Not seen: the icon view, the path bar, a drag from another app, the blink itself |
 | 45, 2026-11-27 | 10, ⇧⌘Q | `session/org.ambrosia.logout.desktop` (Super+Ctrl+Alt+Shift+Q runs `ambrosia log-out`), keyd's ⇧⌘Q sending it (it had been the app's Ctrl+Shift+Q, which quits Firefox), the shell's IPC `logOut` and `Session.askLogOut` (the Ambrosia menu's question, now in one place), the row's ⇧⌘Q | Test VM from the r513 packages, logged in afresh: `ambrosia log-out` bringing up the question; Super+Ctrl+Alt+Shift+Q pressed directly, and ⇧⌘Q on a keyboard-only virtual device through keyd, each bringing it up; Escape putting it away. The same packages gave rounds 42 to 44 and 46 their look from a package: the Ambrosia menu with its chords, Files' shortcut menu with Open With. On tenet r513 is in; the chord is held from the next login. Not done: logging out by it |

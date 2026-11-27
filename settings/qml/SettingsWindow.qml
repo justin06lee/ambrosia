@@ -95,7 +95,8 @@ Window {
         sidebar.search.focusField();
     }
     // The last action's name and time: a key that is also a menu item's
-    // shortcut reaches both, and runs once (Files' act()).
+    // shortcut is handed to one of the two in turn, the window's own marked
+    // ambiguous; either way it runs, once.
     property var lastAct: ({ name: "", at: 0 })
     function act(name, run) {
         const now = Date.now();
@@ -131,12 +132,12 @@ Window {
         }
     }
 
-    Shortcut { sequences: ["Ctrl+[", "Meta+["]; enabled: !win.underSheet; onActivated: win.act("back", win.back) }
-    Shortcut { sequences: ["Ctrl+]", "Meta+]"]; enabled: !win.underSheet; onActivated: win.act("forward", win.forward) }
-    Shortcut { sequences: ["Ctrl+F", "Meta+F"]; enabled: !win.underSheet; onActivated: win.act("find", win.findPane) }
-    Shortcut { sequences: ["Ctrl+W", "Meta+W"]; enabled: !win.underSheet; onActivated: win.act("close", win.close) }
-    Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized) }
-    Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: win.act("quit", Qt.quit) }
+    Shortcut { sequences: ["Ctrl+[", "Meta+["]; enabled: !win.underSheet; onActivated: win.act("back", win.back); onActivatedAmbiguously: win.act("back", win.back) }
+    Shortcut { sequences: ["Ctrl+]", "Meta+]"]; enabled: !win.underSheet; onActivated: win.act("forward", win.forward); onActivatedAmbiguously: win.act("forward", win.forward) }
+    Shortcut { sequences: ["Ctrl+F", "Meta+F"]; enabled: !win.underSheet; onActivated: win.act("find", win.findPane); onActivatedAmbiguously: win.act("find", win.findPane) }
+    Shortcut { sequences: ["Ctrl+W", "Meta+W"]; enabled: !win.underSheet; onActivated: win.act("close", win.close); onActivatedAmbiguously: win.act("close", win.close) }
+    Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized); onActivatedAmbiguously: win.act("minimize", win.showMinimized) }
+    Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: win.act("quit", Qt.quit); onActivatedAmbiguously: win.act("quit", Qt.quit) }
 
     Rectangle {
         id: frame
