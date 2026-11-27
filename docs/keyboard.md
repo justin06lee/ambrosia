@@ -19,7 +19,8 @@ remapped and nothing else here runs.
   with nothing to list per app. The menu bar draws an app's `Ctrl` as ⌘ for
   the same reason, as do the menus inside Qt apps (the widget style,
   `macShortcut` in `style/src/style.cpp`), and Files binds `Ctrl` where
-  Finder has ⌘.
+  Finder has ⌘. A terminal's menus in the bar are drawn by its own rule
+  (below): its `Ctrl+Shift+N` as ⌘N, a `Ctrl` of its own without Shift as ⌃.
 - **Ctrl, Shift and the right Alt (AltGr) are untouched,** but for Ctrl
   with an arrow, which is the desktop's as on a Mac (⌃↑ Mission Control;
   the table has the four). `Ctrl+C` still interrupts in a terminal.
@@ -69,12 +70,13 @@ In every app but a terminal:
 | ⌘[ ⌘] | back, forward | Alt+←, Alt+→ |
 | ⌥← ⌥→ | by word (with ⇧, select) | Ctrl+←, Ctrl+→ |
 | ⌥⌫ ⌥⌦ | delete the word before, after | Ctrl+Backspace, Ctrl+Delete |
+| ⌘, | the app's settings, where it has them on Ctrl+, : every KDE app does in this session (its kdeglobals moves KDE's "Configure…" there from Ctrl+Shift+,) | Ctrl+, |
 
 In a terminal (any app whose desktop file says `TerminalEmulator`):
 
 | Keys | Does | Sent on as |
 |---|---|---|
-| ⌘ + a key | the terminal's own shortcut: ⌘C copy, ⌘V paste, ⌘T tab, ⌘N window, ⌘W close, ⌘F find, ⌘K clear, ⌘Q quit, ⌘+ larger | Ctrl+Shift + the key |
+| ⌘ + a key | the terminal's own shortcut: ⌘C copy, ⌘V paste, ⌘T tab, ⌘N window, ⌘W close, ⌘F find, ⌘K clear, ⌘Q quit, ⌘+ larger, ⌘, settings | Ctrl+Shift + the key |
 | ⌘- | smaller text | Ctrl+- |
 | ⌘⌫ | clear the line typed so far | Ctrl+U |
 | ⌘← ⌘→ | start and end of the line | Home, End |
@@ -132,8 +134,9 @@ folder, ⌘↓ open, ⌘[ back, ⌘] forward): they go on as plain Ctrl.
   Terminal. Konsole's Copy is off until there is a selection, and Konsole
   hands a Ctrl+Shift chord it has no use for to the shell as the plain
   control character (⌘C interrupted the job, ⌘U would clear the line). The
-  session's Konsole profile (`session/konsole/Ambrosia.profile`, the default
-  through `/etc/xdg/ambrosia/konsolerc`) uses a key table of ours
+  session's Konsole profiles (`session/konsole/ClearDark.profile` and
+  `ClearLight.profile`, the defaults through `/etc/xdg/ambrosia/konsolerc`)
+  use a key table of ours
   (`ambrosia.keytab`: Konsole's own, plus Ctrl+Shift with any letter doing
   nothing). A profile of your own gets the same by choosing the "Ambrosia"
   key bindings in its Keyboard page.

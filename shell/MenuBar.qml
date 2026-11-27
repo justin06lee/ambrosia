@@ -25,7 +25,10 @@ PanelWindow {
     // don't get a Window menu of ours.
     readonly property var appEntries: appMenu.item?.entries ?? []
     readonly property bool hasAppMenu: Apps.activeName !== "" && appEntries.length > 0
-    readonly property var appTitles: hasAppMenu ? appEntries : []
+    // An app's Help is the last title on a Mac, after Window: where it is the
+    // app's last, it is drawn after ours.
+    readonly property var appHelp: hasAppMenu && appEntries[appEntries.length - 1]?.text === "Help" ? appEntries[appEntries.length - 1] : null
+    readonly property var appTitles: !hasAppMenu ? [] : appHelp ? appEntries.slice(0, -1) : appEntries
     readonly property bool appHasWindowMenu: appTitles.some(entry => entry.text === "Window")
 
     readonly property bool hides: Settings.menuBarAutohide === "always"
@@ -76,8 +79,13 @@ PanelWindow {
         onLoaded: {
             item.service = Qt.binding(() => Apps.menuService);
             item.path = Qt.binding(() => Apps.menuPath);
+            item.appName = Qt.binding(() => Apps.activeName);
         }
     }
+    // The app's About, settings and Quit rows ({ about, settings, quit },
+    // found by AppMenu.qml): they are shown in the menu named for the app,
+    // and this bar's menus leave them out (Overlay.qml hands MenuView these).
+    readonly property var lifted: hasAppMenu ? appMenu.item?.lifted ?? ({}) : ({})
 
     // The shortcuts beside our own rows are the Mac-first keyboard's
     // (docs/keyboard.md): only chords that do the row's thing are named.
@@ -110,14 +118,26 @@ PanelWindow {
             { separator: true },
             { text: "Settings…", action: () => Session.settings() },
         ];
+        // The app's own About, settings and Quit are here, as on a Mac, by
+        // a Mac's names and with the app's own shortcut; choosing one
+        // chooses the app's row. An app with no Quit of its own has its
+        // windows asked to close.
         const row = Apps.activeRow;
-        return [
+        const own = bar.lifted;
+        const list = [];
+        if (own.about) list.push(
+            { text: `About ${Apps.activeName}`, enabled: own.about.enabled, action: () => own.about.triggered() },
+            { separator: true });
+        if (own.settings) list.push(
+            { text: "Settings…", shortcut: own.settings.shortcut, enabled: own.settings.enabled, action: () => own.settings.triggered() },
+            { separator: true });
+        return list.concat([
             { text: `Hide ${Apps.activeName}`, shortcut: "⌘H", action: () => Apps.hideFront() },
             { text: "Hide Others", shortcut: "⌥⌘H", action: () => Apps.hideOthers() },
             { text: "Show All", action: () => Apps.showAll() },
             { separator: true },
-            { text: `Quit ${Apps.activeName}`, shortcut: "⌘Q", action: () => Apps.quit(row) },
-        ];
+            { text: `Quit ${Apps.activeName}`, shortcut: "⌘Q", action: () => own.quit ? own.quit.triggered() : Apps.quit(row) },
+        ]);
     }
 
     function windowMenu() {
@@ -272,8 +292,9 @@ PanelWindow {
     function menuItems() {
         const list = [logo, appName];
         for (let i = 0; i < titles.count; i++) list.push(titles.itemAt(i));
-        if (windowTitle.visible) list.push(windowTitle);
         if (goTitle.visible) list.push(goTitle);
+        if (windowTitle.visible) list.push(windowTitle);
+        if (helpTitle.visible) list.push(helpTitle);
         return list.filter(item => item);
     }
 
@@ -336,6 +357,7 @@ PanelWindow {
         }
         MenuBarItem { id: goTitle; owner: "go"; visible: Apps.activeName === ""; text: "Go"; menu: bar.goMenu }
         MenuBarItem { id: windowTitle; owner: "window"; visible: !bar.appHasWindowMenu; text: "Window"; menu: bar.windowMenu }
+        MenuBarItem { id: helpTitle; owner: "menu:help"; visible: bar.appHelp !== null; text: "Help"; menu: bar.appHelp }
     }
 
     Row {

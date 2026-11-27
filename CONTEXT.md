@@ -1245,6 +1245,19 @@ package repo below), and they carry `shell/` and `session/` as they are.
     (`session/applications/`), first in the session's `XDG_DATA_DIRS`.
     The frame drops an app's own name from the end of a title
     (`title()` in `decoration/src/decoration.cpp`).
+  - **The app menu's About, Settings… and Quit are the app's own rows**
+    (round 53, `shell/AppMenu.qml`'s `lifted`): found by their text among
+    the rows right under the app's titles, shown in `MenuBar.appNameMenu`
+    and left out of the app's menus by `MenuView` (each screen's bar reads
+    the app's menus itself, so `Overlay.qml` hands MenuView its own bar's
+    rows: the match is by object). The rows are read through
+    `loadedChildren`, our Quickshell's (pkgrel 6): a `QsMenuOpener` on a
+    submenu sends the app AboutToShow and, let go, "closed", and our own
+    apps count open menus to know who has the keys, so never hold one open
+    to read. QML's JavaScript has no `??=`. KDE's settings shortcut is
+    moved to Ctrl+, in the session's kdeglobals (`[Shortcuts]
+    Preferences`, read by every KDE app); an app's own rc can put it back
+    (konsolerc does, a terminal's ⌘ being Ctrl+Shift).
   - **A key that is both a `Shortcut` and a menu item's shortcut**
     (Settings, Calculator, Preview: the window's `Shortcut`s beside
     `Qt.labs.platform` menu items) is ambiguous to Qt, which hands it to

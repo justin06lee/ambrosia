@@ -95,25 +95,30 @@ index 06cbc34..1b4030c 100644
  
  #include "../../core/doc.hpp"
  #include "../../core/imageprovider.hpp"
-@@ -49,6 +50,9 @@ class DBusMenuItem: public QsMenuEntry {
+@@ -49,6 +50,13 @@ class DBusMenuItem: public QsMenuEntry {
  	Q_OBJECT;
  	/// Handle to the root of this menu.
  	Q_PROPERTY(qs::dbus::dbusmenu::DBusMenu* menuHandle READ menuHandle CONSTANT);
 +	/// The item's keyboard shortcut as the menu gives it: for each key of the sequence, its key
 +	/// names, modifiers first, such as `[["Control", "Shift", "S"]]`. Empty if it has none.
 +	Q_PROPERTY(QVariantList shortcut READ shortcut NOTIFY shortcutChanged);
++	/// The item's children as far as the app has sent them, read without opening the menu (a
++	/// @@Quickshell.QsMenuOpener opens it, and tells the app so). Empty until the app's layout
++	/// arrives, and for a menu the app only fills as it opens.
++	Q_PROPERTY(UntypedObjectModel* loadedChildren READ loadedChildren CONSTANT);
  	QML_ELEMENT;
  	QML_UNCREATABLE("DBusMenus can only be acquired from a DBusMenuHandle");
  
-@@ -72,6 +76,7 @@ public:
+@@ -72,6 +80,8 @@ public:
  	[[nodiscard]] menu::QsMenuButtonType::Enum buttonType() const override;
  	[[nodiscard]] Qt::CheckState checkState() const override;
  	[[nodiscard]] bool hasChildren() const override;
 +	[[nodiscard]] QVariantList shortcut() const { return this->mShortcut; }
++	[[nodiscard]] UntypedObjectModel* loadedChildren() { return &this->enabledChildren; }
  
  	[[nodiscard]] bool isShowingChildren() const;
  	void setShowChildrenRecursive(bool showChildren);
-@@ -90,6 +95,7 @@ public:
+@@ -90,6 +100,7 @@ public:
  
  signals:
  	void layoutUpdated();
@@ -121,7 +126,7 @@ index 06cbc34..1b4030c 100644
  
  private slots:
  	void sendOpened() const;
-@@ -107,6 +113,7 @@ private:
+@@ -107,6 +118,7 @@ private:
  	menu::QsMenuButtonType::Enum mButtonType = menu::QsMenuButtonType::None;
  	Qt::CheckState mCheckState = Qt::Unchecked;
  	bool displayChildren = false;
@@ -129,7 +134,7 @@ index 06cbc34..1b4030c 100644
  	ObjectModel<DBusMenuItem> enabledChildren {this};
  	DBusMenuItem* parentMenu = nullptr;
  };
-@@ -193,4 +200,39 @@ private:
+@@ -193,4 +205,39 @@ private:
  	friend QDebug operator<<(QDebug debug, const DBusMenuHandle* handle);
  };
  

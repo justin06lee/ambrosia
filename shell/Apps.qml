@@ -25,6 +25,9 @@ Singleton {
     property string menuPath: ""
     property int activeRow: -1
     property int activeChild: -1
+    // Which keyboard layer the focused app has (from KeyLayer.qml): menus
+    // write a terminal's shortcuts by it.
+    property string keyLayer: "default"
 
     function get(index, role) {
         return tasksModel.data(index, role);

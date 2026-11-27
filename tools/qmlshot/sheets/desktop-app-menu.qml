@@ -3,8 +3,9 @@ import Quickshell
 import "../parts"
 import "../../../out/build/qmlshot/shell"
 
-// The bold menu named for the app in front: Hide, Hide Others, Show All
-// (the session's KWin effect does the hiding) and Quit.
+// The bold menu named for the app in front: the app's own About and
+// settings, lifted from its menus, then Hide, Hide Others, Show All (the
+// session's KWin effect does the hiding) and Quit.
 Desk {
     then: () => {
         shotPointer.press(40, 14);

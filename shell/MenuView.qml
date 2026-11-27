@@ -16,6 +16,9 @@ Item {
     property int depth: 0
     property var entries: []
     property QsMenuHandle handle: null
+    // Rows of an app's menu that are not drawn here: the menu bar has them
+    // in its app menu ({ about, settings, quit }, MenuBar.lifted).
+    property var lifted: ({})
     // The highlighted row, by mouse or keyboard; -1 for none.
     property int current: -1
 
@@ -33,7 +36,11 @@ Item {
     // the key, arrows and editing keys as their symbols. On the Mac-first
     // keyboard (design/DECISIONS.md) Super is Command and keyd hands apps
     // Ctrl, so an app's Control is the ⌘ key, and its Super or Meta ⌃.
+    // A terminal is handed Ctrl+Shift for ⌘, with or without ⇧ held
+    // (docs/keyboard.md): its Ctrl+Shift+N is ⌘N, and a Ctrl of its own
+    // without Shift is the Control key, but for ⌘- (keyd sends Ctrl+-).
     readonly property var modifierGlyphs: ({ Super: "⌃", Meta: "⌃", Alt: "⌥", Shift: "⇧", Control: "⌘" })
+    readonly property bool terminal: Apps.keyLayer === "terminal"
     // Qt names keys as they print ("[", "Up"); others use X keysym names.
     readonly property var keyGlyphs: ({
         Up: "↑", Down: "↓", Left: "←", Right: "→", Return: "↩", Enter: "⌤", KP_Enter: "⌤", Tab: "⇥",
@@ -47,8 +54,12 @@ Item {
         const keys = [];
         for (let i = 0; i < shortcut.length; i++) {
             const names = Array.from(shortcut[i]);
-            const mods = ["⌃", "⌥", "⇧", "⌘"].filter(glyph => names.some(name => modifierGlyphs[name] === glyph));
             const key = names.filter(name => !(name in modifierGlyphs) && name !== "Num").pop() ?? "";
+            let mods = ["⌃", "⌥", "⇧", "⌘"].filter(glyph => names.some(name => modifierGlyphs[name] === glyph));
+            if (terminal && mods.includes("⌘")) {
+                if (mods.includes("⇧")) mods = mods.filter(glyph => glyph !== "⇧");
+                else if (key !== "minus" && key !== "-") mods = ["⌃"].concat(mods.filter(glyph => glyph !== "⌘" && glyph !== "⌃"));
+            }
             keys.push(mods.join("") + (keyGlyphs[key] ?? (key.length === 1 ? key.toUpperCase() : key)));
         }
         return keys.join(" ");
@@ -60,7 +71,7 @@ Item {
         for (let i = 1; i <= count; i++) {
             const next = (current + step * i + count * 2) % count;
             const row = repeater.itemAt(next);
-            if (row && !row.separator && row.enabled) {
+            if (row && !row.separator && !row.lifted && row.enabled) {
                 current = next;
                 return;
             }
@@ -121,7 +132,7 @@ Item {
             let pending = null;
             for (let i = 0; i < repeater.count; i++) {
                 const row = repeater.itemAt(i);
-                if (!row) continue;
+                if (!row || row.lifted) continue;
                 if (row.separator) {
                     row.collapsed = true;
                     if (afterItem && !pending) pending = row;
@@ -145,12 +156,17 @@ Item {
         readonly property bool checked: modelData.checked === true || modelData.checkState === Qt.Checked
         readonly property bool highlighted: menu.current === index && enabled && !separator
         property bool collapsed: false
+        // The app's About, settings and Quit are in the menu bar's app menu
+        // (MenuBar.appNameMenu), not here where the app has them.
+        readonly property bool lifted: menu.handle !== null
+            && (modelData === menu.lifted.about || modelData === menu.lifted.settings || modelData === menu.lifted.quit)
+        onLiftedChanged: rows.measure()
 
         enabled: modelData.enabled !== false
-        visible: !collapsed
+        visible: !collapsed && !lifted
         width: rows.width
-        height: collapsed ? 0 : separator ? 2 * Theme.space.s1_5 + 1 : Theme.size.row.compact
-        implicitWidth: separator ? 0 : 26 + label.implicitWidth + Theme.space.s3
+        height: collapsed || lifted ? 0 : separator ? 2 * Theme.space.s1_5 + 1 : Theme.size.row.compact
+        implicitWidth: separator || lifted ? 0 : 26 + label.implicitWidth + Theme.space.s3
             + (shortcut.text ? Theme.space.s6 + shortcut.implicitWidth : 0)
             + (hasSubmenu ? Theme.space.s6 + 12 : 0)
         onImplicitWidthChanged: rows.measure()

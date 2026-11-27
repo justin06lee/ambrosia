@@ -11,5 +11,7 @@ QsMenuHandle {
     readonly property bool hasChildren: shotChildren.length > 0
     // Our Quickshell build's addition: the row's key, as DBusMenu gives it.
     property var shortcut: []
+    // And its rows as the app has sent them, read without opening it.
+    readonly property var loadedChildren: ({ values: shotChildren })
     signal triggered()
 }

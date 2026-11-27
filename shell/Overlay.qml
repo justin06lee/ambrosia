@@ -133,6 +133,7 @@ PopupWindow {
                 depth: index
                 entries: level?.build ? level.build() : (level?.entries ?? [])
                 handle: level?.handle ?? null
+                lifted: overlay.bar.lifted ?? ({})
                 // Kept on screen; a submenu with no room on the right opens on the left.
                 x: !level ? 0 : Math.max(0, level.x + width > area.width && index > 0
                     ? menus.itemAt(index - 1).x - width + padding
