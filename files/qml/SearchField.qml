@@ -158,7 +158,17 @@ Item {
                 }
                 return;
             case Qt.Key_Tab:
-                field.finder.focusResults();
+                // ⌃Tab is the window's: the tab after this one.
+                if (event.modifiers & (Qt.ControlModifier | Qt.MetaModifier))
+                    field.finder.stepTab(1);
+                else
+                    field.finder.focusResults();
+                break;
+            case Qt.Key_Backtab:
+                if (event.modifiers & (Qt.ControlModifier | Qt.MetaModifier))
+                    field.finder.stepTab(-1);
+                else
+                    return;
                 break;
             default:
                 return;

@@ -97,6 +97,7 @@ qt_add_qml_module(ambrosia-files
         qml/TagDots.qml
         qml/SearchField.qml
         qml/ScopeBar.qml
+        qml/TabBar.qml
         qml/PopupMenu.qml
         qml/PopupButton.qml
         qml/ContextMenu.qml

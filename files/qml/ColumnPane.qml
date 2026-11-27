@@ -327,7 +327,7 @@ FocusScope {
                     renameSoon.stop();
                     const at = col.focused ? col.windowRow(hits.rowAt(point.position)) : col.take(hits.rowAt(point.position));
                     if (at >= 0)
-                        owner.finder.open(at);
+                        owner.finder.open(at, tap.point.modifiers);
                 }
             }
             Timer {

@@ -36,6 +36,131 @@ Window {
     readonly property bool canGoBack: historyIndex > 0
     readonly property bool canGoForward: historyIndex < history.length - 1
 
+    // Tabs, as Finder's (File ▸ New Tab, ⌘T; TabBar.qml). The window shows
+    // one tab, and what it shows is live in the window's own properties;
+    // `tabs` holds every tab as it was left ({ key, url, view, history,
+    // historyIndex, columnRoot, name, picked }), the one in front put
+    // right when another is shown. The bar shows with two tabs or more,
+    // or when View ▸ Show Tab Bar says so.
+    property var tabs: []
+    property int tabAt: 0
+    property int tabKeys: 0
+    property bool tabBarAlways: false
+    readonly property bool tabBarShown: !isPanel && (tabs.length > 1 || tabBarAlways)
+    readonly property int tabStrip: tabBarShown ? Finder.tabStrip : 0
+    readonly property var tabNames: tabs.map((each, at) => at === tabAt ? placeName : each.name)
+    function tabState() {
+        return { key: tabs[tabAt]?.key ?? ++tabKeys, url: url, view: view, history: history, historyIndex: historyIndex,
+                 columnRoot: columnRoot, name: placeName, picked: selectedUrls() };
+    }
+    function tabUrl(at) {
+        return at === tabAt ? url : tabs[at].url;
+    }
+    // Every tab as it is now.
+    function tabsNow() {
+        const all = tabs.slice();
+        all[tabAt] = tabState();
+        return all;
+    }
+    function takeTab(tab) {
+        if (lookOpen)
+            closeLook();
+        searchShown(tab.url);
+        clearSelection();
+        editing = "";
+        pending = null;
+        history = tab.history;
+        historyIndex = tab.historyIndex;
+        galleryAt = 0;
+        url = tab.url;
+        view = tab.view;
+        columnRoot = tab.columnRoot;
+        if (tab.picked.length > 0)
+            selectWhenShown(tab.picked, false);
+        focusResults();
+    }
+    function showTab(at) {
+        if (at < 0 || at >= tabs.length || at === tabAt)
+            return;
+        if (renaming)
+            editor?.commit();
+        springEnd();
+        const all = tabsNow();
+        tabs = all;
+        tabAt = at;
+        takeTab(all[at]);
+    }
+    function stepTab(by) {
+        if (tabs.length > 1)
+            showTab((tabAt + by + tabs.length) % tabs.length);
+    }
+    // A new tab after the one in front, on a folder (none: where new
+    // windows start), shown as this one is.
+    function newTab(target) {
+        if (isPanel)
+            return;
+        if (renaming)
+            editor?.commit();
+        springEnd();
+        const to = target ? Qt.url(target.toString()) : Prefs.newWindowUrl;
+        const all = tabsNow();
+        all.splice(tabAt + 1, 0, { key: ++tabKeys, url: to, view: view, history: [to], historyIndex: 0, columnRoot: to, name: "", picked: [] });
+        tabs = all;
+        tabAt += 1;
+        takeTab(all[tabAt]);
+    }
+    // The last tab's end is the window's.
+    function closeTab(at) {
+        if (at < 0 || at >= tabs.length)
+            return;
+        if (tabs.length <= 1) {
+            close();
+            return;
+        }
+        const all = tabsNow();
+        all.splice(at, 1);
+        if (at === tabAt) {
+            tabs = all;
+            tabAt = Math.min(at, all.length - 1);
+            takeTab(all[tabAt]);
+        } else {
+            if (at < tabAt)
+                tabAt -= 1;
+            tabs = all;
+        }
+    }
+    function closeOtherTabs(at) {
+        if (at !== tabAt)
+            showTab(at);
+        tabs = [tabState()];
+        tabAt = 0;
+    }
+    function moveTab(from, to) {
+        if (from === to || from < 0 || to < 0 || from >= tabs.length || to >= tabs.length)
+            return;
+        const all = tabsNow();
+        const key = all[tabAt].key;
+        all.splice(to, 0, all.splice(from, 1)[0]);
+        tabs = all;
+        tabAt = all.findIndex(each => each.key === key);
+    }
+    function tabToWindow(at) {
+        if (tabs.length < 2)
+            return;
+        App.openWindow(tabUrl(at));
+        closeTab(at);
+    }
+    function tabMenu(at, x, y) {
+        shortcuts.urls = [];
+        shortcuts.colorOf = "";
+        shortcuts.items = [
+            { text: "New Tab", run: () => newTab() },
+            { text: "Close Tab", run: () => closeTab(at) },
+            { text: "Close Other Tabs", enabled: tabs.length > 1, run: () => closeOtherTabs(at) },
+            { text: "Move Tab to New Window", enabled: tabs.length > 1, run: () => tabToWindow(at) },
+        ];
+        shortcuts.openAt(x, y);
+    }
     // The selection: rows → true, the row keys act on, and where a Shift
     // range starts.
     property var selected: ({})
@@ -456,9 +581,12 @@ Window {
             return;
         select(row, many && (modifiers & Qt.ShiftModifier), many && (modifiers & Qt.ControlModifier));
     }
-    function open(row) {
+    // With Command held a folder opens in a new tab, as in Finder.
+    function open(row, modifiers) {
         const target = folder.urlAt(row);
-        if (folder.isDirAt(row) && view === "column")
+        if (folder.isDirAt(row) && !isPanel && ((modifiers ?? 0) & (Qt.ControlModifier | Qt.MetaModifier)))
+            newTab(target);
+        else if (folder.isDirAt(row) && view === "column")
             browse(target, null, true);
         else if (folder.isDirAt(row))
             go(target);
@@ -810,6 +938,9 @@ Window {
                 ({ text: title, checked: model.sortColumn === column, run: () => sortBy(column) })) },
         ] : [
             { text: "Open", run: () => openSelection() },
+        ].concat(selectedCount === 1 && !isPanel && folder.isDirAt(shownRow) ? [
+            { text: "Open in New Tab", run: () => newTab(folder.urlAt(shownRow)) },
+        ] : [], [
             { text: "Open With", enabled: !inTrash, submenu: () => openWithEntries() },
             { separator: true },
             { text: inTrash ? "Put Back" : "Move to Trash", enabled: !inApplications, run: () => trashSelection() },
@@ -826,7 +957,7 @@ Window {
             { separator: true },
             { tags: true },
             { text: "Tags…", run: () => { tagEditor.urls = selectedUrls(); tagEditor.openAt(x, y); } },
-        ] : []);
+        ] : []));
         shortcuts.urls = row >= 0 ? selectedUrls() : [];
         shortcuts.colorOf = "";
         shortcuts.items = items;
@@ -983,7 +1114,11 @@ Window {
     }
 
     onVisibleChanged: if (visible) App.decorate(win, Finder.windowRadius)
-    Component.onCompleted: if (visible) App.decorate(win, Finder.windowRadius)
+    Component.onCompleted: {
+        tabs = [tabState()];
+        if (visible)
+            App.decorate(win, Finder.windowRadius);
+    }
 
     Rectangle {
         id: frame
@@ -1078,7 +1213,7 @@ Window {
                 anchors.rightMargin: win.previewShown ? Finder.previewPane : 0
                 // The scope bar's rows push the view down (its top stays
                 // under the toolbar's glass otherwise).
-                anchors.topMargin: win.scopeBarShown ? 2 * Finder.scopeRow : 0
+                anchors.topMargin: (win.scopeBarShown ? 2 * Finder.scopeRow : 0) + win.tabStrip
                 focus: true
                 // Search results have no columns: the list instead, as in Finder.
                 sourceComponent: win.searching && win.view === "column" ? listPane
@@ -1104,14 +1239,22 @@ Window {
             PreviewPane {
                 visible: win.previewShown
                 x: parent.width - width
+                y: win.tabStrip
                 width: Finder.previewPane
-                height: parent.height
+                height: parent.height - y
+                finder: win
+            }
+
+            TabBar {
+                visible: win.tabBarShown
+                y: Finder.tabTop
+                width: parent.width
                 finder: win
             }
 
             ScopeBar {
                 visible: win.scopeBarShown
-                y: Finder.scopeTop
+                y: Finder.scopeTop + win.tabStrip
                 width: parent.width - (win.previewShown ? Finder.previewPane : 0)
                 finder: win
             }
@@ -1308,7 +1451,30 @@ Window {
             else win.act("rename", win.renameSelection);
             break;
         case Qt.Key_W:
-            if (ctrl) win.act("close", win.close);
+            if (ctrl && shift) win.act("closeWindow", win.close);
+            else if (ctrl) win.act("close", () => win.closeTab(win.tabAt));
+            break;
+        case Qt.Key_T:
+            if (ctrl && shift && !win.isPanel) win.act("tabBar", () => win.tabBarAlways = !win.tabBarAlways);
+            else if (ctrl) win.act("newTab", () => win.newTab());
+            break;
+        // ⌃Tab and ⇧⌃Tab, and ⇧⌘] and ⇧⌘[ (which arrive as Ctrl+Page Down
+        // and Up): the tab after, the tab before.
+        case Qt.Key_Tab:
+            if (ctrl) win.act("nextTab", () => win.stepTab(1));
+            else return;
+            break;
+        case Qt.Key_Backtab:
+            if (ctrl) win.act("previousTab", () => win.stepTab(-1));
+            else return;
+            break;
+        case Qt.Key_PageDown:
+            if (ctrl) win.act("nextTab", () => win.stepTab(1));
+            else return;
+            break;
+        case Qt.Key_PageUp:
+            if (ctrl) win.act("previousTab", () => win.stepTab(-1));
+            else return;
             break;
         case Qt.Key_Space:
             if (ctrl) return;

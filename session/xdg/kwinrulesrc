@@ -4,8 +4,8 @@
 # asked would otherwise bury the prompt behind it, with that window's control
 # waiting on an answer nobody can see.
 [General]
-count=1
-rules=ambrosia-password-prompt
+count=2
+rules=ambrosia-password-prompt,ambrosia-about-panel
 
 [ambrosia-password-prompt]
 Description=Password prompts stay in front
@@ -14,3 +14,14 @@ wmclassmatch=2
 wmclasscomplete=false
 above=true
 aboverule=2
+
+# An About panel (kit/AboutWindow.qml) can't be minimized, as a Mac's can't:
+# its yellow light is dim. Wayland has no way for a window to say so, and
+# the panel's title is a letter that takes no room (a zero-width space),
+# which nothing else is called.
+[ambrosia-about-panel]
+Description=An About panel isn't minimized
+title=​
+titlematch=2
+minimize=false
+minimizerule=2

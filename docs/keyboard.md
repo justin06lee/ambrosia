@@ -54,7 +54,7 @@ Everywhere:
 | ⌃←, ⌃→ | the desktop to the left, to the right | Super+Ctrl+←, Super+Ctrl+→ (KWin's own) |
 | ⇧⌘3, ⇧⌘4 | picture of the screen, of a part dragged out: saved to the Desktop, its thumbnail in the screen's corner for a moment | Super+Ctrl+Alt+3, Super+Ctrl+Alt+4 (`session/org.ambrosia.screenshot*.desktop`) |
 | ⇧⌘5 | the screenshot tool | Print (Spectacle) |
-| ⇧⌘[ , ⇧⌘] | the tab before, the tab after | Ctrl+PgUp, Ctrl+PgDn |
+| ⇧⌘[ , ⇧⌘] | the tab before, the tab after (Files' tabs too, which also take ⌃Tab and ⇧⌃Tab; ⌘T makes one there, ⌘W closes it and ⇧⌘W the window, ⇧⌘T shows the tab bar) | Ctrl+PgUp, Ctrl+PgDn |
 | ⌃⌘F | full screen | Super+Ctrl+F (`session/org.ambrosia.fullscreen.desktop`) |
 | ⌃⌘Q | lock the screen | Super+L |
 | ⌃⌘Space | the emoji picker: type to search, the arrows and Return to choose; the choice is typed into the app in front | Super+Ctrl+Alt+Space (`session/org.ambrosia.emoji.desktop`; Super+. is still KDE's own picker) |

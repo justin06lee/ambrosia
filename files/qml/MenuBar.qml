@@ -36,9 +36,12 @@ Platform.MenuBar {
         onAboutToHide: bar.finder.menusOpen = Math.max(0, bar.finder.menusOpen - 1)
         title: "File"
         Platform.MenuItem { text: "New Finder Window"; shortcut: "Ctrl+N"; onTriggered: bar.finder.act("new", () => App.openWindow(Prefs.newWindowUrl)) }
+        Platform.MenuItem { text: "New Tab"; shortcut: "Ctrl+T"; onTriggered: bar.finder.act("newTab", () => bar.finder.newTab()) }
         Platform.MenuItem { text: "New Folder"; shortcut: "Ctrl+Shift+N"; enabled: bar.finder.local; onTriggered: bar.finder.act("newFolder", bar.finder.newFolder) }
         Platform.MenuItem { text: "Open"; shortcut: "Ctrl+O"; enabled: bar.finder.hasSelection; onTriggered: bar.finder.act("open", bar.finder.openSelection) }
-        Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+W"; onTriggered: bar.finder.act("close", bar.finder.close) }
+        // With tabs ⌘W closes the one in front, and the window has ⇧⌘W.
+        Platform.MenuItem { text: bar.finder.tabs.length > 1 ? "Close Tab" : "Close Window"; shortcut: "Ctrl+W"; onTriggered: bar.finder.act("close", () => bar.finder.closeTab(bar.finder.tabAt)) }
+        Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+Shift+W"; visible: bar.finder.tabs.length > 1; onTriggered: bar.finder.act("closeWindow", bar.finder.close) }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: "Get Info"; shortcut: "Ctrl+I"; onTriggered: bar.finder.act("info", bar.finder.getInfo) }
         Platform.MenuItem { text: "Rename"; enabled: bar.finder.selectedCount === 1 && bar.finder.localItems; onTriggered: bar.finder.act("rename", bar.finder.renameSelection) }
@@ -146,6 +149,7 @@ Platform.MenuBar {
             enabled: bar.finder.view === "column" || bar.finder.view === "gallery"
             onTriggered: bar.finder.act("preview", () => bar.finder.showPreview = !bar.finder.showPreview)
         }
+        Platform.MenuItem { text: bar.finder.tabBarShown ? "Hide Tab Bar" : "Show Tab Bar"; shortcut: "Ctrl+Shift+T"; enabled: bar.finder.tabs.length < 2; onTriggered: bar.finder.act("tabBar", () => bar.finder.tabBarAlways = !bar.finder.tabBarAlways) }
         Platform.MenuItem { text: bar.finder.model.showHidden ? "Hide Hidden Files" : "Show Hidden Files"; shortcut: "Ctrl+Shift+."; onTriggered: bar.finder.act("hidden", () => bar.finder.model.showHidden = !bar.finder.model.showHidden) }
     }
     Platform.Menu {
@@ -171,5 +175,9 @@ Platform.MenuBar {
         title: "Window"
         Platform.MenuItem { text: "Minimize"; onTriggered: bar.finder.showMinimized() }
         Platform.MenuItem { text: "Zoom"; onTriggered: bar.finder.visibility === Window.Maximized ? bar.finder.showNormal() : bar.finder.showMaximized() }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Show Previous Tab"; shortcut: "Ctrl+PgUp"; enabled: bar.finder.tabs.length > 1; onTriggered: bar.finder.act("previousTab", () => bar.finder.stepTab(-1)) }
+        Platform.MenuItem { text: "Show Next Tab"; shortcut: "Ctrl+PgDown"; enabled: bar.finder.tabs.length > 1; onTriggered: bar.finder.act("nextTab", () => bar.finder.stepTab(1)) }
+        Platform.MenuItem { text: "Move Tab to New Window"; enabled: bar.finder.tabs.length > 1; onTriggered: bar.finder.tabToWindow(bar.finder.tabAt) }
     }
 }
