@@ -17,6 +17,10 @@ Platform.MenuBar {
     // own menu of that name, over Hide and Quit (shell/AppMenu.qml), as a
     // Mac's app menu has them; elsewhere it is one more menu.
     Platform.Menu {
+        // Ambrosia's menu bar holds this one open while anything of its own
+        // is (the app menu, Window, the control center): the window stays lit.
+        onAboutToShow: bar.settings.shellOpen = true
+        onAboutToHide: bar.settings.shellOpen = false
         title: "System Settings"
         Platform.MenuItem { text: "About System Settings"; onTriggered: About.show("System Settings", "org.ambrosia.settings") }
     }

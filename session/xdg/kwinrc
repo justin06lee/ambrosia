@@ -55,6 +55,9 @@ ambrosia_missionEnabled=true
 # script of ours (session/kwin-scripts/ambrosia_desktop) turns every request
 # for it into ours, and KWin's animation for it is off.
 ambrosia_desktopEnabled=true
+# A window that resizes itself keeps its top left corner (KWin grows it
+# around its middle): session/kwin-scripts/ambrosia_anchor.
+ambrosia_anchorEnabled=true
 windowapertureEnabled=false
 eyeonscreenEnabled=false
 

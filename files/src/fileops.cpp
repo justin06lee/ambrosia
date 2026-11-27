@@ -2,6 +2,7 @@
 #include "app.h"
 #include "expand.h"
 #include "format.h"
+#include "prefs.h"
 #include "tags.h"
 
 #include <KIO/AskUserActionInterface>
@@ -9,6 +10,7 @@
 #include <KConfigGroup>
 #include <KDirWatch>
 #include <KIO/CopyJob>
+#include <KIO/DeleteJob>
 #include <KIO/EmptyTrashJob>
 #include <KIO/FileUndoManager>
 #include <KIO/JobUiDelegateFactory>
@@ -19,6 +21,7 @@
 #include <KZip>
 
 #include <QClipboard>
+#include <QDateTime>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
@@ -30,6 +33,7 @@
 #include <QPushButton>
 #include <QStandardPaths>
 #include <QRegularExpression>
+#include <QSettings>
 #include <QSysInfo>
 #include <QtConcurrentRun>
 
@@ -603,8 +607,24 @@ void FileOps::readTrash()
     Q_EMIT trashChanged();
 }
 
+// Empties it, with the crumple of it going once it has (the sound theme's
+// trash-empty), as the Dock's Empty Trash plays it.
+static void emptyTrashNow()
+{
+    KIO::Job *job = KIO::emptyTrash();
+    QObject::connect(job, &KJob::result, job, [](KJob *done) {
+        if (!done->error())
+            QProcess::startDetached(QStringLiteral("/usr/lib/ambrosia/sound"), {QStringLiteral("trash-empty")});
+    });
+}
+
 void FileOps::emptyTrash()
 {
+    // Files' Settings: Show warning before emptying the Trash.
+    if (!Prefs::instance()->warnEmptyTrash()) {
+        emptyTrashNow();
+        return;
+    }
     auto *box = new QMessageBox(QMessageBox::Warning, QStringLiteral("Files"),
                                 QStringLiteral("Are you sure you want to permanently erase the items in the Trash?"), QMessageBox::NoButton);
     box->setInformativeText(QStringLiteral("You can’t undo this action."));
@@ -613,17 +633,36 @@ void FileOps::emptyTrash()
     box->setDefaultButton(empty);
     box->setAttribute(Qt::WA_DeleteOnClose);
     connect(box, &QMessageBox::finished, this, [box, empty] {
-        if (box->clickedButton() != empty)
-            return;
-        KIO::Job *job = KIO::emptyTrash();
-        // The crumple of it going, once it has (the sound theme's
-        // trash-empty), as the Dock's Empty Trash plays it.
-        connect(job, &KJob::result, job, [](KJob *done) {
-            if (!done->error())
-                QProcess::startDetached(QStringLiteral("/usr/lib/ambrosia/sound"), {QStringLiteral("trash-empty")});
-        });
+        if (box->clickedButton() == empty)
+            emptyTrashNow();
     });
     box->open();
+}
+
+// Files' Settings: Remove items from the Trash after 30 days. KDE's trash
+// does that itself, but only as something new is trashed (ktrashrc, which
+// Prefs writes): this looks at what the home Trash holds now, by the day
+// each item's record says it went in.
+void FileOps::sweepTrash()
+{
+    if (!Prefs::instance()->trashExpires())
+        return;
+    const QString info = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + QStringLiteral("/Trash/info");
+    const QDateTime now = QDateTime::currentDateTime();
+    QList<QUrl> old;
+    const QStringList records = QDir(info).entryList({QStringLiteral("*.trashinfo")}, QDir::Files);
+    for (const QString &record : records) {
+        const QSettings file(info + QLatin1Char('/') + record, QSettings::IniFormat);
+        const QDateTime went = QDateTime::fromString(file.value(QStringLiteral("Trash Info/DeletionDate")).toString(), Qt::ISODate);
+        if (!went.isValid() || went.daysTo(now) <= Prefs::trashDays)
+            continue;
+        QUrl url;
+        url.setScheme(QStringLiteral("trash"));
+        url.setPath(QStringLiteral("/0-") + record.chopped(10));
+        old << url;
+    }
+    if (!old.isEmpty())
+        KIO::del(old, KIO::HideProgressInfo);
 }
 
 int FileOps::trash(const QList<QUrl> &urls)

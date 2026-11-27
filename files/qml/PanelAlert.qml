@@ -15,6 +15,10 @@ Rectangle {
     property string acceptText
     // What the other button does; replaced() when it is null.
     property var then: null
+    // The default button's own words and what it does besides closing the
+    // card ("Keep .txt" for a changed extension); Cancel and nothing.
+    property string cancelText: "Cancel"
+    property var otherwise: null
     signal replaced()
 
     function ask(name, folderName) {
@@ -23,17 +27,23 @@ Rectangle {
                  "A file or folder with the same name already exists in the folder " + folderName
                  + ". Replacing it will overwrite its current contents.", "Replace", null);
     }
-    function question(title, detail, acceptText, then) {
+    function question(title, detail, acceptText, then, cancelText, otherwise) {
         alert.title = title;
         alert.detail = detail;
         alert.acceptText = acceptText;
         alert.then = then;
+        alert.cancelText = cancelText ?? "Cancel";
+        alert.otherwise = otherwise ?? null;
         visible = true;
         card.forceActiveFocus();
     }
     function dismiss() {
         visible = false;
         finder.panelFocus();
+        const otherwise = alert.otherwise;
+        alert.otherwise = null;
+        if (otherwise)
+            otherwise();
     }
 
     visible: false
@@ -94,6 +104,7 @@ Rectangle {
                     onClicked: {
                         const then = alert.then;
                         alert.then = null;
+                        alert.otherwise = null;
                         if (then) {
                             alert.dismiss();
                             then();
@@ -106,7 +117,7 @@ Rectangle {
                 PushButton {
                     width: (column.width - 10) / 2
                     primary: true
-                    text: "Cancel"
+                    text: alert.cancelText
                     onClicked: alert.dismiss()
                 }
             }

@@ -29,7 +29,12 @@ Window {
     // a Mac (Files' FinderWindow does the same); --active draws it active
     // for grabs.
     property int menusOpen: 0
-    readonly property bool looksActive: active || menusOpen > 0 || App.active
+    // Something of Ambrosia's own is open over the screen (the app menu,
+    // the control center): its menu bar says so through the menu named for
+    // the app (MenuBar.qml). Yes or no, not a count: a missed word from
+    // the bar must not leave the window lit for good.
+    property bool shellOpen: false
+    readonly property bool looksActive: active || menusOpen > 0 || shellOpen || App.active
     // Under a sheet, as on a Mac, the page and toolbar are dimmed and the
     // sidebar faded, none of them taking clicks (tap handlers under a sheet's
     // dim would still fire); close is grayed, minimize and zoom still work.

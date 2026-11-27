@@ -16,10 +16,16 @@ Platform.MenuBar {
     // own menu of that name, over Hide and Quit (shell/AppMenu.qml), as a
     // Mac's app menu has them; elsewhere it is one more menu.
     Platform.Menu {
+        // Ambrosia's menu bar holds this one open while anything of its own
+        // is (the app menu, Window, the control center): the window stays lit.
+        onAboutToShow: bar.finder.shellOpen = true
+        onAboutToHide: bar.finder.shellOpen = false
         title: "Files"
         Platform.MenuItem { text: "About Files"; onTriggered: About.show("Files", "org.ambrosia.files") }
         Platform.MenuSeparator {}
-        Platform.MenuItem { text: "Empty Trash…"; shortcut: "Ctrl+Shift+Backspace"; enabled: !FileOps.trashEmpty; onTriggered: FileOps.emptyTrash() }
+        Platform.MenuItem { text: "Settings…"; shortcut: "Ctrl+,"; onTriggered: bar.finder.act("settings", () => Preferences.show("Files", "SettingsWindow")) }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Empty Trash…"; shortcut: "Ctrl+Shift+Backspace"; enabled: !FileOps.trashEmpty; onTriggered: bar.finder.act("emptyTrash", FileOps.emptyTrash) }
     }
 
     Platform.Menu {
@@ -29,7 +35,7 @@ Platform.MenuBar {
         }
         onAboutToHide: bar.finder.menusOpen = Math.max(0, bar.finder.menusOpen - 1)
         title: "File"
-        Platform.MenuItem { text: "New Finder Window"; shortcut: "Ctrl+N"; onTriggered: bar.finder.act("new", () => App.openWindow(bar.finder.url)) }
+        Platform.MenuItem { text: "New Finder Window"; shortcut: "Ctrl+N"; onTriggered: bar.finder.act("new", () => App.openWindow(Prefs.newWindowUrl)) }
         Platform.MenuItem { text: "New Folder"; shortcut: "Ctrl+Shift+N"; enabled: bar.finder.local; onTriggered: bar.finder.act("newFolder", bar.finder.newFolder) }
         Platform.MenuItem { text: "Open"; shortcut: "Ctrl+O"; enabled: bar.finder.hasSelection; onTriggered: bar.finder.act("open", bar.finder.openSelection) }
         Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+W"; onTriggered: bar.finder.act("close", bar.finder.close) }

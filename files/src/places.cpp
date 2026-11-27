@@ -1,4 +1,5 @@
 #include "places.h"
+#include "prefs.h"
 #include "tags.h"
 
 #include <Solid/DeviceNotifier>
@@ -79,6 +80,7 @@ Places::Places(QObject *parent)
     : QObject(parent)
 {
     connect(Tags::instance(), &Tags::listChanged, this, &Places::sectionsChanged);
+    connect(Prefs::instance(), &Prefs::sidebarChanged, this, &Places::sectionsChanged);
     // The disks come a moment after the window: asking Solid for them is a
     // round trip to UDisks, which a first frame shouldn't wait for.
     QTimer::singleShot(0, this, &Places::listVolumes);
@@ -91,6 +93,11 @@ QString Places::computer() const
 
 QUrl Places::place(const QString &name) const
 {
+    return urlOf(name);
+}
+
+QUrl Places::urlOf(const QString &name)
+{
     if (name == QLatin1String("recents"))
         return QUrl(QStringLiteral("recentlyused:/files"));
     if (name == QLatin1String("applications"))
@@ -101,6 +108,12 @@ QUrl Places::place(const QString &name) const
         return standard(QStandardPaths::DocumentsLocation);
     if (name == QLatin1String("downloads"))
         return standard(QStandardPaths::DownloadLocation);
+    if (name == QLatin1String("movies"))
+        return standard(QStandardPaths::MoviesLocation);
+    if (name == QLatin1String("music"))
+        return standard(QStandardPaths::MusicLocation);
+    if (name == QLatin1String("pictures"))
+        return standard(QStandardPaths::PicturesLocation);
     if (name == QLatin1String("home"))
         return QUrl::fromLocalFile(QDir::homePath());
     if (name == QLatin1String("computer"))
@@ -112,18 +125,31 @@ QUrl Places::place(const QString &name) const
 
 QVariantList Places::sections() const
 {
+    // Files' Settings says which show (Prefs::sidebarItems), by these ids.
+    const QStringList shown = Prefs::instance()->sidebarItems();
+    const auto place = [&](QVariantList &list, const QString &id, const QString &name, const QString &glyph) {
+        if (shown.contains(id))
+            list << item(name, urlOf(id), glyph);
+    };
+    QVariantList top;
+    place(top, QStringLiteral("recents"), QStringLiteral("Recents"), QStringLiteral("recents"));
     QVariantList favorites;
-    favorites << item(QStringLiteral("Applications"), place(QStringLiteral("applications")), QStringLiteral("applications"))
-              << item(QStringLiteral("Desktop"), place(QStringLiteral("desktop")), QStringLiteral("desktop"))
-              << item(QStringLiteral("Documents"), place(QStringLiteral("documents")), QStringLiteral("documents"))
-              << item(QStringLiteral("Downloads"), place(QStringLiteral("downloads")), QStringLiteral("downloads"));
+    place(favorites, QStringLiteral("applications"), QStringLiteral("Applications"), QStringLiteral("applications"));
+    place(favorites, QStringLiteral("desktop"), QStringLiteral("Desktop"), QStringLiteral("desktop"));
+    place(favorites, QStringLiteral("documents"), QStringLiteral("Documents"), QStringLiteral("documents"));
+    place(favorites, QStringLiteral("downloads"), QStringLiteral("Downloads"), QStringLiteral("downloads"));
+    place(favorites, QStringLiteral("movies"), QStringLiteral("Movies"), QStringLiteral("movies"));
+    place(favorites, QStringLiteral("music"), QStringLiteral("Music"), QStringLiteral("music"));
+    place(favorites, QStringLiteral("pictures"), QStringLiteral("Pictures"), QStringLiteral("pictures"));
     QVariantList locations;
-    locations << item(QDir(QDir::homePath()).dirName(), place(QStringLiteral("home")), QStringLiteral("home"))
-              << item(computer(), place(QStringLiteral("computer")), QStringLiteral("drive"));
+    place(locations, QStringLiteral("home"), QDir(QDir::homePath()).dirName(), QStringLiteral("home"));
+    place(locations, QStringLiteral("computer"), computer(), QStringLiteral("drive"));
     for (const Volume &v : m_volumes) {
         const QString mount = mountOf(v.device);
         if (!v.device.isValid() || (!mount.isEmpty() && systemMount(mount)))
             continue; // gone (the list is about to be read again), or the system's
+        if (!shown.contains(v.removable ? QStringLiteral("external") : QStringLiteral("disks")))
+            continue;
         QVariantMap drive{
             {QStringLiteral("name"), nameOf(v.device)},
             {QStringLiteral("glyph"), v.removable ? QStringLiteral("external") : QStringLiteral("drive")},
@@ -135,22 +161,29 @@ QVariantList Places::sections() const
             drive.insert(QStringLiteral("url"), QUrl::fromLocalFile(mount));
         locations << drive;
     }
-    locations << item(QStringLiteral("Trash"), place(QStringLiteral("trash")), QStringLiteral("trash"));
+    place(locations, QStringLiteral("trash"), QStringLiteral("Trash"), QStringLiteral("trash"));
     // A tag lists what has it: a search for it.
     QVariantList tags;
-    for (const QVariant &tag : Tags::instance()->all()) {
-        QVariantMap map = tag.toMap();
-        QUrl url(QStringLiteral("search:"));
-        url.setQuery(QStringLiteral("tag=") + QString::fromLatin1(QUrl::toPercentEncoding(map.value(QStringLiteral("name")).toString())));
-        map.insert(QStringLiteral("url"), url);
-        tags << map;
+    if (shown.contains(QStringLiteral("tags"))) {
+        for (const QVariant &tag : Tags::instance()->all()) {
+            QVariantMap map = tag.toMap();
+            QUrl url(QStringLiteral("search:"));
+            url.setQuery(QStringLiteral("tag=") + QString::fromLatin1(QUrl::toPercentEncoding(map.value(QStringLiteral("name")).toString())));
+            map.insert(QStringLiteral("url"), url);
+            tags << map;
+        }
     }
-    return {
-        section(QString(), {item(QStringLiteral("Recents"), place(QStringLiteral("recents")), QStringLiteral("recents"))}),
-        section(QStringLiteral("Favorites"), favorites),
-        section(QStringLiteral("Locations"), locations),
-        section(QStringLiteral("Tags"), tags),
+    // A section with nothing to show is left out, title and all.
+    QVariantList sections;
+    const auto add = [&](const QString &title, const QVariantList &items) {
+        if (!items.isEmpty())
+            sections << section(title, items);
     };
+    add(QString(), top);
+    add(QStringLiteral("Favorites"), favorites);
+    add(QStringLiteral("Locations"), locations);
+    add(QStringLiteral("Tags"), tags);
+    return sections;
 }
 
 void Places::listVolumes()

@@ -116,6 +116,9 @@ public:
     // The app menu's Empty Trash…: asks first, as Finder does, then erases
     // what is in the Trash. Not one of Undo's.
     Q_INVOKABLE void emptyTrash();
+    // Erases what has been in the home Trash longer than Files' Settings
+    // allows (nothing while that is off). App runs it now and then.
+    static void sweepTrash();
     Q_INVOKABLE int putBack(const QList<QUrl> &urls);
     Q_INVOKABLE void copyToClipboard(const QList<QUrl> &urls);
     // The clipboard's files into dir: copied, or moved (Move Item Here, or

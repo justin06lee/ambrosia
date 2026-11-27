@@ -18,6 +18,10 @@ Platform.MenuBar {
     // own menu of that name, over Hide and Quit (shell/AppMenu.qml), as a
     // Mac's app menu has them; elsewhere it is one more menu.
     Platform.Menu {
+        // Ambrosia's menu bar holds this one open while anything of its own
+        // is (the app menu, Window, the control center): the window stays lit.
+        onAboutToShow: bar.doc.shellOpen = true
+        onAboutToHide: bar.doc.shellOpen = false
         title: "TextEdit"
         Platform.MenuItem { text: "About TextEdit"; onTriggered: About.show("TextEdit", "org.ambrosia.textedit") }
     }

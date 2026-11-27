@@ -80,8 +80,11 @@ Window {
     property bool keepSearch: false
     function openSearch() {
         if (!searchOpen) {
-            if (!scopeBarShown)
+            if (!scopeBarShown) {
                 searchFolder = local ? url : Places.place("home");
+                // Files' Settings: where a search looks first.
+                searchScope = local ? Prefs.startScope() : "computer";
+            }
             searchOpen = true;
         }
         toolbar.focusSearch();
@@ -149,6 +152,7 @@ Window {
     }
     function setSearchScope(scope) {
         searchScope = scope;
+        Prefs.usedScope(scope);
         updateSearch();
     }
     function setSearchKind(kind) {
@@ -277,7 +281,12 @@ Window {
     // inactive. The count clears whenever the window has the keyboard again.
     // (--active draws the first window active, for grabs.)
     property int menusOpen: 0
-    readonly property bool looksActive: active || menusOpen > 0 || (quickLook.item?.active ?? false) || (first && App.active)
+    // Something of Ambrosia's own is open over the screen (the app menu,
+    // the control center): its menu bar says so through the menu named for
+    // the app (MenuBar.qml). Yes or no, not a count: a missed word from
+    // the bar must not leave the window lit for good.
+    property bool shellOpen: false
+    readonly property bool looksActive: active || menusOpen > 0 || shellOpen || (quickLook.item?.active ?? false) || (first && App.active)
     onActiveChanged: if (active) menusOpen = 0
     readonly property var window: win
 
@@ -568,11 +577,13 @@ Window {
     // Renaming in place: the item whose name is being edited, and its field.
     property url editing: ""
     property var editor: null
+    property bool editingFolder: false
     readonly property bool renaming: editing.toString() !== ""
     function beginRename(row) {
         if (row < 0 || !folder.urlAt(row).toString().startsWith("file:"))
             return;
         select(row, false, false);
+        editingFolder = folder.isDirAt(row);
         editing = folder.urlAt(row);
     }
     function renameSelection() {
@@ -584,8 +595,34 @@ Window {
         const target = editing;
         editing = "";
         pane.forceActiveFocus();
-        if (text !== undefined)
-            run(FileOps.rename(target, text), { select: true });
+        if (text === undefined)
+            return;
+        const rename = (name) => run(FileOps.rename(target, name), { select: true });
+        // A document's extension says what opens it: Finder asks before one
+        // changes, comes or goes (Files' Settings can turn the asking off),
+        // and its default keeps the old one under the new name.
+        const extension = (name) => {
+            const dot = name.lastIndexOf(".");
+            return dot > 0 && dot < name.length - 1 && !/\s/.test(name.slice(dot)) ? name.slice(dot) : "";
+        };
+        const old = decodeURIComponent(target.toString().replace(/\/$/, "").split("/").pop());
+        const from = extension(old), to = extension(text);
+        if (editingFolder || !Prefs.warnExtension || from.toLowerCase() === to.toLowerCase()) {
+            rename(text);
+            return;
+        }
+        const kept = text.slice(0, text.length - to.length) + from;
+        const keep = () => { if (kept !== old) rename(kept); };
+        const detail = "If you make this change, your document may open in a different application.";
+        if (from === "")
+            panelAlert.question("Are you sure you want to add the extension “" + to + "” to the end of the name?", detail,
+                                "Add", () => rename(text), "Don’t Add", keep);
+        else if (to === "")
+            panelAlert.question("Are you sure you want to remove the extension “" + from + "”?", detail,
+                                "Remove", () => rename(text), "Keep " + from, keep);
+        else
+            panelAlert.question("Are you sure you want to change the extension from “" + from + "” to “" + to + "”?", detail,
+                                "Use " + to, () => rename(text), "Keep " + from, keep);
     }
 
     // Dragging items out: a real drag (text/uri-list) that this and other
@@ -1253,10 +1290,15 @@ Window {
             break;
         case Qt.Key_N:
             if (ctrl && shift) win.act("newFolder", win.newFolder);
-            else if (ctrl && !win.isPanel) win.act("new", () => App.openWindow(win.url));
+            else if (ctrl && !win.isPanel) win.act("new", () => App.openWindow(Prefs.newWindowUrl));
+            break;
+        case Qt.Key_Comma:
+            if (ctrl && !win.isPanel) win.act("settings", () => Preferences.show("Files", "SettingsWindow"));
+            else return;
             break;
         case Qt.Key_Backspace:
-            if (ctrl) win.act("trash", win.trashSelection);
+            if (ctrl && shift) win.act("emptyTrash", FileOps.emptyTrash);
+            else if (ctrl) win.act("trash", win.trashSelection);
             else return;
             break;
         case Qt.Key_Return:

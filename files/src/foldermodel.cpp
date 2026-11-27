@@ -4,6 +4,7 @@
 #include "contents.h"
 #include "format.h"
 #include "index.h"
+#include "prefs.h"
 #include "sortkey.h"
 #include "tags.h"
 
@@ -269,6 +270,11 @@ Keys makeKeys(const Listing &l)
     return k;
 }
 
+// Files' Settings: folders before everything else when the order is by
+// name, whichever way it runs (Prefs::foldersFirst, kept here for the
+// sorting threads).
+std::atomic<bool> foldersOnTop{false};
+
 // The listing's order by a column, or only its first `limit` rows. Big
 // folders sort in parallel: chunks on threads, then merged pairwise.
 std::vector<quint32> sortedOrder(const Listing &l, const Keys &keys, Column column, bool ascending, size_t limit = SIZE_MAX)
@@ -292,8 +298,11 @@ std::vector<quint32> sortedOrder(const Listing &l, const Keys &keys, Column colu
             kinds.push_back(*it);
         }
     }
+    const bool foldersFirst = column == Column::Name && foldersOnTop.load();
     auto less = [&](quint32 a, quint32 b) {
         const Entry &x = l.entries[a], &y = l.entries[b];
+        if (foldersFirst && ((x.flags ^ y.flags) & FolderModel::Dir))
+            return bool(x.flags & FolderModel::Dir);
         int c = 0;
         switch (column) {
         case Column::Date:
@@ -640,6 +649,12 @@ FolderModel::FolderModel(QObject *parent)
     // settle.
     m_reload->setSingleShot(true);
     m_reload->setInterval(150);
+    foldersOnTop = Prefs::instance()->foldersFirst();
+    connect(Prefs::instance(), &Prefs::foldersFirstChanged, this, [this] {
+        foldersOnTop = Prefs::instance()->foldersFirst();
+        if (columnOf(m_sortColumn) == Column::Name)
+            resort();
+    });
     // Tags live in an attribute no folder watch sees change: Files says so
     // itself when it tags something.
     connect(Tags::instance(), &Tags::changed, this, [this](const QList<QUrl> &urls) {
