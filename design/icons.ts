@@ -163,6 +163,22 @@ export const appIcons: Record<string, AppIcon> = {
       `<path d="M58 176L96 82H108L146 176M72 144H132" fill="none" stroke="#2c2c2e" stroke-width="15" ${round}/>` +
       `<path d="M199 132V176M199 154a21 21 0 1 0-42 0a21 21 0 1 0 42 0" fill="none" stroke="#1d70ee" stroke-width="14" ${round}/>`,
   },
+  // A drive with a stethoscope laid on it.
+  "disk-utility": {
+    names: [
+      "org.ambrosia.diskutility", "gnome-disks", "org.gnome.DiskUtility", "partitionmanager", "org.kde.partitionmanager", "gparted",
+      "disk-utility",
+    ],
+    tile: ["#5a5a60", "#2a2a2d"],
+    art:
+      `<rect x="44" y="124" width="168" height="84" rx="18" fill="#e6e6eb"/>` +
+      `<path d="M44 174H212V190Q212 208 194 208H62Q44 208 44 190Z" fill="#b2b2ba"/>` +
+      `<path d="M66 191H112" fill="none" stroke="#8a8a92" stroke-width="6" ${round}/>` +
+      `<circle cx="188" cy="191" r="7" fill="#54e37a"/>` +
+      `<path d="M86 48V76a26 26 0 0 0 52 0V48M112 102V122a29 29 0 0 0 58 0V112" fill="none" stroke="#4d96ff" stroke-width="11" ${round}/>` +
+      `<circle cx="86" cy="46" r="8.5" fill="#4d96ff"/><circle cx="138" cy="46" r="8.5" fill="#4d96ff"/>` +
+      `<circle cx="170" cy="97" r="14" fill="${white}" stroke="#4d96ff" stroke-width="9"/>`,
+  },
 };
 
 /** Icons drawn before this file (assets/icons/), and the other names they

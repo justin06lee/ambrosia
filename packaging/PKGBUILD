@@ -13,14 +13,15 @@
 # ambrosia-textedit TextEdit: plain and rich text (textedit/, built with CMake)
 # ambrosia-activity-monitor Activity Monitor: processes, memory, energy, disk, network (activity-monitor/, built with CMake)
 # ambrosia-fontbook Font Book: the computer's fonts, and adding your own (fontbook/, built with CMake)
+# ambrosia-disk-utility Disk Utility: the computer's disks and volumes (disk-utility/, built with CMake)
 # ambrosia-desktop everything a fresh install needs, the ISO installs this
 
 pkgbase=ambrosia
-pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-glass ambrosia-shell ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-textedit ambrosia-activity-monitor ambrosia-fontbook ambrosia-desktop)
+pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-glass ambrosia-shell ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-textedit ambrosia-activity-monitor ambrosia-fontbook ambrosia-disk-utility ambrosia-desktop)
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A Linux desktop that looks and moves as one thing"
-# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-calculator, ambrosia-preview, ambrosia-textedit, ambrosia-activity-monitor, ambrosia-fontbook, ambrosia-decoration, ambrosia-style, ambrosia-input and ambrosia-glass; the rest are arch=(any).
+# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-calculator, ambrosia-preview, ambrosia-textedit, ambrosia-activity-monitor, ambrosia-fontbook, ambrosia-disk-utility, ambrosia-decoration, ambrosia-style, ambrosia-input and ambrosia-glass; the rest are arch=(any).
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
@@ -59,6 +60,8 @@ build() {
   cmake --build "$srcdir/build-activity-monitor"
   cmake -S fontbook -B "$srcdir/build-fontbook" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-fontbook"
+  cmake -S disk-utility -B "$srcdir/build-disk-utility" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build "$srcdir/build-disk-utility"
   cmake -S style -B "$srcdir/build-style" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-style"
   cmake -S input -B "$srcdir/build-input" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
@@ -321,11 +324,24 @@ package_ambrosia-fontbook() {
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-fontbook"
 }
 
+package_ambrosia-disk-utility() {
+  pkgdesc="Disk Utility, Ambrosia's: the computer's disks and volumes, mounted, checked and erased"
+  # ambrosia-theme: the Ambrosia QML Theme module and the
+  # org.ambrosia.diskutility icon. udisks2 is what knows the disks and does
+  # everything to them, asking through polkit when its rules say so.
+  # e2fsprogs, dosfstools and exfatprogs: the file systems Erase offers and
+  # First Aid checks (ext4, MS-DOS (FAT), ExFAT). The QML is in the binary.
+  depends=(ambrosia-theme qt6-base qt6-declarative kwindowsystem udisks2 polkit e2fsprogs dosfstools exfatprogs inter-font)
+  optdepends=('btrfs-progs: erase as Btrfs' 'xfsprogs: erase as XFS' 'ntfs-3g: erase as NTFS'
+              'cryptsetup: open encrypted (LUKS) volumes')
+  DESTDIR="$pkgdir" cmake --install "$srcdir/build-disk-utility"
+}
+
 package_ambrosia-desktop() {
   pkgdesc="The Ambrosia desktop: the shell plus the system services and apps a new install needs"
   arch=(any)
   depends=(
-    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-textedit ambrosia-activity-monitor ambrosia-fontbook ambrosia-style ambrosia-input
+    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-textedit ambrosia-activity-monitor ambrosia-fontbook ambrosia-disk-utility ambrosia-style ambrosia-input
     # Low Power Mode (Battery), and printing (Printers & Scanners): ipp-usb
     # for the printers that plug in, started when one does.
     power-profiles-daemon cups avahi nss-mdns ipp-usb
