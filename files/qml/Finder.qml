@@ -157,6 +157,10 @@ QtObject {
     // the gap between them, the row with the line under it that says what a
     // click does).
     readonly property int contextMenuWidth: 220
+    // Spring-loaded folders: how long a drag rests on a folder before it
+    // blinks (a Mac's default), and each half of a blink.
+    readonly property int springDelay: 500
+    readonly property int springBlink: 75
     readonly property int contextTagDot: 17
     readonly property int contextTagGap: 9
     readonly property int contextTagRow: 46

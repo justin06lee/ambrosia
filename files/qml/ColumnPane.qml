@@ -413,7 +413,7 @@ FocusScope {
                 readonly property string key: owner.clean(url)
                 // Selected in the focused column; leading on in an earlier one.
                 readonly property bool chosen: col.focused ? owner.finder.selectedSet[url.toString()] === true : key === col.lead
-                readonly property bool lit: (chosen && col.focused && owner.finder.looksActive) || drops.row === index
+                readonly property bool lit: (chosen && col.focused && owner.finder.looksActive) || (drops.row === index && !owner.finder.springDim)
                 readonly property bool renaming: col.focused && owner.finder.renaming && owner.finder.editing.toString() === url.toString()
                 readonly property real nameStart: nameLabel.x
                 readonly property real nameEnd: nameLabel.x + nameLabel.paintedWidth
@@ -493,11 +493,15 @@ FocusScope {
             function over(drag) {
                 const at = list.indexAt(drag.x, drag.y + y + list.contentY);
                 row = at >= 0 && folder.isDirAt(at) && !(owner.finder.dragging && owner.finder.selectedSet[folder.urlAt(at).toString()]) ? at : -1;
+                owner.finder.springOver(row >= 0 ? folder.urlAt(row) : "");
                 drag.accept(Qt.MoveAction);
             }
             onEntered: (drag) => over(drag)
             onPositionChanged: (drag) => over(drag)
-            onExited: row = -1
+            onExited: {
+                row = -1;
+                owner.finder.springLeft();
+            }
             onDropped: (drop) => {
                 const at = row;
                 row = -1;

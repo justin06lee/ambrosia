@@ -85,7 +85,13 @@ FocusScope {
     function dragOver(drag) {
         const row = list.indexAt(drag.x, drag.y + hits.y + list.contentY);
         dropRow = row >= 0 && model.isDirAt(row) && !(finder.dragging && finder.selected[row]) ? row : -1;
+        finder.springOver(dropRow >= 0 ? model.urlAt(dropRow) : "");
         drag.accept(Qt.MoveAction);
+    }
+    // A folder sprung open under the drag: the row is another folder's now.
+    Connections {
+        target: pane.finder
+        function onUrlChanged() { pane.dropRow = -1; }
     }
 
     // A narrow date column takes a shorter date, as Finder's does.
@@ -350,7 +356,7 @@ FocusScope {
                 required property url url
                 required property var tags
                 required property string thumb
-                readonly property bool selected: pane.finder.selected[index] === true || pane.dropRow === index
+                readonly property bool selected: pane.finder.selected[index] === true || (pane.dropRow === index && !pane.finder.springDim)
                 readonly property bool renaming: pane.finder.renaming && pane.finder.editing.toString() === url.toString()
                 readonly property real nameStart: nameLabel.x
                 readonly property real nameEnd: nameLabel.x + nameLabel.paintedWidth
@@ -462,7 +468,10 @@ FocusScope {
         keys: ["text/uri-list"]
         onEntered: (drag) => pane.dragOver(drag)
         onPositionChanged: (drag) => pane.dragOver(drag)
-        onExited: pane.dropRow = -1
+        onExited: {
+            pane.dropRow = -1;
+            pane.finder.springLeft();
+        }
         onDropped: (drop) => {
             const row = pane.dropRow;
             pane.dropRow = -1;

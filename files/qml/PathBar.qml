@@ -88,7 +88,11 @@ Item {
                         anchors.margins: -4
                         enabled: crumb.modelData.url.toString().startsWith("file:///") && crumb.modelData.url.toString() !== "file:///"
                         keys: ["text/uri-list"]
-                        onEntered: (drag) => drag.accept(Qt.MoveAction)
+                        onEntered: (drag) => {
+                            drag.accept(Qt.MoveAction);
+                            bar.finder.springOver(crumb.modelData.url);
+                        }
+                        onExited: bar.finder.springLeft()
                         onDropped: (drop) => drop.accept(bar.finder.dropOn(drop.urls, Qt.url(crumb.modelData.url)))
                     }
                 }

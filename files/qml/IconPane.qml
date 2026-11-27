@@ -27,7 +27,13 @@ FocusScope {
     function dragOver(drag) {
         const cell = grid.indexAt(drag.x, drag.y + hits.y + grid.contentY);
         dropCell = cell >= 0 && model.isDirAt(cell) && !(finder.dragging && finder.selected[cell]) ? cell : -1;
+        finder.springOver(dropCell >= 0 ? model.urlAt(dropCell) : "");
         drag.accept(Qt.MoveAction);
+    }
+    // A folder sprung open under the drag: the cell is another folder's now.
+    Connections {
+        target: pane.finder
+        function onUrlChanged() { pane.dropCell = -1; }
     }
 
     // Clicks and drags on the icons, from below the toolbar (its empty
@@ -150,7 +156,7 @@ FocusScope {
                 required property url url
                 required property var tags
                 required property string thumb
-                readonly property bool selected: pane.finder.selected[index] === true || pane.dropCell === index
+                readonly property bool selected: pane.finder.selected[index] === true || (pane.dropCell === index && !pane.finder.springDim)
                 readonly property bool renaming: pane.finder.renaming && pane.finder.editing.toString() === url.toString()
                 function onName(x, y) {
                     return y >= name.y && y <= name.y + name.paintedHeight
@@ -250,7 +256,10 @@ FocusScope {
         keys: ["text/uri-list"]
         onEntered: (drag) => pane.dragOver(drag)
         onPositionChanged: (drag) => pane.dragOver(drag)
-        onExited: pane.dropCell = -1
+        onExited: {
+            pane.dropCell = -1;
+            pane.finder.springLeft();
+        }
         onDropped: (drop) => {
             const cell = pane.dropCell;
             pane.dropCell = -1;

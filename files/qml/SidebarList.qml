@@ -63,6 +63,8 @@ Flickable {
                         // Another disk, mounted: its eject button is the row's right end.
                         readonly property bool ejectable: modelData.ejectable === true
                         readonly property bool busy: modelData.busy === true
+                        // Under a drag, but for the blink before it springs open.
+                        readonly property bool dropLit: drop.containsDrag && !(list.finder.springDim && !row.current)
                         readonly property bool renaming: modelData.color !== undefined && list.finder.tagRenaming === modelData.name
                         width: section.width
                         height: Finder.sidebarRow
@@ -75,8 +77,8 @@ Flickable {
                             anchors.topMargin: 2
                             anchors.bottomMargin: 2
                             radius: 8
-                            color: drop.containsDrag ? Theme.accent.bg : Theme.color.fill.secondary
-                            visible: row.current || drop.containsDrag
+                            color: row.dropLit ? Theme.accent.bg : Theme.color.fill.secondary
+                            visible: row.current || row.dropLit
                         }
                         Glyph {
                             visible: row.modelData.glyph !== undefined
@@ -205,7 +207,12 @@ Flickable {
                             anchors.fill: parent
                             enabled: row.takesDrops
                             keys: ["text/uri-list"]
-                            onEntered: (drag) => drag.accept(Qt.MoveAction)
+                            onEntered: (drag) => {
+                                drag.accept(Qt.MoveAction);
+                                // A folder springs open; the Trash doesn't.
+                                list.finder.springOver(row.place.startsWith("trash:") ? "" : row.modelData.url);
+                            }
+                            onExited: list.finder.springLeft()
                             onDropped: (drop) => drop.accept(list.finder.dropOn(drop.urls, row.modelData.url))
                         }
                     }
