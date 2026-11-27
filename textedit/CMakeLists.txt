@@ -21,6 +21,11 @@ set_source_files_properties(qml/Look.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 # The About panel every app of ours shows, from one source (../kit).
 set_source_files_properties(../kit/AboutWindow.qml PROPERTIES QT_RESOURCE_ALIAS AboutWindow.qml)
 set_source_files_properties(../kit/About.qml PROPERTIES QT_RESOURCE_ALIAS About.qml QT_QML_SINGLETON_TYPE TRUE)
+# The Settings window's opener and controls, likewise; what it sets.
+set_source_files_properties(../kit/PrefCheck.qml PROPERTIES QT_RESOURCE_ALIAS PrefCheck.qml)
+set_source_files_properties(../kit/PrefPopup.qml PROPERTIES QT_RESOURCE_ALIAS PrefPopup.qml)
+set_source_files_properties(../kit/Preferences.qml PROPERTIES QT_RESOURCE_ALIAS Preferences.qml QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(qml/Prefs.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-textedit
     URI TextEditor
     VERSION 1.0
@@ -30,6 +35,11 @@ qt_add_qml_module(ambrosia-textedit
     QML_FILES
         ../kit/AboutWindow.qml
         ../kit/About.qml
+        ../kit/PrefCheck.qml
+        ../kit/PrefPopup.qml
+        ../kit/Preferences.qml
+        qml/Prefs.qml
+        qml/SettingsWindow.qml
         qml/Main.qml
         qml/EditorWindow.qml
         qml/Look.qml

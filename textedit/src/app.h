@@ -65,10 +65,10 @@ public:
     // A file's contents: { ok, rtf, text, error }. An RTF file's text is
     // its bytes, one to a character (rtf.mjs reads them); any other file
     // is read as UTF-8 (or UTF-16 by its mark), as Latin-1 when it isn't.
-    Q_INVOKABLE QVariantMap read(const QUrl &file) const;
+    Q_INVOKABLE QVariantMap read(const QUrl &file, const QString &encoding = QString()) const;
     // Writes it whole or not at all; what went wrong, or nothing.
     // `bytes`: a character to a byte (RTF); otherwise as UTF-8.
-    Q_INVOKABLE QString write(const QUrl &file, const QString &text, bool bytes) const;
+    Q_INVOKABLE QString write(const QUrl &file, const QString &text, bool bytes, const QString &encoding = QString()) const;
     // Bytes (a character each) of a Windows code page as text; empty when
     // the page isn't known.
     Q_INVOKABLE QString decode(int codepage, const QString &bytes) const;

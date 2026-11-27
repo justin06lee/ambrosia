@@ -1294,6 +1294,22 @@ package repo below), and they carry `shell/` and `session/` as they are.
     `Prefs` (`files/src/prefs.cpp`), one object every window reads
     live; a new setting is a property there, a control in
     `files/qml/SettingsWindow.qml`, and whoever obeys it.
+  - **TextEdit's settings are QML's own** (round 57):
+    `textedit/qml/Prefs.qml`, a singleton holding a `QtCore` `Settings`
+    with a `location` (aliases on the outer object, because a
+    `FontMetrics` beside the values must not be saved with them). Its
+    window is its own file, not the kit's tabbed one (a Mac's TextEdit
+    has a box with two tabs), with the kit's `PrefCheck` and `PrefPopup`.
+    `Platform.FontDialog` opens on `font`, not `currentFont`.
+  - **Bringing a window of the app forward** (round 57): Qt's
+    `raise()` + `requestActivate()` works from a key press in the app.
+    From our menu bar it does not (the bar had the keyboard: the app has
+    no key press to show, KWin refuses and sets `demandsAttention`);
+    `session/kwin-scripts/ambrosia_forward` activates such a window when
+    the active one has the same pid. `KWindowSystem::activateWindow`
+    alone (TextEdit's `App.activate`) only works with a launcher's
+    token. A window already marked gives no second signal: it stays
+    behind until clicked.
   - **A window of ours stays lit under the shell's own menus** (round
     56): `shell/MenuBar.qml` holds a `QsMenuOpener` on the app's
     own-name menu while `Popups.kind` is set for its screen, and that

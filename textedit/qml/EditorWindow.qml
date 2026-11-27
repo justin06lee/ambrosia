@@ -90,10 +90,11 @@ Window {
 
     // Reads a file into `content`; what went wrong, or nothing.
     function load(target) {
-        const got = App.read(target);
+        const got = App.read(target, Prefs.openEncoding);
         if (!got.ok)
             return got.error;
-        if (got.rtf) {
+        // TextEdit's Settings: an RTF file shown as its code is plain text.
+        if (got.rtf && !Prefs.rtfAsCode) {
             const model = Rtf.parse(got.text, (page, bytes) => App.decode(page, String.fromCharCode.apply(null, bytes)) || null);
             const families = {};
             for (const paragraph of model.paragraphs) {
@@ -114,8 +115,7 @@ Window {
         } else {
             rich = false;
             content = { text: got.text };
-            width = Look.plainWidth;
-            height = Look.plainHeight;
+            sizeAsNew();
         }
         file = target;
         return "";
@@ -146,7 +146,7 @@ Window {
     function save(then) {
         if (file === "") {
             afterSave = then ?? null;
-            App.chooseSave(win, name + (rich ? ".rtf" : ".txt"), rich ? "rtf" : "txt");
+            App.chooseSave(win, name + (rich ? ".rtf" : Prefs.addTxt ? ".txt" : ""), rich ? "rtf" : "txt");
             return;
         }
         if (write(file) && then)
@@ -159,7 +159,7 @@ Window {
             model.view = { width: win.width - Look.viewAside, height: win.height - Look.viewAbove };
             failure = App.write(target, Rtf.write(model), true);
         } else {
-            failure = App.write(target, hands.text(), false);
+            failure = App.write(target, hands.text(), false, Prefs.saveEncoding);
         }
         if (failure !== "") {
             alert.ask("The document “" + name + "” could not be saved.", failure, [{ text: "OK", role: "ok", primary: true, cancel: true }], null);
@@ -253,7 +253,7 @@ Window {
             const tabs = Array.from({ length: 12 }, (_, i) => 28 * (i + 1));
             turn({ model: { paragraphs: hands.text().split("\n").map(line => ({
                 align: "left", left: 0, first: 0, right: 0, before: 0, after: 0, spacing: 1, tabs: tabs, list: null,
-                runs: [{ text: line, family: "Helvetica", size: 12, bold: false, italic: false, underline: false, strike: false,
+                runs: [{ text: line, family: Prefs.richFamily, size: Prefs.richSize, bold: false, italic: false, underline: false, strike: false,
                          color: "", background: "", script: "" }],
             })) } });
         }
@@ -292,6 +292,13 @@ Window {
             flick.contentY = Math.min(Math.max(0, flick.contentHeight - flick.height), at.y + at.height - flick.height + 4);
     }
 
+    // A new document's window is as wide and tall as TextEdit's Settings
+    // say (Prefs.windowSize), within the screen.
+    function sizeAsNew() {
+        const size = Prefs.windowSize(rich);
+        width = Math.max(rich ? Look.richMinWidth : Look.minWidth, Math.min(Screen.width - 40, size.width));
+        height = Math.max(Look.minHeight, Math.min(Screen.height - 140, size.height));
+    }
     width: Look.richWidth
     height: Look.richHeight
     minimumWidth: rich ? Look.richMinWidth : Look.minWidth
@@ -319,9 +326,8 @@ Window {
             if (failure !== "")
                 untitledName = App.name(opening);
             opening = "";
-        } else if (!rich) {
-            width = Look.plainWidth;
-            height = Look.plainHeight;
+        } else {
+            sizeAsNew();
         }
         holder.active = true;
         visible = true;
@@ -343,6 +349,7 @@ Window {
     Shortcut { sequences: ["Ctrl+N", "Meta+N"]; onActivated: win.act("new", () => win.app.newDocument()); onActivatedAmbiguously: win.act("new", () => win.app.newDocument()) }
     Shortcut { sequences: ["Ctrl+O", "Meta+O"]; onActivated: win.act("open", () => App.chooseFiles()); onActivatedAmbiguously: win.act("open", () => App.chooseFiles()) }
     Shortcut { sequences: ["Ctrl+W", "Meta+W"]; onActivated: win.act("close", win.close); onActivatedAmbiguously: win.act("close", win.close) }
+    Shortcut { sequences: ["Ctrl+,", "Meta+,"]; onActivated: win.act("settings", () => Preferences.show("TextEditor", "SettingsWindow")); onActivatedAmbiguously: win.act("settings", () => Preferences.show("TextEditor", "SettingsWindow")) }
     Shortcut { sequences: ["Ctrl+S", "Meta+S"]; onActivated: win.act("save", () => win.save(null)); onActivatedAmbiguously: win.act("save", () => win.save(null)) }
     Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized); onActivatedAmbiguously: win.act("minimize", win.showMinimized) }
     Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: win.act("quit", win.app.quit); onActivatedAmbiguously: win.act("quit", win.app.quit) }
@@ -363,8 +370,8 @@ Window {
         id: richEdit
         TextEdit {
             textFormat: TextEdit.RichText
-            font.family: "Helvetica"
-            font.pointSize: 12
+            font.family: Prefs.richFamily
+            font.pointSize: Prefs.richSize
             leftPadding: Look.richInset
             rightPadding: Look.richInset
             Keys.onPressed: (event) => {
@@ -384,8 +391,8 @@ Window {
         id: plainEdit
         TextEdit {
             textFormat: TextEdit.PlainText
-            font.family: Theme.monoFont
-            font.pointSize: 11
+            font.family: Prefs.plainFont
+            font.pointSize: Prefs.plainSize
             leftPadding: Look.plainInset
             rightPadding: Look.plainInset
         }
@@ -417,7 +424,7 @@ Window {
                 id: ruler
                 visible: win.rich
                 width: parent.width
-                height: win.rich ? win.rulerEnd - win.formatBar : 0
+                height: win.rich && Prefs.ruler ? win.rulerEnd - win.formatBar : 0
                 window: win
                 textWidth: flick.width - 2 * Look.richInset
             }

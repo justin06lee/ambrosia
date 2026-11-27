@@ -24,6 +24,8 @@ Platform.MenuBar {
         onAboutToHide: bar.doc.shellOpen = false
         title: "TextEdit"
         Platform.MenuItem { text: "About TextEdit"; onTriggered: About.show("TextEdit", "org.ambrosia.textedit") }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Settings…"; shortcut: "Ctrl+,"; onTriggered: bar.doc.act("settings", () => Preferences.show("TextEditor", "SettingsWindow")) }
     }
 
     component Menu: Platform.Menu {

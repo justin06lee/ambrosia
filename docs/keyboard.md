@@ -70,7 +70,7 @@ In every app but a terminal:
 | ⌘[ ⌘] | back, forward | Alt+←, Alt+→ |
 | ⌥← ⌥→ | by word (with ⇧, select) | Ctrl+←, Ctrl+→ |
 | ⌥⌫ ⌥⌦ | delete the word before, after | Ctrl+Backspace, Ctrl+Delete |
-| ⌘, | the app's settings, where it has them on Ctrl+, : Files' own Settings window, and every KDE app's in this session (its kdeglobals moves KDE's "Configure…" there from Ctrl+Shift+,) | Ctrl+, |
+| ⌘, | the app's settings, where it has them on Ctrl+, : Files' and TextEdit's own Settings windows, and every KDE app's in this session (its kdeglobals moves KDE's "Configure…" there from Ctrl+Shift+,) | Ctrl+, |
 
 In a terminal (any app whose desktop file says `TerminalEmulator`):
 
@@ -117,7 +117,8 @@ folder, ⌘↓ open, ⌘[ back, ⌘] forward): they go on as plain Ctrl.
   an app, drawn by the look-and-feel's `windowswitcher`): switching brings
   that window forward, not all of the app's as a Mac does, and Q while it is
   up closes that window rather than quitting the app. An app's name there
-  is the last word of its desktop file's name (Konsole, not Terminal).
+  is its desktop entry's, the Mac name where it has one (Terminal for
+  Konsole; seen in the test VM, 2026-11-28).
   A hidden app is minimized windows to KWin: the Dock shows it no
   differently, and the Dock brings back every window of an app that has
   them all put away, hidden or not.
