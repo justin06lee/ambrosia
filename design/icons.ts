@@ -163,6 +163,19 @@ export const appIcons: Record<string, AppIcon> = {
       `<path d="M58 176L96 82H108L146 176M72 144H132" fill="none" stroke="#2c2c2e" stroke-width="15" ${round}/>` +
       `<path d="M199 132V176M199 154a21 21 0 1 0-42 0a21 21 0 1 0 42 0" fill="none" stroke="#1d70ee" stroke-width="14" ${round}/>`,
   },
+  // A pad of paper on a yellow tile: three holes along its head, lines of
+  // writing under them.
+  notes: {
+    names: ["org.ambrosia.notes", "knotes", "org.kde.knotes", "gnome-notes", "org.gnome.Notes", "notes", "accessories-notes"],
+    tile: ["#ffe27a", "#f5b400"],
+    art:
+      `<rect x="56" y="50" width="144" height="160" rx="18" fill="${white}"/>` +
+      `<path d="M56 68Q56 50 74 50H182Q200 50 200 68V92H56Z" fill="#f1efe8"/>` +
+      [92, 128, 164].map((cx) => `<circle cx="${cx}" cy="71" r="6.5" fill="#d79a00"/>`).join("") +
+      [[116, 100], [141, 100], [166, 62]]
+        .map(([y, width]) => `<rect x="78" y="${y}" width="${width}" height="11" rx="5.5" fill="#c4c4ca"/>`)
+        .join(""),
+  },
   // A drive with a stethoscope laid on it.
   "disk-utility": {
     names: [

@@ -143,7 +143,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
    other names, as Xcursor files from 24 to 96 and as SVGs for KWin) and
    **app icons** (`design/icons.ts`, `tools/gen/targets/icons.ts`: Terminal,
    a text editor, picture and document viewers, Calculator, an archiver,
-   the store, Screenshot, a system monitor, system information, Font Book and Disk Utility, under the icon names
+   the store, Screenshot, a system monitor, system information, Font Book, Disk Utility and Notes, under the icon names
    Konsole, Kate, Gwenview, Okular, KCalc, Ark, Discover, Spectacle and
    Info Center ask for; KDE's settings and Dolphin wear Settings' and
    Files', our Preview the picture viewer's, our TextEdit the text
@@ -1297,6 +1297,32 @@ package repo below), and they carry `shell/` and `session/` as they are.
     is behind them. `--show sda1`, `--all` and `--sheet erase|firstaid|info`
     choose what a grab shows. In the VM a test disk is a file: `truncate
     -s 300M x.img`, then `ambrosia-disk-utility x.img`.
+  - **Notes** (`notes/`, 2026-11-28) is one window and one process
+    (`org.ambrosia.notes` on the bus; a second launch brings the first
+    forward; `--store DIR` runs one apart on a directory of its own, for
+    tests). A note is a Markdown file, a line a paragraph, under a few
+    lines of dates (`created`, `modified`, `pinned`, and for a deleted one
+    `deleted` and `folder`); a folder is a directory of
+    `~/.local/share/ambrosia/notes`, `Notes` always there, `.deleted`
+    Recently Deleted. `qml/notes.mjs` reads and writes the format and
+    decides what is listed (bun tests); the C++ `Store` only moves files.
+    The TextEdit's document holds no list of Qt's: a paragraph's kind,
+    level, check and quote are properties of its block format
+    (`src/editor.cpp`), its inset is the block's left margin, and the
+    bullets, numbers, rings and quote bars are QML items placed by
+    `positionToRectangle` (`NotePane.qml`), so Qt Quick's own markers
+    never draw. After every change `Editor::settle` dresses the touched
+    paragraphs as their kinds, as one undo step with the change: whatever
+    comes in (a paste, a join of two paragraphs) ends up a note's text.
+    Bold by choice is a property of the character format of its own
+    (a heading's weight is its kind's). The clipboard carries paragraphs
+    as JSON beside the text; from another app only text is taken. The
+    list is a Flickable drawing the rows in sight (a ListView with a JS
+    array for its model lost its place at every change). The Format
+    menu's card is a layer with a shadow: it doesn't draw off-screen
+    (`--show format` is for the VM). Not done: tables, pictures, links,
+    Find inside a note, dragging a note to a folder, watching the
+    directory for changes made elsewhere.
   - **Terminal is Konsole, dressed** (round 52, `session/konsole/`,
     `session/xdg/konsolerc`). Its menus and toolbars come from two XML
     files built into its library (zstd frames in

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Notes
+GenericName=Notes
+Comment=Write notes and checklists, kept in folders
+Icon=org.ambrosia.notes
+Exec=ambrosia-notes
+Categories=Qt;Office;Utility;
+Keywords=note;notes;checklist;list;todo;memo;write;markdown;
+StartupNotify=true
+StartupWMClass=org.ambrosia.notes

@@ -30,7 +30,9 @@ Window {
     // darker than its bar in Dark (#292826 over #22201f).
     readonly property color strip: colors.bg.window
     readonly property color ground: dark ? Qt.darker(strip, 1.2) : strip
-    readonly property real stripHeight: 56
+    // One page: no strip of tabs over it (Notes' Settings).
+    readonly property bool stripped: tabs.length < 2
+    readonly property real stripHeight: stripped ? 0 : 56
 
     // The glyphs tabs are commonly given, drawn by us in a 24 box.
     readonly property var glyphs: ({
@@ -57,6 +59,7 @@ Window {
     color: ground
 
     Rectangle {
+        visible: !prefs.stripped
         width: prefs.width
         height: prefs.stripHeight
         color: prefs.strip
@@ -127,6 +130,7 @@ Window {
         }
     }
     Rectangle {
+        visible: !prefs.stripped
         y: prefs.stripHeight
         width: prefs.width
         height: 0.5

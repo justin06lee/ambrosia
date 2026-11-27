@@ -12,3 +12,8 @@ rightbrace = C-pagedown
 # chord): without this line it was the app's Ctrl+Shift+Q, which quits
 # Firefox.
 q = C-M-A-S-q
+# ⇧⌘H and ⇧⌘M are the app's own (Notes' Heading and Monostyled, Finder's
+# Go Home): without these lines they fell to ⌘H and ⌘M with Shift held,
+# which hid nothing, minimized nothing and never reached the app.
+h = C-S-h
+m = C-S-m

@@ -58,6 +58,8 @@ files say of it, and installs a font file for the user or removes one.
 Disk Utility lists the computer's disks and volumes with what is on each,
 mounts, unmounts and ejects them, checks and repairs a volume (First Aid),
 erases a volume or a whole disk, opens disk images and encrypted volumes.
+Notes keeps notes in folders: titles and headings, lists and checklists,
+pinned notes, search, Recently Deleted; each note is a Markdown file.
 
 ## Quick start
 
@@ -224,6 +226,9 @@ fontbook/      Font Book (ambrosia-fontbook): the windows in QML, the fonts list
 disk-utility/  Disk Utility (ambrosia-disk-utility): the windows in QML, the disks read from UDisks2 and
                everything done to them through it by src/disks.cpp, what is listed, said and allowed in
                qml/disks.mjs, which disks.test.ts runs under bun
+notes/         Notes (ambrosia-notes): the window in QML, a note's text kept a note by src/editor.cpp,
+               the files by src/store.cpp, the Markdown format and what is listed in qml/notes.mjs,
+               which notes.test.ts runs under bun
 docs/GAPS.md   what still tells Ambrosia from a Mac, biggest first, and the rounds closing it
 docs/finder/   the Files plan: research, stack, v1 scope, performance targets
 docs/settings/ the Settings plan: the panes, their backends, the order of work
