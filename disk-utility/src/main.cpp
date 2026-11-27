@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     const QCommandLineOption active(QStringLiteral("active"), QStringLiteral("Draw windows as the active one (for grabs)."));
     const QCommandLineOption show(QStringLiteral("show"), QStringLiteral("Choose a device by its name, as sda1 (for grabs)."), QStringLiteral("device"));
     const QCommandLineOption all(QStringLiteral("all"), QStringLiteral("List every device, not only volumes (for grabs)."));
-    const QCommandLineOption sheet(QStringLiteral("sheet"), QStringLiteral("Show a sheet: erase, firstaid or info (for grabs)."), QStringLiteral("name"));
+    const QCommandLineOption sheet(QStringLiteral("sheet"), QStringLiteral("Show a sheet: erase, firstaid, info, image or rename (for grabs)."), QStringLiteral("name"));
     parser.addOptions({appearance, grab, active, show, all, sheet});
     parser.addPositionalArgument(QStringLiteral("files"), QStringLiteral("Disk images to open."), QStringLiteral("[files...]"));
     parser.process(app);

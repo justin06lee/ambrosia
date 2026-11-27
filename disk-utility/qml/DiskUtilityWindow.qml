@@ -24,6 +24,8 @@ Window {
     property string chosen: ""
     // A disk image just opened: chosen once it shows.
     property string wanted: ""
+    // The key of the volume whose name is being changed in the sidebar.
+    property string renaming: ""
     signal infoRequested(string key)
 
     readonly property var all: Logic.model(Array.from(Disks.blocks), Array.from(Disks.drives))
@@ -138,6 +140,59 @@ Window {
         App.chooseImage();
     }
 
+    function startRename() {
+        if (item && may.rename && sheets.mode === "")
+            renaming = chosen;
+    }
+    // What was typed, or "" to leave the name as it is.
+    function rename(key, typed) {
+        if (renaming !== key)
+            return;
+        renaming = "";
+        takeKeys();
+        const thing = Logic.find(all, key);
+        if (!thing || thing.kind !== "volume")
+            return;
+        const label = Logic.labelFor(thing.fs.type, typed);
+        if (label === "" || label === thing.fs.label)
+            return;
+        renamed = thing.name;
+        Disks.rename(thing.fs.path, thing.mounted, label);
+    }
+    property string renamed: ""
+
+    // File ▸ New Image ▸ Blank Image…: where and what, then the making.
+    function askImage() {
+        if (sheets.mode !== "")
+            return;
+        renaming = "";
+        sheets.askImage(Logic.eraseFormats(Disks.formats), makeImage);
+    }
+    function makeImage(path, file, bytes, format, name, scheme) {
+        const open = Array.from(Disks.blocks).some(block => block.loop && block.backingFile === path);
+        if (open) {
+            sheets.ask("image", "“" + file + "” can’t be replaced because it is open.", "Eject the disk image, then try again.",
+                [{ text: "OK", role: "ok", primary: true, cancel: true }], () => sheets.backToImage());
+            return;
+        }
+        const go = () => {
+            sheets.progress("image", "Creating “" + file + "”", "", "");
+            sheets.say("Creating “" + file + "”");
+            if (scheme !== "")
+                sheets.say("Creating the partition map.");
+            sheets.say("Formatting as " + (Logic.eraseFormats(Disks.formats).find(entry => entry.type === format)?.name ?? format) + ".");
+            Disks.newImage(path, bytes, format, name, scheme);
+        };
+        if (!App.exists(path)) {
+            go();
+            return;
+        }
+        sheets.ask("image", "“" + file + "” already exists. Do you want to replace it?",
+            "A file with the same name already exists in “" + App.folderName(path.replace(/\/[^/]*$/, "") || "/") + "”. Replacing it will overwrite its current contents.",
+            [{ text: "Cancel", role: "cancel", cancel: true }, { text: "Replace", role: "replace", primary: true }],
+            (role) => role === "replace" ? go() : sheets.backToImage());
+    }
+
     function askFirstAid() {
         if (!item || !may.firstAid)
             return;
@@ -201,6 +256,29 @@ Window {
                    : code === "busy" ? "The disk couldn’t be unmounted because it is in use. Quit the apps using it and try again."
                    : "Click Done to continue.");
         }
+        function onRenameDone(ok, code, detail) {
+            if (ok || code === "dismissed")
+                return;
+            sheets.ask(win.iconOf, "“" + win.renamed + "” couldn’t be renamed" + (code === "busy" ? " because one or more apps may be using it." : "."),
+                code === "busy" ? "Quit the apps using it and try again." : detail,
+                [{ text: "OK", role: "ok", primary: true, cancel: true }], null);
+        }
+        function onImageDone(ok, step, code, detail) {
+            if (sheets.mode !== "progress")
+                return;
+            if (!ok && code === "dismissed") {
+                sheets.close();
+                return;
+            }
+            if (detail !== "")
+                sheets.say(detail);
+            sheets.say(ok ? "Operation successful." : "Operation failed.");
+            sheets.finish(ok, ok ? "Operation successful." : "Operation failed.",
+                ok ? "Click Done to continue."
+                   : step === "file" ? "The disk image’s file couldn’t be made there."
+                   : code === "denied" ? "Opening a disk image needs an administrator’s leave."
+                   : "Click Done to continue.");
+        }
         function onUnlockDone(block, ok, code, detail) {
             if (sheets.mode !== "unlock")
                 return;
@@ -229,6 +307,9 @@ Window {
         function onImageChosen(file) {
             Disks.attach(file);
         }
+        function onFolderChosen(path) {
+            sheets.folderChosen(path);
+        }
     }
 
     // A key that is also a menu item's shortcut is handed to one of the two
@@ -255,6 +336,11 @@ Window {
         switch (event.key) {
         case Qt.Key_Up: move(-1); break;
         case Qt.Key_Down: move(1); break;
+        case Qt.Key_Return: case Qt.Key_Enter:
+            if (!may.rename)
+                return;
+            startRename();
+            break;
         case Qt.Key_Home: move(-1000); break;
         case Qt.Key_End: move(1000); break;
         case Qt.Key_Left:
@@ -306,6 +392,10 @@ Window {
         }
         if (App.sheet === "erase")
             askErase();
+        else if (App.sheet === "image")
+            askImage();
+        else if (App.sheet === "rename")
+            startRename();
         else if (App.sheet === "firstaid")
             askFirstAid();
         else if (App.sheet === "info")
@@ -350,6 +440,7 @@ Window {
     Shortcut { sequences: ["Ctrl+W", "Meta+W"]; onActivated: win.act("close", win.close); onActivatedAmbiguously: win.act("close", win.close) }
     Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized); onActivatedAmbiguously: win.act("minimize", win.showMinimized) }
     Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: win.act("quit", Qt.quit); onActivatedAmbiguously: win.act("quit", Qt.quit) }
+    Shortcut { sequences: ["Ctrl+N", "Meta+N"]; onActivated: win.act("new", win.askImage); onActivatedAmbiguously: win.act("new", win.askImage) }
     Shortcut { sequences: ["Ctrl+Alt+O", "Meta+Alt+O"]; onActivated: win.act("open", win.openImage); onActivatedAmbiguously: win.act("open", win.openImage) }
     Shortcut { sequences: ["Ctrl+I", "Meta+I"]; onActivated: win.act("info", win.showInfo); onActivatedAmbiguously: win.act("info", win.showInfo) }
     Shortcut { sequences: ["Ctrl+E", "Meta+E"]; onActivated: win.act("eject", () => win.eject(win.chosen)); onActivatedAmbiguously: win.act("eject", () => win.eject(win.chosen)) }

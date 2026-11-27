@@ -1283,8 +1283,8 @@ package repo below), and they carry `shell/` and `session/` as they are.
     and every five seconds for the room on each volume, which `statvfs`
     tells, not UDisks2) into plain maps and does every deed through
     UDisks2's own methods (Mount, Unmount, Lock and Unlock, Check and
-    Repair, Format, CreatePartitionAndFormat, LoopSetup, Loop.Delete,
-    PowerOff, Eject), so each asks for a password by polkit exactly when
+    Repair, Format, CreatePartitionAndFormat, SetLabel, LoopSetup,
+    Loop.Delete, PowerOff, Eject), so each asks for a password by polkit exactly when
     UDisks2's rules say so and nothing of ours runs as root.
     `qml/disks.mjs` makes of the maps the disks, their volumes, the
     sidebar, a page's words, what each button may do and the Info rows,
@@ -1305,9 +1305,18 @@ package repo below), and they carry `shell/` and `session/` as they are.
     them (`mountNew`, a few seconds), as is an unlocked volume's inside.
     Opening an image asks for an administrator's password: UDisks2's
     `loop-setup` is `auth_admin_keep` since 2025, and we ship no rule
-    against it. The toolbar has no Volume, Partition or Restore: nothing
-    is behind them. `--show sda1`, `--all` and `--sheet erase|firstaid|info`
-    choose what a grab shows. In the VM a test disk is a file: `truncate
+    against it. A rename is Unmount, `SetLabel`, Mount again (so the
+    mount point follows the name); its field is one item over the
+    sidebar's list, not in a row, because the rows are built again at
+    every read of the disks. A new blank image (`Disks::newImage`) is a
+    file of the size asked whose blocks are taken as written, a loop
+    device over it, then what Erase does (`Disks::make`, shared); the
+    device and the file go again when any step fails or its prompt is
+    dismissed. Its sheet is a Mac's small Save sheet (`Sheets.qml`, mode
+    `image`); another folder comes from Files' panel (`App::chooseFolder`).
+    The toolbar has no Volume, Partition or Restore: nothing
+    is behind them. `--show sda1`, `--all` and
+    `--sheet erase|firstaid|info|image|rename` choose what a grab shows. In the VM a test disk is a file: `truncate
     -s 300M x.img`, then `ambrosia-disk-utility x.img`.
   - **Notes** (`notes/`, 2026-11-28) is one window and one process
     (`org.ambrosia.notes` on the bus; a second launch brings the first
@@ -1380,7 +1389,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
     the last lets go with no window: the resident Files turns that off
     (`setQuitLockEnabled(false)` in `main.cpp`), or a job with no window
     open ended Files. `files/tools/archives.sh` makes the archives to
-    try it on, the hostile ones too.
+    try it on, the hostile ones too. A zip closed with a password fails
+    `locked` (libarchive's errors say "passphrase"); `FileOps::expandOne`
+    asks and runs the job again with what was typed. In the VM
+    `bsdtar --format zip --options zip:encryption=aes256 --passphrase X
+    -cf a.zip files` makes one (`zipcrypt` for the classic kind).
   - **What our apps share is in `kit/`** (round 55: the About panel),
     one source compiled into each app: its `CMakeLists.txt` lists
     `../kit/X.qml` with `QT_RESOURCE_ALIAS` (and `QT_QML_SINGLETON_TYPE`

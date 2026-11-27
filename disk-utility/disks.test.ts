@@ -169,12 +169,12 @@ describe("a page", () => {
 describe("what may be done", () => {
     const checkable = ["ext4", "vfat"];
     test("nothing to what the system runs from", () => {
-        expect(Disks.can(all, Disks.find(all, B + "vda2"), checkable)).toEqual({ firstAid: false, erase: false, mount: false, mountLabel: "Unmount", eject: false, info: true });
+        expect(Disks.can(all, Disks.find(all, B + "vda2"), checkable)).toEqual({ firstAid: false, erase: false, mount: false, mountLabel: "Unmount", eject: false, info: true, rename: false });
         expect(Disks.can(all, Disks.find(all, B + "vda"), checkable).erase).toBe(false);
     });
     test("a stick's volume: all of it", () => {
-        expect(Disks.can(all, Disks.find(all, B + "sdb1"), checkable)).toEqual({ firstAid: true, erase: true, mount: true, mountLabel: "Unmount", eject: true, info: true });
-        expect(Disks.can(all, Disks.find(all, B + "sdb"), checkable)).toEqual({ firstAid: false, erase: true, mount: true, mountLabel: "Unmount", eject: true, info: true });
+        expect(Disks.can(all, Disks.find(all, B + "sdb1"), checkable)).toEqual({ firstAid: true, erase: true, mount: true, mountLabel: "Unmount", eject: true, info: true, rename: false });
+        expect(Disks.can(all, Disks.find(all, B + "sdb"), checkable)).toEqual({ firstAid: false, erase: true, mount: true, mountLabel: "Unmount", eject: true, info: true, rename: false });
     });
     test("no First Aid without a checker, none for a locked volume; a read-only image isn't erased", () => {
         expect(Disks.can(all, Disks.find(all, B + "sdb1"), ["ext4"]).firstAid).toBe(false);
@@ -194,7 +194,7 @@ describe("what may be done", () => {
             block("dm-1", { size: 400e9, usage: "filesystem", type: "ext4", label: "home", mounts: ["/home"], total: 399e9, free: 100e9, available: 100e9 }),
         ], drives.concat([second]));
         expect(Disks.can(lvm, Disks.find(lvm, B + "sdb"), checkable).erase).toBe(false);
-        expect(Disks.can(lvm, Disks.find(lvm, B + "sdc"), checkable)).toEqual({ firstAid: false, erase: false, mount: false, mountLabel: "Mount", eject: false, info: true });
+        expect(Disks.can(lvm, Disks.find(lvm, B + "sdc"), checkable)).toEqual({ firstAid: false, erase: false, mount: false, mountLabel: "Mount", eject: false, info: true, rename: false });
         // The same physical volume with nothing standing on it may go.
         const stale = Disks.model([block("sdb", { drive: D + "second", size: 500e9, partitioned: true, table: "gpt" }),
             block("sdb1", { drive: D + "second", size: 499e9, usage: "raid", type: "LVM2_member", partition: true, number: 1, partTable: B + "sdb", offset: 1048576 })], [second]);
@@ -214,7 +214,7 @@ describe("what may be done", () => {
             block("sdc", { drive: D + "stick", size: 32e9, partitioned: true, table: "gpt" }),
             block("sdc1", { drive: D + "stick", size: 31e9, usage: "filesystem", type: "zfs_member", label: "tank", partition: true, number: 1, partTable: B + "sdc", offset: 1048576 }),
         ], drives.concat([second]));
-        expect(Disks.can(many, Disks.find(many, B + "sdb#whole"), checkable)).toEqual({ firstAid: false, erase: false, mount: false, mountLabel: "Mount", eject: false, info: true });
+        expect(Disks.can(many, Disks.find(many, B + "sdb#whole"), checkable)).toEqual({ firstAid: false, erase: false, mount: false, mountLabel: "Mount", eject: false, info: true, rename: false });
         expect(Disks.can(many, Disks.find(many, B + "sdb"), checkable).erase).toBe(false);
         expect(Disks.can(many, Disks.find(many, B + "sdc1"), checkable).erase).toBe(false);
         expect(Disks.can(many, Disks.find(many, B + "sdc"), checkable).eject).toBe(false);
@@ -258,5 +258,70 @@ describe("the Info window", () => {
         expect(told["Media name"]).toBe("SanDisk Ultra Media");
         expect(told["Partition map"]).toBe("Master Boot Record");
         expect(told["Serial number"]).toBe("4C53");
+    });
+});
+
+describe("a new blank image", () => {
+    const sectors = (bytes: number) => Math.ceil(bytes / 512) * 512;
+    test("a size as typed, in a Mac's units", () => {
+        expect(Disks.parseSize("100 MB")).toBe(sectors(100e6));
+        expect(Disks.parseSize("100")).toBe(sectors(100e6));
+        expect(Disks.parseSize("1.5 gb")).toBe(sectors(1.5e9));
+        expect(Disks.parseSize("1,5G")).toBe(sectors(1.5e9));
+        expect(Disks.parseSize("512k")).toBe(sectors(512e3));
+        expect(Disks.parseSize("2 TB")).toBe(sectors(2e12));
+        expect(Disks.parseSize(" 64MiB ")).toBe(sectors(64e6));
+        // Whole sectors.
+        expect(Disks.parseSize("0.0001 MB")).toBe(512);
+        expect(Disks.parseSize("")).toBe(0);
+        expect(Disks.parseSize("big")).toBe(0);
+        expect(Disks.parseSize("0")).toBe(0);
+        expect(Disks.parseSize("-5 MB")).toBe(0);
+    });
+    test("the file it is saved as", () => {
+        expect(Disks.imageFile("Untitled")).toBe("Untitled.img");
+        expect(Disks.imageFile(" Backup.IMG ")).toBe("Backup.IMG");
+        expect(Disks.imageFile("a/b")).toBe("a:b.img");
+        expect(Disks.imageFile("old.dmg")).toBe("old.dmg");
+        expect(Disks.imageFile("  ")).toBe("");
+        expect(Disks.imageFile("..")).toBe("");
+    });
+    test("what stands in the way", () => {
+        expect(Disks.imageTrouble("ext4", "gpt", 100e6, 5e9)).toBe("");
+        expect(Disks.imageTrouble("ext4", "gpt", 0, 5e9)).toBe("Enter a size, such as 100 MB.");
+        expect(Disks.imageTrouble("xfs", "", 100e6, 5e9)).toBe("XFS needs at least 310 MB.");
+        expect(Disks.imageTrouble("btrfs", "gpt", 100e6, 5e9)).toBe("Btrfs needs at least 123 MB.");
+        expect(Disks.imageTrouble("vfat", "", 2e6, 5e9)).toBe("");
+        expect(Disks.imageTrouble("exfat", "", 10e9, 5e9)).toBe("There isn’t enough room there: 5 GB available.");
+        // Room not known: nothing said of it.
+        expect(Disks.imageTrouble("exfat", "", 10e9, -1)).toBe("");
+    });
+});
+
+describe("renaming", () => {
+    const named = (more: object) => Disks.model([
+        block("sdb", { drive: D + "stick", size: 32e9, partitioned: true, table: "dos" }),
+        block("sdb1", { drive: D + "stick", size: 31.9e9, usage: "filesystem", type: "vfat", label: "PHOTOS", filesystem: true,
+                        mounts: ["/run/media/mina/PHOTOS"], partition: true, number: 1, partTable: B + "sdb", ...more }),
+    ], drives);
+    const may = (more: object = {}) => {
+        const made = named(more);
+        return Disks.can(made, Disks.find(made, B + "sdb1"), []).rename;
+    };
+    test("a volume that is ours to write", () => {
+        expect(may()).toBe(true);
+        expect(may({ mounts: [] })).toBe(true);
+    });
+    test("not the system's, a read-only one, or one whose name is part of it", () => {
+        expect(may({ mounts: ["/boot"] })).toBe(false);
+        expect(may({ readOnly: true })).toBe(false);
+        expect(may({ mountedReadOnly: true })).toBe(false);
+        expect(may({ type: "iso9660" })).toBe(false);
+        expect(may({ filesystem: false })).toBe(false);
+    });
+    test("not a disk, and not a volume still locked", () => {
+        const made = named({});
+        expect(Disks.can(made, Disks.find(made, B + "sdb"), []).rename).toBe(false);
+        expect(Disks.can(all, Disks.find(all, B + "sdc#whole"), []).rename).toBe(false);
     });
 });

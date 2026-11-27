@@ -17,6 +17,21 @@ Item {
 
     width: Look.sidebarWidth
 
+    // Where the row of this key is: how far down the list and how far in;
+    // null when it isn't listed.
+    function place(key) {
+        let y = 0;
+        for (const section of parts) {
+            y += Look.sidebarRow;
+            for (const entry of section.rows) {
+                if (entry.key === key)
+                    return { y: y, level: entry.level, name: entry.name };
+                y += Look.sidebarRow;
+            }
+        }
+        return null;
+    }
+
     Rectangle {
         anchors.fill: parent
         topLeftRadius: sidebar.window.corner
@@ -43,6 +58,61 @@ Item {
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         Controls.ScrollBar.vertical: ScrollThumb {}
+
+        // The name being changed, over its row: one field for the list,
+        // which is built again whenever the disks are read.
+        Loader {
+            id: editor
+            readonly property var at: sidebar.window.renaming === "" ? null : sidebar.place(sidebar.window.renaming)
+            active: at !== null
+            z: 1
+            x: Look.sidebarTextX + (at?.level ?? 0) * Look.sidebarIndent - 5
+            y: (at?.y ?? 0) + (Look.sidebarRow - 22) / 2
+            width: parent.width - x - Look.sidebarInset - 4
+            height: 22
+            // No longer listed (ejected while its name was typed).
+            onAtChanged: if (at === null && sidebar.window.renaming !== "") sidebar.window.rename(sidebar.window.renaming, "")
+            sourceComponent: Rectangle {
+                radius: 5
+                color: Look.field
+                border.width: 2
+                border.color: Theme.accent.bg
+                TextInput {
+                    x: 5
+                    width: parent.width - 10
+                    anchors.verticalCenter: parent.verticalCenter
+                    clip: true
+                    font.family: Theme.uiFont
+                    font.pixelSize: 13
+                    color: Look.sidebarText
+                    selectionColor: Theme.accent.highlight
+                    selectedTextColor: Look.sidebarText
+                    selectByMouse: true
+                    renderType: Text.NativeRendering
+                    Accessible.role: Accessible.EditableText
+                    Accessible.name: "Volume name"
+                    property bool done: false
+                    property string key
+                    function finish(keep) {
+                        if (done)
+                            return;
+                        done = true;
+                        sidebar.window.rename(key, keep ? text : "");
+                    }
+                    Component.onCompleted: {
+                        // (The loader's own bindings may not have caught up.)
+                        key = sidebar.window.renaming;
+                        text = editor.at?.name ?? "";
+                        forceActiveFocus();
+                        selectAll();
+                    }
+                    Keys.onReturnPressed: finish(true)
+                    Keys.onEnterPressed: finish(true)
+                    Keys.onEscapePressed: finish(false)
+                    onActiveFocusChanged: if (!activeFocus) finish(true)
+                }
+            }
+        }
 
         Column {
             id: column
@@ -75,6 +145,7 @@ Item {
                             id: row
                             required property var modelData
                             readonly property bool chosen: sidebar.window.chosen === modelData.key
+                            readonly property bool renaming: sidebar.window.renaming !== "" && sidebar.window.renaming === modelData.key
                             readonly property real indent: modelData.level * Look.sidebarIndent
                             readonly property color ink: modelData.dim
                                 ? (sidebar.window.looksActive ? Look.sidebarDim : Look.sidebarDimInactive)
@@ -93,10 +164,23 @@ Item {
                             MouseArea {
                                 anchors.fill: parent
                                 acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                // A click on the name of what is chosen
+                                // already changes the name, a moment
+                                // later: two clicks don't.
+                                property bool onName: false
                                 onPressed: (mouse) => {
+                                    onName = row.chosen && mouse.button === Qt.LeftButton && mouse.x >= name.x && mouse.x <= name.x + Math.min(name.width, name.implicitWidth);
+                                    slow.stop();
                                     sidebar.window.choose(row.modelData.key);
                                     if (mouse.button === Qt.RightButton)
                                         menu.open();
+                                }
+                                onClicked: if (onName && sidebar.window.may.rename) slow.restart()
+                                onDoubleClicked: slow.stop()
+                                Timer {
+                                    id: slow
+                                    interval: 600
+                                    onTriggered: if (row.chosen) sidebar.window.startRename()
                                 }
                             }
                             // Shut or open, for a disk with volumes under it.
@@ -124,6 +208,8 @@ Item {
                                 color: row.modelData.dim ? row.ink : sidebar.window.looksActive ? Look.sidebarGlyph : Look.sidebarGlyphInactive
                             }
                             Label {
+                                id: name
+                                visible: !row.renaming
                                 x: Look.sidebarTextX + row.indent
                                 width: parent.width - x - (row.modelData.eject ? 40 : 16)
                                 anchors.verticalCenter: parent.verticalCenter
@@ -133,7 +219,7 @@ Item {
                                 color: row.ink
                             }
                             Item {
-                                visible: row.modelData.eject
+                                visible: row.modelData.eject && !row.renaming
                                 x: parent.width - Look.sidebarEjectX - 11
                                 width: 22
                                 height: parent.height
@@ -157,9 +243,11 @@ Item {
     }
 
     // What is chosen, by a right click: the toolbar's deeds.
+
     Platform.Menu {
         id: menu
         Platform.MenuItem { text: "Get Info"; enabled: sidebar.window.may.info; onTriggered: sidebar.window.showInfo() }
+        Platform.MenuItem { text: "Rename"; enabled: sidebar.window.may.rename; onTriggered: sidebar.window.startRename() }
         Platform.MenuItem { text: "Show in Files"; enabled: sidebar.window.item?.mounted ?? false; onTriggered: sidebar.window.reveal() }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: sidebar.window.may.mountLabel; enabled: sidebar.window.may.mount; onTriggered: sidebar.window.toggleMount() }

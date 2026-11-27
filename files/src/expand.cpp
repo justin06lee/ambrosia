@@ -79,20 +79,26 @@ QString stemOf(const QString &name)
     return dot > 0 ? name.left(dot) : name;
 }
 
-// What went wrong, in libarchive's own words where it has any; a password
-// asked for is said in ours.
-QString why(struct archive *a, const QString &otherwise)
+// What went wrong, in libarchive's own words where it has any. A password
+// wanted (a zip's: libarchive says "passphrase") is `locked`, to be asked
+// for; one it has no way to use (7z's, rar's) is said in our words.
+QString why(struct archive *a, const QString &otherwise, bool *locked = nullptr)
 {
     const char *text = archive_error_string(a);
     const QString said = text && *text ? QString::fromUtf8(text) : otherwise;
-    if (said.contains(QLatin1String("assphrase")) || said.contains(QLatin1String("ncrypt")))
-        return QStringLiteral("It is protected by a password, and Files can’t take one yet.");
+    if (said.contains(QLatin1String("assphrase"))) {
+        if (locked)
+            *locked = true;
+        return QStringLiteral("It is protected by a password.");
+    }
+    if (said.contains(QLatin1String("ncrypt")))
+        return QStringLiteral("It is protected by a password in a way Files can’t open.");
     return said;
 }
 
 }
 
-ExpandJob::Result ExpandJob::expand(const QString &archive, const std::shared_ptr<State> &state)
+ExpandJob::Result ExpandJob::expand(const QString &archive, const QString &password, const std::shared_ptr<State> &state)
 {
     Result result;
     const QFileInfo info(archive);
@@ -128,6 +134,8 @@ ExpandJob::Result ExpandJob::expand(const QString &archive, const std::shared_pt
     archive_read_support_format_cab(in);
     archive_read_support_format_xar(in);
     archive_read_support_format_raw(in); // a lone file, compressed
+    if (!password.isEmpty())
+        archive_read_add_passphrase(in, password.toUtf8().constData());
     struct archive *out = archive_write_disk_new();
     archive_write_disk_set_options(out, ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_PERM | ARCHIVE_EXTRACT_SECURE_NODOTDOT | ARCHIVE_EXTRACT_SECURE_SYMLINKS);
 
@@ -142,11 +150,18 @@ ExpandJob::Result ExpandJob::expand(const QString &archive, const std::shared_pt
             break;
         if (next < ARCHIVE_WARN) {
             ok = false;
-            result.error = why(in, QStringLiteral("The archive is damaged."));
+            result.error = why(in, QStringLiteral("The archive is damaged."), &result.locked);
             break;
         }
         if (state->stop.load()) {
             stopped = true;
+            break;
+        }
+        // Closed with a password and none given: nothing is tried.
+        if (password.isEmpty() && archive_entry_is_data_encrypted(entry) == 1 && archive_format(in) == ARCHIVE_FORMAT_ZIP) {
+            ok = false;
+            result.locked = true;
+            result.error = QStringLiteral("It is protected by a password.");
             break;
         }
         const bool raw = archive_format(in) == ARCHIVE_FORMAT_RAW;
@@ -189,7 +204,7 @@ ExpandJob::Result ExpandJob::expand(const QString &archive, const std::shared_pt
                 break;
             if (read < ARCHIVE_WARN) {
                 ok = false;
-                result.error = why(in, QStringLiteral("The archive is damaged."));
+                result.error = why(in, QStringLiteral("The archive is damaged."), &result.locked);
                 break;
             }
             if (archive_write_data_block(out, block, size, offset) < ARCHIVE_WARN) {
@@ -252,9 +267,10 @@ ExpandJob::Result ExpandJob::expand(const QString &archive, const std::shared_pt
     return result;
 }
 
-ExpandJob::ExpandJob(const QString &archive, QObject *parent)
+ExpandJob::ExpandJob(const QString &archive, const QString &password, QObject *parent)
     : KJob(parent)
     , m_archive(archive)
+    , m_password(password)
     , m_state(std::make_shared<State>())
 {
     setCapabilities(Killable);
@@ -276,12 +292,13 @@ void ExpandJob::start()
             m_made = result.made;
             setProcessedAmount(Bytes, totalAmount(Bytes));
         } else {
+            m_locked = result.locked;
             setError(UserDefinedError);
             setErrorText(result.error);
         }
         emitResult();
     });
-    watcher->setFuture(QtConcurrent::run([archive = m_archive, state = m_state] { return expand(archive, state); }));
+    watcher->setFuture(QtConcurrent::run([archive = m_archive, password = m_password, state = m_state] { return expand(archive, password, state); }));
 }
 
 bool ExpandJob::doKill()

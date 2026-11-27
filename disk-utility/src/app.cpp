@@ -7,7 +7,9 @@
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
+#include <QDir>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QPalette>
 #include <QQmlEngine>
@@ -121,6 +123,54 @@ void App::chooseImage()
         m_choosing = false;
         if (result == QDialog::Accepted && !dialog->selectedUrls().isEmpty())
             Q_EMIT imageChosen(dialog->selectedUrls().constFirst());
+    });
+    dialog->open();
+}
+
+QVariantList App::places() const
+{
+    QVariantList places;
+    QStringList seen;
+    for (const auto where : {QStandardPaths::DesktopLocation, QStandardPaths::DocumentsLocation, QStandardPaths::DownloadLocation, QStandardPaths::HomeLocation}) {
+        const QString path = QStandardPaths::writableLocation(where);
+        if (path.isEmpty() || seen.contains(path) || !QFileInfo(path).isDir())
+            continue;
+        seen << path;
+        places << QVariantMap{{QStringLiteral("name"), folderName(path)}, {QStringLiteral("path"), path}};
+    }
+    return places;
+}
+
+QString App::folderName(const QString &path) const
+{
+    const QString clean = QDir::cleanPath(path);
+    if (clean == QLatin1String("/"))
+        return QStringLiteral("Computer");
+    return QFileInfo(clean).fileName();
+}
+
+bool App::exists(const QString &path) const
+{
+    return QFileInfo::exists(path);
+}
+
+void App::chooseFolder(const QString &from)
+{
+    if (m_choosing)
+        return;
+    m_choosing = true;
+    auto *dialog = new QFileDialog(nullptr, QStringLiteral("Choose a Folder"));
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setFileMode(QFileDialog::Directory);
+    dialog->setOption(QFileDialog::ShowDirsOnly, true);
+    dialog->setAcceptMode(QFileDialog::AcceptOpen);
+    dialog->setLabelText(QFileDialog::Accept, QStringLiteral("Choose"));
+    if (!from.isEmpty())
+        dialog->setDirectory(from);
+    connect(dialog, &QFileDialog::finished, this, [this, dialog](int result) {
+        m_choosing = false;
+        if (result == QDialog::Accepted && !dialog->selectedUrls().isEmpty() && dialog->selectedUrls().constFirst().isLocalFile())
+            Q_EMIT folderChosen(dialog->selectedUrls().constFirst().toLocalFile());
     });
     dialog->open();
 }

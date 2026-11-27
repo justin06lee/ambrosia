@@ -30,11 +30,16 @@ Platform.MenuBar {
 
     Menu {
         title: "File"
+        Platform.Menu {
+            title: "New Image"
+            Platform.MenuItem { text: "Blank Image…"; shortcut: "Ctrl+N"; onTriggered: bar.disks.act("new", bar.disks.askImage) }
+        }
         Platform.MenuItem { text: "Open Disk Image…"; shortcut: "Ctrl+Alt+O"; onTriggered: bar.disks.act("open", bar.disks.openImage) }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: "Run First Aid…"; enabled: bar.disks.may.firstAid; onTriggered: bar.disks.askFirstAid() }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: "Get Info"; shortcut: "Ctrl+I"; enabled: bar.disks.may.info; onTriggered: bar.disks.act("info", bar.disks.showInfo) }
+        Platform.MenuItem { text: "Rename"; enabled: bar.disks.may.rename; onTriggered: bar.disks.startRename() }
         Platform.MenuItem { text: "Show in Files"; enabled: bar.disks.item?.mounted ?? false; onTriggered: bar.disks.reveal() }
         Platform.MenuSeparator {}
         Platform.MenuItem {

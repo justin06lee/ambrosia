@@ -518,6 +518,17 @@ void Disks::firstAid(const QString &filesystem, bool mounted)
 
 void Disks::erase(const QString &block, const QStringList &filesystems, const QStringList &lock, const QString &format, const QString &name, const QString &scheme)
 {
+    make(block, filesystems, lock, format, name, scheme, [this](bool ok, const QString &code, const QString &detail) {
+        Q_EMIT eraseDone(ok, code, detail);
+        m_later.start();
+    });
+}
+
+// What Erase does, and what a new disk image is given: a file system of
+// `format` named `name` on the block, or a partition map with one such
+// volume over the whole of it.
+void Disks::make(const QString &block, const QStringList &filesystems, const QStringList &lock, const QString &format, const QString &name, const QString &scheme, Made done)
+{
     QVariantMap made;
     if (!name.isEmpty())
         made[QStringLiteral("label")] = name;
@@ -526,16 +537,10 @@ void Disks::erase(const QString &block, const QStringList &filesystems, const QS
 
     // The new volume is mounted, as a Mac leaves one; that failing is no
     // failure of the erase.
-    auto mountIt = [this](const QString &volume) {
-        call({volume, FilesystemI, QStringLiteral("Mount"), {none()}}, [this](const QDBusMessage &) {
-            Q_EMIT eraseDone(true, {}, {});
-            m_later.start();
-        });
+    auto mountIt = [this, done](const QString &volume) {
+        call({volume, FilesystemI, QStringLiteral("Mount"), {none()}}, [done](const QDBusMessage &) { done(true, {}, {}); });
     };
-    auto fail = [this](const QString &code, const QString &detail) {
-        Q_EMIT eraseDone(false, code, detail);
-        m_later.start();
-    };
+    auto fail = [done](const QString &code, const QString &detail) { done(false, code, detail); };
 
     QList<Step> steps = letGo(filesystems, lock);
     if (scheme.isEmpty()) {
@@ -554,17 +559,17 @@ void Disks::erase(const QString &block, const QStringList &filesystems, const QS
     // interface can be a moment behind the format's answer: asked again a
     // few times before giving up.
     steps << Step{block, BlockI, QStringLiteral("Format"), {scheme, none()}};
-    run(steps, [this, block, scheme, format, name, made, mountIt, fail](bool ok, const QString &code, const QString &detail, const QDBusMessage &) {
+    run(steps, [this, block, scheme, format, name, made, mountIt, fail, done](bool ok, const QString &code, const QString &detail, const QDBusMessage &) {
         if (!ok) {
             fail(code, detail);
             return;
         }
         auto tries = std::make_shared<int>(0);
         auto create = std::make_shared<std::function<void()>>();
-        *create = [this, block, scheme, format, name, made, mountIt, fail, tries, create] {
+        *create = [this, block, scheme, format, name, made, mountIt, fail, done, tries, create] {
             const QVariantList arguments = {QVariant::fromValue<qulonglong>(0), QVariant::fromValue<qulonglong>(0), QString(),
                                             scheme == QLatin1String("gpt") ? name : QString(), none(), format, made};
-            call({block, TableI, QStringLiteral("CreatePartitionAndFormat"), arguments}, [this, mountIt, fail, tries, create](const QDBusMessage &reply) {
+            call({block, TableI, QStringLiteral("CreatePartitionAndFormat"), arguments}, [this, mountIt, fail, done, tries, create](const QDBusMessage &reply) {
                 if (reply.type() == QDBusMessage::ErrorMessage) {
                     const bool early = reply.errorName().startsWith(QLatin1String("org.freedesktop.DBus.Error.Unknown"));
                     if (early && ++*tries < 8) {
@@ -577,12 +582,10 @@ void Disks::erase(const QString &block, const QStringList &filesystems, const QS
                 }
                 const QString volume = reply.arguments().isEmpty() ? QString() : reply.arguments().constFirst().value<QDBusObjectPath>().path();
                 *create = nullptr;
-                if (volume.isEmpty()) {
-                    Q_EMIT eraseDone(true, {}, {});
-                    m_later.start();
-                } else {
+                if (volume.isEmpty())
+                    done(true, {}, {});
+                else
                     mountIt(volume);
-                }
             });
         };
         (*create)();
@@ -629,6 +632,78 @@ void Disks::attach(const QUrl &file)
         m_freshAsked.clear();
         Q_EMIT attached(m_fresh);
         m_later.start();
+    });
+}
+
+void Disks::rename(const QString &filesystem, bool mounted, const QString &label)
+{
+    QList<Step> steps;
+    if (mounted)
+        steps << Step{filesystem, FilesystemI, QStringLiteral("Unmount"), {none()}};
+    steps << Step{filesystem, FilesystemI, QStringLiteral("SetLabel"), {label, none()}};
+    run(steps, [this, filesystem, mounted](bool ok, const QString &code, const QString &detail, const QDBusMessage &) {
+        auto last = [this, ok, code, detail] {
+            Q_EMIT renameDone(ok, code, detail);
+            m_later.start();
+        };
+        // Mounted before, mounted after, whatever came of the name (asking
+        // for one that never was unmounted does no harm).
+        if (mounted)
+            call({filesystem, FilesystemI, QStringLiteral("Mount"), {none()}}, [last](const QDBusMessage &) { last(); });
+        else
+            last();
+    });
+}
+
+double Disks::roomIn(const QString &folder) const
+{
+    const QStorageInfo storage(folder);
+    return storage.isValid() && storage.isReady() ? double(storage.bytesAvailable()) : -1;
+}
+
+void Disks::newImage(const QString &path, double bytes, const QString &format, const QString &name, const QString &scheme)
+{
+    // The file, as long as asked and holding nothing yet: its blocks are
+    // taken as they are written.
+    {
+        QFile image(path);
+        if (!image.open(QIODevice::ReadWrite | QIODevice::Truncate) || !image.resize(qint64(bytes))) {
+            const QString why = image.errorString();
+            image.close();
+            QFile::remove(path);
+            Q_EMIT imageDone(false, QStringLiteral("file"), QStringLiteral("other"), why);
+            return;
+        }
+    }
+    auto image = std::make_shared<QFile>(path);
+    if (!image->open(QIODevice::ReadWrite)) {
+        Q_EMIT imageDone(false, QStringLiteral("file"), QStringLiteral("other"), image->errorString());
+        QFile::remove(path);
+        return;
+    }
+    const QDBusUnixFileDescriptor descriptor(image->handle());
+    call({Manager, ManagerI, QStringLiteral("LoopSetup"), {QVariant::fromValue(descriptor), none()}}, [this, image, path, format, name, scheme](const QDBusMessage &reply) {
+        image->close();
+        if (reply.type() == QDBusMessage::ErrorMessage) {
+            QFile::remove(path);
+            Q_EMIT imageDone(false, QStringLiteral("attach"), codeOf(reply), detailOf(reply));
+            return;
+        }
+        const QString loop = reply.arguments().isEmpty() ? QString() : reply.arguments().constFirst().value<QDBusObjectPath>().path();
+        make(loop, {}, {}, format, name, scheme, [this, loop, path](bool ok, const QString &code, const QString &detail) {
+            if (!ok) {
+                // Nothing came of it: the loop device and the file go.
+                call({loop, LoopI, QStringLiteral("Delete"), {none()}}, [this, path, code, detail](const QDBusMessage &) {
+                    QFile::remove(path);
+                    Q_EMIT imageDone(false, QStringLiteral("format"), code, detail);
+                    m_later.start();
+                });
+                return;
+            }
+            Q_EMIT imageDone(true, {}, {}, {});
+            Q_EMIT attached(loop);
+            m_later.start();
+        });
     });
 }
 

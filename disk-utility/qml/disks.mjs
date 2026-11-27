@@ -91,6 +91,52 @@ export function labelFor(type, name) {
     return type === "vfat" ? label.toUpperCase() : label;
 }
 
+// What was typed for a disk image's size, in bytes: a number and a unit a
+// Mac counts in (KB, MB, GB, TB, decimal; megabytes when none is said). 0
+// when it says no size.
+export function parseSize(text) {
+    const found = /^\s*(\d+(?:[.,]\d+)?)\s*([kmgt]?)(?:i?b)?\s*$/i.exec(String(text));
+    if (!found)
+        return 0;
+    const unit = { k: 1e3, m: 1e6, g: 1e9, t: 1e12 }[found[2].toLowerCase() || "m"];
+    const bytes = Math.round(Number(found[1].replace(",", ".")) * unit);
+    // Whole sectors.
+    return bytes > 0 ? Math.ceil(bytes / 512) * 512 : 0;
+}
+
+// The smallest disk image each file system can be made on (its own tool
+// refuses less), with room for a partition map when there is one.
+const leastBytes = { ext4: 8e6, ext3: 8e6, ext2: 2e6, vfat: 2e6, exfat: 2e6, ntfs: 8e6, btrfs: 120e6, xfs: 310e6, f2fs: 60e6 };
+export function leastImage(type, scheme) {
+    return (leastBytes[type] ?? 8e6) + (scheme ? 3e6 : 0);
+}
+export const imageSchemes = [{ key: "gpt", name: "Single partition - GUID Partition Map" }, { key: "dos", name: "Single partition - Master Boot Record Partition Map" }, { key: "", name: "No partition map" }];
+
+// The file a new disk image is saved as, from what was typed: no slashes,
+// and ".img" unless it names a kind of image itself.
+export function imageFile(typed) {
+    const name = String(typed).trim().replace(/\//g, ":");
+    if (name === "" || name === "." || name === "..")
+        return "";
+    return /\.(img|raw|iso|dmg)$/i.test(name) ? name : name + ".img";
+}
+// What stands in the way of making it: "" when nothing does. `room` is the
+// free space where it is saved (negative when not known).
+export function imageTrouble(type, scheme, bytes, room) {
+    if (!(bytes > 0))
+        return "Enter a size, such as 100 MB.";
+    const least = leastImage(type, scheme);
+    if (bytes < least)
+        return (eraseNames.find(entry => entry[0] === type)?.[1] ?? type) + " needs at least " + sizeText(least) + ".";
+    if (room >= 0 && bytes > room)
+        return "There isn’t enough room there: " + sizeText(room) + " available.";
+    return "";
+}
+
+// File systems whose name can be changed once made (UDisks2 has each one's
+// tool for it; a disc's or an archive's is part of what was written).
+const renamable = ["ext2", "ext3", "ext4", "vfat", "exfat", "ntfs", "btrfs", "xfs", "f2fs"];
+
 // A place a volume is mounted for the system's own use: nothing here
 // unmounts or erases it. What a person plugs in is mounted under
 // /run/media (or the older /media) and what they mount by hand under /mnt.
@@ -429,7 +475,7 @@ function smartText(drive) {
 // what the system runs from; First Aid is for a volume whose file system
 // has a checker here (`checkable` types).
 export function can(all, item, checkable) {
-    const none = { firstAid: false, erase: false, mount: false, mountLabel: "Unmount", eject: false, info: false };
+    const none = { firstAid: false, erase: false, mount: false, mountLabel: "Unmount", eject: false, info: false, rename: false };
     if (!item)
         return none;
     const disk = diskOf(all, item);
@@ -442,6 +488,7 @@ export function can(all, item, checkable) {
             mountLabel: mounted ? "Unmount" : "Mount",
             eject: item.section !== "internal" && !item.system,
             info: true,
+            rename: false,
         };
     }
     return {
@@ -451,6 +498,10 @@ export function can(all, item, checkable) {
         mountLabel: item.mounted ? "Unmount" : "Mount",
         eject: !!disk && disk.section !== "internal" && !disk.system,
         info: true,
+        // A volume's own name: not the system's, not one still locked or
+        // that can't be written.
+        rename: !item.system && !item.locked && !!item.fs.filesystem && renamable.includes(item.fs.type)
+            && !item.fs.readOnly && !item.block.readOnly && !(item.mounted && item.fs.mountedReadOnly),
     };
 }
 
