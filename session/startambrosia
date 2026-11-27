@@ -9,9 +9,38 @@ export XDG_SESSION_DESKTOP=ambrosia
 # so they apply in this session only. kdeglobals names the session's
 # look-and-feel package, org.ambrosia.desktop.
 export XDG_CONFIG_DIRS="/etc/xdg/ambrosia:${XDG_CONFIG_DIRS:-/etc/xdg}"
-# Apps that stand in for a Mac's under the Mac's name (Konsole as Terminal):
-# their desktop entries here come before the apps' own.
-export XDG_DATA_DIRS="/usr/share/ambrosia/xdg:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
+# Apps that stand in for a Mac's go by the Mac's name (Konsole as Terminal;
+# /usr/share/ambrosia/mac-names lists them). Each gets a copy of its own
+# desktop entry with only the name changed, in a folder that comes before
+# the apps' own; made again at every login, so it follows the app's entry as
+# the app is updated, and goes when the app does. A copy that hasn't changed
+# is left alone, so KDE doesn't rebuild its list of apps for nothing.
+data_dirs=${XDG_DATA_DIRS:-/usr/local/share:/usr/share}
+names=${XDG_CACHE_HOME:-$HOME/.cache}/ambrosia/xdg
+rm -rf "$names/next"
+mkdir -p "$names/applications" "$names/next"
+while read -r id name; do
+  case $id in '' | '#'*) continue ;; esac
+  for dir in $(printf '%s' "$data_dirs" | tr ':' ' '); do
+    [ -r "$dir/applications/$id.desktop" ] || continue
+    # The name in the entry's own group; an action's name is its own.
+    awk -v name="$name" '
+      /^\[/ { main = ($0 == "[Desktop Entry]") }
+      main && /^Name\[/ { next }
+      main && /^Name=/ { print "Name=" name; next }
+      { print }' "$dir/applications/$id.desktop" > "$names/next/$id.desktop"
+    break
+  done
+done < /usr/share/ambrosia/mac-names
+for old in "$names"/applications/*.desktop; do
+  [ -e "$old" ] && [ ! -e "$names/next/${old##*/}" ] && rm -f "$old"
+done
+for new in "$names"/next/*.desktop; do
+  [ -e "$new" ] || continue
+  cmp -s "$new" "$names/applications/${new##*/}" || mv -f "$new" "$names/applications/${new##*/}"
+done
+rm -rf "$names/next"
+export XDG_DATA_DIRS="$names:$data_dirs"
 # GSettings defaults for this session only, over the user's own: GTK apps'
 # window controls on the left (/etc/dconf/db/ambrosia.d).
 export DCONF_PROFILE=ambrosia

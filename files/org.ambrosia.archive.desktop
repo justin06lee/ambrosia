@@ -1,0 +1,13 @@
+# Archive Utility, as on a Mac: opening an archive expands it beside itself.
+# It is Files that does it (ambrosia-files --unarchive hands the archive to
+# the Files that is running), so there is no window and no app to see, and
+# it is in no list of apps but the ones an archive opens with.
+[Desktop Entry]
+Type=Application
+Name=Archive Utility
+Comment=Expands an archive beside itself
+Icon=org.ambrosia.archive
+Exec=ambrosia-files --unarchive %F
+MimeType=application/zip;application/x-tar;application/x-compressed-tar;application/x-bzip-compressed-tar;application/x-bzip2-compressed-tar;application/x-xz-compressed-tar;application/x-zstd-compressed-tar;application/x-lzma-compressed-tar;application/x-lz4-compressed-tar;application/x-tarz;application/gzip;application/x-bzip;application/x-bzip2;application/x-xz;application/zstd;application/x-lzma;application/x-lz4;application/x-compress;application/x-7z-compressed;application/vnd.rar;application/x-cpio;application/x-cpio-compressed;application/x-lha;application/vnd.ms-cab-compressed;application/x-xar;
+NoDisplay=true
+StartupNotify=false

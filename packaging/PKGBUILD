@@ -23,7 +23,7 @@ pkgdesc="A Linux desktop that looks and moves as one thing"
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
-makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kservice kwindowsystem taglib karchive freetype2
+makedepends=(bun git librsvg cmake ninja qt6-base qt6-declarative qt6-svg kio kservice kwindowsystem taglib karchive libarchive freetype2
              kdecoration kcoreaddons pulseaudio-qt networkmanager-qt bluez-qt libkscreen wayland wayland-protocols
              kwin extra-cmake-modules vulkan-headers libepoxy libdrm qt6-webengine)
 options=(!debug)
@@ -237,7 +237,7 @@ package_ambrosia-shell() {
     session/konsole/ClearDark.colorscheme session/konsole/ClearLight.colorscheme \
     session/konsole/ambrosia.keytab -t "$pkgdir/usr/share/konsole/"
   install -Dm644 session/konsole/konsoleui.rc session/konsole/sessionui.rc -t "$pkgdir/usr/share/kxmlgui5/konsole/"
-  install -Dm644 session/applications/org.kde.konsole.desktop -t "$pkgdir/usr/share/ambrosia/xdg/applications/"
+  install -Dm644 session/mac-names -t "$pkgdir/usr/share/ambrosia/"
   # The session's GSettings defaults (DCONF_PROFILE=ambrosia); dconf's own
   # pacman hook compiles the database.
   install -Dm644 session/dconf/profile "$pkgdir/etc/dconf/profile/ambrosia"
@@ -252,8 +252,9 @@ package_ambrosia-files() {
   # Files makes every thumbnail itself (ffmpeg, taglib, karchive, freetype2)
   # and searches contents itself: no KIO thumbnailers, no ripgrep. solid
   # (KIO's own dependency, with udisks2) lists the sidebar's other disks.
-  # ambrosia-glass: the sidebar's QML imports org.ambrosia.glass.
-  depends=(ambrosia-theme ambrosia-glass qt6-base qt6-declarative qt6-svg kio kio-extras kservice solid kwindowsystem inter-font ffmpeg taglib karchive freetype2)
+  # ambrosia-glass: the sidebar's QML imports org.ambrosia.glass. libarchive:
+  # opening an archive expands it (Archive Utility is Files; expand.cpp).
+  depends=(ambrosia-theme ambrosia-glass qt6-base qt6-declarative qt6-svg kio kio-extras kservice solid kwindowsystem inter-font ffmpeg taglib karchive libarchive freetype2)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-files"
 }
 

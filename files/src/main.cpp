@@ -131,6 +131,8 @@ int main(int argc, char *argv[])
     const QCommandLineOption select(QStringLiteral("select"), QStringLiteral("The item to select in the first folder (for grabs)."), QStringLiteral("name"));
     const QCommandLineOption active(QStringLiteral("active"), QStringLiteral("Draw the first window as the active one (for grabs, where no window has the keyboard)."));
     const QCommandLineOption sidebar(QStringLiteral("sidebar"), QStringLiteral("The sidebar: floating (the default) or flush."), QStringLiteral("style"));
+    const QCommandLineOption unarchive(QStringLiteral("unarchive"),
+                                       QStringLiteral("Expand the archives named beside themselves, with no window (Archive Utility)."));
     const QCommandLineOption panel(QStringLiteral("panel"), QStringLiteral("The first window as another app's panel: open, folder or save (to look it over)."), QStringLiteral("kind"));
     const QCommandLineOption benchSearchOption(QStringLiteral("bench-search"),
                                                QStringLiteral("Time the index and these searches (comma-separated), with no window, then quit."),
@@ -138,7 +140,7 @@ int main(int argc, char *argv[])
     const QCommandLineOption benchThumbsOption(QStringLiteral("bench-thumbs"),
                                                QStringLiteral("Time thumbnails on thumbfix.sh's fixtures in this folder, with no window, then quit."),
                                                QStringLiteral("folder"));
-    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, active, sidebar, panel, benchSearchOption, benchThumbsOption});
+    parser.addOptions({newWindow, background, appearance, view, size, grab, bench, expand, select, active, sidebar, panel, unarchive, benchSearchOption, benchThumbsOption});
     parser.addPositionalArgument(QStringLiteral("urls"), QStringLiteral("Folders to open."), QStringLiteral("[urls...]"));
     parser.process(app);
 
@@ -166,16 +168,18 @@ int main(int argc, char *argv[])
     if (const QStringList wh = parser.value(size).split(QLatin1Char('x')); wh.size() == 2)
         options.size = QSize(wh[0].toInt(), wh[1].toInt());
     const bool oneShot = options.bench || !options.grab.isEmpty() || !options.panel.isEmpty();
-    const bool quiet = parser.isSet(background) && urls.isEmpty();
+    const bool expanding = parser.isSet(unarchive);
+    const bool quiet = expanding || (parser.isSet(background) && urls.isEmpty());
 
     // One process serves every window: a second launch hands its folders to
     // the first and leaves.
     QDBusConnection bus = QDBusConnection::sessionBus();
     if (!oneShot && bus.isConnected() && !bus.registerService(QStringLiteral("org.ambrosia.files"))) {
-        if (quiet)
+        if (quiet && !expanding)
             return 0; // already running
         QDBusMessage call = QDBusMessage::createMethodCall(QStringLiteral("org.ambrosia.files"), QStringLiteral("/org/ambrosia/files"),
-                                                           QStringLiteral("org.ambrosia.Files"), QStringLiteral("Open"));
+                                                           QStringLiteral("org.ambrosia.Files"),
+                                                           expanding ? QStringLiteral("Expand") : QStringLiteral("Open"));
         call << urls;
         bus.call(call);
         return 0;
@@ -184,8 +188,14 @@ int main(int argc, char *argv[])
     // Files keeps running with no window open, as Finder does: started at
     // login (ambrosia-files.service), it is there for the Dock's Trash,
     // whose drops it trashes undoably, and for the next window.
-    if (!oneShot)
+    // Nor does it leave when a job ends with no window open (KDE's jobs
+    // each hold the app open, and Qt quits it when the last one lets go):
+    // the Trash drop or the archive that brought the job would take Files,
+    // and its Undo, with it.
+    if (!oneShot) {
         app.setQuitOnLastWindowClosed(false);
+        QCoreApplication::setQuitLockEnabled(false);
+    }
 
     QQmlApplicationEngine engine;
     engine.addImageProvider(QStringLiteral("icon"), new IconProvider);
@@ -205,7 +215,9 @@ int main(int argc, char *argv[])
         bus.registerObject(QStringLiteral("/org/freedesktop/portal/desktop"), new Portal(&files), QDBusConnection::ExportScriptableSlots);
         bus.registerService(QStringLiteral("org.freedesktop.impl.portal.desktop.ambrosia"));
     }
-    if (!quiet)
+    if (expanding)
+        files.Expand(urls);
+    else if (!quiet)
         files.Open(urls);
     // The index behind search, warm from the start (a one-shot run starts
     // it only if it searches).

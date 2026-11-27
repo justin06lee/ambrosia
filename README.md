@@ -27,7 +27,8 @@ boots a live desktop and installs it on UEFI and BIOS computers. A new install
 starts behind the mark and a bar that fills, not the kernel's text (a
 Plymouth theme; on a system installed before, `sudo pacman -S plymouth &&
 sudo /usr/lib/ambrosia/boot-picture`). The shell
-works on real hardware: the menu bar with the focused app's own menus, Search
+works on real hardware: the menu bar with the focused app's own menus (its
+About, Settings… and Quit in the menu named for it, as on a Mac), Search
 (Super+Space: apps, settings, files and folders, sums), the Dock (drag to
 reorder, magnification, a live Trash, Downloads as a stack), the control center, notification
 banners and Notification Center, and a Mac-first keyboard (Command where a
@@ -36,10 +37,11 @@ saturates what is behind it as its material asks, and bends it at the rim;
 Files' and Settings' sidebars are panes of it.
 Its look still trails the design preview in places.
 
-Three first-party apps are in. Files (a Finder look-alike) has icon, list,
+Six first-party apps are in. Files (a Finder look-alike) has icon, list,
 column and gallery views, Quick Look, Get Info, tags, thumbnails, search by
-name and contents, undoable file operations and the Trash; drives and
-Applications in its sidebar and a copy progress window are still to come.
+name and contents, undoable file operations with a progress window, the
+Trash, and archives that expand beside themselves when opened, as a Mac's
+Archive Utility does it.
 Settings (a System Settings look-alike) has every pane of its plan built on
 the system's own services, from Wi-Fi and Bluetooth to Printers &
 Scanners, Accessibility and Spotlight (`docs/settings/PLAN.md` says what each

@@ -191,7 +191,9 @@ QVariantList App::appsFor(const QUrl &url) const
     QVariantList apps;
     QStringList seen;
     for (const KService::Ptr &app : KApplicationTrader::queryByMimeType(mime)) {
-        if (app->noDisplay() || seen.contains(app->name()))
+        // Archive Utility is in no list of apps, as on a Mac, but is one
+        // of the apps an archive opens with.
+        if ((app->noDisplay() && app->desktopEntryName() != QLatin1String("org.ambrosia.archive")) || seen.contains(app->name()))
             continue;
         seen << app->name();
         apps.append(QVariantMap{{QStringLiteral("name"), app->name()}, {QStringLiteral("id"), app->storageId()},
@@ -217,6 +219,23 @@ void App::Trash(const QStringList &urls)
         list << QUrl(url);
     if (auto *ops = m_engine->singletonInstance<FileOps *>("Files", "FileOps"))
         ops->trash(list);
+}
+
+void App::Expand(const QStringList &urls)
+{
+    QList<QUrl> list;
+    for (const QString &url : urls)
+        list << QUrl(url);
+    if (auto *ops = m_engine->singletonInstance<FileOps *>("Files", "FileOps"))
+        ops->expand(list);
+}
+
+bool App::expands(const QUrl &url) const
+{
+    if (!url.isLocalFile())
+        return false;
+    const KService::Ptr app = KApplicationTrader::preferredService(QMimeDatabase().mimeTypeForUrl(url).name());
+    return app && app->desktopEntryName() == QLatin1String("org.ambrosia.archive");
 }
 
 QStringList App::Find(const QString &query, int limit)

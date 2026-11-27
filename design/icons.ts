@@ -106,7 +106,7 @@ export const appIcons: Record<string, AppIcon> = {
   },
   // A zip, half done up.
   archiver: {
-    names: ["ark", "org.kde.ark", "utilities-file-archiver", "file-roller", "org.gnome.FileRoller"],
+    names: ["org.ambrosia.archive", "ark", "org.kde.ark", "utilities-file-archiver", "file-roller", "org.gnome.FileRoller"],
     tile: ["#e6cda3", "#bf9658"],
     art:
       `<rect x="106" y="25" width="44" height="206" fill="#a67f45" opacity="0.55"/>` +
