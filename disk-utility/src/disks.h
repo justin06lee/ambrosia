@@ -82,6 +82,16 @@ public:
     Q_INVOKABLE void erase(const QString &block, const QStringList &filesystems, const QStringList &lock, const QString &format, const QString &name, const QString &scheme);
     // Open a disk image file: a loop device over it, its volumes mounted.
     Q_INVOKABLE void attach(const QUrl &file);
+    // Give a file system another name. A mounted one is unmounted for it
+    // and mounted again after, so it is found under its new name.
+    Q_INVOKABLE void rename(const QString &filesystem, bool mounted, const QString &label);
+    // Make a disk image: a file of `bytes` at `path` (written over if it is
+    // there), opened as attach() opens one and erased as erase() erases.
+    // The file is taken away again if it comes to nothing.
+    Q_INVOKABLE void newImage(const QString &path, double bytes, const QString &format, const QString &name, const QString &scheme);
+    // The room left where a file in this folder would be saved, in bytes;
+    // -1 when it can't be told.
+    Q_INVOKABLE double roomIn(const QString &folder) const;
 
 Q_SIGNALS:
     void changed();
@@ -94,6 +104,9 @@ Q_SIGNALS:
     void firstAidLine(const QString &line);
     void firstAidDone(bool ok, const QString &code, const QString &detail);
     void eraseDone(bool ok, const QString &code, const QString &detail);
+    void renameDone(bool ok, const QString &code, const QString &detail);
+    // `step` says how far it got when it failed: file, attach or format.
+    void imageDone(bool ok, const QString &step, const QString &code, const QString &detail);
     void attached(const QString &block);
 
 private:
@@ -104,6 +117,7 @@ private:
         QVariantList arguments;
     };
     using Done = std::function<void(bool ok, const QString &code, const QString &detail, const QDBusMessage &last)>;
+    using Made = std::function<void(bool ok, const QString &code, const QString &detail)>;
 
     void load();
     void parsed(const QDBusMessage &reply);
@@ -111,6 +125,7 @@ private:
     void call(const Step &step, std::function<void(const QDBusMessage &)> then);
     void run(QList<Step> steps, Done done);
     void mountNew();
+    void make(const QString &block, const QStringList &filesystems, const QStringList &lock, const QString &format, const QString &name, const QString &scheme, Made made);
     static QList<Step> letGo(const QStringList &filesystems, const QStringList &lock);
     static QString codeOf(const QDBusMessage &reply);
 

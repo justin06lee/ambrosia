@@ -85,6 +85,13 @@ QtObject {
     // alert (First Aid): 260 wide, the picture at 19, 19, its words from 21
     // at 99 down, its two buttons 110 by 28 side by side.
     readonly property int sheetWidth: 485
+    // The Save sheet of a new image, a Mac's small one (370 wide there;
+    // 60 wider here, for the longest choice of its form): Save As and
+    // Where 26 tall from 99 to 39 short of the right, 19 and 55 down, their
+    // names ending at 93; a rule 18 under them; buttons 79 by 26, 8 apart,
+    // 19 from the right and 18 from the foot, a rule 21 over them.
+    readonly property int saveWidth: 430
+    readonly property color saveRule: dark ? "#1affffff" : "#1a000000"
     readonly property int sheetRadius: 16
     readonly property int alertWidth: 260
     readonly property int alertRadius: 20

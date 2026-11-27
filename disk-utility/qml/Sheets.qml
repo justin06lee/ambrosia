@@ -10,14 +10,20 @@ import "disks.mjs" as Logic
 // Erase form (a name, a format, and for a whole disk a scheme), an alert
 // that asks before First Aid or says what went wrong, the password of an
 // encrypted volume, and the sheet that stays while First Aid or an erase
-// runs, with what it did under Show Details. Return presses the button in
-// the accent color, Escape the other.
+// runs, with what it did under Show Details; and the Save sheet of a new
+// blank image, a Mac's small one (370 wide, measured from macOS 27's with
+// a form of our own in it, as Disk Utility's has: Save As and Where over a
+// rule, under it the volume's name, the image's size, its format and its
+// partition map). Return presses the button in the accent color, Escape
+// the other.
 Rectangle {
     id: sheets
 
     required property var window
-    // "", erase, alert, unlock or progress
+    // "", erase, alert, unlock, progress or image
     property string mode: ""
+    // The field that has the keyboard was reached by Tab.
+    property bool tabbed: false
     property string icon: "internal"
     property string title
     property string detail
@@ -27,6 +33,16 @@ Rectangle {
     property string format
     property string scheme: "gpt"
     property var onErase: null
+    // image: the folder it is saved in, and what to do once asked
+    property string folder
+    property var places: []
+    property string imageScheme: "gpt"
+    property var onImage: null
+    readonly property double imageBytes: Logic.parseSize(sizeBox.input.text)
+    readonly property string imageName: Logic.imageFile(saveBox.input.text)
+    readonly property string imageTrouble: mode !== "image" ? "" : sizeBox.input.text.trim() === "" ? ""
+        : Logic.imageTrouble(sheets.format, sheets.imageScheme, imageBytes, Disks.roomIn(folder))
+    readonly property bool imageReady: imageName !== "" && imageBytes > 0 && imageTrouble === "" && sheets.format !== "" && folder !== ""
     // alert: [{ text, role, primary, cancel }], and what to do with the role
     property var buttons: []
     property var then: null
@@ -57,6 +73,30 @@ Rectangle {
         mode = "erase";
         nameBox.input.forceActiveFocus();
         nameBox.input.selectAll();
+    }
+    function askImage(formats, then) {
+        sheets.formats = formats;
+        sheets.format = formats[0]?.type ?? "";
+        sheets.imageScheme = "gpt";
+        sheets.onImage = then;
+        sheets.places = App.places();
+        // Documents, as a Mac's first Save goes; whatever there is otherwise.
+        if (sheets.folder === "" || !App.exists(sheets.folder))
+            sheets.folder = (sheets.places.find(place => /\/Documents$/.test(place.path)) ?? sheets.places[0])?.path ?? "";
+        saveBox.input.text = "Untitled";
+        volumeBox.input.text = "Untitled";
+        sizeBox.input.text = "100 MB";
+        backToImage();
+    }
+    // The sheet again as it was left (an alert over it said no).
+    function backToImage() {
+        mode = "image";
+        saveBox.input.forceActiveFocus();
+        saveBox.input.selectAll();
+    }
+    function folderChosen(path) {
+        if (mode === "image")
+            sheets.folder = path;
     }
     function ask(icon, title, detail, buttons, then) {
         sheets.icon = icon;
@@ -119,6 +159,17 @@ Rectangle {
             close();
             if (then)
                 then(name, format, scheme);
+        } else if (mode === "image") {
+            if (!sheets.imageReady)
+                return;
+            const then = sheets.onImage;
+            const file = sheets.imageName;
+            const path = (sheets.folder === "/" ? "" : sheets.folder) + "/" + file;
+            const name = Logic.labelFor(sheets.format, volumeBox.input.text);
+            const bytes = sheets.imageBytes, format = sheets.format, scheme = sheets.imageScheme;
+            close();
+            if (then)
+                then(path, file, bytes, format, name, scheme);
         } else if (mode === "alert") {
             answer((sheets.buttons.find(button => button.primary) ?? sheets.buttons[0]).role);
         } else if (mode === "unlock") {
@@ -137,7 +188,7 @@ Rectangle {
             const button = sheets.buttons.find(button => button.cancel);
             if (button)
                 answer(button.role);
-        } else if (mode === "erase" || mode === "unlock") {
+        } else if (mode === "erase" || mode === "unlock" || mode === "image") {
             close();
         } else if (mode === "progress" && !sheets.running) {
             close();
@@ -178,10 +229,29 @@ Rectangle {
             selectedTextColor: Theme.color.label.primary
             renderType: Text.NativeRendering
             selectByMouse: true
+            activeFocusOnTab: true
+            // Reached by Tab, what it holds is selected, as on a Mac.
+            onActiveFocusChanged: {
+                if (!activeFocus)
+                    return;
+                if (sheets.tabbed)
+                    selectAll();
+                sheets.tabbed = false;
+            }
+            // Tab, on its way to the next field: seen, not taken.
+            Keys.onTabPressed: (event) => { sheets.tabbed = true; event.accepted = false; }
+            Keys.onBacktabPressed: (event) => { sheets.tabbed = true; event.accepted = false; }
             Keys.onReturnPressed: sheets.accept()
             Keys.onEnterPressed: sheets.accept()
             Keys.onEscapePressed: sheets.cancel()
         }
+    }
+    component SaveName: Label {
+        x: 93 - implicitWidth
+        color: Look.note
+    }
+    component FormName: Label {
+        x: 93 - implicitWidth
     }
     component FieldName: Label {
         x: 138 - implicitWidth
@@ -192,8 +262,12 @@ Rectangle {
         id: card
         readonly property bool narrow: sheets.mode === "alert"
         anchors.centerIn: parent
-        width: narrow ? Look.alertWidth : Look.sheetWidth
+        // A word under the form makes the sheet longer, downward.
+        anchors.verticalCenterOffset: saving && sheets.imageTrouble !== "" ? 12 : 0
+        readonly property bool saving: sheets.mode === "image"
+        width: narrow ? Look.alertWidth : saving ? Look.saveWidth : Look.sheetWidth
         height: sheets.mode === "alert" ? alertBody.height
+              : saving ? 311 + (sheets.imageTrouble !== "" ? 24 : 0)
               : sheets.mode === "erase" ? (sheets.whole ? 258 : 226)
               : sheets.mode === "unlock" ? 150
               : sheets.mode === "progress" ? (sheets.details ? 318 : 134) : 0
@@ -215,6 +289,7 @@ Rectangle {
         Keys.onEscapePressed: sheets.cancel()
 
         DiskIcon {
+            visible: !card.saving
             x: 19
             y: 19
             kind: sheets.icon
@@ -223,7 +298,7 @@ Rectangle {
         // A form's words, beside the picture.
         Label {
             id: formTitle
-            visible: !card.narrow
+            visible: !card.narrow && !card.saving
             x: 91
             y: 19
             width: card.width - x - 19
@@ -266,6 +341,104 @@ Rectangle {
                 current: sheets.scheme
                 onChosen: (value) => sheets.scheme = value
             }
+        }
+
+        // A new image: Save As and Where, a rule, the form, a rule.
+        Item {
+            id: saveForm
+            readonly property int field: card.width - 99 - 39
+            visible: card.saving
+            anchors.fill: parent
+            SaveName { y: 23; text: "Save As:" }
+            Field { id: saveBox; x: 99; y: 19; width: saveForm.field; height: 26 }
+            SaveName { y: 59; text: "Where:" }
+            PrefPopup {
+                id: wherePopup
+                x: 99
+                y: 55
+                width: saveForm.field - 32
+                height: 26
+                // Tab goes from field to field, as on a Mac.
+                activeFocusOnTab: false
+                // Where it goes, the places at hand, and any other.
+                items: (sheets.places.some(place => place.path === sheets.folder) || sheets.folder === "" ? []
+                            : [{ text: App.folderName(sheets.folder), value: sheets.folder }, { text: "" }])
+                    .concat(sheets.places.map(place => ({ text: place.name, value: place.path })))
+                    .concat([{ text: "" }, { text: "Other…", value: "other:" }])
+                current: sheets.folder
+                onChosen: (value) => value === "other:" ? App.chooseFolder(sheets.folder) : sheets.folder = value
+            }
+            // Any other folder, in the panel that shows them all.
+            Rectangle {
+                x: 99 + saveForm.field - 26
+                y: 55
+                width: 26
+                height: 26
+                radius: 6
+                color: more.pressed ? Look.pressed : wherePopup.color
+                Accessible.role: Accessible.Button
+                Accessible.name: "Choose another folder"
+                Glyph {
+                    anchors.centerIn: parent
+                    name: "chevronDown"
+                    size: 13
+                    weight: 2
+                }
+                MouseArea { id: more; anchors.fill: parent; onClicked: App.chooseFolder(sheets.folder) }
+            }
+            Rectangle { y: 99; width: parent.width; height: 1; color: Look.saveRule }
+            FormName { y: 116; text: "Name:" }
+            Field { id: volumeBox; x: 99; y: 112; width: saveForm.field; height: 26 }
+            FormName { y: 148; text: "Size:" }
+            Field {
+                id: sizeBox
+                x: 99
+                y: 144
+                width: saveForm.field
+                height: 26
+            }
+            // Written out as a Mac writes a size, once typed.
+            Connections {
+                target: sizeBox.input
+                function onEditingFinished() {
+                    if (sheets.imageBytes > 0)
+                        sizeBox.input.text = Logic.sizeText(sheets.imageBytes);
+                }
+            }
+            FormName { y: 180; text: "Format:" }
+            PrefPopup {
+                x: 99
+                y: 176
+                width: saveForm.field
+                height: 26
+                activeFocusOnTab: false
+                items: sheets.formats.map(entry => ({ text: entry.name, value: entry.type }))
+                current: sheets.format
+                onChosen: (value) => sheets.format = value
+            }
+            FormName { y: 212; text: "Partitions:" }
+            PrefPopup {
+                x: 99
+                y: 208
+                width: saveForm.field
+                height: 26
+                activeFocusOnTab: false
+                items: Logic.imageSchemes.map(entry => ({ text: entry.name, value: entry.key }))
+                current: sheets.imageScheme
+                onChosen: (value) => sheets.imageScheme = value
+            }
+            Label {
+                visible: sheets.imageTrouble !== ""
+                x: 20
+                y: 242
+                width: parent.width - 40
+                horizontalAlignment: Text.AlignHCenter
+                elide: Text.ElideRight
+                text: sheets.imageTrouble
+                style: Theme.text.footnote
+                color: Look.dark ? "#ff6961" : "#d70015"
+            }
+            Rectangle { y: card.height - 66; width: parent.width; height: 1; color: Look.saveRule }
         }
 
         // The password.
@@ -369,22 +542,25 @@ Rectangle {
         Row {
             visible: !card.narrow
             anchors.right: parent.right
-            anchors.rightMargin: 20
-            y: card.height - 20 - 24
-            spacing: 12
+            anchors.rightMargin: card.saving ? 19 : 20
+            y: card.height - (card.saving ? 18 + 26 : 20 + 24)
+            spacing: card.saving ? 8 : 12
             PushButton {
                 visible: sheets.mode !== "progress"
-                width: 70
+                width: card.saving ? 79 : 70
+                height: card.saving ? 26 : 24
                 text: "Cancel"
                 onClicked: sheets.cancel()
             }
             PushButton {
-                width: 70
+                width: card.saving ? 79 : 70
+                height: card.saving ? 26 : 24
                 primary: true
                 enabled: sheets.mode === "progress" ? !sheets.running
                        : sheets.mode === "unlock" ? passwordBox.input.text !== "" && !sheets.unlocking
+                       : card.saving ? sheets.imageReady
                        : sheets.format !== ""
-                text: sheets.mode === "erase" ? "Erase" : sheets.mode === "unlock" ? "Unlock" : "Done"
+                text: sheets.mode === "erase" ? "Erase" : sheets.mode === "unlock" ? "Unlock" : card.saving ? "Save" : "Done"
                 onClicked: sheets.accept()
             }
         }

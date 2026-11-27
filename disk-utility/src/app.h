@@ -5,6 +5,7 @@
 #include <QQuickWindow>
 #include <QStringList>
 #include <QUrl>
+#include <QVariantList>
 #include <QtQml/qqmlregistration.h>
 
 class QQmlEngine;
@@ -67,6 +68,14 @@ public:
     Q_INVOKABLE void reveal(const QString &path);
     // The Open panel, for a disk image: imageChosen with the one chosen.
     Q_INVOKABLE void chooseImage();
+    // Where a new disk image may be saved without looking further: the
+    // Desktop, Documents, Downloads and the home folder, [{ name, path }].
+    Q_INVOKABLE QVariantList places() const;
+    // The panel for any other folder, opened at `from`: folderChosen.
+    Q_INVOKABLE void chooseFolder(const QString &from);
+    // A folder's name as it is shown (the home folder by its owner's).
+    Q_INVOKABLE QString folderName(const QString &path) const;
+    Q_INVOKABLE bool exists(const QString &path) const;
 
 public Q_SLOTS:
     // A second launch: open these disk images (none: bring the window
@@ -77,6 +86,7 @@ Q_SIGNALS:
     void appearanceChanged();
     void openRequested(const QList<QUrl> &files);
     void imageChosen(const QUrl &file);
+    void folderChosen(const QString &path);
 
 private:
     static App *s_instance;
