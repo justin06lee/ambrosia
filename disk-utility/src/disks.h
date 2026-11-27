@@ -29,7 +29,7 @@ class Disks : public QObject
     // version, label, uuid, readOnly, hintIgnore, backing, filesystem,
     // mounts, total, free, available, mountedReadOnly, partitioned, table,
     // partition, number, partName, partType, partTable, offset, container,
-    // loop, backingFile, encrypted, cleartext, swapActive }.
+    // loop, backingFile, encrypted, cleartext, swapActive, held }.
     Q_PROPERTY(QVariantList blocks READ blocks NOTIFY changed)
     // Every drive: { path, model, vendor, serial, revision, size, bus,
     // removable, mediaRemovable, ejectable, canPowerOff, optical, rotation,

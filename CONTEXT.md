@@ -1282,7 +1282,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
     partition's shell are parts of the disk's bar and child count but not
     rows. A disk with no partition map is one volume under the key
     `PATH#whole`. Nothing unmounts, checks or erases what is mounted
-    outside `/run/media`, `/media` and `/mnt` (`systemMount`). Which file
+    outside `/run/media`, `/media` and `/mnt` (`systemMount`), nor a
+    device that shows no mount point but is in use all the same: one the
+    kernel lists holders for (`/sys/class/block/X/holders`: LVM, RAID, an
+    encrypted volume with something standing on its inside), a ZFS pool's
+    member, another device of a mounted Btrfs (same UUID). Which file
     systems Erase offers and First Aid checks is asked of UDisks2
     (`CanFormat`, `CanCheck`: the tools installed). A disk image opened
     is a loop device; its volumes are mounted as UDisks2 comes to know

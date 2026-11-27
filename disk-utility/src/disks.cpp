@@ -8,6 +8,7 @@
 #include <QDBusPendingCall>
 #include <QDBusPendingCallWatcher>
 #include <QDBusUnixFileDescriptor>
+#include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QJSEngine>
@@ -242,6 +243,10 @@ void Disks::parsed(const QDBusMessage &reply)
                 map[QStringLiteral("encrypted")] = encrypted;
                 map[QStringLiteral("cleartext")] = encrypted ? pathOf(interfaces.value(EncryptedI).value(QStringLiteral("CleartextDevice"))) : QString();
                 map[QStringLiteral("swapActive")] = interfaces.value(SwapI).value(QStringLiteral("Active")).toBool();
+                // Another device stands on this one (a logical volume, a
+                // RAID, an opened encrypted volume): the kernel lists them.
+                const QString name = map.value(QStringLiteral("device")).toString().section(QLatin1Char('/'), -1);
+                map[QStringLiteral("held")] = !name.isEmpty() && !QDir(QStringLiteral("/sys/class/block/") + name + QStringLiteral("/holders")).isEmpty();
                 blocks << map;
             }
             if (interfaces.contains(DriveI)) {

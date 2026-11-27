@@ -8,7 +8,7 @@ const block = (name: string, more: object = {}) => ({
     path: B + name, device: "/dev/" + name, drive: "", size: 0, usage: "", type: "", version: "", label: "", uuid: "",
     readOnly: false, hintIgnore: false, backing: "", mounts: [] as string[], total: 0, free: 0, available: 0,
     partitioned: false, table: "", partition: false, number: 0, partName: "", partType: "", partTable: "", offset: 0, container: false,
-    loop: false, backingFile: "", encrypted: false, cleartext: "", swapActive: false, ...more,
+    loop: false, backingFile: "", encrypted: false, cleartext: "", swapActive: false, held: false, ...more,
 });
 const drive = (name: string, more: object = {}) => ({
     path: D + name, model: name, vendor: "", serial: "", revision: "", size: 0, bus: "", removable: false, mediaRemovable: false,
@@ -182,6 +182,42 @@ describe("what may be done", () => {
         expect(Disks.can(all, Disks.find(all, B + "sdc#whole"), checkable).mountLabel).toBe("Mount");
         expect(Disks.can(all, Disks.find(all, B + "loop0#whole"), checkable).erase).toBe(false);
         expect(Disks.can(all, null, checkable).info).toBe(false);
+    });
+    test("nothing to a disk something else stands on, though it shows no mount point", () => {
+        const checkable = ["ext4", "btrfs"];
+        const second = drive("second", { model: "Data", size: 500e9 });
+        // LVM: a partition and a whole disk as physical volumes, the logical volume mounted at /home.
+        const lvm = Disks.model([
+            block("sdb", { drive: D + "second", size: 500e9, partitioned: true, table: "gpt" }),
+            block("sdb1", { drive: D + "second", size: 499e9, usage: "raid", type: "LVM2_member", partition: true, number: 1, partTable: B + "sdb", offset: 1048576, held: true }),
+            block("sdc", { drive: D + "stick", size: 32e9, usage: "raid", type: "LVM2_member", held: true }),
+            block("dm-1", { size: 400e9, usage: "filesystem", type: "ext4", label: "home", mounts: ["/home"], total: 399e9, free: 100e9, available: 100e9 }),
+        ], drives.concat([second]));
+        expect(Disks.can(lvm, Disks.find(lvm, B + "sdb"), checkable).erase).toBe(false);
+        expect(Disks.can(lvm, Disks.find(lvm, B + "sdc"), checkable)).toEqual({ firstAid: false, erase: false, mount: false, mountLabel: "Mount", eject: false, info: true });
+        // The same physical volume with nothing standing on it may go.
+        const stale = Disks.model([block("sdb", { drive: D + "second", size: 500e9, partitioned: true, table: "gpt" }),
+            block("sdb1", { drive: D + "second", size: 499e9, usage: "raid", type: "LVM2_member", partition: true, number: 1, partTable: B + "sdb", offset: 1048576 })], [second]);
+        expect(Disks.can(stale, Disks.find(stale, B + "sdb"), checkable).erase).toBe(true);
+        // An encrypted partition opened, a physical volume inside it.
+        const sealed = Disks.model([
+            block("sdb", { drive: D + "second", size: 500e9, partitioned: true, table: "gpt" }),
+            block("sdb1", { drive: D + "second", size: 499e9, usage: "crypto", type: "crypto_LUKS", encrypted: true, partition: true, number: 1, partTable: B + "sdb", offset: 1048576, held: true }),
+            block("dm-0", { size: 499e9, usage: "raid", type: "LVM2_member", backing: B + "sdb1", held: true }),
+        ], [second]);
+        expect(Disks.find(sealed, B + "sdb1").system).toBe(true);
+        expect(Disks.can(sealed, Disks.find(sealed, B + "sdb1"), checkable).erase).toBe(false);
+        // Btrfs over two disks, mounted from the first; a ZFS pool's member.
+        const many = Disks.model([
+            block("vda", { drive: D + "VirtIO_Disk", size: 40e9, usage: "filesystem", type: "btrfs", uuid: "aa-bb", label: "pool", mounts: ["/"], total: 80e9, free: 40e9, available: 40e9 }),
+            block("sdb", { drive: D + "second", size: 40e9, usage: "filesystem", type: "btrfs", uuid: "aa-bb", label: "pool" }),
+            block("sdc", { drive: D + "stick", size: 32e9, partitioned: true, table: "gpt" }),
+            block("sdc1", { drive: D + "stick", size: 31e9, usage: "filesystem", type: "zfs_member", label: "tank", partition: true, number: 1, partTable: B + "sdc", offset: 1048576 }),
+        ], drives.concat([second]));
+        expect(Disks.can(many, Disks.find(many, B + "sdb#whole"), checkable)).toEqual({ firstAid: false, erase: false, mount: false, mountLabel: "Mount", eject: false, info: true });
+        expect(Disks.can(many, Disks.find(many, B + "sdb"), checkable).erase).toBe(false);
+        expect(Disks.can(many, Disks.find(many, B + "sdc1"), checkable).erase).toBe(false);
+        expect(Disks.can(many, Disks.find(many, B + "sdc"), checkable).eject).toBe(false);
     });
     test("where a system mount is", () => {
         expect(Disks.systemMount("/")).toBe(true);

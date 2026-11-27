@@ -159,6 +159,14 @@ export function model(blocks, drives) {
             inside.set(block.backing, block);
     }
 
+    // A Btrfs file system over several devices is mounted from one of
+    // them: the others are as much in use.
+    const systemShared = new Set();
+    for (const block of blocks) {
+        if (block.type === "btrfs" && block.uuid && (block.mounts ?? []).some(systemMount))
+            systemShared.add(block.uuid);
+    }
+
     function volume(block, disk) {
         const inner = inside.get(block.path) ?? null;
         const fs = inner ?? block;
@@ -166,7 +174,13 @@ export function model(blocks, drives) {
         const mounts = fs.mounts ?? [];
         const swap = fs.usage === "other" && fs.type === "swap";
         const holds = fs.usage === "filesystem" || encrypted;
-        const system = mounts.some(systemMount) || (swap && !!fs.swapActive);
+        // In use in a way that shows no mount point here: the kernel has
+        // another device standing on it (LVM, RAID, an encrypted volume
+        // someone else opened), it belongs to a ZFS pool, or it is one more
+        // device of a mounted Btrfs.
+        const busy = !!fs.held || fs.type === "zfs_member" || block.type === "zfs_member"
+            || (fs.type === "btrfs" && !!fs.uuid && systemShared.has(fs.uuid));
+        const system = mounts.some(systemMount) || (swap && !!fs.swapActive) || busy;
         const label = fs.label || (encrypted && !inner ? block.label : "") || "";
         return {
             key: block.path, kind: "volume", disk: disk.key, block: block, inner: inner, fs: fs,
@@ -218,7 +232,9 @@ export function model(blocks, drives) {
             disk.parts.push(made);
         }
         disk.volumes = disk.parts.filter(part => !part.hidden);
-        disk.system = disk.parts.some(part => part.system);
+        // The whole disk may be what something stands on (a physical
+        // volume with no partition map): as much the system's.
+        disk.system = disk.parts.some(part => part.system) || (!!block.held && !inside.has(block.path)) || block.type === "zfs_member";
         disks.push(disk);
     }
     // What stands on no disk we know (a logical volume, a RAID): a volume
