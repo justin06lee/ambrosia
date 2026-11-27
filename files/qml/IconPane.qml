@@ -72,7 +72,7 @@ FocusScope {
                 renameSoon.stop();
                 const cell = hits.cellAt(point.position);
                 if (cell >= 0)
-                    pane.finder.open(cell);
+                    pane.finder.open(cell, tap.point.modifiers);
             }
         }
         // The shortcut menu: a right-click.

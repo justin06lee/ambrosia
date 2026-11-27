@@ -783,6 +783,18 @@ package repo below), and they carry `shell/` and `session/` as they are.
    2026-11-11). Next: the plan's "Still short of
    Finder" list (Open With and Compress in the menu, tag rename and
    delete, spring-loaded folders, Quick Look's black full screen).
+   Tabs (round 65) are snapshots, not live views: `FinderWindow`'s own
+   properties (url, view, history, selection) are the tab in front and
+   `tabs` holds each as it was left; `showTab` puts the front one away
+   (`tabState`) and takes the other (`takeTab`), whose folder is read
+   again. Anything new a tab should remember goes in both. The bar
+   (`TabBar.qml`) has one MouseArea for all tabs, with `preventStealing`:
+   the window's DragHandler otherwise takes a drag along the bar as a
+   move of the window. A double click's modifiers are the handler's
+   (`tap.point.modifiers`), not the signal's point's. A dev build of
+   Files in the VM: `u systemctl --user stop ambrosia-files`, then `u
+   systemd-run --user --quiet ambrosia-files-dev DIR` (`--appearance
+   light` for the light look).
 7. Settings (docs/settings/PLAN.md): steps 1–6 are built. Step 6 (Battery/
    Energy, Lock Screen, Login Password, Users & Groups, Privacy & Security)
    was driven for real in the VM on 2026-11-10 (Battery against

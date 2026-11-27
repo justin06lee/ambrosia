@@ -185,9 +185,12 @@ Flickable {
                             HoverHandler { id: overEject }
                         }
                         TapHandler {
+                            id: press
                             onTapped: (point) => {
                                 if (row.ejectable && point.position.x >= eject.x - 2) {
                                     Places.eject(row.modelData.volume);
+                                } else if (row.place !== "" && !list.finder.isPanel && (press.point.modifiers & (Qt.ControlModifier | Qt.MetaModifier))) {
+                                    list.finder.newTab(row.modelData.url); // with Command held, in a new tab
                                 } else if (row.place !== "") {
                                     list.finder.go(row.modelData.url);
                                 } else if (row.modelData.volume !== undefined) {

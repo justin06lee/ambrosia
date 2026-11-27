@@ -38,7 +38,7 @@ Files' and Settings' sidebars are panes of it.
 Its look still trails the design preview in places.
 
 Six first-party apps are in. Files (a Finder look-alike) has icon, list,
-column and gallery views, Quick Look, Get Info, tags, thumbnails, search by
+column and gallery views, tabs, Quick Look, Get Info, tags, thumbnails, search by
 name and contents, undoable file operations with a progress window, the
 Trash, and archives that expand beside themselves when opened, as a Mac's
 Archive Utility does it.

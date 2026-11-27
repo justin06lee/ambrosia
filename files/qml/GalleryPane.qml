@@ -101,7 +101,7 @@ FocusScope {
             onDoubleTapped: (point) => {
                 const cell = strip.cellAt(point.position);
                 if (cell >= 0)
-                    pane.finder.open(cell);
+                    pane.finder.open(cell, tap.point.modifiers);
             }
         }
         DragHandler {

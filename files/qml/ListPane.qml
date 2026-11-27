@@ -237,7 +237,7 @@ FocusScope {
                 renameSoon.stop();
                 const row = hits.rowAt(point.position);
                 if (row >= 0 && !list.onTriangle(row, point.position.x))
-                    pane.finder.open(row);
+                    pane.finder.open(row, tap.point.modifiers);
             }
         }
         Timer {

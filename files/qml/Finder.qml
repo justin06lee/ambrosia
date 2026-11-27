@@ -148,6 +148,10 @@ QtObject {
     readonly property int suggestHeight: 117
     readonly property int tokenHeight: 14
     readonly property int scopeTop: 52        // under the toolbar
+    // The tab bar (TabBar.qml): a strip under the toolbar, its capsule's
+    // fill, the tab in front, the rim and the hairlines between tabs.
+    readonly property int tabTop: 52
+    readonly property int tabStrip: 36
     readonly property int scopeRow: 32
     readonly property int scopeX: 7           // from the content's left
     readonly property int scopePill: 20
@@ -240,4 +244,10 @@ QtObject {
     readonly property color menu: dark ? "#262624" : "#f2f2f2"
     readonly property color menuRim: dark ? "#4e4e4c" : "#d3d3d3"
     readonly property color menuRule: dark ? "#3f3f3d" : "#dadada"
+    // The Mac's, measured in a window behind others in Dark (19 and 13
+    // lighter than the window's ground); light is ours.
+    readonly property color tabTrough: dark ? "#3b3b37" : "#ebebeb"
+    readonly property color tabFront: dark ? "#353531" : "#f7f7f7"
+    readonly property color tabRim: dark ? "#4b4b47" : "#e0e0e0"
+    readonly property color tabRule: dark ? "#52524e" : "#cfcfcf"
 }
