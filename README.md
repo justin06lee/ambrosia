@@ -61,6 +61,8 @@ erases a volume or a whole disk, opens disk images and encrypted volumes.
 Notes keeps notes in folders: titles and headings, lists and checklists,
 pinned notes, search, find and replace, Recently Deleted; each note is a
 Markdown file, and one changed by another program shows at once.
+TextEdit, Notes and Preview print (⌘P) through a Print panel of ours on
+CUPS, and choose colors and fonts in panels of ours.
 
 ## Quick start
 
@@ -217,7 +219,8 @@ textedit/      TextEdit (ambrosia-textedit), plain and rich text: the window in 
                Cocoa's own samples (samples/)
 kit/           what our apps share, compiled into each: the About panel, the Settings window and its
                controls (Files' Settings is files/qml/SettingsWindow.qml over src/prefs.cpp), the
-               Colors and Fonts panels, and firstshortcut.h, which every app's main() calls first
+               Colors and Fonts panels, the Print panel (printing.cpp asks CUPS), and firstshortcut.h,
+               which every app's main() calls first
 activity-monitor/ Activity Monitor (ambrosia-activity-monitor): the window in QML, the kernel read by
                src/sampler.cpp, what the numbers mean and how they are written in qml/monitor.mjs, which
                monitor.test.ts runs under bun

@@ -1,10 +1,12 @@
 #include "editor.h"
 
 #include <QFont>
+#include <QGuiApplication>
 #include <QLocale>
 #include <QPageLayout>
 #include <QPageSize>
 #include <QPdfWriter>
+#include <QScreen>
 #include <QTextBlock>
 #include <QTextCursor>
 #include <QTextDocument>
@@ -996,7 +998,7 @@ int Editor::replaceAll(const QString &what, const QString &with)
     return count;
 }
 
-bool Editor::exportPdf(const QUrl &file, const QString &title) const
+bool Editor::exportPdf(const QUrl &file, const QString &title, const QSizeF &paper) const
 {
     const QTextDocument *document = text_();
     if (!document)
@@ -1004,12 +1006,20 @@ bool Editor::exportPdf(const QUrl &file, const QString &title) const
     QPdfWriter writer(file.toLocalFile());
     writer.setTitle(title);
     writer.setCreator(QStringLiteral("TextEdit"));
-    writer.setPageSize(QPageSize(QLocale().measurementSystem() == QLocale::MetricSystem ? QPageSize::A4 : QPageSize::Letter));
-    // An inch all round, as a Mac's TextEdit prints: QTextDocument::print
-    // puts two centimetres of its own inside the page's margins.
-    const qreal margin = 72 - 2 / 2.54 * 72;
-    writer.setPageMargins(QMarginsF(margin, margin, margin, margin), QPageLayout::Point);
+    if (paper.isEmpty())
+        writer.setPageSize(QPageSize(QLocale().measurementSystem() == QLocale::MetricSystem ? QPageSize::A4 : QPageSize::Letter));
+    else
+        writer.setPageSize(QPageSize(paper.width() > paper.height() ? paper.transposed() : paper, QPageSize::Point, QString(), QPageSize::ExactMatch));
+    writer.setPageOrientation(paper.width() > paper.height() ? QPageLayout::Landscape : QPageLayout::Portrait);
+    // An inch all round, as a Mac's TextEdit prints.
+    writer.setPageMargins(QMarginsF(72, 72, 72, 72), QPageLayout::Point);
     const std::unique_ptr<QTextDocument> copy(document->clone());
+    // Laid out for the page here, in the screen's dots (print() turns them
+    // into the paper's): left to lay it out itself, print() numbers the
+    // pages, and a Mac's are bare.
+    const QScreen *screen = QGuiApplication::primaryScreen();
+    const qreal dots = screen ? qRound(screen->logicalDotsPerInchX()) : 96;
+    copy->setPageSize(writer.pageLayout().paintRect(QPageLayout::Point).size() * dots / 72);
     copy->print(&writer);
     return true;
 }

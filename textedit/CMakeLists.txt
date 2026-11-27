@@ -7,8 +7,11 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif()
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControls2 DBus)
+# Pdf: the Print panel's pages (on Arch it comes with qt6-webengine).
+find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControls2 DBus Pdf)
 find_package(KF6WindowSystem REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CUPS REQUIRED IMPORTED_TARGET cups)
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(ambrosia-textedit
@@ -30,6 +33,10 @@ set_source_files_properties(../kit/ColorPanel.qml PROPERTIES QT_RESOURCE_ALIAS C
 set_source_files_properties(../kit/Colors.qml PROPERTIES QT_RESOURCE_ALIAS Colors.qml QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(../kit/FontPanel.qml PROPERTIES QT_RESOURCE_ALIAS FontPanel.qml)
 set_source_files_properties(../kit/Fonts.qml PROPERTIES QT_RESOURCE_ALIAS Fonts.qml QT_QML_SINGLETON_TYPE TRUE)
+# The Print panel (../kit; printing.h is what it asks of CUPS).
+set_source_files_properties(../kit/PrefRadio.qml PROPERTIES QT_RESOURCE_ALIAS PrefRadio.qml)
+set_source_files_properties(../kit/PrintPanel.qml PROPERTIES QT_RESOURCE_ALIAS PrintPanel.qml)
+set_source_files_properties(../kit/Printing.qml PROPERTIES QT_RESOURCE_ALIAS Printing.qml QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/Prefs.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-textedit
     URI TextEditor
@@ -38,6 +45,7 @@ qt_add_qml_module(ambrosia-textedit
         src/app.h src/app.cpp
         src/editor.h src/editor.cpp
         ../kit/screencolor.h
+        ../kit/printing.h ../kit/printing.cpp
     QML_FILES
         ../kit/AboutWindow.qml
         ../kit/About.qml
@@ -48,6 +56,9 @@ qt_add_qml_module(ambrosia-textedit
         ../kit/Colors.qml
         ../kit/FontPanel.qml
         ../kit/Fonts.qml
+        ../kit/PrefRadio.qml
+        ../kit/PrintPanel.qml
+        ../kit/Printing.qml
         qml/Prefs.qml
         qml/SettingsWindow.qml
         qml/Main.qml
@@ -77,7 +88,7 @@ qt_add_qml_module(ambrosia-textedit
 target_include_directories(ambrosia-textedit PRIVATE src ../kit)
 
 target_link_libraries(ambrosia-textedit PRIVATE
-    Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem
+    Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Pdf KF6::WindowSystem PkgConfig::CUPS
 )
 
 include(GNUInstallDirs)

@@ -7,6 +7,7 @@
 #include <QTextBlockFormat>
 #include <QTextCharFormat>
 #include <QTimer>
+#include <QSizeF>
 #include <QUrl>
 #include <QVariantList>
 #include <QVariantMap>
@@ -117,7 +118,9 @@ public:
     Q_INVOKABLE void replace(int start, int end, const QString &with);
     Q_INVOKABLE int replaceAll(const QString &what, const QString &with);
     // The note on paper, as a PDF.
-    Q_INVOKABLE bool exportPdf(const QUrl &file, const QString &title) const;
+    // `size`: the paper's in points (wider than tall: on its side); none
+    // is the region's, upright.
+    Q_INVOKABLE bool exportPdf(const QUrl &file, const QString &title, const QSizeF &size = QSizeF()) const;
 
 Q_SIGNALS:
     void documentChanged();

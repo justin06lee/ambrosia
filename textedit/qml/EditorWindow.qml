@@ -219,6 +219,15 @@ Window {
     function exportPdf() {
         App.chooseSave(win, name.replace(/\.[^.]+$/, "") + ".pdf", "pdf");
     }
+    // The Print panel, over this window (kit/Printing.qml): the document
+    // as a PDF made for the paper chosen there.
+    function printOut() {
+        Printing.show({
+            title: name.replace(/\.[^.]+$/, ""),
+            make: (file, size) => hands.exportPdf(file, win.name, size),
+            save: () => win.exportPdf(),
+        }, win);
+    }
     Connections {
         target: App
         function onSaveChosen(window, target, kind) {
@@ -399,6 +408,7 @@ Window {
     Shortcut { sequences: ["Ctrl+W", "Meta+W"]; onActivated: win.act("close", win.close); onActivatedAmbiguously: win.act("close", win.close) }
     Shortcut { sequences: ["Ctrl+,", "Meta+,"]; onActivated: win.act("settings", () => Preferences.show("TextEditor", "SettingsWindow")); onActivatedAmbiguously: win.act("settings", () => Preferences.show("TextEditor", "SettingsWindow")) }
     Shortcut { sequences: ["Ctrl+S", "Meta+S"]; onActivated: win.act("save", () => win.save(null)); onActivatedAmbiguously: win.act("save", () => win.save(null)) }
+    Shortcut { sequences: ["Ctrl+P", "Meta+P"]; onActivated: win.act("print", win.printOut); onActivatedAmbiguously: win.act("print", win.printOut) }
     Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized); onActivatedAmbiguously: win.act("minimize", win.showMinimized) }
     Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: win.act("quit", win.app.quit); onActivatedAmbiguously: win.act("quit", win.app.quit) }
     Shortcut { sequences: ["Ctrl+T", "Meta+T"]; enabled: win.rich; onActivated: win.act("fonts", win.showFonts); onActivatedAmbiguously: win.act("fonts", win.showFonts) }

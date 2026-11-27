@@ -293,9 +293,9 @@ package_ambrosia-preview() {
   # ambrosia-theme: the Ambrosia QML Theme module and the org.ambrosia.preview
   # icon. qt6-webengine: Qt's PDF library is part of it on Arch (PDFium; no
   # browser is started). kimageformats and qt6-imageformats: HEIF, AVIF, JPEG
-  # XL, WebP, TIFF and the rest beyond what Qt reads alone. The QML is in
-  # the binary.
-  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg qt6-webengine qt6-imageformats kimageformats kwindowsystem inter-font)
+  # XL, WebP, TIFF and the rest beyond what Qt reads alone. libcups: the
+  # Print panel's printers and jobs. The QML is in the binary.
+  depends=(ambrosia-theme qt6-base qt6-declarative qt6-svg qt6-webengine qt6-imageformats kimageformats kwindowsystem libcups inter-font)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-preview"
 }
 
@@ -303,8 +303,10 @@ package_ambrosia-textedit() {
   pkgdesc="TextEdit, Ambrosia's: plain and rich text"
   # ambrosia-theme: the Ambrosia QML Theme module and the org.ambrosia.textedit
   # icon. icu: the East Asian code pages a Mac's RTF files hold their text
-  # in (through Qt's string converters). The QML is in the binary.
-  depends=(ambrosia-theme qt6-base qt6-declarative kwindowsystem icu inter-font)
+  # in (through Qt's string converters). libcups and qt6-webengine: the
+  # Print panel's printers and jobs, and its pictures of the pages (Qt's PDF
+  # library, as Preview). The QML is in the binary.
+  depends=(ambrosia-theme qt6-base qt6-declarative qt6-webengine kwindowsystem icu libcups inter-font)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-textedit"
 }
 
@@ -344,8 +346,9 @@ package_ambrosia-notes() {
   pkgdesc="Notes, Ambrosia's: notes and checklists in folders, each kept as a Markdown file"
   # ambrosia-theme: the Ambrosia QML Theme module and the org.ambrosia.notes
   # icon. The notes are files under ~/.local/share/ambrosia/notes; nothing
-  # else is needed to read or write them. The QML is in the binary.
-  depends=(ambrosia-theme qt6-base qt6-declarative kwindowsystem inter-font)
+  # else is needed to read or write them. libcups and qt6-webengine: the
+  # Print panel, as TextEdit. The QML is in the binary.
+  depends=(ambrosia-theme qt6-base qt6-declarative qt6-webengine kwindowsystem libcups inter-font)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-notes"
 }
 

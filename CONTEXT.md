@@ -1417,6 +1417,36 @@ package repo below), and they carry `shell/` and `session/` as they are.
     The Mac's panels were measured from `/tmp/amb-measure/ambpanels`
     (Swift, `panels-src/main.swift`): AppKit's panels at the normal
     level with `hidesOnDeactivate` off, never activated.
+  - **Printing is the kit's too** (round 64): `Printing.show(job,
+    window)` raises `PrintPanel.qml` over a window, a frameless
+    `Qt.Dialog` that is window-modal and made anew each time (KWin puts
+    a window's dialog over its middle; a hidden window's shadow would
+    have to be made again). `job` is `{ title, make(file, size), save }`
+    for an app that writes its document as a PDF for the paper chosen
+    (`size` in points, wider than tall when the paper lies on its side),
+    or `{ title, file }` for a PDF as it is, which CUPS fits to the
+    paper. `printing.h`'s `Cups` singleton does what waits on CUPS in
+    threads of its own (printers, a printer's papers, the job, by the
+    destination calls `lp` itself uses) and draws the pages
+    (`image://printing/ID/PAGE`, Qt's PDF classes, not the QtQuick.Pdf
+    module: see Preview). Its constructor is private on purpose: QML
+    makes a singleton by its constructor when it can reach one, and
+    only otherwise by `create()`, which is where the image provider is
+    added to the engine. An app that prints adds `PrintPanel.qml`,
+    `Printing.qml` (a singleton), `PrefRadio.qml`, `../kit/printing.h`
+    and `printing.cpp` to its module, `Pdf` to its Qt components and
+    `pkg_check_modules(CUPS … cups)` (TextEdit, Notes, Preview).
+    `QTextDocument::print` numbers the pages unless the document has a
+    page size of its own: both editors set one (the paper less an inch
+    all round, in the screen's dots) before printing. A test printer in
+    the VM: `pacman -S cups-pdf`, `lpadmin -p Virtual_PDF -E -v
+    cups-pdf:/ -P /usr/share/cups/model/CUPS-PDF_opt.ppd` (jobs land in
+    `/var/spool/cups-pdf/mina/`); an IPP one: `ippeveprinter -k -d
+    /tmp/ippout "Amb Test"` as the user, then `lpadmin -p Amb_Added -E
+    -v ipp://localhost:8000/ipp/print -m everywhere`. A dev build must
+    be started in the session's own way (`u systemd-run --user
+    BINARY`): started bare it has no platform theme, so it is Light and
+    its menus have boxes for check marks.
   - **An app's Settings window is the kit's** (round 56, Files' first):
     `kit/PreferencesWindow.qml` takes `tabs: [{ title, glyph, page }]`
     (a glyph by name from its own few, or paths; a page is a Component

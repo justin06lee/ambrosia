@@ -36,6 +36,8 @@ Platform.MenuBar {
         Platform.MenuItem { text: "Open…"; shortcut: "Ctrl+O"; onTriggered: bar.preview.act("open", () => App.chooseFiles()) }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+W"; onTriggered: bar.preview.act("close", bar.preview.close) }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Print…"; shortcut: "Ctrl+P"; enabled: bar.preview.showsDocument; onTriggered: bar.preview.act("print", bar.preview.printOut) }
     }
     Menu {
         title: "Edit"

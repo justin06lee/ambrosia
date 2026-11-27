@@ -58,6 +58,8 @@ Platform.MenuBar {
         }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: "Export as PDF…"; enabled: bar.notes.open !== null; onTriggered: bar.notes.exportPdf() }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Print…"; shortcut: "Ctrl+P"; enabled: bar.notes.open !== null; onTriggered: bar.notes.act("print", bar.notes.printOut) }
     }
     Menu {
         title: "Edit"

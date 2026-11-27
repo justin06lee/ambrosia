@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QPointer>
 #include <QQuickTextDocument>
+#include <QSizeF>
 #include <QTextBlockFormat>
 #include <QTextCharFormat>
 #include <QTimer>
@@ -138,7 +139,9 @@ public:
     Q_INVOKABLE void replace(int start, int end, const QString &with);
     Q_INVOKABLE int replaceAll(const QString &what, const QString &with);
     // The document on paper, as a PDF.
-    Q_INVOKABLE bool exportPdf(const QUrl &file, const QString &title) const;
+    // `paper`: its size in points (wider than tall: on its side); none is
+    // the region's, upright.
+    Q_INVOKABLE bool exportPdf(const QUrl &file, const QString &title, const QSizeF &paper = QSizeF()) const;
 
 Q_SIGNALS:
     void documentChanged();

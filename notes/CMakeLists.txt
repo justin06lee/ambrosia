@@ -7,8 +7,11 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE RelWithDebInfo)
 endif()
 
-find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControls2 DBus)
+# Pdf: the Print panel's pages (on Arch it comes with qt6-webengine).
+find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControls2 DBus Pdf)
 find_package(KF6WindowSystem REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CUPS REQUIRED IMPORTED_TARGET cups)
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(ambrosia-notes
@@ -25,6 +28,10 @@ set_source_files_properties(../kit/PreferencesWindow.qml PROPERTIES QT_RESOURCE_
 set_source_files_properties(../kit/PrefCheck.qml PROPERTIES QT_RESOURCE_ALIAS PrefCheck.qml)
 set_source_files_properties(../kit/PrefPopup.qml PROPERTIES QT_RESOURCE_ALIAS PrefPopup.qml)
 set_source_files_properties(../kit/Preferences.qml PROPERTIES QT_RESOURCE_ALIAS Preferences.qml QT_QML_SINGLETON_TYPE TRUE)
+# The Print panel (../kit; printing.h is what it asks of CUPS).
+set_source_files_properties(../kit/PrefRadio.qml PROPERTIES QT_RESOURCE_ALIAS PrefRadio.qml)
+set_source_files_properties(../kit/PrintPanel.qml PROPERTIES QT_RESOURCE_ALIAS PrintPanel.qml)
+set_source_files_properties(../kit/Printing.qml PROPERTIES QT_RESOURCE_ALIAS Printing.qml QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/Prefs.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-notes
     URI Notes
@@ -33,6 +40,7 @@ qt_add_qml_module(ambrosia-notes
         src/app.h src/app.cpp
         src/store.h src/store.cpp
         src/editor.h src/editor.cpp
+        ../kit/printing.h ../kit/printing.cpp
     QML_FILES
         ../kit/AboutWindow.qml
         ../kit/About.qml
@@ -40,6 +48,9 @@ qt_add_qml_module(ambrosia-notes
         ../kit/PrefCheck.qml
         ../kit/PrefPopup.qml
         ../kit/Preferences.qml
+        ../kit/PrefRadio.qml
+        ../kit/PrintPanel.qml
+        ../kit/Printing.qml
         qml/Prefs.qml
         qml/SettingsWindow.qml
         qml/Main.qml
@@ -65,10 +76,10 @@ qt_add_qml_module(ambrosia-notes
         qml/notes.mjs
 )
 
-target_include_directories(ambrosia-notes PRIVATE src)
+target_include_directories(ambrosia-notes PRIVATE src ../kit)
 
 target_link_libraries(ambrosia-notes PRIVATE
-    Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem
+    Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Pdf KF6::WindowSystem PkgConfig::CUPS
 )
 
 include(GNUInstallDirs)
