@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Activity Monitor
+GenericName=System Monitor
+Comment=See what the computer is doing: processes, memory, energy, disk and network
+Icon=org.ambrosia.activitymonitor
+Exec=ambrosia-activity-monitor
+Categories=Qt;System;Monitor;
+Keywords=activity;monitor;process;task;cpu;memory;energy;disk;network;kill;quit;top;
+StartupNotify=true
+StartupWMClass=org.ambrosia.activitymonitor

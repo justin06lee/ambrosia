@@ -132,6 +132,18 @@ export const appIcons: Record<string, AppIcon> = {
       `<path d="M70 104V82Q70 70 82 70H104M152 70H174Q186 70 186 82V104M186 152V174Q186 186 174 186H152M104 186H82Q70 186 70 174V152" fill="none" stroke="${white}" stroke-width="12" ${round}/>` +
       `<circle cx="128" cy="128" r="23" fill="none" stroke="${white}" stroke-width="12"/>`,
   },
+  // A dark screen and the trace running across it.
+  "activity-monitor": {
+    names: [
+      "org.ambrosia.activitymonitor", "utilities-system-monitor", "org.kde.plasma-systemmonitor", "plasma-systemmonitor",
+      "ksysguard", "org.kde.ksysguard", "org.gnome.SystemMonitor", "gnome-system-monitor", "system-monitor",
+    ],
+    tile: ["#5a5a60", "#2a2a2d"],
+    art:
+      `<rect x="46" y="62" width="164" height="132" rx="20" fill="#0f0f11"/>` +
+      `<path d="M128 70V186M87 70V186M169 70V186M54 128H202M54 98H202M54 158H202" fill="none" stroke="#2a2c2e" stroke-width="3"/>` +
+      `<path d="M58 140H86L99 108L116 172L135 84L152 152L163 128H198" fill="none" stroke="#54e37a" stroke-width="10" ${round}/>`,
+  },
   // A chip on its legs.
   "system-info": {
     names: ["hwinfo", "kinfocenter", "org.kde.kinfocenter", "computer-info"],

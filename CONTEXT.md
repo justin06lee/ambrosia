@@ -143,11 +143,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
    other names, as Xcursor files from 24 to 96 and as SVGs for KWin) and
    **app icons** (`design/icons.ts`, `tools/gen/targets/icons.ts`: Terminal,
    a text editor, picture and document viewers, Calculator, an archiver,
-   the store, Screenshot and system information, under the icon names
+   the store, Screenshot, a system monitor and system information, under the icon names
    Konsole, Kate, Gwenview, Okular, KCalc, Ark, Discover, Spectacle and
    Info Center ask for; KDE's settings and Dolphin wear Settings' and
-   Files', our Preview the picture viewer's and our TextEdit the text
-   editor's). The look-and-feel names the theme for icons and pointer,
+   Files', our Preview the picture viewer's, our TextEdit the text
+   editor's and our Activity Monitor the system monitor's). The look-and-feel names the theme for icons and pointer,
    `startambrosia` keeps Plasma's copy of both current for existing users,
    GTK gets them through the session's dconf defaults and the login screen
    its pointer through sddm.conf. The Dock shows every icon of ours at tile
@@ -1201,6 +1201,31 @@ package repo below), and they carry `shell/` and `session/` as they are.
     touching undo's history or "Edited". Its mask doesn't draw off-screen either, so there `--grab`
     goes without it and shows the whole window. In the VM, `ui.py type`
     takes one word: `key space` between words.
+  - **Activity Monitor** (`activity-monitor/`, 2026-11-27) is one window
+    and an inspector per process, one process (`org.ambrosia.activitymonitor`
+    on the bus). The `Sampler` (C++) only reads the kernel and counts;
+    `qml/monitor.mjs` says what a view lists, in what order and words, and
+    is what bun tests. Traps met: a `QVariantList` property read in QML is
+    the C++ list seen through a window, each element converted afresh at
+    every reading, so a value written to an element is gone at once and
+    `slice()`/`sort()` crawl: `MonitorWindow.absorb` copies it into a
+    JavaScript array first; an item property can't be called `top` (Item's
+    anchor line: the graph's is `most`); a window whose `height` is bound
+    loses the binding when the compositor hands it a size, so the
+    inspector sets its height by hand (lowering the minimum and raising
+    the maximum first); a Flickable takes the mouse's drags unless
+    `acceptedButtons: Qt.NoButton`. The table is not a ListView: a
+    screenful of row items each showing `rows[at]` for the place it stands
+    at, so a new reading rewrites words and nothing moves or jumps.
+    `/proc/PID/fd` and `io` are the user's own processes' only (and not
+    even those the kernel marks undumpable: `systemd --user` shows no
+    file), so other users' rows leave those cells empty; per-process
+    network bytes come from the kernel's TCP socket diagnostics (netlink,
+    no root needed) matched to sockets by inode, so UDP isn't counted.
+    Its corner mask is switched off off-screen (`App.offscreen`), so
+    `--grab` shows the whole window with square corners; `--tab NAME` and
+    `--inspect PID` choose what a grab shows. In the VM, `ui.py`'s Return
+    is `key return` (`ret` is `vm-try.sh key`'s word).
   - **A key that is both a `Shortcut` and a menu item's shortcut**
     (Settings, Calculator, Preview: the window's `Shortcut`s beside
     `Qt.labs.platform` menu items) is ambiguous to Qt, which hands it to
