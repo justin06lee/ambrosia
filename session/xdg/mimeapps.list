@@ -1,5 +1,32 @@
 # The session's default apps, ahead of the system's: folders open in Files,
-# Ambrosia's file manager (Dolphin stays installed). A user's own
+# Ambrosia's file manager (Dolphin stays installed), pictures and PDFs in
+# Preview (the kinds its desktop file names). A user's own
 # ~/.config/mimeapps.list still wins.
 [Default Applications]
 inode/directory=org.ambrosia.files.desktop;
+application/pdf=org.ambrosia.preview.desktop;
+image/png=org.ambrosia.preview.desktop;
+image/jpeg=org.ambrosia.preview.desktop;
+image/gif=org.ambrosia.preview.desktop;
+image/webp=org.ambrosia.preview.desktop;
+image/tiff=org.ambrosia.preview.desktop;
+image/bmp=org.ambrosia.preview.desktop;
+image/svg+xml=org.ambrosia.preview.desktop;
+image/svg+xml-compressed=org.ambrosia.preview.desktop;
+image/heif=org.ambrosia.preview.desktop;
+image/heic=org.ambrosia.preview.desktop;
+image/avif=org.ambrosia.preview.desktop;
+image/jxl=org.ambrosia.preview.desktop;
+image/jp2=org.ambrosia.preview.desktop;
+image/vnd.microsoft.icon=org.ambrosia.preview.desktop;
+image/x-icon=org.ambrosia.preview.desktop;
+image/x-icns=org.ambrosia.preview.desktop;
+image/x-tga=org.ambrosia.preview.desktop;
+image/x-portable-pixmap=org.ambrosia.preview.desktop;
+image/x-portable-graymap=org.ambrosia.preview.desktop;
+image/x-portable-bitmap=org.ambrosia.preview.desktop;
+image/vnd.adobe.photoshop=org.ambrosia.preview.desktop;
+image/x-xcf=org.ambrosia.preview.desktop;
+image/x-exr=org.ambrosia.preview.desktop;
+image/vnd.radiance=org.ambrosia.preview.desktop;
+image/qoi=org.ambrosia.preview.desktop;

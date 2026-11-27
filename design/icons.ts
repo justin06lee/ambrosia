@@ -78,7 +78,7 @@ export const appIcons: Record<string, AppIcon> = {
   },
   // A picture: sky, sun and two hills in a white frame.
   "image-viewer": {
-    names: ["gwenview", "org.kde.gwenview", "image-viewer", "multimedia-photo-viewer", "eog", "org.gnome.eog"],
+    names: ["org.ambrosia.preview", "gwenview", "org.kde.gwenview", "image-viewer", "multimedia-photo-viewer", "eog", "org.gnome.eog"],
     tile: ["#6fd0ff", "#2b7bf2"],
     art:
       `<rect x="52" y="64" width="152" height="128" rx="16" fill="${white}"/>` +

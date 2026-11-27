@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Preview
+GenericName=Picture and PDF Viewer
+Comment=Look at pictures and PDF documents
+Icon=org.ambrosia.preview
+Exec=ambrosia-preview %U
+MimeType=application/pdf;image/png;image/jpeg;image/gif;image/webp;image/tiff;image/bmp;image/svg+xml;image/svg+xml-compressed;image/heif;image/heic;image/avif;image/jxl;image/jp2;image/vnd.microsoft.icon;image/x-icon;image/x-icns;image/x-tga;image/x-portable-pixmap;image/x-portable-graymap;image/x-portable-bitmap;image/vnd.adobe.photoshop;image/x-xcf;image/x-exr;image/vnd.radiance;image/qoi;
+Categories=Qt;Graphics;Viewer;
+Keywords=preview;picture;image;photo;pdf;viewer;
+StartupNotify=true
+StartupWMClass=org.ambrosia.preview

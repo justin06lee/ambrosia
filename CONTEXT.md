@@ -146,7 +146,7 @@ package repo below), and they carry `shell/` and `session/` as they are.
    the store, Screenshot and system information, under the icon names
    Konsole, Kate, Gwenview, Okular, KCalc, Ark, Discover, Spectacle and
    Info Center ask for; KDE's settings and Dolphin wear Settings' and
-   Files'). The look-and-feel names the theme for icons and pointer,
+   Files', and our Preview the picture viewer's). The look-and-feel names the theme for icons and pointer,
    `startambrosia` keeps Plasma's copy of both current for existing users,
    GTK gets them through the session's dconf defaults and the login screen
    its pointer through sddm.conf. The Dock shows every icon of ours at tile
@@ -1157,6 +1157,28 @@ package repo below), and they carry `shell/` and `session/` as they are.
     `/root/ambrosia-calculator/src`, `cmake -S src -B build -G Ninja`,
     `cmake --build build -j2` under `systemd-run --scope -p MemoryMax=3G`.
     `ui.py type` can't type `+`: use `key shift+8` for × and the pointer.
+  - **Preview** (`preview-app/`, 2026-11-27; `preview/` was taken by the
+    mock desktop) follows it, with windows that resize and one process for
+    all of them: `Main.qml` is a windowless root that makes a
+    `PreviewWindow` per document (pictures of one launch together, each PDF
+    alone), and a second launch hands its files over the bus
+    (`org.ambrosia.preview`, `Open`). PDFs go through Qt's PDF library by
+    its C++ classes only (`Document`, and `Pages`, an image provider that
+    draws a page off the main thread): the `QtQuick.Pdf` QML module is
+    built on Qt Quick's private classes and Arch's qt6-webengine, which
+    carries it, isn't always the same Qt as qt6-base. PDFium selects text
+    only between two points that are on letters, so `Document::select`
+    moves each end of a drag onto the nearest line first. Its corner mask
+    (a `MultiEffect` over the document) doesn't draw off-screen:
+    `--grab` shows the toolbar and a blank body, so look in the VM.
+  - **A key that is both a `Shortcut` and a menu item's shortcut**
+    (Settings, Calculator, Preview: the window's `Shortcut`s beside
+    `Qt.labs.platform` menu items) is ambiguous to Qt, which hands it to
+    each of the two in turn: the menu item acts, the `Shortcut` only says
+    `activatedAmbiguously`. Until round 49 that was unheard, and every
+    second ⌘C in Calculator did nothing. Every such `Shortcut` now handles
+    both signals (`act()` still runs each press once). Files reads its keys
+    in `Keys.onPressed` and never had it.
   - **An app's window under its own glass** (round 41: Files' and
     Settings' sidebars). The window must be see-through there, so it must
     know the glass is really behind it: `GlassPane.available` is true only
