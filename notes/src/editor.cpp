@@ -772,6 +772,11 @@ void Editor::setParagraphs(const QVariantList &paragraphs)
     // it is not this one's.
     m_touchedFrom = m_touchedTo = m_typedAt = -1;
     m_told.stop();
+    // The marks go first: they say places in the text that is going.
+    if (!m_markers.isEmpty()) {
+        m_markers.clear();
+        Q_EMIT markersChanged();
+    }
     document->setUndoRedoEnabled(false);
     document->clear();
     QTextCursor cursor(document);

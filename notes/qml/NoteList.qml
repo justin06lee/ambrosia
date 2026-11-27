@@ -242,8 +242,8 @@ Item {
                         list.window.choose(cell.modelData.key);
                         list.take();
                         if (mouse.button === Qt.RightButton) {
-                            menu.about = cell.modelData.key;
-                            menu.open();
+                            noteMenu.about = cell.modelData.key;
+                            noteMenu.open();
                         }
                     }
                     onDoubleClicked: list.window.focusNote()
@@ -304,29 +304,31 @@ Item {
     }
 
     Platform.Menu {
-        id: menu
+        // (Not `menu`: inside an item of its submenu that is the item's own
+        // property, the menu it is in.)
+        id: noteMenu
         property string about: ""
         readonly property var row: list.window.rowOf(about)
         readonly property bool gone: row?.folder === Logic.deleted
-        Platform.MenuItem { visible: !menu.gone; text: menu.row?.pinned ? "Unpin Note" : "Pin Note"; onTriggered: list.window.togglePin(menu.about) }
-        Platform.MenuItem { visible: menu.gone; text: "Recover"; onTriggered: list.window.recover(menu.about) }
+        Platform.MenuItem { visible: !noteMenu.gone; text: noteMenu.row?.pinned ? "Unpin Note" : "Pin Note"; onTriggered: list.window.togglePin(noteMenu.about) }
+        Platform.MenuItem { visible: noteMenu.gone; text: "Recover"; onTriggered: list.window.recover(noteMenu.about) }
         Platform.Menu {
             id: moveMenu
             title: "Move to"
-            visible: !menu.gone
+            visible: !noteMenu.gone
             Instantiator {
                 model: list.window.side.filter(folder => folder.key !== Logic.everything && folder.key !== Logic.deleted)
                 delegate: Platform.MenuItem {
                     required property var modelData
                     text: modelData.name
-                    enabled: !menu || !menu.row || modelData.key !== menu.row.folder
-                    onTriggered: list.window.moveNote(menu.about, modelData.key)
+                    enabled: !noteMenu.row || modelData.key !== noteMenu.row.folder
+                    onTriggered: list.window.moveNote(noteMenu.about, modelData.key)
                 }
                 onObjectAdded: (index, object) => moveMenu.insertItem(index, object)
                 onObjectRemoved: (index, object) => moveMenu.removeItem(object)
             }
         }
         Platform.MenuSeparator {}
-        Platform.MenuItem { text: menu.gone ? "Delete Permanently…" : "Delete"; onTriggered: list.window.deleteNote(menu.about) }
+        Platform.MenuItem { text: noteMenu.gone ? "Delete Permanently…" : "Delete"; onTriggered: list.window.deleteNote(noteMenu.about) }
     }
 }

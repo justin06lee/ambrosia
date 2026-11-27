@@ -54,8 +54,8 @@ Item {
             onClicked: (mouse) => {
                 sidebar.window.focusSidebar();
                 if (mouse.button === Qt.RightButton) {
-                    menu.about = "";
-                    menu.open();
+                    folderMenu.about = "";
+                    folderMenu.open();
                 }
             }
         }
@@ -133,8 +133,8 @@ Item {
                             sidebar.window.chooseFolder(row.modelData.key);
                             sidebar.window.focusSidebar();
                             if (mouse.button === Qt.RightButton) {
-                                menu.about = row.modelData.fixed ? "" : row.modelData.key;
-                                menu.open();
+                                folderMenu.about = row.modelData.fixed ? "" : row.modelData.key;
+                                folderMenu.open();
                             }
                         }
                         onDoubleClicked: {
@@ -194,13 +194,13 @@ Item {
     }
 
     Platform.Menu {
-        id: menu
+        id: folderMenu
         // The folder it is about, or none (a click on nothing, or on one
         // that can't be changed).
         property string about: ""
         Platform.MenuItem { text: "New Folder"; onTriggered: sidebar.window.newFolder() }
-        Platform.MenuSeparator { visible: menu.about !== "" }
-        Platform.MenuItem { visible: menu.about !== ""; text: "Rename Folder"; onTriggered: sidebar.window.renaming = menu.about }
-        Platform.MenuItem { visible: menu.about !== ""; text: "Delete Folder"; onTriggered: sidebar.window.deleteFolder(menu.about) }
+        Platform.MenuSeparator { visible: folderMenu.about !== "" }
+        Platform.MenuItem { visible: folderMenu.about !== ""; text: "Rename Folder"; onTriggered: sidebar.window.renaming = folderMenu.about }
+        Platform.MenuItem { visible: folderMenu.about !== ""; text: "Delete Folder"; onTriggered: sidebar.window.deleteFolder(folderMenu.about) }
     }
 }
