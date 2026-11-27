@@ -8,7 +8,7 @@
 -->
 <gui name="session" version="9036">
     <MenuBar>
-        <Menu name="shell">
+        <Menu name="file">
             <Action name="edit-current-profile" group="session-settings"/>
             <Action name="switch-profile" group="session-settings"/>
             <Action name="rename-session" group="session-settings"/>

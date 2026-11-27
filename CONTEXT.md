@@ -1234,8 +1234,9 @@ package repo below), and they carry `shell/` and `session/` as they are.
     must be re-taken from Konsole's when it gains actions. KDE's reader
     takes the first word "version" after the doctype for the attribute: a
     comment holding that word makes it pass the file over silently. A
-    menu named `file` gets KDE's own title whatever `<text>` says (ours is
-    `shell`). Which toolbars show is remembered per user in
+    menu named `file` gets KDE's own title whatever `<text>` says unless it
+    says `noMerge="1"`, and a menu KDE's standard list doesn't know is put
+    after View: ours is `file` with `noMerge`, titled Shell. Which toolbars show is remembered per user in
     `~/.local/state/konsolestaterc` (`[MainWindow] State`), which has no
     system-wide default: `startambrosia` drops it once. The light and
     dark profiles are `[LightDarkTheme]` in konsolerc, named by the
