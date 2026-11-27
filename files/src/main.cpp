@@ -1,3 +1,4 @@
+#include "../../kit/firstshortcut.h"
 #include "app.h"
 #include "index.h"
 #include "portal.h"
@@ -109,6 +110,7 @@ int main(int argc, char *argv[])
     // and render threads): fewer half-empty heaps held for the session.
     mallopt(M_ARENA_MAX, 2);
     QApplication app(argc, argv);
+    takeFirstShortcutId(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-files"));
     QApplication::setApplicationDisplayName(QStringLiteral("Files"));
     QApplication::setApplicationVersion(QStringLiteral(FILES_VERSION));

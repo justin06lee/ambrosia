@@ -94,10 +94,21 @@ export function pagesWindow(page, pagesHeight, screen, chrome) {
 
 // The windows a launch's files open in: pictures together in one, each PDF
 // in its own. `isPdf` says which a file is.
-export function groups(files, isPdf) {
+export function groups(files, isPdf, separately) {
     const pictures = files.filter(file => !isPdf(file));
     const windows = files.filter(isPdf).map(file => [file]);
+    // Each picture in a window of its own when asked (Preview's Settings).
+    if (separately)
+        return pictures.map(file => [file]).concat(windows);
     if (pictures.length > 0)
         windows.unshift(pictures);
     return windows;
+}
+
+// What a PDF's actual size is when it is to be as large as on paper: the
+// screen's points to an inch over a page's 72. A screen that tells no
+// density worth believing (under 50 or over 400 to the inch) gives 1.
+export function printScale(pointsPerMillimetre) {
+    const perInch = pointsPerMillimetre * 25.4;
+    return perInch >= 50 && perInch <= 400 ? perInch / 72 : 1;
 }

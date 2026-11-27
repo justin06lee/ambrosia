@@ -189,6 +189,7 @@ Window {
     Shortcut { sequences: ["Ctrl+W", "Meta+W"]; onActivated: win.act("close", win.close); onActivatedAmbiguously: win.act("close", win.close) }
     Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized); onActivatedAmbiguously: win.act("minimize", win.showMinimized) }
     Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: win.act("quit", Qt.quit); onActivatedAmbiguously: win.act("quit", Qt.quit) }
+    Shortcut { sequences: ["Ctrl+,", "Meta+,"]; onActivated: win.act("settings", () => Preferences.show("Preview", "SettingsWindow")); onActivatedAmbiguously: win.act("settings", () => Preferences.show("Preview", "SettingsWindow")) }
     Shortcut { sequences: ["Ctrl+C", "Meta+C"]; onActivated: win.act("copy", win.copy); onActivatedAmbiguously: win.act("copy", win.copy) }
     Shortcut { sequences: ["Ctrl+A", "Meta+A"]; onActivated: win.act("selectAll", win.selectAll); onActivatedAmbiguously: win.act("selectAll", win.selectAll) }
     Shortcut { sequences: ["Ctrl+F", "Meta+F"]; onActivated: win.act("find", win.find); onActivatedAmbiguously: win.act("find", win.find) }
@@ -231,7 +232,7 @@ Window {
                 maskSpreadAtMin: 1.0
             }
 
-            Rectangle { anchors.fill: parent; color: Look.ground }
+            Rectangle { anchors.fill: parent; color: Prefs.ground !== "" ? Prefs.ground : Look.ground }
 
             Loader {
                 id: viewLoader

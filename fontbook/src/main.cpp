@@ -1,3 +1,4 @@
+#include "../../kit/firstshortcut.h"
 #include "app.h"
 
 #include <QApplication>
@@ -15,6 +16,7 @@ int main(int argc, char *argv[])
     // A QApplication: the Open panel and the pop-up menus are the
     // platform's.
     QApplication app(argc, argv);
+    takeFirstShortcutId(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-fontbook"));
     QApplication::setApplicationDisplayName(QStringLiteral("Font Book"));
     QApplication::setApplicationVersion(QStringLiteral(FONTBOOK_VERSION));

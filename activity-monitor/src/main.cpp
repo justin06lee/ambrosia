@@ -1,3 +1,4 @@
+#include "../../kit/firstshortcut.h"
 #include "app.h"
 
 #include <QApplication>
@@ -33,6 +34,7 @@ int main(int argc, char *argv[])
     // Inter Variable has a real Bold: never let Qt fake one over it.
     qputenv("QT_NO_SYNTHESIZED_BOLD", "1");
     QApplication app(argc, argv);
+    takeFirstShortcutId(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-activity-monitor"));
     QApplication::setApplicationDisplayName(QStringLiteral("Activity Monitor"));
     QApplication::setApplicationVersion(QStringLiteral(MONITOR_VERSION));

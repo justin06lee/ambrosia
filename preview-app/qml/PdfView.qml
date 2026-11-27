@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Window
 import QtQuick.Controls.Basic as Controls
 import Ambrosia
 import Preview
@@ -87,9 +88,10 @@ Item {
         fitting = "";
         setZoom(View.zoomed(zoom, -1, least, most));
     }
+    // As large as on paper, or a point for a point (Preview's Settings).
     function actualSize() {
         fitting = "";
-        setZoom(1);
+        setZoom(Prefs.printout ? View.printScale(Screen.pixelDensity / Screen.devicePixelRatio) : 1);
     }
     function zoomToFit() {
         fitting = "page";
@@ -110,6 +112,24 @@ Item {
             return;
         flick.contentY = View.clamp(pages.y + plan.tops[page] + (y ?? 0) * zoom, 0, Math.max(0, flick.contentHeight - flick.height));
     }
+    // A PDF opens on the page it was left at (Preview's Settings), once
+    // its pages are laid out; the page in view is kept as it changes.
+    property bool placed: false
+    readonly property string file: window.files[0] ?? ""
+    onPageCountChanged: if (pageCount > 0 && !placed) place.restart()
+    Component.onCompleted: if (pageCount > 0 && !placed) place.restart()
+    onCurrentPageChanged: if (placed) Prefs.remember(file, currentPage)
+    Timer {
+        id: place
+        interval: 120
+        onTriggered: {
+            const page = Prefs.pageFor(view.file);
+            if (page > 0 && page < view.pageCount)
+                view.goToPage(page);
+            view.placed = true;
+        }
+    }
+
     function scroll(dx, dy) {
         flick.contentX = View.clamp(flick.contentX + dx, 0, Math.max(0, flick.contentWidth - flick.width));
         flick.contentY = View.clamp(flick.contentY + dy, 0, Math.max(0, flick.contentHeight - flick.height));
