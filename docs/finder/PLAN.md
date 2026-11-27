@@ -783,7 +783,6 @@ shortcut menu; v1 scope unless marked):
 - a Tags row in the gallery's pane (renaming and deleting a tag are in
   since 2026-11-25: a sidebar tag's menu);
 - This Computer reaching other drives and the installed apps;
-- spring-loaded folders;
 - tabs (not v1).
 - Quick Look's full screen has no strip of controls at the bottom as
   Finder's has (it is black since 2026-11-25, a picture as large as the
@@ -826,6 +825,23 @@ panel's "replace?" uses too). `Tags.rename` and `Tags.removeTag` change the
 list and every item the index knows to have the tag (`Index::find` by tag):
 an item on a disk the index doesn't cover keeps the old name. Neither is one
 of Undo's, as in Finder.
+
+**Spring-loaded folders (2026-11-27).** A drag held half a second over a
+folder (a row, an icon, a column's row, a place in the sidebar, a folder in
+the path bar; not the Trash) makes it blink twice and open in the window,
+and the next one down the same way; in columns it opens as the next column.
+When the drag is dropped, given up, or leaves the window, the window is
+back where the drag found it, its Back and Forward as they were
+(`FinderWindow.springOver`, `springLeft`, `springEnd`; `Finder.springDelay`).
+Each thing that takes drops says which folder the drag rests on; a
+`DropArea` under them all covers the rest of the window, so a drag over
+the toolbar is known to be inside still. A pane forgets its lit row when
+the folder changes under it (the row is another folder's now). Seen in the
+test VM: a file dragged over Photos, then Inner inside it, dropped there
+(the file in `Photos/Inner`, the window back in its folder); a sidebar
+place sprung and dropped into; a drag carried out of the window (back at
+once, nothing moved); the same in columns. Not there: Space to open at
+once, the folder's little zoom as it opens.
 
 **Clicks in a menu stop at the menu (2026-11-25).** Rows of `ContextMenu`,
 `PopupMenu` and the tag editor's suggestions are `MouseArea`s, and the

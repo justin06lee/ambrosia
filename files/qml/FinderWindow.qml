@@ -628,8 +628,93 @@ Window {
                 return Qt.IgnoreAction;
         }
         const here = dir.toString() === url.toString();
-        run(copy ? FileOps.copy(urls, dir) : FileOps.move(urls, dir), { select: here });
+        run(copy ? FileOps.copy(urls, dir) : FileOps.move(urls, dir), { select: here && !springOrigin });
+        Qt.callLater(springEnd);
         return copy ? Qt.CopyAction : Qt.MoveAction;
+    }
+
+    // Spring-loaded folders, as Finder's: a drag held over a folder (a row,
+    // an icon, a place in the sidebar, a folder in the path bar) for a
+    // moment makes it blink twice and open in this window, and so on down;
+    // once the drag is dropped, leaves the window or is given up, the
+    // window is back where the drag found it, its history too.
+    property var springOrigin: null
+    property string springTarget: ""
+    // The blink: the folder under the drag is unlit while this is set.
+    property bool springDim: false
+    // What takes drops tells where the drag rests: a folder's URL, or "".
+    function springOver(target) {
+        const to = target ? target.toString() : "";
+        springLeave.stop();
+        if (to === springTarget)
+            return;
+        springTarget = to;
+        springBlink.stop();
+        springDim = false;
+        if (to !== "" && to.replace(/\/+$/, "") !== url.toString().replace(/\/+$/, ""))
+            springWait.restart();
+        else
+            springWait.stop();
+    }
+    // The drag left something that takes drops: unless it comes to rest on
+    // another in a moment, it has left the window.
+    function springLeft() {
+        springOver("");
+        if (springOrigin)
+            springLeave.restart();
+    }
+    function springOpen() {
+        const to = springTarget;
+        springDim = false;
+        if (to === "")
+            return;
+        if (!springOrigin)
+            springOrigin = { history: history.slice(), index: historyIndex, root: columnRoot };
+        // In columns a folder under the first column opens as the next
+        // column, as a click on it would; anything else goes there.
+        const root = columnRoot.toString().replace(/\/+$/, "");
+        if (view === "column" && !searching && to.startsWith(root + "/"))
+            browse(to, null, false);
+        else
+            go(to);
+    }
+    function springEnd() {
+        springWait.stop();
+        springBlink.stop();
+        springLeave.stop();
+        springDim = false;
+        springTarget = "";
+        if (!springOrigin)
+            return;
+        const origin = springOrigin;
+        springOrigin = null;
+        const from = url;
+        history = origin.history;
+        historyIndex = origin.index;
+        if (history[historyIndex].toString() !== from.toString())
+            show_(history[historyIndex], "");
+        columnRoot = origin.root;
+    }
+    onDraggingChanged: if (!dragging) Qt.callLater(springEnd)
+    Timer {
+        id: springWait
+        interval: Finder.springDelay
+        onTriggered: springBlink.restart()
+    }
+    Timer {
+        id: springLeave
+        interval: 250
+        onTriggered: win.springEnd()
+    }
+    SequentialAnimation {
+        id: springBlink
+        PropertyAction { target: win; property: "springDim"; value: true }
+        PauseAnimation { duration: Finder.springBlink }
+        PropertyAction { target: win; property: "springDim"; value: false }
+        PauseAnimation { duration: Finder.springBlink }
+        PropertyAction { target: win; property: "springDim"; value: true }
+        PauseAnimation { duration: Finder.springBlink }
+        ScriptAction { script: win.springOpen() }
     }
 
     // Files' own menus, in a Finder window: a panel belongs to another app.
@@ -883,6 +968,26 @@ Window {
         }
 
         Keys.onPressed: (event) => win.keyPressed(event)
+
+        // Under everything that takes drops: a drag anywhere else in the
+        // window (the toolbar, beside the columns) is still in the window,
+        // which is how a sprung folder knows the drag hasn't left. Nothing
+        // can be dropped on it.
+        DropArea {
+            anchors.fill: parent
+            z: -1
+            keys: ["text/uri-list"]
+            onEntered: (drag) => {
+                drag.accept(Qt.IgnoreAction);
+                win.springOver("");
+            }
+            onPositionChanged: (drag) => drag.accept(Qt.IgnoreAction)
+            onExited: win.springLeft()
+            onDropped: (drop) => {
+                drop.accepted = false;
+                Qt.callLater(win.springEnd);
+            }
+        }
 
         // What Finder's status bar says, for screen readers, and for
         // files/bench/probe.py, which times every app by when it says it.
