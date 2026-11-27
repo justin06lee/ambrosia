@@ -1,5 +1,6 @@
 #include "fileops.h"
 #include "app.h"
+#include "expand.h"
 #include "format.h"
 #include "tags.h"
 
@@ -522,6 +523,27 @@ int FileOps::compress(const QList<QUrl> &urls)
         return ok;
     }));
     return id;
+}
+
+int FileOps::expand(const QList<QUrl> &urls)
+{
+    int last = -1;
+    for (const QUrl &url : urls) {
+        if (!url.isLocalFile())
+            continue;
+        const int id = ++m_next;
+        auto *job = new ExpandJob(url.toLocalFile(), this);
+        m_jobs->add(job, QStringLiteral("Archive Utility"), QStringLiteral("Expanding “%1”").arg(url.fileName()));
+        connect(job, &KJob::result, this, [this, id, url](KJob *done) {
+            const bool ok = !done->error();
+            if (!ok && done->error() != KJob::KilledJobError)
+                alert(QStringLiteral("“%1” couldn’t be expanded.").arg(url.fileName()), done->errorText());
+            Q_EMIT finished(id, ok ? QList<QUrl>{QUrl::fromLocalFile(static_cast<ExpandJob *>(done)->made())} : QList<QUrl>(), ok);
+        });
+        job->start();
+        last = id;
+    }
+    return last;
 }
 
 int FileOps::copy(const QList<QUrl> &urls, const QUrl &dir)

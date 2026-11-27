@@ -1,7 +1,9 @@
 # The session's default apps, ahead of the system's: folders open in Files,
 # Ambrosia's file manager (Dolphin stays installed), pictures and PDFs in
 # Preview (the kinds its desktop file names), plain text and RTF in
-# TextEdit. A user's own ~/.config/mimeapps.list still wins.
+# TextEdit, and an archive is expanded beside itself by Archive Utility
+# (Files; Ark is still there to look inside one). A user's own
+# ~/.config/mimeapps.list still wins.
 [Default Applications]
 inode/directory=org.ambrosia.files.desktop;
 application/pdf=org.ambrosia.preview.desktop;
@@ -37,3 +39,28 @@ text/markdown=org.ambrosia.textedit.desktop;
 text/x-log=org.ambrosia.textedit.desktop;
 text/csv=org.ambrosia.textedit.desktop;
 text/x-readme=org.ambrosia.textedit.desktop;
+application/zip=org.ambrosia.archive.desktop;
+application/x-tar=org.ambrosia.archive.desktop;
+application/x-compressed-tar=org.ambrosia.archive.desktop;
+application/x-bzip-compressed-tar=org.ambrosia.archive.desktop;
+application/x-bzip2-compressed-tar=org.ambrosia.archive.desktop;
+application/x-xz-compressed-tar=org.ambrosia.archive.desktop;
+application/x-zstd-compressed-tar=org.ambrosia.archive.desktop;
+application/x-lzma-compressed-tar=org.ambrosia.archive.desktop;
+application/x-lz4-compressed-tar=org.ambrosia.archive.desktop;
+application/x-tarz=org.ambrosia.archive.desktop;
+application/gzip=org.ambrosia.archive.desktop;
+application/x-bzip=org.ambrosia.archive.desktop;
+application/x-bzip2=org.ambrosia.archive.desktop;
+application/x-xz=org.ambrosia.archive.desktop;
+application/zstd=org.ambrosia.archive.desktop;
+application/x-lzma=org.ambrosia.archive.desktop;
+application/x-lz4=org.ambrosia.archive.desktop;
+application/x-compress=org.ambrosia.archive.desktop;
+application/x-7z-compressed=org.ambrosia.archive.desktop;
+application/vnd.rar=org.ambrosia.archive.desktop;
+application/x-cpio=org.ambrosia.archive.desktop;
+application/x-cpio-compressed=org.ambrosia.archive.desktop;
+application/x-lha=org.ambrosia.archive.desktop;
+application/vnd.ms-cab-compressed=org.ambrosia.archive.desktop;
+application/x-xar=org.ambrosia.archive.desktop;

@@ -102,6 +102,11 @@ public:
     // item, "Archive.zip" for several, then "Archive 2.zip" (Finder's
     // Compress). Local items only; not one of Undo's.
     Q_INVOKABLE int compress(const QList<QUrl> &urls);
+    // Expands archives beside themselves, as a Mac's Archive Utility does
+    // (expand.h): each in the progress window if it takes long, where it
+    // can be stopped. Local ones only; not one of Undo's. The id is the
+    // last one's.
+    Q_INVOKABLE int expand(const QList<QUrl> &urls);
     Q_INVOKABLE int copy(const QList<QUrl> &urls, const QUrl &dir);
     Q_INVOKABLE int move(const QList<QUrl> &urls, const QUrl &dir);
     Q_INVOKABLE int trash(const QList<QUrl> &urls);

@@ -455,6 +455,8 @@ Window {
             go(target);
         else if (isPanel)
             panelChoose(); // a double click chooses, if it can be chosen
+        else if (App.expands(target))
+            run(FileOps.expand([target]), { select: true }); // an archive: what it holds appears beside it, selected
         else
             App.openFile(target);
     }

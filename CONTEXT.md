@@ -1240,11 +1240,28 @@ package repo below), and they carry `shell/` and `session/` as they are.
     `~/.local/state/konsolestaterc` (`[MainWindow] State`), which has no
     system-wide default: `startambrosia` drops it once. The light and
     dark profiles are `[LightDarkTheme]` in konsolerc, named by the
-    profiles' display names, not their files. A stand-in's Mac name is a
-    desktop entry in `/usr/share/ambrosia/xdg/applications`
-    (`session/applications/`), first in the session's `XDG_DATA_DIRS`.
+    profiles' display names, not their files. A stand-in's Mac name
+    (round 54) is a line in `session/mac-names` (desktop id, name):
+    `startambrosia` copies the app's own desktop entry at each login with
+    only `Name` changed into `~/.cache/ambrosia/xdg/applications`, first
+    in the session's `XDG_DATA_DIRS`, so it follows the app's entry and
+    goes when the app does; unchanged copies are left alone (no ksycoca
+    rebuild).
     The frame drops an app's own name from the end of a title
     (`title()` in `decoration/src/decoration.cpp`).
+  - **Archive Utility is Files** (round 54, `files/src/expand.cpp`):
+    `org.ambrosia.archive.desktop` (NoDisplay) runs `ambrosia-files
+    --unarchive`, which hands the archive to the resident Files
+    (`org.ambrosia.Files.Expand`); in a window `App.expands(url)` says
+    whether the kind's app is ours (a user who gives zips to Ark keeps
+    Ark). libarchive's formats are named one by one: `support_format_all`
+    takes mtree, which reads any text as a list of files to make, and
+    "raw" (a lone compressed file) takes any file at all unless a filter
+    is required. KDE's jobs each hold the app open and Qt quits it when
+    the last lets go with no window: the resident Files turns that off
+    (`setQuitLockEnabled(false)` in `main.cpp`), or a job with no window
+    open ended Files. `files/tools/archives.sh` makes the archives to
+    try it on, the hostile ones too.
   - **The app menu's About, Settings… and Quit are the app's own rows**
     (round 53, `shell/AppMenu.qml`'s `lifted`): found by their text among
     the rows right under the app's titles, shown in `MenuBar.appNameMenu`

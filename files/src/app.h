@@ -62,6 +62,10 @@ public:
     // folder): what "Show in Folder" asks through FileManager1 below.
     void showItems(const QStringList &uris);
     Q_INVOKABLE void openFile(const QUrl &url);
+    // Whether opening this file expands it: an archive whose app is
+    // Archive Utility (ours, org.ambrosia.archive), not one the user gave
+    // to another app.
+    Q_INVOKABLE bool expands(const QUrl &url) const;
     // The apps that open this kind of thing, the one that does by default
     // first: each a map of name, id (its desktop file's) and icon.
     Q_INVOKABLE QVariantList appsFor(const QUrl &url) const;
@@ -93,6 +97,10 @@ public Q_SLOTS:
     // org.ambrosia.Files.Trash: the Dock's Trash hands over what's dropped
     // on it, so Edit > Undo in Files puts it back, as in Finder.
     Q_SCRIPTABLE void Trash(const QStringList &urls);
+    // org.ambrosia.Files.Expand: archives opened from anywhere (the
+    // Archive Utility desktop entry, `ambrosia-files --unarchive`) are
+    // expanded beside themselves, with no window.
+    Q_SCRIPTABLE void Expand(const QStringList &urls);
     // org.ambrosia.Files.Find: the shell's Search asks the index for the
     // items whose names have every word of the query, best first, at most
     // limit of them. Two strings for each: its path (a folder's ends in a

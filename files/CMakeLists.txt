@@ -15,6 +15,7 @@ find_package(KF6WindowSystem REQUIRED)
 find_package(KF6Archive REQUIRED)
 find_package(taglib 2 REQUIRED CONFIG)
 find_package(Freetype REQUIRED)
+find_package(LibArchive REQUIRED)
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(ambrosia-files
@@ -28,6 +29,7 @@ qt_add_qml_module(ambrosia-files
     SOURCES
         src/app.h src/app.cpp
         src/fileops.h src/fileops.cpp
+        src/expand.h src/expand.cpp
         src/contents.h src/contents.cpp
         src/foldermodel.h src/foldermodel.cpp
         src/index.h src/index.cpp
@@ -96,12 +98,12 @@ target_include_directories(ambrosia-files PRIVATE src)
 
 target_link_libraries(ambrosia-files PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Concurrent Qt6::Svg
-    KF6::KIOGui KF6::KIOWidgets KF6::Service KF6::Solid KF6::WindowSystem KF6::Archive TagLib::tag Freetype::Freetype
+    KF6::KIOGui KF6::KIOWidgets KF6::Service KF6::Solid KF6::WindowSystem KF6::Archive TagLib::tag Freetype::Freetype LibArchive::LibArchive
 )
 
 include(GNUInstallDirs)
 install(TARGETS ambrosia-files RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(FILES org.ambrosia.files.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+install(FILES org.ambrosia.files.desktop org.ambrosia.archive.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 # Files runs from login, as Finder does: a user unit for the Ambrosia session,
 # wanted by Plasma's workspace target (installed enabled, like the shell's).
 install(FILES ambrosia-files.service DESTINATION lib/systemd/user)

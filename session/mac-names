@@ -1,0 +1,6 @@
+# Apps that stand in for a Mac's, and the Mac's name each goes by in an
+# Ambrosia session (the Dock, the menu bar, Search): a desktop entry's id,
+# then the name. startambrosia makes the renamed entries at login.
+org.kde.konsole Terminal
+org.kde.spectacle Screenshot
+org.kde.kinfocenter System Information
