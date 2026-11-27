@@ -161,13 +161,6 @@ Item {
             width: flick.contentWidth
             height: flick.contentHeight
             TapHandler { onTapped: view.window.takeKeys() }
-            WheelHandler {
-                acceptedModifiers: Qt.ControlModifier
-                onWheel: (event) => {
-                    view.fitting = "";
-                    view.setZoom(view.zoom * Math.pow(1.002, event.angleDelta.y), point.position.x - flick.contentX, point.position.y - flick.contentY);
-                }
-            }
         }
 
         Item {

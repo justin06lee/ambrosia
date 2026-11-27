@@ -214,19 +214,11 @@ Item {
         Controls.ScrollBar.vertical: ScrollThumb {}
         Controls.ScrollBar.horizontal: ScrollThumb {}
 
-        // The ground: a click on it lets the selection go, and the wheel
-        // with Command (Ctrl here) zooms about the pointer.
+        // The ground: a click on it lets the selection go.
         Item {
             width: flick.contentWidth
             height: flick.contentHeight
             TapHandler { onTapped: view.clearSelection() }
-            WheelHandler {
-                acceptedModifiers: Qt.ControlModifier
-                onWheel: (event) => {
-                    view.fitting = "";
-                    view.setZoom(view.zoom * Math.pow(1.002, event.angleDelta.y), point.position.x - flick.contentX, point.position.y - flick.contentY);
-                }
-            }
         }
 
         Item {
