@@ -108,6 +108,14 @@ public:
     Q_INVOKABLE void copy();
     Q_INVOKABLE void cut();
     Q_INVOKABLE void paste();
+    // Finding: where `what` next is after a place (or before it), going
+    // round the note's ends, as { start, end }, or nothing; how many times
+    // it is there; one of them replaced, and all (how many there were).
+    // Capitals are not told from small letters.
+    Q_INVOKABLE QVariantMap find(const QString &what, int from, bool backward) const;
+    Q_INVOKABLE int count(const QString &what) const;
+    Q_INVOKABLE void replace(int start, int end, const QString &with);
+    Q_INVOKABLE int replaceAll(const QString &what, const QString &with);
     // The note on paper, as a PDF.
     Q_INVOKABLE bool exportPdf(const QUrl &file, const QString &title) const;
 

@@ -218,6 +218,11 @@ function inlineIn(source) {
     return runs;
 }
 
+// Some of a paragraph's text is bold, italic, underlined or struck.
+function marked(para) {
+    return (para.runs || []).some(run => run.text !== "" && /[^ \t\u2028\u00a0]/.test(run.text) && flags.some(flag => run[flag]));
+}
+
 function iso(when) {
     return new Date(when).toISOString();
 }
@@ -240,10 +245,17 @@ export function serialize(note) {
     for (let at = 0; at < paragraphs.length; ++at) {
         const para = paragraphs[at];
         const quote = para.quote ? "> " : "";
+        if (para.kind === "mono" && marked(para)) {
+            // Marks mean nothing between fences: a marked one is a line of
+            // its own, in the tags Markdown still reads marks inside.
+            lines.push(quote + "<code>" + inlineOut(para.runs) + "</code>");
+            numbers = [];
+            continue;
+        }
         if (para.kind === "mono") {
             // A run of them between fences longer than any in it.
             let end = at, ticks = 3;
-            while (end < paragraphs.length && paragraphs[end].kind === "mono" && !!paragraphs[end].quote === !!para.quote) {
+            while (end < paragraphs.length && paragraphs[end].kind === "mono" && !marked(paragraphs[end]) && !!paragraphs[end].quote === !!para.quote) {
                 const found = /^`+/.exec(textOf(paragraphs[end]));
                 if (found)
                     ticks = Math.max(ticks, found[0].length + 1);
@@ -280,7 +292,7 @@ export function serialize(note) {
             else if (para.kind === "subheading")
                 mark = "### ";
             else
-                text = text.replace(/^([\t ]*)([-+] |[-+]$|#{1,6} |> |>$|```)/, "$1\\$2").replace(/^([\t ]*\d+)([.)] |[.)]$)/, "$1\\$2");
+                text = text.replace(/^([\t ]*)([-+] |[-+]$|#{1,6} |> |>$|```)/, "$1\\$2").replace(/^([\t ]*\d+)([.)] |[.)]$)/, "$1\\$2").replace(/^<code>/, "\\<code>");
         }
         lines.push(quote + "\t".repeat(level) + mark + text);
     }
@@ -305,6 +317,12 @@ function parseLine(line) {
         rest = rest.slice(rest === ">" ? 1 : 2);
     }
     const made = { kind: "body", level: 0, checked: false, quote: quote, runs: [] };
+    const code = /^<code>(.*)<\/code>$/.exec(rest);
+    if (code) {
+        made.kind = "mono";
+        made.runs = inlineIn(code[1]);
+        return made;
+    }
     const heading = /^(#{1,6}) (.*)$/.exec(rest);
     if (heading) {
         made.kind = ["title", "heading", "subheading"][Math.min(3, heading[1].length) - 1];

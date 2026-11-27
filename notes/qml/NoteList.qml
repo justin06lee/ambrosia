@@ -238,13 +238,34 @@ Item {
                 MouseArea {
                     anchors.fill: parent
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
+                    // A note is dragged by its row (onto a folder in the
+                    // sidebar): the list doesn't move under the pointer.
+                    preventStealing: true
+                    property point from: Qt.point(0, 0)
                     onPressed: (mouse) => {
+                        from = Qt.point(mouse.x, mouse.y);
                         list.window.choose(cell.modelData.key);
                         list.take();
                         if (mouse.button === Qt.RightButton) {
                             noteMenu.about = cell.modelData.key;
                             noteMenu.open();
                         }
+                    }
+                    onPositionChanged: (mouse) => {
+                        if (!(mouse.buttons & Qt.LeftButton))
+                            return;
+                        if (list.window.dragged === "" && Math.abs(mouse.x - from.x) + Math.abs(mouse.y - from.y) < 8)
+                            return;
+                        list.window.dragAt = mapToItem(null, mouse.x, mouse.y);
+                        list.window.dragged = cell.modelData.key;
+                    }
+                    onReleased: list.window.dropDragged()
+                    onCanceled: list.window.dragged = ""
+                    // (The rows are made anew when the list changes: a
+                    // drag from one that goes is over.)
+                    Component.onDestruction: {
+                        if (pressed && list.window.dragged !== "")
+                            list.window.dragged = "";
                     }
                     onDoubleClicked: list.window.focusNote()
                 }

@@ -861,6 +861,60 @@ void Editor::paste()
     cursor.endEditBlock();
 }
 
+QVariantMap Editor::find(const QString &what, int from, bool backward) const
+{
+    QTextDocument *document = text_();
+    if (!document || what.isEmpty())
+        return {};
+    const QTextDocument::FindFlags flags = backward ? QTextDocument::FindBackward : QTextDocument::FindFlags();
+    QTextCursor found = document->find(what, from, flags);
+    if (found.isNull())
+        found = document->find(what, backward ? document->characterCount() - 1 : 0, flags);
+    if (found.isNull())
+        return {};
+    return {{QStringLiteral("start"), found.selectionStart()}, {QStringLiteral("end"), found.selectionEnd()}};
+}
+
+int Editor::count(const QString &what) const
+{
+    QTextDocument *document = text_();
+    if (!document || what.isEmpty())
+        return 0;
+    int count = 0;
+    for (QTextCursor found = document->find(what, 0); !found.isNull(); found = document->find(what, found))
+        ++count;
+    return count;
+}
+
+// (What is put in takes the marks of what it replaces; settle() dresses
+// it as its paragraph's kind.)
+void Editor::replace(int start, int end, const QString &with)
+{
+    QTextDocument *document = text_();
+    if (!document)
+        return;
+    QTextCursor cursor(document);
+    cursor.setPosition(start);
+    cursor.setPosition(end, QTextCursor::KeepAnchor);
+    cursor.insertText(with);
+}
+
+int Editor::replaceAll(const QString &what, const QString &with)
+{
+    QTextDocument *document = text_();
+    if (!document || what.isEmpty())
+        return 0;
+    int count = 0;
+    QTextCursor all(document);
+    all.beginEditBlock();
+    for (QTextCursor found = document->find(what, 0); !found.isNull(); found = document->find(what, found)) {
+        found.insertText(with);
+        ++count;
+    }
+    all.endEditBlock();
+    return count;
+}
+
 bool Editor::exportPdf(const QUrl &file, const QString &title) const
 {
     const QTextDocument *document = text_();

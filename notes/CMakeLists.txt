@@ -55,6 +55,7 @@ qt_add_qml_module(ambrosia-notes
         qml/NoteList.qml
         qml/NotePane.qml
         qml/FormatMenu.qml
+        qml/FindBar.qml
         qml/Alert.qml
         qml/PushButton.qml
         qml/ScrollThumb.qml

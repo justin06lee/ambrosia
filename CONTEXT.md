@@ -1320,9 +1320,19 @@ package repo below), and they carry `shell/` and `session/` as they are.
     list is a Flickable drawing the rows in sight (a ListView with a JS
     array for its model lost its place at every change). The Format
     menu's card is a layer with a shadow: it doesn't draw off-screen
-    (`--show format` is for the VM). Not done: tables, pictures, links,
-    Find inside a note, dragging a note to a folder, watching the
-    directory for changes made elsewhere.
+    (`--show format` is for the VM). The `Store` watches its directories
+    (a file made, renamed or removed: how programs save) and says
+    `changed`; `NotesWindow.sync` then compares every file's time with
+    the one each row was read or written at and reads only what differs,
+    leaving the note being typed in alone until it is saved; it runs too
+    when the window comes forward, which is when a file changed in place
+    is seen. Monostyled paragraphs go between fences, but one with bold
+    or another mark is a `<code>…</code>` line of its own. The Find bar
+    (`FindBar.qml`, in `NotePane`) is TextEdit's in Notes' colors. A
+    note is dragged from its row by the row's MouseArea (the list never
+    moves under a held pointer); the window holds what is dragged and
+    asks the sidebar which folder is under it. Not done: tables,
+    pictures, links.
   - **Terminal is Konsole, dressed** (round 52, `session/konsole/`,
     `session/xdg/konsolerc`). Its menus and toolbars come from two XML
     files built into its library (zstd frames in
