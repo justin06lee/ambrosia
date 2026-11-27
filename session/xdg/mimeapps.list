@@ -68,6 +68,7 @@ application/x-xar=org.ambrosia.archive.desktop;
 font/ttf=org.ambrosia.fontbook.desktop;
 font/otf=org.ambrosia.fontbook.desktop;
 font/collection=org.ambrosia.fontbook.desktop;
+font/sfnt=org.ambrosia.fontbook.desktop;
 application/x-font-ttf=org.ambrosia.fontbook.desktop;
 application/x-font-otf=org.ambrosia.fontbook.desktop;
 application/x-font-truetype=org.ambrosia.fontbook.desktop;
