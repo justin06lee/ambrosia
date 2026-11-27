@@ -8,3 +8,7 @@
 # ⇧⌘[ ⇧⌘] the tab before and after.
 leftbrace = C-pageup
 rightbrace = C-pagedown
+# ⇧⌘Q log out, after asking (session/org.ambrosia.logout.desktop holds the
+# chord): without this line it was the app's Ctrl+Shift+Q, which quits
+# Firefox.
+q = C-M-A-S-q

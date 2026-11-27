@@ -98,9 +98,7 @@ PanelWindow {
                 text: "Open apps are asked to close first.", accept: "Shut Down", action: () => Session.shutDown() }) },
             { separator: true },
             { text: "Lock Screen", shortcut: "⌃⌘Q", action: () => Session.lock() },
-            { text: `Log Out ${Session.userName}…`, action: () => Popups.confirm(bar.screen, {
-                title: "Are you sure you want to quit all apps and log out now?",
-                accept: "Log Out", action: () => Session.logOut() }) },
+            { text: `Log Out ${Session.userName}…`, shortcut: "⇧⌘Q", action: () => Session.askLogOut(bar.screen) },
         ];
     }
 
