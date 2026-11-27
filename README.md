@@ -48,7 +48,9 @@ is typed, the keyboard throughout. Preview opens pictures and PDFs: pages
 or pictures down a sidebar, zoom, turning, a PDF's table of contents, its
 text searched, selected and copied. TextEdit writes plain text and rich
 text with a format bar and a ruler, in RTF a Mac's TextEdit reads and
-writes too.
+writes too. Activity Monitor lists every process on five tabs (CPU, Memory,
+Energy, Disk, Network) over a panel about the whole computer, inspects one
+and quits one.
 
 ## Quick start
 
@@ -203,6 +205,9 @@ preview-app/   Preview (ambrosia-preview), for pictures and PDFs: the window in 
 textedit/      TextEdit (ambrosia-textedit), plain and rich text: the window in QML, the document through
                src/editor.cpp, RTF read and written by qml/rtf.mjs, which rtf.test.ts runs under bun on
                Cocoa's own samples (samples/)
+activity-monitor/ Activity Monitor (ambrosia-activity-monitor): the window in QML, the kernel read by
+               src/sampler.cpp, what the numbers mean and how they are written in qml/monitor.mjs, which
+               monitor.test.ts runs under bun
 docs/GAPS.md   what still tells Ambrosia from a Mac, biggest first, and the rounds closing it
 docs/finder/   the Files plan: research, stack, v1 scope, performance targets
 docs/settings/ the Settings plan: the panes, their backends, the order of work
