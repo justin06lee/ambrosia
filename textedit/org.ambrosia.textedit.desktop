@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=TextEdit
+GenericName=Text Editor
+Comment=Write plain and rich text
+Icon=org.ambrosia.textedit
+Exec=ambrosia-textedit %U
+MimeType=text/plain;application/rtf;text/rtf;text/markdown;text/x-log;text/csv;text/x-readme;
+Categories=Qt;Utility;TextEditor;
+Keywords=text;editor;write;note;rtf;document;
+StartupNotify=true
+StartupWMClass=org.ambrosia.textedit

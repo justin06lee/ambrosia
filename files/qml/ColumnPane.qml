@@ -220,7 +220,7 @@ FocusScope {
                     implicitHeight: Theme.size.scrollbar.thin
                     radius: height / 2
                     color: Theme.color.label.tertiary
-                    opacity: parent.active ? 1 : 0
+                    opacity: parent.active && parent.size < 1 ? 1 : 0
                     Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
                 }
                 background: null
@@ -394,7 +394,7 @@ FocusScope {
                     implicitWidth: Theme.size.scrollbar.thin
                     radius: width / 2
                     color: Theme.color.label.tertiary
-                    opacity: parent.active ? 1 : 0
+                    opacity: parent.active && parent.size < 1 ? 1 : 0
                     Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
                 }
                 background: null

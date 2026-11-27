@@ -146,7 +146,8 @@ package repo below), and they carry `shell/` and `session/` as they are.
    the store, Screenshot and system information, under the icon names
    Konsole, Kate, Gwenview, Okular, KCalc, Ark, Discover, Spectacle and
    Info Center ask for; KDE's settings and Dolphin wear Settings' and
-   Files', and our Preview the picture viewer's). The look-and-feel names the theme for icons and pointer,
+   Files', our Preview the picture viewer's and our TextEdit the text
+   editor's). The look-and-feel names the theme for icons and pointer,
    `startambrosia` keeps Plasma's copy of both current for existing users,
    GTK gets them through the session's dconf defaults and the login screen
    its pointer through sddm.conf. The Dock shows every icon of ours at tile
@@ -1171,6 +1172,31 @@ package repo below), and they carry `shell/` and `session/` as they are.
     moves each end of a drag onto the nearest line first. Its corner mask
     (a `MultiEffect` over the document) doesn't draw off-screen:
     `--grab` shows the toolbar and a blank body, so look in the VM.
+  - **TextEdit** (`textedit/`, 2026-11-27) is Preview's shape again (a
+    window per document, one process, `org.ambrosia.textedit` on the
+    bus). The text is Qt Quick's `TextEdit`, one made per kind (rich or
+    plain) by a `Loader`, since changing `textFormat` on a live one turns
+    the document into its HTML source; nothing ever sets its `text`. The
+    `Editor` (C++) holds its `textDocument` and does the rest through
+    `QTextCursor`. Qt has no RTF: `qml/rtf.mjs` turns RTF into a plain
+    model and back, tested on Cocoa's own files, and `Editor::setModel`
+    and `model` are the only code that knows both. QML's JavaScript has no
+    object spread and no `??=`: the module keeps to what it runs. Traps
+    met: a format chosen with nothing selected can't be given to the
+    TextEdit's own cursor, so it waits and is put on what is typed next
+    from a queued call (never inside `contentsChange`), joined to the
+    typing's undo step; Qt Quick paints a paragraph's own character
+    format's background across the whole paragraph, so no paragraph may
+    keep a highlight as its own (`Editor::settle` strips it after each
+    change, `setModel` on loading); `QTextDocument::print` adds 2 cm
+    inside the page's margins; `QT_FONT_DPI=72` (in `main.cpp`) makes a
+    point a pixel, as on a Mac, and touches nothing of the interface,
+    which is all in pixels; fontconfig lists a family's weights as
+    families too ("Inter Black"), which `App::families` drops; an item
+    property called `left` or `right` can't be declared (Item's anchor
+    lines). Its mask doesn't draw off-screen either, so there `--grab`
+    goes without it and shows the whole window. In the VM, `ui.py type`
+    takes one word: `key space` between words.
   - **A key that is both a `Shortcut` and a menu item's shortcut**
     (Settings, Calculator, Preview: the window's `Shortcut`s beside
     `Qt.labs.platform` menu items) is ambiguous to Qt, which hands it to

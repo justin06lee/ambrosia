@@ -64,7 +64,7 @@ export const appIcons: Record<string, AppIcon> = {
   },
   // A sheet of writing and the pencil it was written with.
   "text-editor": {
-    names: ["kate", "org.kde.kate", "kwrite", "org.kde.kwrite", "accessories-text-editor", "text-editor"],
+    names: ["org.ambrosia.textedit", "kate", "org.kde.kate", "kwrite", "org.kde.kwrite", "accessories-text-editor", "text-editor"],
     tile: ["#ffffff", "#e6e6ea"],
     art:
       [[70, 122], [94, 106], [118, 122], [142, 84], [166, 60]]

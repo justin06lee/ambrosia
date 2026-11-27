@@ -652,9 +652,10 @@ it is a copy.
 ### Apps
 
 25. **The apps a Mac comes with.** Ours: Files, Settings, Calculator
-    (round 48) and, since round 49, Preview (`preview-app/`,
-    ambrosia-preview, in Gwenview's and Okular's place and the default for
-    pictures and PDFs). Calculator is a Mac's basic one by measure, dark
+    (round 48), Preview (round 49: `preview-app/`, ambrosia-preview, in
+    Gwenview's and Okular's place and the default for pictures and PDFs)
+    and, since round 50, TextEdit (`textedit/`, ambrosia-textedit, in
+    Kate's place and the default for plain text and RTF). Calculator is a Mac's basic one by measure, dark
     in either appearance, 230 by 408 with round keys 47 across, the
     operators orange, the sum shown as it is typed with × and ÷ before +
     and −, the result under the sum that gave it, a percentage a share of
@@ -682,8 +683,42 @@ it is a copy.
     followed; no Contact Sheet, single or two-page view, full screen or
     Go to Page; a page zoomed past about five times goes soft; an
     animated GIF shows its first frame; its light colors aren't measured
-    (that Mac stays in Dark). Stand-ins, in Breeze's dress: Konsole
-    (Terminal), Kate (TextEdit), Ark (Archive Utility), Discover (App
+    (that Mac stays in Dark). TextEdit is measured from macOS 27's (a
+    plain and a rich document, in Dark): a title bar 32.5 tall with the
+    document's icon and name ("Edited" after it once it is), plain text
+    right under it in the fixed-width font, rich text under the format bar
+    (bold, italic, underline, strikethrough; text color and highlight;
+    family, style and size; alignment; lists; line spacing; each control
+    where a Mac has it) and the ruler (a mark a centimetre or half inch,
+    the paragraph's indents and tab stops as markers that drag, a click
+    for a new stop, a stop dragged off to remove it). It reads and writes
+    RTF as Cocoa does (`textedit/qml/rtf.mjs`: fonts by family or
+    PostScript name, sizes, the styles, colors, alignment, indents,
+    spacing, tab stops, lists in levels, Windows and Mac code pages and
+    the East Asian ones through ICU, the window's size), so a document
+    goes to a Mac and back; plain text as UTF-8. ⌘N, ⌘O, ⌘S with Files'
+    Save panel for a new document, a sheet before changes are lost (on
+    close and on ⌘Q, each document in turn), ⌘B ⌘I ⌘U, ⌘+ ⌘−, ⌘{ ⌘| ⌘},
+    ⇧⌘T between plain and rich, ⌘F with a Find bar that counts and
+    replaces, Return, Tab and ⇧Tab in a list as on a Mac, a format chosen
+    with nothing selected held for what is typed next, Export as PDF,
+    undo throughout, a point a pixel so 12-point text is a Mac's size.
+    Short of a Mac's: no pictures or attachments (.rtfd), tables, links
+    or styles (an RTF's are passed over on reading, a table's cells
+    coming through as text between tabs); only RTF and plain text (no
+    .doc, .docx, .odt or HTML, which opens as its source); a document is
+    saved when asked, not by itself, and has no versions; no printing
+    (Export as PDF stands in), no page view, no spelling, substitutions
+    or smart quotes, no font panel, kerning, baseline or outline, no
+    Other… for line spacing, no ✓, ⁃ or custom list markers (they read as
+    the nearest we have), tab stops are all left ones, no title-bar menu
+    to rename or move a document, no tabs; selected text takes the
+    text's own color, losing its colors while selected; black text is
+    the text's own color, white in Dark, but other dark colors are not
+    lightened there as a Mac does; the Find bar is from memory, not
+    measured (opening a Mac's would have taken the keyboard); the light
+    colors aren't measured. Stand-ins, in Breeze's dress: Konsole
+    (Terminal), Ark (Archive Utility), Discover (App
     Store), Spectacle (Screenshot), Firefox (Safari). Nothing yet for
     Activity Monitor, Disk Utility, Calendar, Notes, Reminders, Music,
     Photos, Mail, Font Book. Which to build and which to dress is the
@@ -709,7 +744,11 @@ it is a copy.
     its own way. Not measured.
 29. **Text.** Inter stands in for San Francisco by decision; how it sets
     (weight at small sizes, emoji, the system's CJK faces) has only been
-    compared in Settings and Files.
+    compared in Settings and Files. No Chinese, Japanese or Korean font
+    comes with ambrosia-desktop: their text shows as boxes anywhere (seen
+    in TextEdit, round 50) until noto-fonts-cjk or the like is installed.
+    A Mac's fonts by name (Helvetica, Times, Menlo) are fontconfig's
+    nearest: Inter, Noto Serif, JetBrains Mono.
 
 ## Closed
 
@@ -721,6 +760,7 @@ login screen, the keyboard, Files, Settings) is in `CONTEXT.md`.
 
 | Round | Gap | What was built | Checked how |
 |---|---|---|---|
+| 50, 2026-11-27 | 25, TextEdit | `textedit/`: `qml/rtf.mjs` (RTF read into a plain model of paragraphs and runs and written from one, in Cocoa's dialect: its font and color tables with the expanded one beside, `\'hh` bytes by each font's code page, `\u`, lists from the list table and written back with their markers as text for readers without lists, `\vieww`; `rtf.test.ts`, 11 tests under bun on RTF made by this Mac's `textutil`, kept in `textedit/samples`), `src/editor.cpp` (the model into a QTextDocument and back; the format at the cursor for the bar and ruler; changes to the selection's characters and paragraphs; a format chosen with nothing selected applied to what is typed next as one undo step; lists; find and replace; a PDF), `src/app.cpp` (files read and written whole, the font families without fontconfig's per-weight doubles, the Open and Save panels, one process over the bus), `qml/EditorWindow.qml` with `FormatBar`, `Ruler`, `FindBar`, `Alert`, `MenuBar`, the bar's controls (`Segments`, `PopUp`, `SizeField`, `ColorWell`) and `Main.qml` (a window per document; a new one nothing was typed in gives way to the first opened). `QT_FONT_DPI=72` in `main.cpp` makes a point a pixel. ambrosia-textedit in the packages in Kate's place, the default for text and RTF (`session/xdg/mimeapps.list`), in the Dock's default with a migration, `org.ambrosia.textedit` on the text editor's icon. Also: Files' scroll thumbs no longer show under the pointer when there is nothing to scroll | This Mac's TextEdit measured in the background (a plain and a rich document; `screencapture -l`, `tools/px.py`): bars, every control's place in the format bar, the ruler's marks and markers. `bun test` (88). Test VM, a build moved in: Cocoa's sample opened (bold, italic, underline, strike, red, a highlight, super and subscript, centred, right, justified with indents, a nested bulleted and a numbered list); typing at the end in the font the text ended in; ⌘B on and off between words; a word double-clicked and made italic, red, highlighted from the bar, which read Times, Italic, 24, centred back; the size and font menus; a numbered list and 1.5 spacing from the pop-ups; ⌘S, and the saved file read by this Mac's `textutil` with every style, color, list and indent as set; Find (19 found, Return through them), Replace and All, ⌘Z taking All back at once; ⌘N, typing, ⌘W, the sheet, Save… with Files' Save panel naming it, the file written and the window gone; a .txt in the fixed-width font, ⇧⌘T to rich and back with the sheet; Export as PDF from the File menu (a Letter page, an inch of margin once Qt's own 2 cm were taken off, read with Quick Look here); the indent markers dragged, a tab stop added by a click and dragged off; Return, Tab and ⇧Tab in a list and Return ending it; the right-click menu; the light appearance; a file that isn't there (the sheet, then gone); Shift-JIS bytes decoded (two characters, boxes: no Japanese font there); a 1.6 MB, 20,000-line text opened in about a second and typed at its end; ⌘Q with a changed document (the sheet, ⌘D, gone, the file as it was). Found and fixed there: text typed after the last paragraph took the first font, not the last; a highlight at a paragraph's start painted the whole paragraph after reopening (Qt Quick paints a paragraph's own character background across it) |
 | 49, 2026-11-27 | 25, Preview | `preview-app/`: `src/document.cpp` (a PDF through Qt's PDF library: page sizes, outline, a search that goes through the pages a few milliseconds at a time, text between two points with each moved onto the nearest line), `src/pages.cpp` (pages drawn off the main thread as `image://page/…`), `qml/view.mjs` (zoom steps, fitting, the pages' layout, the window a document opens in; `view.test.ts`, 10 tests under bun), `qml/PreviewWindow.qml` with `Toolbar`, `Sidebar`, `PdfView`, `ImageView`, `MenuBar`, and `Main.qml` (a window per document, one process); ambrosia-preview in the packages, in Gwenview's and Okular's place, the default for pictures and PDFs (`session/xdg/mimeapps.list`), in the Dock's default with a migration. Found on the way: a key that is both a window's `Shortcut` and a menu item's was acted on only every second press (Settings, Calculator); every such `Shortcut` now acts when handed over as ambiguous too | This Mac's Preview measured in the background (`screencapture -l`, `tools/px.py`, the new `tools/crop.py`). Test VM, a build moved in: a 3-page PDF (window 913 wide as the Mac's, sidebar, page at 612, dark colors as measured), a 65-page and a 477-page manual (contents, a click on an entry, "color" found 1,761 times in about two seconds, Return through them), zoom in, a page turned, the sidebar's menu, a drag from the margin selecting a line and ⌘C read back by `wl-paste`, a locked PDF (wrong then right password), three pictures together (arrows between them, 100% for one that fits, zoom, turn, ⌘C as an image), a file that isn't a picture, a second launch handing over, ⌘O through Files' panel, the toolbar's double click zooming the window and back. The Calculator's ⌘C four times in a row after the fix (every second failed before). From the r521 packages, logged in afresh: the Dock's Gwenview pin had become Preview's (the picture icon), a PDF double-clicked in Files opened in `/usr/bin/ambrosia-preview` with the menu bar saying Preview and the tile lit, the packaged Calculator copied three times running, Search found Preview by its name, Return on it with nothing to open brought Files' Open panel up in Pictures, and Escape there left no Preview running; Dark chosen in Settings turned an open Preview window dark at once, to the colors measured. Not seen: a pinch (no trackpad; a wheel with ⌘ held was tried and taken out: a Mac's Preview has none), 2x scale, HEIF or a camera's turned JPEG, a picture past 8192 pixels, resizing by the edges, the Zoom light, a picture opened from Firefox or another app |
 | 48, 2026-11-27 | 25, Calculator | `calculator/`: `qml/calc.mjs` (the arithmetic as a module: what has been typed as a row of numbers and operators, `press`, `evaluate` with × and ÷ first and a percentage's two meanings, `format` to fifteen figures with thousands apart, copy and paste), `calc.test.ts` (13 tests under bun), `qml/CalculatorWindow.qml` (frameless, its own corners and lights, the display fitting its figures, twenty keys from one list), `Key.qml` (the three faces, the delete and sign glyphs drawn), `MenuBar.qml`, `src/` (the shadow as Settings makes it, the clipboard, `--grab` and `--keys`). A package, ambrosia-calculator, which ambrosia-desktop asks for in KCalc's place | Sizes from this Mac's Calculator (macOS 27.2.1), opened in the background and its window captured: 230 by 408, the corner 15, keys 47 across and 54 apart from 10.5 and 133.5, the lights' first center at 26 and 27, the figure "0" 22 high ending 12 from the right edge, the faces' grays (it was behind another window, so its orange was not seen: ours is the theme's). `bun test`. Test VM, a build moved in: opened by its command, 12 × 3 Return on the keyboard (36 under a small 12×3), 5 + 8 = by clicks on the keys, ⌘C, AC, ⌘V (13 again), Delete, the File menu in the menu bar; with Konsole in front the keys and lights gray. From the r518 packages there, logged in afresh: Search finding Calculator first for "calcul" (KCalc, still installed there, under it), Return opening it, 200 + 10% Return giving 220 under 200+10%, ⌘Q closing it; and round 47 from the package: a file dragged over Photos, held, and dropped on the opened folder's empty space (the file in Photos, the window back in its folder). On tenet r518 is in, ambrosia-calculator with it; KCalc is still installed there (`pacman -Rns kcalc` removes it). Not seen: a 2x scale, its Dock tile, on tenet's screen |
 | 47, 2026-11-27 | 26, spring-loaded folders | `FinderWindow.qml`: `springOver` (what takes drops says which folder the drag rests on), a half-second wait, two blinks (`springDim`), `springOpen` (the folder in this window; in columns the next column, by `browse`), `springEnd` (the history, place and first column as the drag found them) at a drop, a drag given up, or 250 ms after the drag left everything that takes drops; a `DropArea` under the whole window so the toolbar counts as inside. `ListPane`, `IconPane`, `ColumnPane`, `SidebarList`, `PathBar` report to it; `Finder.springDelay`, `springBlink`. `tools/chord.py` (keys pressed together on a keyboard keyd takes) | Test VM, a build moved in, drags by a virtual pointer held down: list view, a file over Photos (opened), over Inner in it (opened), dropped: the file in `Photos/Inner`, the window back in Try with Back and Forward dimmed; a file over the sidebar's Documents (opened) and dropped on its empty space (the file in Documents); a file sprung into Photos and carried to the menu bar (back in Try while still held, nothing moved); columns: Photos as a second column, Inner as a third, the pointer over the toolbar for two seconds (still open), out of the window (one column again: the journal's order was left, 250 ms, end). Found on the way: in columns a sprung folder restarted the columns, and the toolbar counted as outside. Not seen: the icon view, the path bar, a drag from another app, the blink itself |
