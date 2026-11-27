@@ -1,7 +1,7 @@
 # The session's default apps, ahead of the system's: folders open in Files,
 # Ambrosia's file manager (Dolphin stays installed), pictures and PDFs in
-# Preview (the kinds its desktop file names). A user's own
-# ~/.config/mimeapps.list still wins.
+# Preview (the kinds its desktop file names), plain text and RTF in
+# TextEdit. A user's own ~/.config/mimeapps.list still wins.
 [Default Applications]
 inode/directory=org.ambrosia.files.desktop;
 application/pdf=org.ambrosia.preview.desktop;
@@ -30,3 +30,10 @@ image/x-xcf=org.ambrosia.preview.desktop;
 image/x-exr=org.ambrosia.preview.desktop;
 image/vnd.radiance=org.ambrosia.preview.desktop;
 image/qoi=org.ambrosia.preview.desktop;
+text/plain=org.ambrosia.textedit.desktop;
+application/rtf=org.ambrosia.textedit.desktop;
+text/rtf=org.ambrosia.textedit.desktop;
+text/markdown=org.ambrosia.textedit.desktop;
+text/x-log=org.ambrosia.textedit.desktop;
+text/csv=org.ambrosia.textedit.desktop;
+text/x-readme=org.ambrosia.textedit.desktop;

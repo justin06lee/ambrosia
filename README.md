@@ -46,7 +46,9 @@ Scanners, Accessibility and Spotlight (`docs/settings/PLAN.md` says what each
 leaves out). Calculator is a Mac's basic one: round keys, the sum shown as it
 is typed, the keyboard throughout. Preview opens pictures and PDFs: pages
 or pictures down a sidebar, zoom, turning, a PDF's table of contents, its
-text searched, selected and copied.
+text searched, selected and copied. TextEdit writes plain text and rich
+text with a format bar and a ruler, in RTF a Mac's TextEdit reads and
+writes too.
 
 ## Quick start
 
@@ -198,6 +200,9 @@ calculator/    Calculator (ambrosia-calculator): the window in QML, its arithmet
 preview-app/   Preview (ambrosia-preview), for pictures and PDFs: the window in QML, PDFs through Qt's PDF
                library (src/document.cpp, src/pages.cpp), its zoom and layout arithmetic in qml/view.mjs,
                which view.test.ts runs under bun (preview/ is the older mock desktop, not this)
+textedit/      TextEdit (ambrosia-textedit), plain and rich text: the window in QML, the document through
+               src/editor.cpp, RTF read and written by qml/rtf.mjs, which rtf.test.ts runs under bun on
+               Cocoa's own samples (samples/)
 docs/GAPS.md   what still tells Ambrosia from a Mac, biggest first, and the rounds closing it
 docs/finder/   the Files plan: research, stack, v1 scope, performance targets
 docs/settings/ the Settings plan: the panes, their backends, the order of work

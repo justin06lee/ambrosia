@@ -10,14 +10,15 @@
 # ambrosia-settings System Settings (settings/, built with CMake)
 # ambrosia-calculator Calculator (calculator/, built with CMake)
 # ambrosia-preview Preview: pictures and PDFs (preview-app/, built with CMake)
+# ambrosia-textedit TextEdit: plain and rich text (textedit/, built with CMake)
 # ambrosia-desktop everything a fresh install needs, the ISO installs this
 
 pkgbase=ambrosia
-pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-glass ambrosia-shell ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-desktop)
+pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-glass ambrosia-shell ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-textedit ambrosia-desktop)
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A Linux desktop that looks and moves as one thing"
-# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-calculator, ambrosia-preview, ambrosia-decoration, ambrosia-style, ambrosia-input and ambrosia-glass; the rest are arch=(any).
+# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-calculator, ambrosia-preview, ambrosia-textedit, ambrosia-decoration, ambrosia-style, ambrosia-input and ambrosia-glass; the rest are arch=(any).
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
@@ -50,6 +51,8 @@ build() {
   cmake --build "$srcdir/build-calculator"
   cmake -S preview-app -B "$srcdir/build-preview" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-preview"
+  cmake -S textedit -B "$srcdir/build-textedit" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build "$srcdir/build-textedit"
   cmake -S style -B "$srcdir/build-style" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-style"
   cmake -S input -B "$srcdir/build-input" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
@@ -277,11 +280,20 @@ package_ambrosia-preview() {
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-preview"
 }
 
+package_ambrosia-textedit() {
+  pkgdesc="TextEdit, Ambrosia's: plain and rich text"
+  # ambrosia-theme: the Ambrosia QML Theme module and the org.ambrosia.textedit
+  # icon. icu: the East Asian code pages a Mac's RTF files hold their text
+  # in (through Qt's string converters). The QML is in the binary.
+  depends=(ambrosia-theme qt6-base qt6-declarative kwindowsystem icu inter-font)
+  DESTDIR="$pkgdir" cmake --install "$srcdir/build-textedit"
+}
+
 package_ambrosia-desktop() {
   pkgdesc="The Ambrosia desktop: the shell plus the system services and apps a new install needs"
   arch=(any)
   depends=(
-    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-style ambrosia-input
+    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-textedit ambrosia-style ambrosia-input
     # Low Power Mode (Battery), and printing (Printers & Scanners): ipp-usb
     # for the printers that plug in, started when one does.
     power-profiles-daemon cups avahi nss-mdns ipp-usb
@@ -296,7 +308,7 @@ package_ambrosia-desktop() {
     # GTK windows keep theirs; GTK 4 has no modules.
     appmenu-gtk-module
     # The apps a new install starts with, and Discover to get more.
-    firefox kate ark discover packagekit-qt6 flatpak
+    firefox ark discover packagekit-qt6 flatpak
   )
   # Not a dependency: an installed system gets it by asking
   # (/usr/lib/ambrosia/boot-picture), a new one from the installer.

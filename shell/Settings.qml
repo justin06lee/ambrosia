@@ -101,7 +101,7 @@ Singleton {
         JsonAdapter {
             id: adapter
             property list<string> dock: [
-                "org.ambrosia.files", "firefox", "org.kde.konsole", "org.kde.kate",
+                "org.ambrosia.files", "firefox", "org.kde.konsole", "org.ambrosia.textedit",
                 "org.ambrosia.preview", "org.kde.discover", "org.ambrosia.settings",
             ]
             property string appearance: "light"
@@ -161,6 +161,12 @@ Singleton {
             if (!adapter.dock.includes("org.ambrosia.preview"))
                 adapter.dock = adapter.dock.map(id => id === "org.kde.gwenview" ? "org.ambrosia.preview" : id);
             adapter.migrated = 3;
+        }
+        if (adapter.migrated < 4) {
+            // TextEdit took over from Kate.
+            if (!adapter.dock.includes("org.ambrosia.textedit"))
+                adapter.dock = adapter.dock.map(id => id === "org.kde.kate" ? "org.ambrosia.textedit" : id);
+            adapter.migrated = 4;
         }
     }
 }
