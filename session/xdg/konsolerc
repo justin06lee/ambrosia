@@ -1,2 +1,22 @@
+# Konsole as the session's Terminal. Two profiles after macOS 27 Terminal's
+# own (/usr/share/konsole): Clear Light while the system is in Light, Clear
+# Dark in Dark. A new window takes its profile's size, not the last window's;
+# tabs show once there are two, each as wide as its share of the window.
 [Desktop Entry]
-DefaultProfile=Ambrosia.profile
+DefaultProfile=ClearDark.profile
+
+[LightDarkTheme]
+DarkThemeProfile=Clear Dark
+LightThemeProfile=Clear Light
+SyncProfileWithSystemTheme=true
+
+[KonsoleWindow]
+RememberWindowSize=false
+
+[TabBar]
+CloseTabButton=OnEachTab
+ExpandTabWidth=true
+NewTabButton=false
+SearchTabsButton=HideSearchTabsButton
+TabBarPosition=Top
+TabBarVisibility=ShowTabBarWhenNeeded

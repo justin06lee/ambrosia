@@ -13,6 +13,29 @@
 
 namespace Ambrosia {
 
+// A window's title as a Mac would show it: a KDE or Mozilla app ends its
+// titles with its own name after a dash ("mina — bash — Konsole",
+// "A page — Mozilla Firefox"), which a Mac's windows never do. Where what
+// follows the last dash is the app's name (it ends with the window's class,
+// or the class with it, spaces and case aside), it is left off.
+static QString title(const QString &caption, const QString &windowClass)
+{
+    static const QString dashes[] = {QStringLiteral(" — "), QStringLiteral(" – "), QStringLiteral(" - ")};
+    const auto bare = [](const QString &text) { return text.toLower().remove(QLatin1Char(' ')).remove(QLatin1Char('-')); };
+    const QString app = bare(windowClass.section(QLatin1Char('.'), -1).section(QLatin1Char(' '), -1));
+    if (app.isEmpty())
+        return caption;
+    for (const QString &dash : dashes) {
+        const int at = caption.lastIndexOf(dash);
+        if (at <= 0)
+            continue;
+        const QString last = bare(caption.mid(at + dash.size()));
+        if (!last.isEmpty() && (last.endsWith(app) || app.endsWith(last)))
+            return caption.left(at);
+    }
+    return caption;
+}
+
 using namespace KDecoration3;
 
 // The frame has no borders, as on a Mac; KWin still lets an edge be grabbed
@@ -105,7 +128,7 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
         painter->setFont(font);
         painter->setPen(QColor::fromRgba(w->isActive() ? t.title : t.titleInactive));
         painter->drawText(text, Qt::AlignCenter | Qt::TextSingleLine,
-                          QFontMetricsF(font).elidedText(w->caption(), Qt::ElideRight, text.width()));
+                          QFontMetricsF(font).elidedText(title(w->caption(), w->windowClass()), Qt::ElideRight, text.width()));
         painter->restore();
     }
 

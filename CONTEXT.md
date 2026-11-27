@@ -1226,6 +1226,24 @@ package repo below), and they carry `shell/` and `session/` as they are.
     `--grab` shows the whole window with square corners; `--tab NAME` and
     `--inspect PID` choose what a grab shows. In the VM, `ui.py`'s Return
     is `key return` (`ret` is `vm-try.sh key`'s word).
+  - **Terminal is Konsole, dressed** (round 52, `session/konsole/`,
+    `session/xdg/konsolerc`). Its menus and toolbars come from two XML
+    files built into its library (zstd frames in
+    `libkonsoleprivate.so`; `konsoleui.rc` and `sessionui.rc`); ours in
+    `/usr/share/kxmlgui5/konsole` win by a higher `version` number, and
+    must be re-taken from Konsole's when it gains actions. KDE's reader
+    takes the first word "version" after the doctype for the attribute: a
+    comment holding that word makes it pass the file over silently. A
+    menu named `file` gets KDE's own title whatever `<text>` says (ours is
+    `shell`). Which toolbars show is remembered per user in
+    `~/.local/state/konsolestaterc` (`[MainWindow] State`), which has no
+    system-wide default: `startambrosia` drops it once. The light and
+    dark profiles are `[LightDarkTheme]` in konsolerc, named by the
+    profiles' display names, not their files. A stand-in's Mac name is a
+    desktop entry in `/usr/share/ambrosia/xdg/applications`
+    (`session/applications/`), first in the session's `XDG_DATA_DIRS`.
+    The frame drops an app's own name from the end of a title
+    (`title()` in `decoration/src/decoration.cpp`).
   - **A key that is both a `Shortcut` and a menu item's shortcut**
     (Settings, Calculator, Preview: the window's `Shortcut`s beside
     `Qt.labs.platform` menu items) is ambiguous to Qt, which hands it to
