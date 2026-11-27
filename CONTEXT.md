@@ -1389,7 +1389,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
     the last lets go with no window: the resident Files turns that off
     (`setQuitLockEnabled(false)` in `main.cpp`), or a job with no window
     open ended Files. `files/tools/archives.sh` makes the archives to
-    try it on, the hostile ones too.
+    try it on, the hostile ones too. A zip closed with a password fails
+    `locked` (libarchive's errors say "passphrase"); `FileOps::expandOne`
+    asks and runs the job again with what was typed. In the VM
+    `bsdtar --format zip --options zip:encryption=aes256 --passphrase X
+    -cf a.zip files` makes one (`zipcrypt` for the classic kind).
   - **What our apps share is in `kit/`** (round 55: the About panel),
     one source compiled into each app: its `CMakeLists.txt` lists
     `../kit/X.qml` with `QT_RESOURCE_ALIAS` (and `QT_QML_SINGLETON_TYPE`

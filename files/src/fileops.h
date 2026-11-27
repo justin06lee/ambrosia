@@ -141,6 +141,7 @@ private:
     // says finished() with these results once it's done.
     int start(KJob *job, const QList<QUrl> &results, const QString &label);
     void alert(const QString &text, const QString &detail = QString());
+    void expandOne(int id, const QUrl &url, const QString &password);
 
     QHash<quint64, QString> m_labels; // what Edit > Undo calls each command, by KIO's serial number
     // What Edit > Redo calls each undone command, last undone last, beside

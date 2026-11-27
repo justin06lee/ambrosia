@@ -27,6 +27,8 @@
 #include <QFileInfo>
 #include <QFutureWatcher>
 #include <QGuiApplication>
+#include <QInputDialog>
+#include <QLineEdit>
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProcess>
@@ -548,19 +550,47 @@ int FileOps::expand(const QList<QUrl> &urls)
     for (const QUrl &url : urls) {
         if (!url.isLocalFile())
             continue;
-        const int id = ++m_next;
-        auto *job = new ExpandJob(url.toLocalFile(), this);
-        m_jobs->add(job, QStringLiteral("Archive Utility"), QStringLiteral("Expanding “%1”").arg(url.fileName()));
-        connect(job, &KJob::result, this, [this, id, url](KJob *done) {
-            const bool ok = !done->error();
-            if (!ok && done->error() != KJob::KilledJobError)
-                alert(QStringLiteral("“%1” couldn’t be expanded.").arg(url.fileName()), done->errorText());
-            Q_EMIT finished(id, ok ? QList<QUrl>{QUrl::fromLocalFile(static_cast<ExpandJob *>(done)->made())} : QList<QUrl>(), ok);
-        });
-        job->start();
-        last = id;
+        last = ++m_next;
+        expandOne(last, url, {});
     }
     return last;
+}
+
+// One archive, with the password typed for it if one was. Closed with a
+// password it wasn't given, or not the right one: asked for, and tried
+// again; Cancel there ends it with nothing said.
+void FileOps::expandOne(int id, const QUrl &url, const QString &password)
+{
+    auto *job = new ExpandJob(url.toLocalFile(), password, this);
+    m_jobs->add(job, QStringLiteral("Archive Utility"), QStringLiteral("Expanding “%1”").arg(url.fileName()));
+    connect(job, &KJob::result, this, [this, id, url, password](KJob *done) {
+        const bool ok = !done->error();
+        auto *expanded = static_cast<ExpandJob *>(done);
+        if (!ok && expanded->locked()) {
+            auto *ask = new QInputDialog;
+            ask->setAttribute(Qt::WA_DeleteOnClose);
+            ask->setWindowTitle(QStringLiteral("Archive Utility"));
+            ask->setInputMode(QInputDialog::TextInput);
+            ask->setTextEchoMode(QLineEdit::Password);
+            ask->setLabelText(password.isEmpty() ? QStringLiteral("Enter the password for “%1”.").arg(url.fileName())
+                                                 : QStringLiteral("That password didn’t open “%1”. Try again.").arg(url.fileName()));
+            ask->setOkButtonText(QStringLiteral("OK"));
+            ask->setMinimumWidth(340);
+            connect(ask, &QInputDialog::finished, this, [this, ask, id, url](int result) {
+                const QString typed = ask->textValue();
+                if (result == QDialog::Accepted && !typed.isEmpty())
+                    expandOne(id, url, typed);
+                else
+                    Q_EMIT finished(id, {}, false);
+            });
+            ask->open();
+            return;
+        }
+        if (!ok && done->error() != KJob::KilledJobError)
+            alert(QStringLiteral("“%1” couldn’t be expanded.").arg(url.fileName()), done->errorText());
+        Q_EMIT finished(id, ok ? QList<QUrl>{QUrl::fromLocalFile(expanded->made())} : QList<QUrl>(), ok);
+    });
+    job->start();
 }
 
 int FileOps::copy(const QList<QUrl> &urls, const QUrl &dir)
