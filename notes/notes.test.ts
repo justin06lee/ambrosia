@@ -49,6 +49,23 @@ describe("the file", () => {
         expect(there(written)).toEqual(written);
     });
 
+    test("monostyled text keeps its marks", () => {
+        const written = note([
+            para("title", "T"),
+            para("mono", "plain = 1"),
+            para("mono", [run("  let "), run("bold", { bold: true }), run(" = "), run("both", { bold: true, italic: true }), run(";")]),
+            para("mono", "plain = 2"),
+            para("mono", [run("quoted", { strike: true })], { quote: true }),
+            para("body", "<code>only text</code>"),
+            para("body", ""),
+        ]);
+        expect(body(Notes.serialize(written))).toBe([
+            "# T", "```", "plain = 1", "```", "<code>  let **bold** = ***both***;</code>", "```", "plain = 2", "```", "> <code>~~quoted~~</code>",
+            "\\<code>only text</code>", "", "",
+        ].join("\n"));
+        expect(there(written)).toEqual(written);
+    });
+
     test("text that looks like a mark stays text", () => {
         for (const text of ["- not a list", "* nor this", "+ nor this", "# not a heading", "> not a quote", "1. not numbered", "12) nor this", "```", "-", ">",
                             "2 * 3 * 4", "a ** b", "snake_case and _private and __init__", "a ~~ b ~~~ c", "<u>not underlined</u>", "back\\slash \\* star",

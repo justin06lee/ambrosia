@@ -17,6 +17,7 @@ var glyphs = {
     // A window with its sidebar marked off (Preview's).
     sidebar: { stroke: rect(2.5, 4.5, 19, 15, 3.4) + "M9.2 4.5v15M5.2 8.6h1.6M5.2 11.4h1.6" },
     chevronRight: { stroke: "M9.5 6.5L15 12l-5.5 5.5", width: 2.2 },
+    chevronLeft: { stroke: "M14.5 6.5L9 12l5.5 5.5", width: 2.2 },
     chevronDown: { stroke: "M6.5 9.5l5.5 5.5 5.5-5.5", width: 2.2 },
     check: { stroke: "M5.5 12.5l4.2 4.2L18.5 7.5", width: 2.2 },
     folder: { stroke: folder },

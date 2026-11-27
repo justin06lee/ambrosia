@@ -30,7 +30,14 @@ Window {
     property bool searching: false
     property bool sidebarShown: true
     property bool formatShown: false
+    // The Find bar is over the note.
+    property bool finding: false
     property bool pinnedShut: false
+    // A note being dragged from the list: its key, where the pointer is
+    // in the window, and the folder under it that would take the note.
+    property string dragged: ""
+    property point dragAt: Qt.point(0, 0)
+    readonly property string dropFolder: dragged !== "" && sidebarShown ? sidebar.folderAt(dragAt.x, dragAt.y, rowOf(dragged)?.folder ?? "") : ""
     // The folder whose name is being changed in the sidebar.
     property string renaming: ""
     // Now, for the list's dates: looked at again each half minute.
@@ -82,10 +89,12 @@ Window {
     readonly property bool maximized: visibility === Window.Maximized || visibility === Window.FullScreen
     readonly property int corner: maximized ? 0 : Look.windowRadius
     onActiveChanged: {
-        if (active)
+        if (active) {
             menusOpen = 0;
-        else
+            sync();
+        } else {
             flush();
+        }
     }
 
     function keyOf(folder, id) {
@@ -119,6 +128,7 @@ Window {
         const made = [], stamp = Date.now();
         for (const file of Array.from(Store.read())) {
             const row = makeRow(file.folder, file.id, Logic.parse(file.text, file.stamp));
+            row.stamp = file.stamp;
             if (Logic.expired([row], stamp).length > 0)
                 Store.remove(file.folder, file.id);
             else
@@ -126,6 +136,73 @@ Window {
         }
         folderNames = Array.from(Store.folders());
         rows = made;
+        settle();
+    }
+    // What is kept, looked at again (the Store says its directories
+    // changed, or the window came forward): notes another program made,
+    // changed or took away are listed, read again and dropped. The note
+    // being written in here stays as it is here until it is saved.
+    function sync() {
+        if (!ready)
+            return;
+        const seen = {};
+        for (const file of Array.from(Store.stamps()))
+            seen[keyOf(file.folder, file.id)] = file;
+        const made = [];
+        let changed = false, shown = null, gone = false;
+        for (const row of rows) {
+            const file = seen[row.key];
+            delete seen[row.key];
+            const mine = row.key === chosen;
+            if (row.unsaved || (mine && dirty) || (file !== undefined && file.stamp === row.stamp)) {
+                made.push(row);
+                continue;
+            }
+            const note = file !== undefined ? read(row) : null;
+            changed = true;
+            if (note === null) {
+                gone = gone || mine;
+                continue;
+            }
+            const again = makeRow(row.folder, row.id, note);
+            again.stamp = file.stamp;
+            made.push(again);
+            if (mine)
+                shown = note;
+        }
+        for (const key of Object.keys(seen)) {
+            const file = seen[key];
+            const note = read(file);
+            if (note === null)
+                continue;
+            const row = makeRow(file.folder, file.id, note);
+            row.stamp = file.stamp;
+            made.push(row);
+            changed = true;
+        }
+        const names = Array.from(Store.folders());
+        if (names.join("/") !== folderNames.join("/"))
+            folderNames = names;
+        if (folder !== Logic.everything && folder !== Logic.deleted && !names.includes(folder))
+            folder = Logic.home;
+        if (!changed)
+            return;
+        if (gone) {
+            chosen = "";
+            open = null;
+        }
+        rows = made;
+        if (shown !== null) {
+            // The note in the editor, as it now is: the insertion point
+            // where it was, as near as can be.
+            const at = pane.edit.cursorPosition, top = pane.scrolled;
+            open = shown;
+            hands.setParagraphs(shown.paragraphs);
+            pane.edit.cursorPosition = Math.min(at, pane.edit.length);
+            pane.scrolled = top;
+            if (finding)
+                pane.recount();
+        }
         settle();
     }
     function read(row) {
@@ -155,6 +232,9 @@ Window {
             console.warn("Notes: couldn’t write", row.key);
         const made = makeRow(row.folder, row.id, note);
         made.unsaved = unsaved;
+        // When its file was written, as the disk has it: sync() tells by
+        // this what another program changed.
+        made.stamp = unsaved ? 0 : Store.stampOf(row.folder, row.id);
         rows = rows.some(entry => entry.key === made.key) ? rows.map(entry => entry.key === made.key ? made : entry) : [made].concat(rows);
     }
     // Leaving the chosen note: written, or forgotten if nothing is in it.
@@ -174,6 +254,8 @@ Window {
         dirty = false;
         hands.setParagraphs(note ? note.paragraphs : []);
         pane.toTop();
+        if (finding)
+            pane.recount();
     }
     function choose(key) {
         if (key === chosen)
@@ -330,6 +412,10 @@ Window {
         const note = mine ? open : read(row);
         if (!note)
             return;
+        if (row.folder === Logic.deleted) {
+            note.deleted = 0;
+            note.from = "";
+        }
         const moved = { folder: target, id: freeId(target, row.id) };
         Store.remove(row.folder, row.id);
         rows = rows.filter(entry => entry.key !== key);
@@ -341,6 +427,18 @@ Window {
         }
     }
 
+    // The drag let go: over a folder, the note goes there (into Recently
+    // Deleted as Delete does it).
+    function dropDragged() {
+        const key = dragged, target = dropFolder;
+        dragged = "";
+        if (key === "" || target === "")
+            return;
+        if (target === Logic.deleted)
+            deleteNote(key);
+        else
+            moveNote(key, target);
+    }
     function newFolder() {
         endSearch();
         const name = Logic.freeName(folderNames);
@@ -415,6 +513,40 @@ Window {
         searching = false;
         if (toolbar.activeFocus || !pane.edit.activeFocus)
             focusList();
+    }
+    // Finding in the note: the bar over it, with the second row for
+    // replacing when asked.
+    function find(replacing) {
+        if (open === null)
+            return;
+        formatShown = false;
+        finding = true;
+        if (replacing === true && editable)
+            pane.findBar.replacing = true;
+        pane.findBar.focusField();
+    }
+    function findNext(direction) {
+        if (open === null)
+            return;
+        if (pane.findBar.text === "") {
+            find(false);
+            return;
+        }
+        pane.findNext(direction);
+    }
+    function endFind() {
+        finding = false;
+        takeKeys();
+    }
+    // What is selected is what to look for.
+    function findSelection() {
+        const chosen = open !== null ? pane.edit.selectedText : "";
+        if (chosen === "" || chosen.includes("\u2029"))
+            return;
+        pane.findBar.text = chosen;
+    }
+    function jump() {
+        pane.reveal(true);
     }
     function exportPdf() {
         if (open !== null)
@@ -534,6 +666,8 @@ Window {
                 win.dirty = true;
                 saver.restart();
             }
+            if (win.finding)
+                pane.recount();
         }
     }
     // A note is written a moment after the typing stops.
@@ -547,6 +681,12 @@ Window {
         repeat: true
         running: win.visible
         onTriggered: win.now = Date.now()
+    }
+    Connections {
+        target: Store
+        function onChanged() {
+            win.sync();
+        }
     }
     Connections {
         target: App
@@ -604,6 +744,12 @@ Window {
     Key { sequences: ["Ctrl+,", "Meta+,"]; name: "settings"; run: win.showSettings }
     Key { sequences: ["Ctrl+Alt+F", "Meta+Alt+F"]; name: "search"; run: win.search }
     Key { sequences: ["Ctrl+Alt+S", "Meta+Alt+S"]; name: "folders"; run: () => win.sidebarShown = !win.sidebarShown }
+    Key { sequences: ["Ctrl+F", "Meta+F"]; name: "find"; run: () => win.find(false) }
+    Key { sequences: ["Ctrl+Shift+F", "Meta+Shift+F"]; name: "replace"; run: () => win.find(true) }
+    Key { sequences: ["Ctrl+G", "Meta+G"]; name: "findNext"; run: () => win.findNext(1) }
+    Key { sequences: ["Ctrl+Shift+G", "Meta+Shift+G"]; name: "findPrevious"; run: () => win.findNext(-1) }
+    Key { sequences: ["Ctrl+E", "Meta+E"]; name: "findSelection"; run: win.findSelection }
+    Key { sequences: ["Ctrl+J", "Meta+J"]; name: "jump"; run: win.jump }
     Key { sequences: ["Ctrl+Shift+T", "Meta+Shift+T"]; name: "title"; run: () => win.format("title", false) }
     Key { sequences: ["Ctrl+Shift+H", "Meta+Shift+H"]; name: "heading"; run: () => win.format("heading", false) }
     Key { sequences: ["Ctrl+Shift+J", "Meta+Shift+J"]; name: "subheading"; run: () => win.format("subheading", false) }
@@ -739,6 +885,31 @@ Window {
             window: win
             hands: hands
             center: toolbar.formatCenter
+        }
+
+        // The note being dragged: its name on a card beside the pointer
+        // (below and right of it: what is under the pointer stays seen).
+        Rectangle {
+            visible: win.dragged !== ""
+            x: Math.max(4, Math.min(frame.width - width - 4, win.dragAt.x + 14))
+            y: Math.max(4, Math.min(frame.height - height - 4, win.dragAt.y + 12))
+            width: Math.min(220, ghost.implicitWidth + 28)
+            height: 30
+            radius: 8
+            color: Look.chosenNoteQuiet
+            opacity: 0.9
+            border.width: 0.5
+            border.color: Look.rim
+            Label {
+                id: ghost
+                x: 14
+                width: parent.width - 28
+                anchors.verticalCenter: parent.verticalCenter
+                elide: Text.ElideRight
+                text: win.rowOf(win.dragged)?.title ?? ""
+                font.weight: 700
+                color: Look.text
+            }
         }
 
         Alert {

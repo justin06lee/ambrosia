@@ -69,7 +69,18 @@ Platform.MenuBar {
         Platform.MenuItem { text: "Paste"; shortcut: "Ctrl+V"; enabled: bar.can; onTriggered: bar.notes.clip("paste") }
         Platform.MenuItem { text: "Select All"; shortcut: "Ctrl+A"; enabled: bar.notes.open !== null; onTriggered: bar.edit.selectAll() }
         Platform.MenuSeparator {}
-        Platform.MenuItem { text: "Note List Search"; shortcut: "Ctrl+Alt+F"; onTriggered: bar.notes.act("search", bar.notes.search) }
+        Menu {
+            title: "Find"
+            Platform.MenuItem { text: "Note List Search…"; shortcut: "Ctrl+Alt+F"; onTriggered: bar.notes.act("search", bar.notes.search) }
+            Platform.MenuSeparator {}
+            Platform.MenuItem { text: "Find…"; shortcut: "Ctrl+F"; enabled: bar.notes.open !== null; onTriggered: bar.notes.act("find", () => bar.notes.find(false)) }
+            Platform.MenuItem { text: "Find and Replace…"; shortcut: "Ctrl+Shift+F"; enabled: bar.can; onTriggered: bar.notes.act("replace", () => bar.notes.find(true)) }
+            Platform.MenuItem { text: "Find Next"; shortcut: "Ctrl+G"; enabled: bar.notes.open !== null; onTriggered: bar.notes.act("findNext", () => bar.notes.findNext(1)) }
+            Platform.MenuItem { text: "Find Previous"; shortcut: "Ctrl+Shift+G"; enabled: bar.notes.open !== null; onTriggered: bar.notes.act("findPrevious", () => bar.notes.findNext(-1)) }
+            Platform.MenuSeparator {}
+            Platform.MenuItem { text: "Use Selection for Find"; shortcut: "Ctrl+E"; enabled: (bar.edit?.selectedText ?? "") !== ""; onTriggered: bar.notes.act("findSelection", bar.notes.findSelection) }
+            Platform.MenuItem { text: "Jump to Selection"; shortcut: "Ctrl+J"; enabled: bar.notes.open !== null; onTriggered: bar.notes.act("jump", bar.notes.jump) }
+        }
     }
     Menu {
         title: "Format"

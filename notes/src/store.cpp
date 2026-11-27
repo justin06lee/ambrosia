@@ -37,6 +37,36 @@ Store::Store(const QString &root)
     QJSEngine::setObjectOwnership(this, QJSEngine::CppOwnership);
     if (!QDir().mkpath(m_root + QLatin1Char('/') + home))
         qWarning("Notes: no place to keep notes at %s", qPrintable(m_root));
+    // Several changes that come together (a file written by way of
+    // another, a folder moved) are told of once.
+    m_settled.setSingleShot(true);
+    m_settled.setInterval(250);
+    connect(&m_settled, &QTimer::timeout, this, &Store::changed);
+    connect(&m_watcher, &QFileSystemWatcher::directoryChanged, this, [this] {
+        watch();
+        m_settled.start();
+    });
+    watch();
+}
+
+// The root and every folder in it are watched: a directory says when a
+// file in it is made, renamed or removed, which is how programs save (a
+// file changed in place is seen when the window next comes forward).
+void Store::watch()
+{
+    QStringList wanted{m_root};
+    const QStringList names = folders();
+    for (const QString &name : names)
+        wanted << dir(name);
+    const QStringList have = m_watcher.directories();
+    for (const QString &path : have) {
+        if (!wanted.contains(path))
+            m_watcher.removePath(path);
+    }
+    for (const QString &path : std::as_const(wanted)) {
+        if (!have.contains(path))
+            m_watcher.addPath(path);
+    }
 }
 
 Store *Store::create(QQmlEngine *, QJSEngine *)
@@ -87,6 +117,32 @@ QVariantList Store::read() const
         }
     }
     return notes;
+}
+
+QVariantList Store::stamps() const
+{
+    QVariantList notes;
+    const QStringList names = folders();
+    for (const QString &folder : names) {
+        const QFileInfoList files = QDir(dir(folder)).entryInfoList({QLatin1Char('*') + suffix}, QDir::Files | QDir::Readable, QDir::Name);
+        for (const QFileInfo &info : files) {
+            if (info.size() > largest || info.fileName().startsWith(QLatin1Char('.')))
+                continue;
+            notes.append(QVariantMap{
+                {QStringLiteral("folder"), folder},
+                {QStringLiteral("id"), info.completeBaseName()},
+                {QStringLiteral("stamp"), info.lastModified().toMSecsSinceEpoch()},
+            });
+        }
+    }
+    return notes;
+}
+
+double Store::stampOf(const QString &folder, const QString &id) const
+{
+    const QString path = file(folder, id);
+    const QFileInfo info(path);
+    return path.isEmpty() || !info.exists() ? 0 : double(info.lastModified().toMSecsSinceEpoch());
 }
 
 QVariantMap Store::one(const QString &folder, const QString &id) const

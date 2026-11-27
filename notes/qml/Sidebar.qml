@@ -19,6 +19,17 @@ Item {
 
     width: Look.sidebarWidth
 
+    // The folder at a place in the window that would take a note dragged
+    // out of `from`: any but the one it is in and the one that is all of
+    // them. Nothing when there is none there.
+    function folderAt(px, py, from) {
+        if (px < 0 || px >= width || py < flick.y)
+            return "";
+        const at = Math.floor((py - flick.y + flick.contentY - Look.sidebarHeading) / Look.sidebarRow);
+        const entry = at >= 0 && at < folders.length ? folders[at] : null;
+        return entry && entry.key !== Logic.everything && entry.key !== from ? entry.key : "";
+    }
+
     Rectangle {
         anchors.fill: parent
         topLeftRadius: sidebar.window.corner
@@ -99,6 +110,18 @@ Item {
                         height: parent.height - 2
                         radius: 8
                         color: sidebar.front ? Look.sidebarChosen : Look.sidebarChosenInactive
+                    }
+                    // A dragged note would land here.
+                    Rectangle {
+                        visible: sidebar.window.dropFolder !== "" && sidebar.window.dropFolder === row.modelData.key
+                        x: Look.sidebarInset
+                        y: 1
+                        width: parent.width - 2 * Look.sidebarInset
+                        height: parent.height - 2
+                        radius: 8
+                        color: row.chosen ? "transparent" : Look.sidebarChosen
+                        border.width: 2
+                        border.color: Look.tint
                     }
                     Glyph {
                         x: Look.sidebarGlyphX - 1.5

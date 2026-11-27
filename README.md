@@ -59,7 +59,8 @@ Disk Utility lists the computer's disks and volumes with what is on each,
 mounts, unmounts and ejects them, checks and repairs a volume (First Aid),
 erases a volume or a whole disk, opens disk images and encrypted volumes.
 Notes keeps notes in folders: titles and headings, lists and checklists,
-pinned notes, search, Recently Deleted; each note is a Markdown file.
+pinned notes, search, find and replace, Recently Deleted; each note is a
+Markdown file, and one changed by another program shows at once.
 
 ## Quick start
 

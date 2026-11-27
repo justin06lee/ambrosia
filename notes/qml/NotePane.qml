@@ -9,13 +9,17 @@ import "notes.mjs" as Logic
 // The TextEdit shows the document; the window's Editor (`hands`) keeps it a
 // note and says where the marks go, which are drawn here beside the text:
 // a list's bullets, dashes and numbers, a checklist's rings (a click ticks
-// one) and the bar beside quoted paragraphs.
+// one) and the bar beside quoted paragraphs. While the window is finding,
+// the Find bar stands over it.
 Item {
     id: pane
 
     required property var window
     required property var hands
     readonly property alias edit: edit
+    readonly property alias findBar: findBar
+    // How far down the note is scrolled.
+    property alias scrolled: flick.contentY
     readonly property bool front: window.looksActive
     // Counts up whenever the text is laid out anew: the marks follow.
     property int laid: 0
@@ -23,9 +27,10 @@ Item {
     function toTop() {
         flick.contentY = 0;
     }
-    // Keeps the insertion point in sight.
-    function reveal() {
-        if (!edit.activeFocus)
+    // Keeps the insertion point in sight (while the note has the keys; or
+    // `always`, for what the Find bar found).
+    function reveal(always) {
+        if (!edit.activeFocus && always !== true)
             return;
         const at = edit.cursorRectangle;
         const top = edit.y + at.y, bottom = top + at.height;
@@ -40,9 +45,61 @@ Item {
         color: Look.noteFill
     }
 
+    // What was found, chosen and brought in sight. False: it isn't there.
+    function show(found) {
+        if (found.start === undefined)
+            return false;
+        edit.select(found.start, found.end);
+        reveal(true);
+        return true;
+    }
+    function findNext(direction) {
+        show(hands.find(findBar.text, direction < 0 ? edit.selectionStart : edit.selectionEnd, direction < 0));
+    }
+    // How many there are now (the note changed, or another is shown).
+    function recount() {
+        findBar.matches = findBar.text === "" ? -1 : hands.count(findBar.text);
+    }
+
+    FindBar {
+        id: findBar
+        visible: pane.window.finding && pane.window.open !== null
+        width: parent.width
+        z: 1
+        window: pane.window
+        onNext: (direction) => pane.findNext(direction)
+        onDone: pane.window.endFind()
+        onTextChanged: looking.restart()
+        onReplaceOne: {
+            const chosen = edit.selectedText;
+            if (pane.window.editable && chosen !== "" && chosen.toLowerCase() === text.toLowerCase())
+                pane.hands.replace(edit.selectionStart, edit.selectionEnd, replacement);
+            pane.findNext(1);
+            pane.recount();
+        }
+        onReplaceEvery: {
+            if (pane.window.editable)
+                pane.hands.replaceAll(text, replacement);
+            pane.recount();
+        }
+    }
+    // What's typed in the Find bar is looked for a moment after the typing
+    // stops, from where the selection begins.
+    Timer {
+        id: looking
+        interval: 150
+        onTriggered: {
+            pane.recount();
+            if (findBar.matches > 0 && findBar.visible)
+                pane.show(pane.hands.find(findBar.text, edit.selectionStart, false));
+        }
+    }
+
     Flickable {
         id: flick
-        anchors.fill: parent
+        y: findBar.visible ? findBar.height : 0
+        width: parent.width
+        height: parent.height - y
         visible: pane.window.open !== null
         contentWidth: width
         contentHeight: edit.y + edit.height
@@ -85,6 +142,12 @@ Item {
             onTextChanged: pane.laid += 1
 
             Keys.onPressed: (event) => {
+                // Escape puts the Find bar away from here too.
+                if (event.key === Qt.Key_Escape && pane.window.finding) {
+                    pane.window.endFind();
+                    event.accepted = true;
+                    return;
+                }
                 const command = event.modifiers & (Qt.ControlModifier | Qt.MetaModifier);
                 const bare = !(event.modifiers & (Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier));
                 // The clipboard is the Editor's: paragraphs whole between
