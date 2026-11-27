@@ -1,0 +1,11 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Description": "A window that changes its own size keeps its top left corner, as a Mac's does (a Settings window growing with its tab)",
+        "EnabledByDefault": false,
+        "Id": "ambrosia_anchor",
+        "License": "MIT",
+        "Name": "Ambrosia Window Anchor"
+    },
+    "X-Plasma-API": "javascript"
+}

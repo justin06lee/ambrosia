@@ -35,7 +35,12 @@ Window {
     signal inspectRequested(int pid)
 
     property int menusOpen: 0
-    readonly property bool looksActive: active || menusOpen > 0 || App.active
+    // Something of Ambrosia's own is open over the screen (the app menu,
+    // the control center): its menu bar says so through the menu named for
+    // the app (MenuBar.qml). Yes or no, not a count: a missed word from
+    // the bar must not leave the window lit for good.
+    property bool shellOpen: false
+    readonly property bool looksActive: active || menusOpen > 0 || shellOpen || App.active
     readonly property int corner: Look.inspectorRadius
 
     function refresh() {

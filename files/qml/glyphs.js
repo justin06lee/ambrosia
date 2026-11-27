@@ -52,6 +52,11 @@ var glyphs = {
     desktop: { stroke: rect(3, 4.5, 18, 15, 2.5) + "M3 15h18" },
     documents: { stroke: "M6.5 3.5h7l4.5 4.5v11a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 19V5a1.5 1.5 0 0 1 1.5-1.5zM13.5 3.5V8H18" },
     downloads: { stroke: circle(12, 12, 8.75) + "M12 7.2v9.2M8.4 12.9l3.6 3.6 3.6-3.6" },
+    // Favorites that Files' Settings can add to the sidebar: a strip of
+    // film, a note, a picture.
+    movies: { stroke: rect(3, 5, 18, 14, 2.2) + "M7.2 5v14M16.8 5v14M3 9.7h4.2M3 14.3h4.2M16.8 9.7H21M16.8 14.3H21M7.2 12h9.6" },
+    music: { stroke: "M9.5 17.2V6.2l9-2v11", fill: circle(7.2, 17.4, 2.5) + circle(16.2, 15.4, 2.5) },
+    pictures: { stroke: rect(3, 5, 18, 14, 2.5) + "M3.4 16.6l4.9-4.6 3.6 3.3 2.6-2.3 6.1 5.2", fill: circle(15.6, 9.4, 1.5) },
     home: { stroke: "M3.5 11.2L12 4l8.5 7.2M6 9.2V19a1 1 0 0 0 1 1h3.4v-5.2h3.2V20H17a1 1 0 0 0 1-1V9.2" },
     drive: { stroke: rect(2.8, 8.5, 18.4, 9.5, 2.8) + "M6.5 14.6h4", fill: circle(17, 14.6, 1) },
     // A disk that isn't the computer's own, and the button that ejects it.

@@ -26,6 +26,11 @@ set_source_files_properties(qml/Finder.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE
 # The About panel every app of ours shows, from one source (../kit).
 set_source_files_properties(../kit/AboutWindow.qml PROPERTIES QT_RESOURCE_ALIAS AboutWindow.qml)
 set_source_files_properties(../kit/About.qml PROPERTIES QT_RESOURCE_ALIAS About.qml QT_QML_SINGLETON_TYPE TRUE)
+# The Settings window's frame and controls, likewise.
+set_source_files_properties(../kit/PreferencesWindow.qml PROPERTIES QT_RESOURCE_ALIAS PreferencesWindow.qml)
+set_source_files_properties(../kit/PrefCheck.qml PROPERTIES QT_RESOURCE_ALIAS PrefCheck.qml)
+set_source_files_properties(../kit/PrefPopup.qml PROPERTIES QT_RESOURCE_ALIAS PrefPopup.qml)
+set_source_files_properties(../kit/Preferences.qml PROPERTIES QT_RESOURCE_ALIAS Preferences.qml QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-files
     URI Files
     VERSION 1.0
@@ -41,6 +46,7 @@ qt_add_qml_module(ambrosia-files
         src/metadata.h src/metadata.cpp
         src/format.h src/format.cpp
         src/places.h src/places.cpp
+        src/prefs.h src/prefs.cpp
         src/portal.h src/portal.cpp
         src/sortkey.h src/sortkey.cpp
         src/tags.h src/tags.cpp
@@ -50,6 +56,11 @@ qt_add_qml_module(ambrosia-files
     QML_FILES
         ../kit/AboutWindow.qml
         ../kit/About.qml
+        ../kit/PreferencesWindow.qml
+        ../kit/PrefCheck.qml
+        ../kit/PrefPopup.qml
+        ../kit/Preferences.qml
+        qml/SettingsWindow.qml
         qml/FinderWindow.qml
         qml/Appearance.qml
         qml/QuickLook.qml

@@ -24,7 +24,10 @@ Controls.Popup {
     function openOver(control) {
         parent = control;
         x = -10;
-        y = (control.height - Finder.menuRow) / 2 - padding - Math.max(0, currentIndex) * Finder.menuRow;
+        let above = 0;
+        for (let i = 0; i < currentIndex; ++i)
+            above += items[i].value === undefined ? 11 : Finder.menuRow;
+        y = (control.height - Finder.menuRow) / 2 - padding - above;
         minimumWidth = control.width;
         open();
     }

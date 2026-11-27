@@ -86,6 +86,12 @@ PanelWindow {
     // found by AppMenu.qml): they are shown in the menu named for the app,
     // and this bar's menus leave them out (Overlay.qml hands MenuView these).
     readonly property var lifted: hasAppMenu ? appMenu.item?.lifted ?? ({}) : ({})
+    // While anything of ours is open over this screen (a menu, the control
+    // center, a confirmation), an app that publishes a menu of its own name
+    // is told that menu is open: our apps draw their own frames, and keep
+    // them looking active while a menu of theirs is, as a Mac's front window
+    // stays lit under the Apple menu or Control Center.
+    QsMenuOpener { menu: Popups.kind !== "" && Popups.screen === bar.screen ? bar.lifted.own ?? null : null }
 
     // The shortcuts beside our own rows are the Mac-first keyboard's
     // (docs/keyboard.md): only chords that do the row's thing are named.

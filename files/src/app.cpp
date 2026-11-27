@@ -2,6 +2,7 @@
 #include "fileops.h"
 #include "index.h"
 #include "portal.h"
+#include "prefs.h"
 #include "thumbnailer.h"
 
 #include <KApplicationTrader>
@@ -44,6 +45,15 @@ App::App(QQmlEngine *engine, const Options &options)
     QJSEngine::setObjectOwnership(this, QJSEngine::CppOwnership);
     connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, this, &App::appearanceChanged);
     connect(qGuiApp, &QGuiApplication::paletteChanged, this, &App::appearanceChanged);
+    // Files' Settings: Remove items from the Trash after 30 days. A while
+    // after starting, every few hours since (Files stays running), and as
+    // the setting is turned on.
+    auto *sweep = new QTimer(this);
+    sweep->setInterval(6 * 60 * 60 * 1000);
+    connect(sweep, &QTimer::timeout, this, &FileOps::sweepTrash);
+    sweep->start();
+    QTimer::singleShot(60 * 1000, this, &FileOps::sweepTrash);
+    connect(Prefs::instance(), &Prefs::trashExpiresChanged, this, &FileOps::sweepTrash);
 }
 
 App *App::create(QQmlEngine *, QJSEngine *)
@@ -343,7 +353,7 @@ void App::Open(const QStringList &urls)
         return;
     }
     if (urls.isEmpty())
-        openWindow(QUrl::fromLocalFile(QDir::homePath()));
+        openWindow(Prefs::instance()->newWindowUrl());
     for (const QString &url : urls)
         openWindow(QUrl(url));
 }

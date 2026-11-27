@@ -1276,6 +1276,30 @@ package repo below), and they carry `shell/` and `session/` as they are.
     way to KWin, so the panel's is a zero-width space; `pkill -x` matches
     a process name only up to 15 letters (`ambrosia-texted`), and `pkill
     -f` with the path also kills the ssh shell that typed it.
+  - **An app's Settings window is the kit's** (round 56, Files' first):
+    `kit/PreferencesWindow.qml` takes `tabs: [{ title, glyph, page }]`
+    (a glyph by name from its own few, or paths; a page is a Component
+    whose root gives `implicitHeight`), and is as tall as the page;
+    `Preferences.show("Module", "Type")` shows the one; `PrefCheck` and
+    `PrefPopup` are its controls and read the system's appearance
+    themselves. Rows are placed by the Mac's measures less 88 (bar and
+    strip). `PrefPopup`'s menu is `Qt.labs.platform`'s, so the app must
+    be a QApplication (Files is): an in-window popup is cut off by a
+    small window, and Qt's windowed popup (`popupType: Popup.Window`)
+    came up beside its button on KWin, not over it. KWin 6.8 resizes a
+    self-resizing window around its middle ("spontaneous gravity"):
+    `session/kwin-scripts/ambrosia_anchor` puts the top left corner back
+    for windows whose smallest and largest sizes are equal, which is how
+    it knows the change was the app's own. Files' settings are
+    `Prefs` (`files/src/prefs.cpp`), one object every window reads
+    live; a new setting is a property there, a control in
+    `files/qml/SettingsWindow.qml`, and whoever obeys it.
+  - **A window of ours stays lit under the shell's own menus** (round
+    56): `shell/MenuBar.qml` holds a `QsMenuOpener` on the app's
+    own-name menu while `Popups.kind` is set for its screen, and that
+    menu's `onAboutToShow`/`onAboutToHide` in each app's `MenuBar.qml`
+    set the window's `shellOpen` (true or false, not a count: an opener
+    whose menu object is replaced says "opened" twice).
   - **The app menu's About, Settings… and Quit are the app's own rows**
     (round 53, `shell/AppMenu.qml`'s `lifted`): found by their text among
     the rows right under the app's titles, shown in `MenuBar.appNameMenu`
