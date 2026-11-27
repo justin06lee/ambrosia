@@ -143,11 +143,12 @@ package repo below), and they carry `shell/` and `session/` as they are.
    other names, as Xcursor files from 24 to 96 and as SVGs for KWin) and
    **app icons** (`design/icons.ts`, `tools/gen/targets/icons.ts`: Terminal,
    a text editor, picture and document viewers, Calculator, an archiver,
-   the store, Screenshot, a system monitor and system information, under the icon names
+   the store, Screenshot, a system monitor, system information and Font Book, under the icon names
    Konsole, Kate, Gwenview, Okular, KCalc, Ark, Discover, Spectacle and
    Info Center ask for; KDE's settings and Dolphin wear Settings' and
    Files', our Preview the picture viewer's, our TextEdit the text
-   editor's and our Activity Monitor the system monitor's). The look-and-feel names the theme for icons and pointer,
+   editor's, our Activity Monitor the system monitor's and our Font Book
+   KDE's font viewer's; a font file is a page with "Aa"). The look-and-feel names the theme for icons and pointer,
    `startambrosia` keeps Plasma's copy of both current for existing users,
    GTK gets them through the session's dconf defaults and the login screen
    its pointer through sddm.conf. The Dock shows every icon of ours at tile
@@ -1226,6 +1227,42 @@ package repo below), and they carry `shell/` and `session/` as they are.
     `--grab` shows the whole window with square corners; `--tab NAME` and
     `--inspect PID` choose what a grab shows. In the VM, `ui.py`'s Return
     is `key return` (`ret` is `vm-try.sh key`'s word).
+  - **Font Book** (`fontbook/`, 2026-11-28) is one window and a preview
+    per font file that isn't installed, one process (`org.ambrosia.fontbook`
+    on the bus; a second launch hands its files over). The `Library` (C++)
+    lists the fonts with a fontconfig configuration of its own, read anew
+    at each refresh (`FcInitLoadConfigAndFonts`): the one Qt draws by is
+    never swapped, and a font added a moment ago is in ours. Qt reads the
+    system's fonts once, as the app starts, so a file just installed (or
+    one only being looked at) is told to it by hand
+    (`QFontDatabase::addApplicationFont`) or its samples would draw in the
+    fallback font. A variable font is listed by fontconfig once as itself
+    and once per style it names: the named ones are its styles, itself
+    only where it names none; the low half of fontconfig's index is the
+    face in the file (what FreeType wants), the high half the named style.
+    A typeface's samples are drawn with `font.family` and
+    `font.styleName`. Fixed-size (bitmap) fonts are left out. A font's own
+    words (copyright, version, glyph count) are read with FreeType only
+    when the info pane asks. `qml/fontbook.mjs` says what a place lists,
+    which letters stand for a typeface (by the script its name or its
+    characters say it is for), the info pane's rows and the collections,
+    and is what bun tests. Collections are names kept in the app's own
+    settings (`~/.config/ambrosia/ambrosia-fontbook.conf`), nothing
+    fontconfig knows of. Installing copies into `~/.local/share/fonts`;
+    removing moves the user's files of the family to the Trash
+    (`QFile::moveToTrash`), and a watcher on the folder lists what other
+    hands put there. Traps met: a menu of the platform's can't reach above
+    its window's top on Wayland (a window doesn't know where it is), so a
+    pop-up opened with its current row over the button comes up scrolled
+    when that row is far down: long lists drop under the button
+    (`kit/PrefPopup.qml`'s `below`, the toolbar's styles); Qt writes its
+    messages to the journal, not stderr, when run over ssh
+    (`QT_FORCE_STDERR_LOGGING=1` shows why a grab left with 1); a GridView's
+    header that changes height leaves the view scrolled past it unless
+    `contentY` is put back to `originY`; a GridView as wide as its cells
+    (not its pane) needs its scroll bar parented to the pane. Its corner
+    mask is off off-screen, so `--grab` shows square corners; `--view`,
+    `--family NAME`, `--info` and a font file choose what a grab shows.
   - **Terminal is Konsole, dressed** (round 52, `session/konsole/`,
     `session/xdg/konsolerc`). Its menus and toolbars come from two XML
     files built into its library (zstd frames in
