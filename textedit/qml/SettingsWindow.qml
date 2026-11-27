@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Window
-import Qt.labs.platform as Platform
 import Ambrosia
 import TextEditor
 
@@ -288,33 +287,23 @@ Window {
         onClicked: Prefs.restore()
     }
 
-    // Change…: the platform's font panel.
-    Platform.FontDialog {
+    // Change…: the Fonts panel (the kit's), on the font in use by the
+    // family that stands in for it here (Helvetica is a name the system
+    // answers to, not a font in its list). Each choice is kept at once.
+    QtObject {
         id: fonts
-        property bool plain: true
-        // The panel shows the font in use: told once it is up (before
-        // that there is no panel to tell), by the family that stands in
-        // for it here (Helvetica is a name the system answers to, not a
-        // font in its list).
         function choose(plain, family, size) {
-            fonts.plain = plain;
-            probe.font.family = family;
-            const now = Qt.font({ family: probe.fontInfo.family, pointSize: size });
-            fonts.open();
-            fonts.currentFont = now;
-        }
-        onAccepted: {
-            if (plain) {
-                Prefs.plainFamily = font.family;
-                Prefs.plainSize = Math.round(font.pointSize);
-            } else {
-                Prefs.richFamily = font.family;
-                Prefs.richSize = Math.round(font.pointSize);
-            }
+            Fonts.show(App, { family: App.family(family), weight: 400, italic: false, size: size }, (chosen, weight, italic, points) => {
+                if (plain) {
+                    Prefs.plainFamily = chosen;
+                    Prefs.plainSize = Math.round(points);
+                } else {
+                    Prefs.richFamily = chosen;
+                    Prefs.richSize = Math.round(points);
+                }
+            }, settings);
         }
     }
-
-    Text { id: probe; visible: false }
 
     Shortcut { sequences: ["Ctrl+W"]; onActivated: settings.close() }
 }

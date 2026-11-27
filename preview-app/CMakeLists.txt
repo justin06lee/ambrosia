@@ -29,6 +29,9 @@ set_source_files_properties(../kit/PreferencesWindow.qml PROPERTIES QT_RESOURCE_
 set_source_files_properties(../kit/Preferences.qml PROPERTIES QT_RESOURCE_ALIAS Preferences.qml QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(../kit/PrefCheck.qml PROPERTIES QT_RESOURCE_ALIAS PrefCheck.qml)
 set_source_files_properties(../kit/PrefRadio.qml PROPERTIES QT_RESOURCE_ALIAS PrefRadio.qml)
+# The Colors panel (../kit; screencolor.h is the eyedropper).
+set_source_files_properties(../kit/ColorPanel.qml PROPERTIES QT_RESOURCE_ALIAS ColorPanel.qml)
+set_source_files_properties(../kit/Colors.qml PROPERTIES QT_RESOURCE_ALIAS Colors.qml QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/Prefs.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-preview
     URI Preview
@@ -36,6 +39,7 @@ qt_add_qml_module(ambrosia-preview
     SOURCES
         src/app.h src/app.cpp
         src/document.h src/document.cpp
+        ../kit/screencolor.h
     QML_FILES
         ../kit/AboutWindow.qml
         ../kit/About.qml
@@ -43,6 +47,8 @@ qt_add_qml_module(ambrosia-preview
         ../kit/Preferences.qml
         ../kit/PrefCheck.qml
         ../kit/PrefRadio.qml
+        ../kit/ColorPanel.qml
+        ../kit/Colors.qml
         qml/Prefs.qml
         qml/SettingsWindow.qml
         qml/Main.qml
@@ -67,7 +73,7 @@ qt_add_qml_module(ambrosia-preview
         qml/view.mjs
 )
 
-target_include_directories(ambrosia-preview PRIVATE src)
+target_include_directories(ambrosia-preview PRIVATE src ../kit)
 
 target_link_libraries(ambrosia-preview PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Pdf KF6::WindowSystem

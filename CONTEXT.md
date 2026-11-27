@@ -1396,6 +1396,27 @@ package repo below), and they carry `shell/` and `session/` as they are.
     as TextEdit's): the ground, pictures apart or together, a PDF's
     100%, and the page each PDF was left at (the latest 200, as text).
     Its Settings window is the kit's at `wide: 500`, with `PrefRadio`.
+  - **The Colors and Fonts panels are the kit's** (round 63):
+    `Colors.show(color, apply, window)` and `Fonts.show(source, font,
+    apply, window)` show the app's one panel of each (`ColorPanel.qml`,
+    `FontPanel.qml`); `apply` hears every choice at once until the panel
+    is asked for something else or closed, and `follow(…)` shows what a
+    moved selection has without telling anyone. An app that uses them
+    adds the four QML files (the two singletons marked so),
+    `../kit/screencolor.h` among its module's SOURCES and `../kit` to
+    its include directories (TextEdit, Preview). A panel is a `Qt.Tool`
+    window with the asking window as `transientParent`, so KWin keeps
+    it over that window; Qt then counts the two as one window for
+    shortcuts, and a Shortcut for ⌘W in the panel took turns with the
+    document's Close (the document closed): the panels claim the key in
+    `Keys.onShortcutOverride` of whatever has the keys instead. The
+    panel's own color is `value` (a Window's `color` is its ground).
+    Rows of a Repeater over a JS array are made anew whenever the array
+    is: the sliders' model is the parts' names only, each row asking
+    `part(name)` for what it shows, or a held knob would lose its drag.
+    The Mac's panels were measured from `/tmp/amb-measure/ambpanels`
+    (Swift, `panels-src/main.swift`): AppKit's panels at the normal
+    level with `hidesOnDeactivate` off, never activated.
   - **An app's Settings window is the kit's** (round 56, Files' first):
     `kit/PreferencesWindow.qml` takes `tabs: [{ title, glyph, page }]`
     (a glyph by name from its own few, or paths; a page is a Component
