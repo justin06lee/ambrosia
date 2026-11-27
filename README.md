@@ -36,14 +36,15 @@ saturates what is behind it as its material asks, and bends it at the rim;
 Files' and Settings' sidebars are panes of it.
 Its look still trails the design preview in places.
 
-Two first-party apps are in. Files (a Finder look-alike) has icon, list,
+Three first-party apps are in. Files (a Finder look-alike) has icon, list,
 column and gallery views, Quick Look, Get Info, tags, thumbnails, search by
 name and contents, undoable file operations and the Trash; drives and
 Applications in its sidebar and a copy progress window are still to come.
 Settings (a System Settings look-alike) has every pane of its plan built on
 the system's own services, from Wi-Fi and Bluetooth to Printers &
 Scanners, Accessibility and Spotlight (`docs/settings/PLAN.md` says what each
-leaves out).
+leaves out). Calculator is a Mac's basic one: round keys, the sum shown as it
+is typed, the keyboard throughout.
 
 ## Quick start
 
@@ -190,6 +191,8 @@ files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks 
                it is also every app's Open and Save panel (the desktop portal's file chooser, src/portal.cpp)
                and tools/tenet.sh to build and photograph it on tenet
 settings/      Settings, Ambrosia's System Settings: Qt Quick window, C++ core, art
+calculator/    Calculator (ambrosia-calculator): the window in QML, its arithmetic in qml/calc.mjs,
+               which calc.test.ts runs under bun
 docs/GAPS.md   what still tells Ambrosia from a Mac, biggest first, and the rounds closing it
 docs/finder/   the Files plan: research, stack, v1 scope, performance targets
 docs/settings/ the Settings plan: the panes, their backends, the order of work

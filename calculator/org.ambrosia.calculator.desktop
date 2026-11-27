@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Calculator
+GenericName=Calculator
+Comment=Add, subtract, multiply and divide
+Icon=accessories-calculator
+Exec=ambrosia-calculator
+Categories=Qt;Utility;Calculator;
+Keywords=calculator;calc;sum;math;arithmetic;
+StartupNotify=true
+StartupWMClass=org.ambrosia.calculator
