@@ -1399,7 +1399,14 @@ package repo below), and they carry `shell/` and `session/` as they are.
     `../kit/X.qml` with `QT_RESOURCE_ALIAS` (and `QT_QML_SINGLETON_TYPE`
     for `About.qml`), so the type is in the app's own QML module. A dev
     build needs `kit/` beside the app's `src/` on tenet
-    (`files/tools/tenet.sh build` syncs it). An app's menu of its own
+    (`files/tools/tenet.sh build` syncs it). Panels over a window are
+    `Printing.show(job, window)` (round 64) and `Saving.show(job, window)`
+    (round 67, `kit/SavePanel.qml`: a Mac's small Save sheet; `Places` in
+    `kit/saving.cpp` is its C++, and hands "any other folder" to Files'
+    panel through `QFileDialog`): each a frameless `Qt.Dialog` with the
+    window as `transientParent`, `WindowModal`, which KWin centers over
+    it; an app that uses one lists its `.qml`, `.h` and `.cpp` in its
+    `CMakeLists.txt` and has a `shadow.h` of its own. An app's menu of its own
     name (`MenuBar.qml`'s first) is its app menu in Ambrosia's bar
     (`lifted.own` in `shell/AppMenu.qml`); the title must be the desktop
     entry's `Name` exactly ("System Settings"). Traps met: `baseline` is

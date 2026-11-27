@@ -82,9 +82,6 @@ public:
     // The Open panel (the desktop's, through the portal): openRequested
     // with what was chosen.
     Q_INVOKABLE void chooseFiles();
-    // The Save panel for a window, `name` filled in, for a kind ("rtf",
-    // "txt" or "pdf"): saveChosen or saveCancelled, with the window.
-    Q_INVOKABLE void chooseSave(QQuickWindow *window, const QString &name, const QString &kind);
 
     // A URL for each argument: a path (taken from the folder the app was
     // started in) or a URL already.
@@ -99,8 +96,6 @@ Q_SIGNALS:
     void openRequested(const QStringList &files);
     // A second launch with nothing to open: come to the front.
     void raiseRequested();
-    void saveChosen(QQuickWindow *window, const QUrl &file, const QString &kind);
-    void saveCancelled(QQuickWindow *window);
 
 private:
     static App *s_instance;

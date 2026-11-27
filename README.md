@@ -62,6 +62,8 @@ erases a volume or a whole disk, renames a volume, makes a blank disk image
 Notes keeps notes in folders: titles and headings, lists and checklists,
 pinned notes, search, find and replace, Recently Deleted; each note is a
 Markdown file, and one changed by another program shows at once.
+TextEdit and Notes save and export on a small Save sheet over the window,
+as a Mac's (Files' whole panel is one click from it).
 TextEdit, Notes and Preview print (⌘P) through a Print panel of ours on
 CUPS, and choose colors and fonts in panels of ours.
 

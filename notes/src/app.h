@@ -53,8 +53,6 @@ public:
     // leaves.
     Q_INVOKABLE void shown(QQuickWindow *window);
     Q_INVOKABLE void activate(QQuickWindow *window);
-    // The Save panel, for a note as a PDF: pdfChosen with the file.
-    Q_INVOKABLE void choosePdf(const QString &name);
 
 public Q_SLOTS:
     // A second launch: bring the window forward.
@@ -63,11 +61,9 @@ public Q_SLOTS:
 Q_SIGNALS:
     void appearanceChanged();
     void showRequested();
-    void pdfChosen(const QUrl &file);
 
 private:
     static App *s_instance;
     Options m_options;
     bool m_grabbed = false;
-    bool m_choosing = false;
 };
