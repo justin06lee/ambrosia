@@ -10,6 +10,7 @@
 #include <QPageLayout>
 #include <QPageSize>
 #include <QPdfWriter>
+#include <QScreen>
 #include <QTextCursor>
 #include <QTextDocument>
 #include <QTextList>
@@ -915,7 +916,7 @@ int Editor::replaceAll(const QString &what, const QString &with)
     return count;
 }
 
-bool Editor::exportPdf(const QUrl &file, const QString &title) const
+bool Editor::exportPdf(const QUrl &file, const QString &title, const QSizeF &size) const
 {
     const QTextDocument *document = text_();
     if (!document)
@@ -923,11 +924,13 @@ bool Editor::exportPdf(const QUrl &file, const QString &title) const
     QPdfWriter writer(file.toLocalFile());
     writer.setTitle(title);
     writer.setCreator(QStringLiteral("Notes"));
-    writer.setPageSize(QPageSize(QLocale().measurementSystem() == QLocale::MetricSystem ? QPageSize::A4 : QPageSize::Letter));
-    // An inch all round: QTextDocument::print puts two centimetres of its
-    // own inside the page's margins.
-    const qreal margin = 72 - 2 / 2.54 * 72;
-    writer.setPageMargins(QMarginsF(margin, margin, margin, margin), QPageLayout::Point);
+    if (size.isEmpty())
+        writer.setPageSize(QPageSize(QLocale().measurementSystem() == QLocale::MetricSystem ? QPageSize::A4 : QPageSize::Letter));
+    else
+        writer.setPageSize(QPageSize(size.width() > size.height() ? size.transposed() : size, QPageSize::Point, QString(), QPageSize::ExactMatch));
+    writer.setPageOrientation(size.width() > size.height() ? QPageLayout::Landscape : QPageLayout::Portrait);
+    // An inch all round.
+    writer.setPageMargins(QMarginsF(72, 72, 72, 72), QPageLayout::Point);
     // On paper the marks are text: a copy with each written before its
     // item, in points for the window's pixels.
     QTextDocument paper;
@@ -985,6 +988,12 @@ bool Editor::exportPdf(const QUrl &file, const QString &title) const
                                       run.value(QStringLiteral("underline")).toBool(), run.value(QStringLiteral("strike")).toBool()));
         }
     }
+    // Laid out for the page here, in the screen's dots (print() turns them
+    // into the paper's): left to lay it out itself, print() numbers the
+    // pages, and a Mac's are bare.
+    const QScreen *screen = QGuiApplication::primaryScreen();
+    const qreal dots = screen ? qRound(screen->logicalDotsPerInchX()) : 96;
+    paper.setPageSize(writer.pageLayout().paintRect(QPageLayout::Point).size() * dots / 72);
     paper.print(&writer);
     return true;
 }

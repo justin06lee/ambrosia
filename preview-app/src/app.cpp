@@ -11,6 +11,10 @@
 #include <QGuiApplication>
 #include <QImageReader>
 #include <QMimeDatabase>
+#include <QPageLayout>
+#include <QPageSize>
+#include <QPainter>
+#include <QPdfWriter>
 #include <QPalette>
 #include <QQmlEngine>
 #include <QStandardPaths>
@@ -97,6 +101,43 @@ void App::copyPicture(const QUrl &file, int quarterTurns)
 bool App::isPdf(const QUrl &file) const
 {
     return QMimeDatabase().mimeTypeForFile(file.toLocalFile()).inherits(QStringLiteral("application/pdf"));
+}
+
+bool App::picturesPdf(const QVariantList &files, const QUrl &target, const QSizeF &paper) const
+{
+    if (files.isEmpty() || paper.isEmpty())
+        return false;
+    const bool sideways = paper.width() > paper.height();
+    QPdfWriter writer(target.toLocalFile());
+    writer.setCreator(QStringLiteral("Preview"));
+    writer.setResolution(300);
+    writer.setPageSize(QPageSize(sideways ? paper.transposed() : paper, QPageSize::Point, QString(), QPageSize::ExactMatch));
+    writer.setPageOrientation(sideways ? QPageLayout::Landscape : QPageLayout::Portrait);
+    writer.setPageMargins(QMarginsF(18, 18, 18, 18), QPageLayout::Point);
+    QPainter painter;
+    bool first = true;
+    for (const QVariant &each : files) {
+        QImageReader reader(each.toUrl().toLocalFile());
+        reader.setAutoTransform(true);
+        const QImage picture = reader.read();
+        if (picture.isNull())
+            continue;
+        if (first) {
+            if (!painter.begin(&writer))
+                return false;
+            painter.setRenderHint(QPainter::SmoothPixmapTransform);
+        } else {
+            writer.newPage();
+        }
+        first = false;
+        const QRectF page(0, 0, writer.width(), writer.height());
+        const QSizeF fitted = QSizeF(picture.size()).scaled(page.size(), Qt::KeepAspectRatio);
+        painter.drawImage(QRectF(QPointF((page.width() - fitted.width()) / 2, (page.height() - fitted.height()) / 2), fitted), picture);
+    }
+    if (first)
+        return false;
+    painter.end();
+    return true;
 }
 
 QSize App::imageSize(const QUrl &file) const

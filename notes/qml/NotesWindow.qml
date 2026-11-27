@@ -552,6 +552,18 @@ Window {
         if (open !== null)
             App.choosePdf(Logic.titleOf(open));
     }
+    // The Print panel, over this window (kit/Printing.qml): the note as a
+    // PDF made for the paper chosen there.
+    function printOut() {
+        if (open === null)
+            return;
+        const title = Logic.titleOf(open);
+        Printing.show({
+            title: title,
+            make: (file, size) => hands.exportPdf(file, title, size),
+            save: () => win.exportPdf(),
+        }, win);
+    }
     function showSettings() {
         Preferences.show("Notes", "SettingsWindow");
     }
@@ -739,6 +751,7 @@ Window {
     Key { sequences: ["Ctrl+N", "Meta+N"]; name: "new"; run: win.newNote }
     Key { sequences: ["Ctrl+Shift+N", "Meta+Shift+N"]; name: "newFolder"; run: win.newFolder }
     Key { sequences: ["Ctrl+W", "Meta+W"]; name: "close"; run: win.close }
+    Key { sequences: ["Ctrl+P", "Meta+P"]; name: "print"; run: win.printOut }
     Key { sequences: ["Ctrl+M", "Meta+M"]; name: "minimize"; run: win.showMinimized }
     Key { sequences: ["Ctrl+Q", "Meta+Q"]; name: "quit"; run: () => { win.leave(); Qt.quit(); } }
     Key { sequences: ["Ctrl+,", "Meta+,"]; name: "settings"; run: win.showSettings }

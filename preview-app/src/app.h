@@ -6,6 +6,7 @@
 #include <QSize>
 #include <QStringList>
 #include <QUrl>
+#include <QVariantList>
 #include <QtQml/qqmlregistration.h>
 
 class QQmlEngine;
@@ -62,6 +63,9 @@ public:
     Q_INVOKABLE void copyPicture(const QUrl &file, int quarterTurns);
     // Whether the file is a PDF (by what it holds, not its name).
     Q_INVOKABLE bool isPdf(const QUrl &file) const;
+    // Pictures as a PDF to print, a page each, as large as the paper
+    // (its size in points) takes whole, a quarter inch in from its edges.
+    Q_INVOKABLE bool picturesPdf(const QVariantList &files, const QUrl &target, const QSizeF &paper) const;
     // A picture's size as it shows (turned as its camera says); empty when
     // the file isn't a picture that can be read.
     Q_INVOKABLE QSize imageSize(const QUrl &file) const;

@@ -42,6 +42,8 @@ Platform.MenuBar {
         Platform.MenuItem { text: bar.doc.file === "" ? "Save…" : "Save"; shortcut: "Ctrl+S"; onTriggered: bar.doc.act("save", () => bar.doc.save(null)) }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: "Export as PDF…"; onTriggered: bar.doc.exportPdf() }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Print…"; shortcut: "Ctrl+P"; onTriggered: bar.doc.act("print", bar.doc.printOut) }
     }
     Menu {
         title: "Edit"

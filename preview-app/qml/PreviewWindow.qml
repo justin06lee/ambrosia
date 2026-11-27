@@ -187,6 +187,20 @@ Window {
 
     Shortcut { sequences: ["Ctrl+O", "Meta+O"]; onActivated: win.act("open", () => App.chooseFiles()); onActivatedAmbiguously: win.act("open", () => App.chooseFiles()) }
     Shortcut { sequences: ["Ctrl+W", "Meta+W"]; onActivated: win.act("close", win.close); onActivatedAmbiguously: win.act("close", win.close) }
+    Shortcut { sequences: ["Ctrl+P", "Meta+P"]; enabled: win.showsDocument; onActivated: win.act("print", win.printOut); onActivatedAmbiguously: win.act("print", win.printOut) }
+
+    // The Print panel, over this window (kit/Printing.qml): a PDF as it
+    // is, its pages fitted to the paper; pictures as a PDF made for the
+    // paper, a page each.
+    function printOut() {
+        if (!showsDocument)
+            return;
+        const title = name.replace(/\.[^.]+$/, "");
+        if (pdf)
+            Printing.show({ title: title, file: files[0] }, win);
+        else
+            Printing.show({ title: title, pdf: false, make: (file, size) => App.picturesPdf(files, file, size) }, win);
+    }
     Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized); onActivatedAmbiguously: win.act("minimize", win.showMinimized) }
     Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: win.act("quit", Qt.quit); onActivatedAmbiguously: win.act("quit", Qt.quit) }
     Shortcut { sequences: ["Ctrl+,", "Meta+,"]; onActivated: win.act("settings", () => Preferences.show("Preview", "SettingsWindow")); onActivatedAmbiguously: win.act("settings", () => Preferences.show("Preview", "SettingsWindow")) }

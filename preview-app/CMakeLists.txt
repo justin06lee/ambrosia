@@ -12,6 +12,8 @@ endif()
 # private classes and breaks when its build and Qt's differ.
 find_package(Qt6 6.8 REQUIRED COMPONENTS Core Gui Widgets Qml Quick QuickControls2 DBus Pdf)
 find_package(KF6WindowSystem REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(CUPS REQUIRED IMPORTED_TARGET cups)
 qt_standard_project_setup(REQUIRES 6.8)
 
 qt_add_executable(ambrosia-preview
@@ -32,6 +34,9 @@ set_source_files_properties(../kit/PrefRadio.qml PROPERTIES QT_RESOURCE_ALIAS Pr
 # The Colors panel (../kit; screencolor.h is the eyedropper).
 set_source_files_properties(../kit/ColorPanel.qml PROPERTIES QT_RESOURCE_ALIAS ColorPanel.qml)
 set_source_files_properties(../kit/Colors.qml PROPERTIES QT_RESOURCE_ALIAS Colors.qml QT_QML_SINGLETON_TYPE TRUE)
+# The Print panel (../kit; printing.h is what it asks of CUPS).
+set_source_files_properties(../kit/PrintPanel.qml PROPERTIES QT_RESOURCE_ALIAS PrintPanel.qml)
+set_source_files_properties(../kit/Printing.qml PROPERTIES QT_RESOURCE_ALIAS Printing.qml QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/Prefs.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-preview
     URI Preview
@@ -40,6 +45,7 @@ qt_add_qml_module(ambrosia-preview
         src/app.h src/app.cpp
         src/document.h src/document.cpp
         ../kit/screencolor.h
+        ../kit/printing.h ../kit/printing.cpp
     QML_FILES
         ../kit/AboutWindow.qml
         ../kit/About.qml
@@ -49,6 +55,8 @@ qt_add_qml_module(ambrosia-preview
         ../kit/PrefRadio.qml
         ../kit/ColorPanel.qml
         ../kit/Colors.qml
+        ../kit/PrintPanel.qml
+        ../kit/Printing.qml
         qml/Prefs.qml
         qml/SettingsWindow.qml
         qml/Main.qml
@@ -76,7 +84,7 @@ qt_add_qml_module(ambrosia-preview
 target_include_directories(ambrosia-preview PRIVATE src ../kit)
 
 target_link_libraries(ambrosia-preview PRIVATE
-    Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Pdf KF6::WindowSystem
+    Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Pdf KF6::WindowSystem PkgConfig::CUPS
 )
 
 include(GNUInstallDirs)
