@@ -77,6 +77,8 @@ class FileOps : public QObject
     Q_PROPERTY(QString redoText READ redoText NOTIFY undoChanged)
     // How many items Paste would bring (0: the clipboard holds no files).
     Q_PROPERTY(int clipboardCount READ clipboardCount NOTIFY clipboardChanged)
+    // Whether the Trash has nothing in it (KIO's own note of it, trashrc).
+    Q_PROPERTY(bool trashEmpty READ trashEmpty NOTIFY trashChanged)
     // The copies and moves under way, for the progress window.
     Q_PROPERTY(FileJobs *jobs READ jobs CONSTANT)
 
@@ -88,6 +90,7 @@ public:
     bool canRedo() const;
     QString redoText() const;
     int clipboardCount() const;
+    bool trashEmpty() const { return m_trashEmpty; }
     FileJobs *jobs() const { return m_jobs; }
 
     // "untitled folder" (then "untitled folder 2" ...) in dir.
@@ -110,6 +113,9 @@ public:
     Q_INVOKABLE int copy(const QList<QUrl> &urls, const QUrl &dir);
     Q_INVOKABLE int move(const QList<QUrl> &urls, const QUrl &dir);
     Q_INVOKABLE int trash(const QList<QUrl> &urls);
+    // The app menu's Empty Trash…: asks first, as Finder does, then erases
+    // what is in the Trash. Not one of Undo's.
+    Q_INVOKABLE void emptyTrash();
     Q_INVOKABLE int putBack(const QList<QUrl> &urls);
     Q_INVOKABLE void copyToClipboard(const QList<QUrl> &urls);
     // The clipboard's files into dir: copied, or moved (Move Item Here, or
@@ -124,6 +130,7 @@ public:
 Q_SIGNALS:
     void undoChanged();
     void clipboardChanged();
+    void trashChanged();
     void finished(int id, const QList<QUrl> &urls, bool ok);
 
 private:
@@ -143,6 +150,8 @@ private:
     QString m_redone; // the label of the command being redone, until its job finishes
     int m_next = 0;
     FileJobs *m_jobs;
+    bool m_trashEmpty = true;
+    void readTrash();
 
     // Tags aren't KIO's to undo: their edits are kept here, each with the
     // KIO command that was last when it was made, so Undo takes back

@@ -18,6 +18,9 @@ qt_add_executable(ambrosia-textedit
 target_compile_definitions(ambrosia-textedit PRIVATE TEXTEDIT_VERSION="${PROJECT_VERSION}")
 set_source_files_properties(qml/Look.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 # The module is TextEditor: TextEdit is Qt Quick's own type.
+# The About panel every app of ours shows, from one source (../kit).
+set_source_files_properties(../kit/AboutWindow.qml PROPERTIES QT_RESOURCE_ALIAS AboutWindow.qml)
+set_source_files_properties(../kit/About.qml PROPERTIES QT_RESOURCE_ALIAS About.qml QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-textedit
     URI TextEditor
     VERSION 1.0
@@ -25,6 +28,8 @@ qt_add_qml_module(ambrosia-textedit
         src/app.h src/app.cpp
         src/editor.h src/editor.cpp
     QML_FILES
+        ../kit/AboutWindow.qml
+        ../kit/About.qml
         qml/Main.qml
         qml/EditorWindow.qml
         qml/Look.qml

@@ -12,6 +12,14 @@ Platform.MenuBar {
     required property var preview
     readonly property var view: preview.view
 
+    // The menu named for the app. Ambrosia's menu bar shows its rows in its
+    // own menu of that name, over Hide and Quit (shell/AppMenu.qml), as a
+    // Mac's app menu has them; elsewhere it is one more menu.
+    Platform.Menu {
+        title: "Preview"
+        Platform.MenuItem { text: "About Preview"; onTriggered: About.show("Preview", "org.ambrosia.preview") }
+    }
+
     component Menu: Platform.Menu {
         onAboutToShow: bar.preview.menusOpen += 1
         onAboutToHide: bar.preview.menusOpen = Math.max(0, bar.preview.menusOpen - 1)

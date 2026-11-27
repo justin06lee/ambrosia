@@ -11,6 +11,14 @@ Platform.MenuBar {
 
     required property var calculator
 
+    // The menu named for the app. Ambrosia's menu bar shows its rows in its
+    // own menu of that name, over Hide and Quit (shell/AppMenu.qml), as a
+    // Mac's app menu has them; elsewhere it is one more menu.
+    Platform.Menu {
+        title: "Calculator"
+        Platform.MenuItem { text: "About Calculator"; onTriggered: About.show("Calculator", "accessories-calculator") }
+    }
+
     Platform.Menu {
         onAboutToShow: bar.calculator.menusOpen += 1
         onAboutToHide: bar.calculator.menusOpen = Math.max(0, bar.calculator.menusOpen - 1)

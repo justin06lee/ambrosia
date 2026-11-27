@@ -14,6 +14,14 @@ Platform.MenuBar {
     readonly property bool rich: doc.rich
     readonly property var edit: doc.edit
 
+    // The menu named for the app. Ambrosia's menu bar shows its rows in its
+    // own menu of that name, over Hide and Quit (shell/AppMenu.qml), as a
+    // Mac's app menu has them; elsewhere it is one more menu.
+    Platform.Menu {
+        title: "TextEdit"
+        Platform.MenuItem { text: "About TextEdit"; onTriggered: About.show("TextEdit", "org.ambrosia.textedit") }
+    }
+
     component Menu: Platform.Menu {
         onAboutToShow: bar.doc.menusOpen += 1
         onAboutToHide: bar.doc.menusOpen = Math.max(0, bar.doc.menusOpen - 1)

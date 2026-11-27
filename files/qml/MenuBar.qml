@@ -12,6 +12,16 @@ Platform.MenuBar {
 
     required property var finder
 
+    // The menu named for the app. Ambrosia's menu bar shows its rows in its
+    // own menu of that name, over Hide and Quit (shell/AppMenu.qml), as a
+    // Mac's app menu has them; elsewhere it is one more menu.
+    Platform.Menu {
+        title: "Files"
+        Platform.MenuItem { text: "About Files"; onTriggered: About.show("Files", "org.ambrosia.files") }
+        Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Empty Trash…"; shortcut: "Ctrl+Shift+Backspace"; enabled: !FileOps.trashEmpty; onTriggered: FileOps.emptyTrash() }
+    }
+
     Platform.Menu {
         onAboutToShow: {
             bar.finder.menusOpen += 1;

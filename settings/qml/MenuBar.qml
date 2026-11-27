@@ -13,6 +13,14 @@ Platform.MenuBar {
     // The text field with the keyboard, for Edit's items.
     readonly property var field: settings.activeFocusItem instanceof TextInput ? settings.activeFocusItem : null
 
+    // The menu named for the app. Ambrosia's menu bar shows its rows in its
+    // own menu of that name, over Hide and Quit (shell/AppMenu.qml), as a
+    // Mac's app menu has them; elsewhere it is one more menu.
+    Platform.Menu {
+        title: "System Settings"
+        Platform.MenuItem { text: "About System Settings"; onTriggered: About.show("System Settings", "org.ambrosia.settings") }
+    }
+
     Platform.Menu {
         onAboutToShow: bar.settings.menusOpen += 1
         onAboutToHide: bar.settings.menusOpen = Math.max(0, bar.settings.menusOpen - 1)

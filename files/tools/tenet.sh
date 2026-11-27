@@ -19,6 +19,8 @@ case ${1:-} in
 build)
     remote "mkdir -p $dir/src"
     rsync -az --delete --exclude /tools/__pycache__ -e "ssh -o BatchMode=yes" "$here/" "$host:$dir/src/"
+    # What every app of ours shares (the About panel), beside it as in the repo.
+    rsync -az --delete -e "ssh -o BatchMode=yes" "$here/../kit/" "$host:$dir/kit/"
     remote "cd $dir && { [ -f build/build.ninja ] || cmake -S src -B build -G Ninja -DCMAKE_BUILD_TYPE=RelWithDebInfo >/dev/null; } && systemd-run --scope --quiet --collect -p MemoryMax=3G -p MemorySwapMax=0 nice -n 19 ionice -c3 cmake --build build -j2 2>&1 | grep -E 'error|warning: unused|FAILED|ninja: ' | head -60"
     ;;
 grab)

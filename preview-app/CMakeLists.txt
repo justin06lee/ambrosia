@@ -21,6 +21,9 @@ qt_add_executable(ambrosia-preview
 )
 target_compile_definitions(ambrosia-preview PRIVATE PREVIEW_VERSION="${PROJECT_VERSION}")
 set_source_files_properties(qml/Look.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
+# The About panel every app of ours shows, from one source (../kit).
+set_source_files_properties(../kit/AboutWindow.qml PROPERTIES QT_RESOURCE_ALIAS AboutWindow.qml)
+set_source_files_properties(../kit/About.qml PROPERTIES QT_RESOURCE_ALIAS About.qml QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-preview
     URI Preview
     VERSION 1.0
@@ -28,6 +31,8 @@ qt_add_qml_module(ambrosia-preview
         src/app.h src/app.cpp
         src/document.h src/document.cpp
     QML_FILES
+        ../kit/AboutWindow.qml
+        ../kit/About.qml
         qml/Main.qml
         qml/PreviewWindow.qml
         qml/Look.qml

@@ -12,6 +12,14 @@ Platform.MenuBar {
 
     required property var monitor
 
+    // The menu named for the app. Ambrosia's menu bar shows its rows in its
+    // own menu of that name, over Hide and Quit (shell/AppMenu.qml), as a
+    // Mac's app menu has them; elsewhere it is one more menu.
+    Platform.Menu {
+        title: "Activity Monitor"
+        Platform.MenuItem { text: "About Activity Monitor"; onTriggered: About.show("Activity Monitor", "org.ambrosia.activitymonitor") }
+    }
+
     component Menu: Platform.Menu {
         onAboutToShow: bar.monitor.menusOpen += 1
         onAboutToHide: bar.monitor.menusOpen = Math.max(0, bar.monitor.menusOpen - 1)

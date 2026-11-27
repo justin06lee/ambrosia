@@ -5,7 +5,11 @@
 #include "tags.h"
 
 #include <KIO/AskUserActionInterface>
+#include <KConfig>
+#include <KConfigGroup>
+#include <KDirWatch>
 #include <KIO/CopyJob>
+#include <KIO/EmptyTrashJob>
 #include <KIO/FileUndoManager>
 #include <KIO/JobUiDelegateFactory>
 #include <KIO/MkdirJob>
@@ -23,6 +27,8 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProcess>
+#include <QPushButton>
+#include <QStandardPaths>
 #include <QRegularExpression>
 #include <QSysInfo>
 #include <QtConcurrentRun>
@@ -284,6 +290,13 @@ FileOps::FileOps(QObject *parent)
         if (App *app = App::instance())
             app->openProgress();
     });
+    // KIO notes whether the Trash is empty in trashrc, whoever fills or
+    // empties it.
+    auto *watch = new KDirWatch(this);
+    watch->addFile(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QStringLiteral("/trashrc"));
+    connect(watch, &KDirWatch::dirty, this, &FileOps::readTrash);
+    connect(watch, &KDirWatch::created, this, &FileOps::readTrash);
+    readTrash();
     FileUndoManager *undo = FileUndoManager::self();
     if (!undoUi) {
         undoUi = new UndoUi;
@@ -578,6 +591,39 @@ int FileOps::move(const QList<QUrl> &urls, const QUrl &dir)
     FileUndoManager::self()->recordCopyJob(job);
     m_jobs->add(job, QStringLiteral("Move"), QStringLiteral("Moving %1 to %2").arg(itemsWords(moving), folderWords(dir)));
     return start(job, made, QStringLiteral("Move of ") + itemsText(moving));
+}
+
+void FileOps::readTrash()
+{
+    const KConfig config(QStringLiteral("trashrc"), KConfig::SimpleConfig);
+    const bool empty = config.group(QStringLiteral("Status")).readEntry("Empty", true);
+    if (empty == m_trashEmpty)
+        return;
+    m_trashEmpty = empty;
+    Q_EMIT trashChanged();
+}
+
+void FileOps::emptyTrash()
+{
+    auto *box = new QMessageBox(QMessageBox::Warning, QStringLiteral("Files"),
+                                QStringLiteral("Are you sure you want to permanently erase the items in the Trash?"), QMessageBox::NoButton);
+    box->setInformativeText(QStringLiteral("You can’t undo this action."));
+    box->addButton(QStringLiteral("Cancel"), QMessageBox::RejectRole);
+    QPushButton *empty = box->addButton(QStringLiteral("Empty Trash"), QMessageBox::AcceptRole);
+    box->setDefaultButton(empty);
+    box->setAttribute(Qt::WA_DeleteOnClose);
+    connect(box, &QMessageBox::finished, this, [box, empty] {
+        if (box->clickedButton() != empty)
+            return;
+        KIO::Job *job = KIO::emptyTrash();
+        // The crumple of it going, once it has (the sound theme's
+        // trash-empty), as the Dock's Empty Trash plays it.
+        connect(job, &KJob::result, job, [](KJob *done) {
+            if (!done->error())
+                QProcess::startDetached(QStringLiteral("/usr/lib/ambrosia/sound"), {QStringLiteral("trash-empty")});
+        });
+    });
+    box->open();
 }
 
 int FileOps::trash(const QList<QUrl> &urls)

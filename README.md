@@ -207,6 +207,7 @@ preview-app/   Preview (ambrosia-preview), for pictures and PDFs: the window in 
 textedit/      TextEdit (ambrosia-textedit), plain and rich text: the window in QML, the document through
                src/editor.cpp, RTF read and written by qml/rtf.mjs, which rtf.test.ts runs under bun on
                Cocoa's own samples (samples/)
+kit/           what our apps share, compiled into each: the About panel
 activity-monitor/ Activity Monitor (ambrosia-activity-monitor): the window in QML, the kernel read by
                src/sampler.cpp, what the numbers mean and how they are written in qml/monitor.mjs, which
                monitor.test.ts runs under bun
