@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<!DOCTYPE gui SYSTEM "kpartgui.dtd">
+<!--
+  Konsole's window as the session's Terminal: Konsole 26.08's own konsoleui.rc
+  (its 20th; KDE, GPL-2.0-or-later) with its menus named and ordered as a
+  Mac's Terminal has them (Shell, Edit, View) and the toolbar hidden until
+  asked for. Installed to /usr/share/kxmlgui5/konsole, where the higher
+  number below makes Konsole take it over the one built into it.
+  sessionui.rc beside it fills these menus' groups. When Konsole gains
+  actions, take them over from its newer file.
+  The first menu keeps KDE's name for it, "file", so it stays first (one
+  KDE doesn't know goes after View), and says noMerge so its title is the
+  one written here and not KDE's File.
+  This comment must not hold the word for that number: KDE's reader takes
+  the first one after the doctype for the attribute, and passes the file
+  over when no equals sign follows it.
+-->
+<gui name="konsole" version="9020">
+    <MenuBar>
+        <Menu name="file" noMerge="1"><text>Shell</text>
+            <Action name="new-window"/>
+            <Action name="new-tab"/>
+            <Action name="clone-tab"/>
+            <Separator/>
+            <DefineGroup name="session-settings"/>
+            <Action name="manage-profiles"/>
+            <Separator/>
+            <DefineGroup name="session-operations"/>
+            <Separator/>
+            <Action name="bookmark"/>
+            <Separator/>
+            <DefineGroup name="session-tab-operations"/>
+            <Action name="close-window"/>
+        </Menu>
+        <Menu name="edit"><text>Edit</text>
+            <DefineGroup name="session-edit-operations"/>
+        </Menu>
+        <Menu name="view"><text>View</text>
+            <Menu name="view-split"><text>Split View</text>
+                <Action name="split-view-left-right"/>
+                <Action name="split-view-top-bottom"/>
+                <Action name="split-view-left-right-next-tab"/>
+                <Action name="split-view-top-bottom-next-tab"/>
+                <Action name="close-active-view"/>
+                <Action name="close-other-views"/>
+                <Action name="expand-active-view"/>
+                <Action name="shrink-active-view"/>
+                <Action name="toggle-maximize-current-view"/>
+                <Action name="equal-size-view"/>
+            </Menu>
+            <Separator/>
+            <Action name="detach-tab" />
+            <Action name="detach-view"/>
+            <Action name="save-layout"/>
+            <Action name="load-layout"/>
+            <Separator/>
+            <DefineGroup name="session-view-operations"/>
+            <Separator/>
+            <Menu name="plugins">
+                <text>Plugins</text>
+                <ActionList name="plugin-submenu" />
+            </Menu>
+            <Separator/>
+            <Action name="view-full-screen"/>
+        </Menu>
+        <Menu name="settings"><text>Settings</text>
+            <Action name="configure-settings"/>
+            <Action name="configure-shortcuts"/>
+            <Action name="configure-notifications"/>
+        </Menu>
+        <Menu name="help"><text>Help</text>
+        </Menu>
+    </MenuBar>
+    <ToolBar name="mainToolBar" hidden="true">
+        <text>Main Toolbar</text>
+        <index>0</index>
+        <Action name="new-tab"/>
+        <Action name="split-view"/>
+    </ToolBar>
+    <ActionProperties>
+        <Action name="clone-tab" text="Duplicate Tab"/>
+        <Action name="manage-profiles" text="Profiles…"/>
+        <Action name="configure-settings" text="Settings…"/>
+    </ActionProperties>
+</gui>

@@ -229,9 +229,15 @@ package_ambrosia-shell() {
     session/xdg/plasmaparc -t "$pkgdir/etc/xdg/ambrosia/"
   # Open and Save in every app are Files' panels (the desktop portal).
   install -Dm644 session/xdg/xdg-desktop-portal/portals.conf -t "$pkgdir/etc/xdg/ambrosia/xdg-desktop-portal/"
-  # Konsole's profile and key table for the session (konsolerc names the
-  # profile): Command chords Konsole has no use for don't reach the shell.
-  install -Dm644 session/konsole/Ambrosia.profile session/konsole/ambrosia.keytab -t "$pkgdir/usr/share/konsole/"
+  # Konsole as the session's Terminal: two profiles and their colors after a
+  # Mac's Clear Dark and Clear Light (konsolerc picks by the appearance), the
+  # key table (Command chords Konsole has no use for don't reach the shell),
+  # its menus as Terminal's with no toolbar, and its name in the session.
+  install -Dm644 session/konsole/ClearDark.profile session/konsole/ClearLight.profile \
+    session/konsole/ClearDark.colorscheme session/konsole/ClearLight.colorscheme \
+    session/konsole/ambrosia.keytab -t "$pkgdir/usr/share/konsole/"
+  install -Dm644 session/konsole/konsoleui.rc session/konsole/sessionui.rc -t "$pkgdir/usr/share/kxmlgui5/konsole/"
+  install -Dm644 session/applications/org.kde.konsole.desktop -t "$pkgdir/usr/share/ambrosia/xdg/applications/"
   # The session's GSettings defaults (DCONF_PROFILE=ambrosia); dconf's own
   # pacman hook compiles the database.
   install -Dm644 session/dconf/profile "$pkgdir/etc/dconf/profile/ambrosia"

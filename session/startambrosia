@@ -9,6 +9,9 @@ export XDG_SESSION_DESKTOP=ambrosia
 # so they apply in this session only. kdeglobals names the session's
 # look-and-feel package, org.ambrosia.desktop.
 export XDG_CONFIG_DIRS="/etc/xdg/ambrosia:${XDG_CONFIG_DIRS:-/etc/xdg}"
+# Apps that stand in for a Mac's under the Mac's name (Konsole as Terminal):
+# their desktop entries here come before the apps' own.
+export XDG_DATA_DIRS="/usr/share/ambrosia/xdg:${XDG_DATA_DIRS:-/usr/local/share:/usr/share}"
 # GSettings defaults for this session only, over the user's own: GTK apps'
 # window controls on the left (/etc/dconf/db/ambrosia.d).
 export DCONF_PROFILE=ambrosia
@@ -43,6 +46,15 @@ __aurorae__svg__Ambrosia*)
     kwriteconfig6 --file "$config/kwinrc" --group org.kde.kdecoration2 --key "$key" --delete
   done ;;
 esac
+
+# Konsole remembers which of its toolbars show. As the session's Terminal it
+# has none until asked (session/konsole/konsoleui.rc): what it remembered
+# from before that is dropped, once, so the new default holds.
+konsole_state="${XDG_STATE_HOME:-$HOME/.local/state}/konsolestaterc"
+if [ -f "$konsole_state" ] && [ "$(kreadconfig6 --file "$konsole_state" --group Ambrosia --key toolbars)" != 1 ]; then
+  kwriteconfig6 --file "$konsole_state" --group MainWindow --key State --delete
+  kwriteconfig6 --file "$konsole_state" --group Ambrosia --key toolbars 1
+fi
 
 # Open and Save are Files' own panels in every app that asks the desktop
 # portal for one (session/xdg/xdg-desktop-portal/portals.conf). Qt and KDE

@@ -1,0 +1,28 @@
+# Konsole under the name a Mac gives its terminal. The session puts
+# /usr/share/ambrosia/xdg before the system's data folders (startambrosia),
+# so this entry stands in front of Konsole's own: the Dock, the menu bar and
+# Search say Terminal. Outside the session Konsole keeps its name.
+[Desktop Entry]
+Type=Application
+Name=Terminal
+GenericName=Terminal
+Comment=Use the command line
+TryExec=konsole
+Exec=konsole
+Icon=utilities-terminal
+Categories=Qt;KDE;System;TerminalEmulator;
+Actions=NewWindow;NewTab;
+StartupNotify=true
+X-KDE-AuthorizeAction=shell_access
+StartupWMClass=konsole
+Keywords=terminal;console;script;run;execute;command;command-line;commandline;cli;bash;sh;shell;zsh;cmd;command prompt;xterm;tty;pty;fish;konsole;
+
+[Desktop Action NewWindow]
+Name=New Window
+Icon=window-new
+Exec=konsole
+
+[Desktop Action NewTab]
+Name=New Tab
+Icon=tab-new
+Exec=konsole --new-tab
