@@ -152,6 +152,17 @@ export const appIcons: Record<string, AppIcon> = {
       `<g fill="${white}">${legs}<rect x="84" y="84" width="88" height="88" rx="14"/></g>` +
       `<rect x="106" y="106" width="44" height="44" rx="7" fill="#22a99c"/>`,
   },
+  // A capital and a small letter, drawn as strokes so no font is needed.
+  "font-book": {
+    names: [
+      "org.ambrosia.fontbook", "kfontview", "org.kde.kfontview", "preferences-desktop-font-installer", "font-manager",
+      "org.gnome.font-viewer", "gnome-font-viewer", "font-viewer",
+    ],
+    tile: ["#fbfbfd", "#d6d6db"],
+    art:
+      `<path d="M58 176L96 82H108L146 176M72 144H132" fill="none" stroke="#2c2c2e" stroke-width="15" ${round}/>` +
+      `<path d="M199 132V176M199 154a21 21 0 1 0-42 0a21 21 0 1 0 42 0" fill="none" stroke="#1d70ee" stroke-width="14" ${round}/>`,
+  },
 };
 
 /** Icons drawn before this file (assets/icons/), and the other names they
@@ -293,6 +304,16 @@ export const fileKinds: Record<string, FileKind> = {
     art: "",
     small: "",
     names: ["unknown", "application-octet-stream", "application-x-zerosize"],
+  },
+  // A font: its capital and small letter.
+  font: {
+    on: "page",
+    art: line("M37 98L51.5 60h4L70 98M42.5 84h22", "#8e8e93", 5.5) + line("M91 79v19M91 88.5a8.5 8.5 0 1 0-17 0a8.5 8.5 0 1 0 17 0", "#8e8e93", 5),
+    small: line("M4.9 12.2L7 6.6l2.1 5.6M5.6 10.4h2.8M11.6 9.6v2.6M11.6 10.9a1.3 1.3 0 1 0-2.6 0a1.3 1.3 0 1 0 2.6 0", smallMark, 0.8),
+    names: [
+      "font-x-generic", "font-ttf", "font-otf", "font-collection", "font-woff", "font-woff2", "application-x-font-ttf", "application-x-font-otf",
+      "application-x-font-type1", "application-x-font-afm", "application-x-font-ttx", "application-vnd.ms-opentype", "fonts-package",
+    ],
   },
   // Writing.
   text: {

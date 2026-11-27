@@ -52,7 +52,9 @@ text searched, selected and copied. TextEdit writes plain text and rich
 text with a format bar and a ruler, in RTF a Mac's TextEdit reads and
 writes too. Activity Monitor lists every process on five tabs (CPU, Memory,
 Energy, Disk, Network) over a panel about the whole computer, inspects one
-and quits one.
+and quits one. Font Book shows the computer's typefaces as cards, samples
+or a list, a typeface's styles and every character it draws, what its
+files say of it, and installs a font file for the user or removes one.
 
 ## Quick start
 
@@ -212,6 +214,9 @@ kit/           what our apps share, compiled into each: the About panel, the Set
 activity-monitor/ Activity Monitor (ambrosia-activity-monitor): the window in QML, the kernel read by
                src/sampler.cpp, what the numbers mean and how they are written in qml/monitor.mjs, which
                monitor.test.ts runs under bun
+fontbook/      Font Book (ambrosia-fontbook): the windows in QML, the fonts listed through fontconfig and
+               their files read with FreeType by src/library.cpp, what is listed and in what words in
+               qml/fontbook.mjs, which fontbook.test.ts runs under bun
 docs/GAPS.md   what still tells Ambrosia from a Mac, biggest first, and the rounds closing it
 docs/finder/   the Files plan: research, stack, v1 scope, performance targets
 docs/settings/ the Settings plan: the panes, their backends, the order of work

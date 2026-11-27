@@ -2,7 +2,8 @@
 # Ambrosia's file manager (Dolphin stays installed), pictures and PDFs in
 # Preview (the kinds its desktop file names), plain text and RTF in
 # TextEdit, and an archive is expanded beside itself by Archive Utility
-# (Files; Ark is still there to look inside one). A user's own
+# (Files; Ark is still there to look inside one), and a font file opens
+# in Font Book, which shows it and offers to install it. A user's own
 # ~/.config/mimeapps.list still wins.
 [Default Applications]
 inode/directory=org.ambrosia.files.desktop;
@@ -64,3 +65,13 @@ application/x-cpio-compressed=org.ambrosia.archive.desktop;
 application/x-lha=org.ambrosia.archive.desktop;
 application/vnd.ms-cab-compressed=org.ambrosia.archive.desktop;
 application/x-xar=org.ambrosia.archive.desktop;
+font/ttf=org.ambrosia.fontbook.desktop;
+font/otf=org.ambrosia.fontbook.desktop;
+font/collection=org.ambrosia.fontbook.desktop;
+font/sfnt=org.ambrosia.fontbook.desktop;
+application/x-font-ttf=org.ambrosia.fontbook.desktop;
+application/x-font-otf=org.ambrosia.fontbook.desktop;
+application/x-font-truetype=org.ambrosia.fontbook.desktop;
+application/x-font-opentype=org.ambrosia.fontbook.desktop;
+application/vnd.ms-opentype=org.ambrosia.fontbook.desktop;
+application/x-font-type1=org.ambrosia.fontbook.desktop;

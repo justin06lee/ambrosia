@@ -33,8 +33,23 @@ Rectangle {
     Accessible.name: text
     Keys.onSpacePressed: open()
 
+    // Open under the button, not over it: for a list that may be long. A
+    // menu can't reach above its window's top on Wayland (a window doesn't
+    // know where it is on the screen), so with the current row far down
+    // the list it would come up scrolled.
+    property bool below: false
+
     function open() {
-        menu.open(over, entries.objectAt(Math.max(0, currentIndex)));
+        if (below)
+            menu.open(under);
+        else
+            menu.open(over, entries.objectAt(Math.max(0, currentIndex)));
+    }
+    Item {
+        id: under
+        y: button.height + 3
+        width: 1
+        height: 1
     }
     // Where the menu's current row goes: its top left at this one's bottom
     // left, which puts the row's text over the button's (the menu's rows
