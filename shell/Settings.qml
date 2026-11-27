@@ -101,7 +101,7 @@ Singleton {
         JsonAdapter {
             id: adapter
             property list<string> dock: [
-                "org.ambrosia.files", "firefox", "org.kde.konsole", "org.ambrosia.textedit",
+                "org.ambrosia.files", "firefox", "org.kde.konsole", "org.ambrosia.notes", "org.ambrosia.textedit",
                 "org.ambrosia.preview", "org.kde.discover", "org.ambrosia.settings",
             ]
             property string appearance: "light"

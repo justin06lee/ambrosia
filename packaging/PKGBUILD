@@ -14,14 +14,15 @@
 # ambrosia-activity-monitor Activity Monitor: processes, memory, energy, disk, network (activity-monitor/, built with CMake)
 # ambrosia-fontbook Font Book: the computer's fonts, and adding your own (fontbook/, built with CMake)
 # ambrosia-disk-utility Disk Utility: the computer's disks and volumes (disk-utility/, built with CMake)
+# ambrosia-notes Notes: notes and checklists in folders, kept as Markdown files (notes/, built with CMake)
 # ambrosia-desktop everything a fresh install needs, the ISO installs this
 
 pkgbase=ambrosia
-pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-glass ambrosia-shell ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-textedit ambrosia-activity-monitor ambrosia-fontbook ambrosia-disk-utility ambrosia-desktop)
+pkgname=(ambrosia-keyring ambrosia-theme ambrosia-decoration ambrosia-style ambrosia-input ambrosia-glass ambrosia-shell ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-textedit ambrosia-activity-monitor ambrosia-fontbook ambrosia-disk-utility ambrosia-notes ambrosia-desktop)
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="A Linux desktop that looks and moves as one thing"
-# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-calculator, ambrosia-preview, ambrosia-textedit, ambrosia-activity-monitor, ambrosia-fontbook, ambrosia-disk-utility, ambrosia-decoration, ambrosia-style, ambrosia-input and ambrosia-glass; the rest are arch=(any).
+# x86_64 for ambrosia-files, ambrosia-settings, ambrosia-calculator, ambrosia-preview, ambrosia-textedit, ambrosia-activity-monitor, ambrosia-fontbook, ambrosia-disk-utility, ambrosia-notes, ambrosia-decoration, ambrosia-style, ambrosia-input and ambrosia-glass; the rest are arch=(any).
 arch=(x86_64)
 url="https://github.com/justin06lee/ambrosia"
 license=(LicenseRef-TBD)
@@ -62,6 +63,8 @@ build() {
   cmake --build "$srcdir/build-fontbook"
   cmake -S disk-utility -B "$srcdir/build-disk-utility" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-disk-utility"
+  cmake -S notes -B "$srcdir/build-notes" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
+  cmake --build "$srcdir/build-notes"
   cmake -S style -B "$srcdir/build-style" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
   cmake --build "$srcdir/build-style"
   cmake -S input -B "$srcdir/build-input" -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
@@ -337,11 +340,20 @@ package_ambrosia-disk-utility() {
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-disk-utility"
 }
 
+package_ambrosia-notes() {
+  pkgdesc="Notes, Ambrosia's: notes and checklists in folders, each kept as a Markdown file"
+  # ambrosia-theme: the Ambrosia QML Theme module and the org.ambrosia.notes
+  # icon. The notes are files under ~/.local/share/ambrosia/notes; nothing
+  # else is needed to read or write them. The QML is in the binary.
+  depends=(ambrosia-theme qt6-base qt6-declarative kwindowsystem inter-font)
+  DESTDIR="$pkgdir" cmake --install "$srcdir/build-notes"
+}
+
 package_ambrosia-desktop() {
   pkgdesc="The Ambrosia desktop: the shell plus the system services and apps a new install needs"
   arch=(any)
   depends=(
-    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-textedit ambrosia-activity-monitor ambrosia-fontbook ambrosia-disk-utility ambrosia-style ambrosia-input
+    ambrosia-shell ambrosia-keyring ambrosia-files ambrosia-settings ambrosia-calculator ambrosia-preview ambrosia-textedit ambrosia-activity-monitor ambrosia-fontbook ambrosia-disk-utility ambrosia-notes ambrosia-style ambrosia-input
     # Low Power Mode (Battery), and printing (Printers & Scanners): ipp-usb
     # for the printers that plug in, started when one does.
     power-profiles-daemon cups avahi nss-mdns ipp-usb
