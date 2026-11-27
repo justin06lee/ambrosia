@@ -62,12 +62,15 @@ Platform.MenuBar {
         title: "Format"
         Menu {
             title: "Font"
+            Platform.MenuItem { text: "Show Fonts"; shortcut: "Ctrl+T"; enabled: bar.rich; onTriggered: bar.doc.act("fonts", bar.doc.showFonts) }
             Platform.MenuItem { text: "Bold"; shortcut: "Ctrl+B"; enabled: bar.rich; onTriggered: bar.doc.act("bold", () => bar.doc.format("bold")) }
             Platform.MenuItem { text: "Italic"; shortcut: "Ctrl+I"; enabled: bar.rich; onTriggered: bar.doc.act("italic", () => bar.doc.format("italic")) }
             Platform.MenuItem { text: "Underline"; shortcut: "Ctrl+U"; enabled: bar.rich; onTriggered: bar.doc.act("underline", () => bar.doc.format("underline")) }
             Platform.MenuSeparator {}
             Platform.MenuItem { text: "Bigger"; shortcut: "Ctrl++"; enabled: bar.rich; onTriggered: bar.doc.act("bigger", () => bar.doc.format("bigger")) }
             Platform.MenuItem { text: "Smaller"; shortcut: "Ctrl+-"; enabled: bar.rich; onTriggered: bar.doc.act("smaller", () => bar.doc.format("smaller")) }
+            Platform.MenuSeparator {}
+            Platform.MenuItem { text: "Show Colors"; shortcut: "Ctrl+Shift+C"; enabled: bar.rich; onTriggered: bar.doc.act("colors", bar.doc.showColors) }
         }
         Menu {
             title: "Text"

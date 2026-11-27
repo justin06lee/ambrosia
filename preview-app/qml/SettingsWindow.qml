@@ -1,6 +1,5 @@
 import QtQuick
 import QtQuick.Window
-import Qt.labs.platform as Platform
 import Ambrosia
 import Preview
 
@@ -61,10 +60,9 @@ PreferencesWindow {
                 }
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: {
-                        picker.open();
-                        picker.currentColor = Prefs.ground !== "" ? Prefs.ground : Look.ground;
-                    }
+                    // The Colors panel (the kit's): each color chosen
+                    // there is the ground at once.
+                    onClicked: Colors.show(Prefs.ground !== "" ? Prefs.ground : Look.ground, (color) => Prefs.ground = color.toString(), settings)
                 }
             }
             Rectangle {
@@ -90,11 +88,6 @@ PreferencesWindow {
                     anchors.fill: parent
                     onClicked: Prefs.ground = ""
                 }
-            }
-            Platform.ColorDialog {
-                id: picker
-                title: "Window Background"
-                onAccepted: Prefs.ground = color.toString()
             }
         }
     }

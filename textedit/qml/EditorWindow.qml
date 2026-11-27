@@ -46,7 +46,12 @@ Window {
     readonly property bool looksActive: active || menusOpen > 0 || shellOpen || App.active
     readonly property bool maximized: visibility === Window.Maximized || visibility === Window.FullScreen
     readonly property int corner: maximized ? 0 : Look.windowRadius
-    onActiveChanged: if (active) menusOpen = 0
+    onActiveChanged: {
+        if (active) {
+            menusOpen = 0;
+            tellPanels();
+        }
+    }
 
     readonly property real ratio: Screen.devicePixelRatio
     readonly property real titleBar: Look.snap(Look.titleBar, ratio)
@@ -86,6 +91,48 @@ Window {
         case "smaller": hands.bigger(-1); break;
         default: hands.setAlignment(what);
         }
+    }
+
+    // The Fonts and Colors panels (the kit's), for the selection: each
+    // choice made there goes to the Editor, and the panels show what the
+    // selection has as it moves.
+    function fontNow() {
+        return { family: App.family(hands.family), weight: hands.weight, italic: hands.italic, size: hands.size };
+    }
+    function applyFont(family, weight, italic, size, what) {
+        if (!rich)
+            return;
+        if (what === "size") {
+            hands.setSize(size);
+        } else {
+            if (what === "family")
+                hands.setFamily(family);
+            hands.setStyle(weight, italic);
+        }
+    }
+    function colorNow() {
+        return hands.color.valid ? hands.color : Look.text;
+    }
+    function applyColor(color) {
+        if (rich)
+            hands.setColor(hands.storedName(color));
+    }
+    function showFonts() {
+        if (rich)
+            Fonts.show(App, fontNow(), applyFont, win);
+    }
+    function showColors() {
+        if (rich)
+            Colors.show(colorNow(), applyColor, win);
+    }
+    // (Not while a choice from a panel is on its way in: the panel knows.)
+    function tellPanels() {
+        if (!rich || !active)
+            return;
+        if (Fonts.shown)
+            Fonts.follow(fontNow(), applyFont);
+        if (Colors.shown)
+            Colors.follow(colorNow(), applyColor);
     }
 
     // Reads a file into `content`; what went wrong, or nothing.
@@ -317,6 +364,7 @@ Window {
         cursorPosition: win.edit?.cursorPosition ?? 0
         selectionStart: win.edit?.selectionStart ?? 0
         selectionEnd: win.edit?.selectionEnd ?? 0
+        onFormatChanged: win.tellPanels()
     }
 
     Component.onCompleted: {
@@ -353,6 +401,8 @@ Window {
     Shortcut { sequences: ["Ctrl+S", "Meta+S"]; onActivated: win.act("save", () => win.save(null)); onActivatedAmbiguously: win.act("save", () => win.save(null)) }
     Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized); onActivatedAmbiguously: win.act("minimize", win.showMinimized) }
     Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: win.act("quit", win.app.quit); onActivatedAmbiguously: win.act("quit", win.app.quit) }
+    Shortcut { sequences: ["Ctrl+T", "Meta+T"]; enabled: win.rich; onActivated: win.act("fonts", win.showFonts); onActivatedAmbiguously: win.act("fonts", win.showFonts) }
+    Shortcut { sequences: ["Ctrl+Shift+C", "Meta+Shift+C"]; enabled: win.rich; onActivated: win.act("colors", win.showColors); onActivatedAmbiguously: win.act("colors", win.showColors) }
     Shortcut { sequences: ["Ctrl+F", "Meta+F"]; onActivated: win.act("find", win.find); onActivatedAmbiguously: win.act("find", win.find) }
     Shortcut { sequences: ["Ctrl+G", "Meta+G"]; onActivated: win.act("findNext", () => win.findNext(1)); onActivatedAmbiguously: win.act("findNext", () => win.findNext(1)) }
     Shortcut { sequences: ["Ctrl+Shift+G", "Meta+Shift+G"]; onActivated: win.act("findPrevious", () => win.findNext(-1)); onActivatedAmbiguously: win.act("findPrevious", () => win.findNext(-1)) }

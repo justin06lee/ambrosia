@@ -25,6 +25,11 @@ set_source_files_properties(../kit/About.qml PROPERTIES QT_RESOURCE_ALIAS About.
 set_source_files_properties(../kit/PrefCheck.qml PROPERTIES QT_RESOURCE_ALIAS PrefCheck.qml)
 set_source_files_properties(../kit/PrefPopup.qml PROPERTIES QT_RESOURCE_ALIAS PrefPopup.qml)
 set_source_files_properties(../kit/Preferences.qml PROPERTIES QT_RESOURCE_ALIAS Preferences.qml QT_QML_SINGLETON_TYPE TRUE)
+# The Colors and Fonts panels (../kit; screencolor.h is the eyedropper).
+set_source_files_properties(../kit/ColorPanel.qml PROPERTIES QT_RESOURCE_ALIAS ColorPanel.qml)
+set_source_files_properties(../kit/Colors.qml PROPERTIES QT_RESOURCE_ALIAS Colors.qml QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(../kit/FontPanel.qml PROPERTIES QT_RESOURCE_ALIAS FontPanel.qml)
+set_source_files_properties(../kit/Fonts.qml PROPERTIES QT_RESOURCE_ALIAS Fonts.qml QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/Prefs.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-textedit
     URI TextEditor
@@ -32,12 +37,17 @@ qt_add_qml_module(ambrosia-textedit
     SOURCES
         src/app.h src/app.cpp
         src/editor.h src/editor.cpp
+        ../kit/screencolor.h
     QML_FILES
         ../kit/AboutWindow.qml
         ../kit/About.qml
         ../kit/PrefCheck.qml
         ../kit/PrefPopup.qml
         ../kit/Preferences.qml
+        ../kit/ColorPanel.qml
+        ../kit/Colors.qml
+        ../kit/FontPanel.qml
+        ../kit/Fonts.qml
         qml/Prefs.qml
         qml/SettingsWindow.qml
         qml/Main.qml
@@ -64,7 +74,7 @@ qt_add_qml_module(ambrosia-textedit
         qml/rtf.mjs
 )
 
-target_include_directories(ambrosia-textedit PRIVATE src)
+target_include_directories(ambrosia-textedit PRIVATE src ../kit)
 
 target_link_libraries(ambrosia-textedit PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem
