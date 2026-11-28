@@ -14,6 +14,9 @@ Flickable {
     // view the toolbar leaves the pane's name out, as System Settings does.
     property Item header: null
     readonly property bool showsTitle: !header || contentY > header.y + Look.headerTitleY
+    // Set while a trackpad moves the page (kit/scrolling.h): Qt's `moving`
+    // is a wheel's.
+    property bool scrolling: false
 
     contentWidth: width
     contentHeight: column.implicitHeight + Look.margin
@@ -36,7 +39,7 @@ Flickable {
         height: page.visibleArea.heightRatio * (page.height - 6)
         radius: 3
         color: Theme.dark ? "#73ffffff" : "#59000000"
-        opacity: page.moving ? 1 : 0
+        opacity: page.moving || page.scrolling ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
     }
 }

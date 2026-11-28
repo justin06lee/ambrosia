@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/scrolling.h"
 #include "app.h"
 #include "store.h"
 
@@ -18,6 +19,7 @@ int main(int argc, char *argv[])
     // platform's.
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
+    kitScrolling(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-notes"));
     QApplication::setApplicationDisplayName(QStringLiteral("Notes"));
     QApplication::setApplicationVersion(QStringLiteral(NOTES_VERSION));

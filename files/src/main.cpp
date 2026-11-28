@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/scrolling.h"
 #include "app.h"
 #include "index.h"
 #include "portal.h"
@@ -111,6 +112,7 @@ int main(int argc, char *argv[])
     mallopt(M_ARENA_MAX, 2);
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
+    kitScrolling(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-files"));
     QApplication::setApplicationDisplayName(QStringLiteral("Files"));
     QApplication::setApplicationVersion(QStringLiteral(FILES_VERSION));
