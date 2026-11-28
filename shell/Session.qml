@@ -57,18 +57,42 @@ Singleton {
     function logOut() {
         shutdownCall("logout");
     }
-    // The question before it (the Ambrosia menu's row, and ⇧⌘Q).
-    function askLogOut(screen) {
-        Popups.confirm(screen, {
-            title: "Are you sure you want to quit all apps and log out now?",
-            accept: "Log Out", action: () => logOut() });
-    }
     function restart() {
         shutdownCall("logoutAndReboot");
     }
     function shutDown() {
         shutdownCall("logoutAndShutdown");
     }
+    // The question before each (the Ambrosia menu's rows, and ⇧⌘Q), as a
+    // Mac asks it: left alone for a minute it goes ahead, and a checkbox
+    // says whether what is open now is open again after the next login.
+    function askLogOut(screen) {
+        ask(screen, "Are you sure you want to quit all applications and log out now?",
+            left => `If you do nothing, you will be logged out automatically in ${seconds(left)}.`, "Log Out", logOut);
+    }
+    function askRestart(screen) {
+        ask(screen, "Are you sure you want to restart your computer now?",
+            left => `If you do nothing, the computer will restart automatically in ${seconds(left)}.`, "Restart", restart);
+    }
+    function askShutDown(screen) {
+        ask(screen, "Are you sure you want to shut down your computer now?",
+            left => `If you do nothing, the computer will shut down automatically in ${seconds(left)}.`, "Shut Down", shutDown);
+    }
+    function seconds(left) {
+        return left === 1 ? "1 second" : left + " seconds";
+    }
+    function ask(screen, title, words, accept, action) {
+        Popups.confirm(screen, {
+            title: title, accept: accept, action: () => action(),
+            countdown: { seconds: 60, text: words },
+            check: { text: "Reopen windows when logging back in", of: session, property: "reopen" } });
+    }
+    // "Reopen windows when logging back in": Plasma starts the apps that
+    // were open again at login unless its loginMode says emptySession
+    // (ksmserverrc), and our own apps bring back what they had open by
+    // the same word (kit/resume.h). Read as the shell starts; written, as
+    // the checkbox stands, on the way out.
+    property bool reopen: true
     // KWin's kill-window mode: the next window clicked is force-quit. (The
     // menu opens Force Quit Applications instead; ⌥⌘Esc is still this.)
     function forceQuit() {
@@ -85,7 +109,18 @@ Singleton {
     }
 
     function shutdownCall(method) {
-        Quickshell.execDetached(["dbus-send", "--session", "--type=method_call", "--dest=org.kde.Shutdown", "/Shutdown", "org.kde.Shutdown." + method]);
+        Quickshell.execDetached(["sh", "-c",
+            'kwriteconfig6 --file ksmserverrc --group General --key loginMode "$1";'
+            + ' exec dbus-send --session --type=method_call --dest=org.kde.Shutdown /Shutdown "org.kde.Shutdown.$2"',
+            "sh", reopen ? "restorePreviousLogout" : "emptySession", method]);
+    }
+
+    Process {
+        running: true
+        command: ["kreadconfig6", "--file", "ksmserverrc", "--group", "General", "--key", "loginMode"]
+        stdout: StdioCollector {
+            onStreamFinished: session.reopen = text.trim() !== "emptySession"
+        }
     }
 
     Process {

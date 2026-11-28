@@ -60,7 +60,7 @@ Everywhere:
 | ⌃⌘Q | lock the screen | Super+L |
 | ⌃⌘Space | the emoji picker: type to search, the arrows and Return to choose; the choice is typed into the app in front | Super+Ctrl+Alt+Space (`session/org.ambrosia.emoji.desktop`; Super+. is still KDE's own picker) |
 | ⌥⌘Esc | Force Quit Applications: the apps to choose one from, as the Ambrosia menu's Force Quit… | Super+Ctrl+Alt+Esc (`session/org.ambrosia.force-quit.desktop`) |
-| ⇧⌘Q | log out, after asking: the Ambrosia menu's Log Out… | Super+Ctrl+Alt+Shift+Q (`session/org.ambrosia.logout.desktop`) |
+| ⇧⌘Q | log out, after asking (left alone for a minute it goes ahead, as a Mac's): the Ambrosia menu's Log Out… | Super+Ctrl+Alt+Shift+Q (`session/org.ambrosia.logout.desktop`) |
 | ⇧⌘H, ⇧⌘M | the app's own (Notes' Heading and Monostyled): passed on as they are, not taken for ⌘H and ⌘M with Shift held | Ctrl+Shift+H, Ctrl+Shift+M (`packaging/keyd/command-shift`) |
 
 In every app but a terminal:

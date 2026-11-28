@@ -202,12 +202,18 @@ void App::left(QQuickWindow *window)
     if (!m_windows.removeOne(window) || !m_keeping)
         return;
     // Not closed by the user: by the session on its way out (kept, for
-    // the next login) or by something else (the Dock's Quit: forgotten).
-    if (!window->property("closedHere").toBool() && kitLeaving()) {
+    // the next login, unless the user said not to reopen windows) or by
+    // something else (the Dock's Quit: forgotten). On the way out there
+    // may be no moment later to write in.
+    const bool leaving = !window->property("closedHere").toBool() && kitLeaving();
+    if (leaving && kitReopens()) {
         m_leaving.append(keptOf(window));
         m_forget.start();
     }
-    remember();
+    if (leaving)
+        keep();
+    else
+        remember();
 }
 
 void App::keep()
