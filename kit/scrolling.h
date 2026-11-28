@@ -1,5 +1,7 @@
 #pragma once
 
+#include "hold.h"
+
 #include <QAbstractAnimation>
 #include <QGuiApplication>
 #include <QList>
@@ -45,9 +47,10 @@
 // list was every tenth of a second after), for a look without a hand on a
 // pad; =off leaves Qt's own scrolling.
 //
-// Resting two fingers on the pad doesn't stop a glide as it does on a Mac
-// (Qt hears nothing of fingers that don't move); the pointer moving, a
-// click, a key or the next scroll does.
+// Fingers put down on the pad stop a glide where it is, as on a Mac: Qt
+// hears nothing of fingers that don't move, so that comes by the hold
+// gesture, listened for in hold.h. (A list on its way home from past an
+// end goes on home.) So do the pointer moving, a click and a key.
 class KitScrolling : public QAbstractAnimation
 {
 public:
@@ -59,6 +62,25 @@ public:
     }
 
     int duration() const override { return -1; }
+
+    // Fingers at rest on the pad (hold.h).
+    void held(int fingers)
+    {
+        if (m_trace)
+            qInfo("scrolling: %d finger%s at rest%s", fingers, fingers == 1 ? "" : "s", state() == Running && !m_fingers ? "" : " (nothing gliding)");
+        if (m_fingers || state() != Running || !m_owner)
+            return;
+        for (Axis *axis : {&m_x, &m_y}) {
+            if (!axis->on)
+                continue;
+            const bool vertical = axis == &m_y;
+            const Span span = spanOf(m_owner, vertical);
+            const double at = placeOf(m_owner, vertical);
+            if (at < span.low - 0.5 || at > span.high + 0.5)
+                return;
+        }
+        settle();
+    }
 
 protected:
     bool eventFilter(QObject *to, QEvent *event) override
@@ -97,6 +119,7 @@ protected:
                     settle();
                 return false;
             case Qt::ScrollBegin:
+                KitHold::look();
                 m_fingers = true;
                 m_seeking = true;
                 m_samples.clear();
@@ -465,6 +488,13 @@ public:
 
     int duration() const override { return -1; }
 
+    // Fingers at rest on the pad (hold.h).
+    void held()
+    {
+        if (!m_fingers && state() == Running)
+            stop();
+    }
+
 protected:
     bool eventFilter(QObject *to, QEvent *event) override
     {
@@ -491,6 +521,8 @@ protected:
             if (!to->inherits("QWidgetWindow"))
                 return false;
             if (phase == Qt::ScrollBegin || phase == Qt::NoScrollPhase || (phase == Qt::ScrollUpdate && !m_fingers)) {
+                if (phase == Qt::ScrollBegin)
+                    KitHold::look();
                 stop();
                 m_fingers = phase != Qt::NoScrollPhase;
                 m_looked = false;
@@ -637,6 +669,10 @@ inline void kitScrolling(QGuiApplication *app)
     app->setProperty("_ambrosia_scrolling", true);
     if (qgetenv("AMBROSIA_SCROLLING") == "off" || QGuiApplication::platformName() != QLatin1String("wayland"))
         return;
-    new KitScrolling(app);
-    new KitWidgetScrolling(app);
+    auto *lists = new KitScrolling(app);
+    auto *views = new KitWidgetScrolling(app);
+    KitHold::listen([lists, views](int fingers) {
+        lists->held(fingers);
+        views->held();
+    });
 }
