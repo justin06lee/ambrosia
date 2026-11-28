@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Window
 import Ambrosia
 import Settings
 
@@ -208,7 +209,9 @@ Item {
                     }
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: Preferences.chooseWallpaperColor()
+                        // The Colors panel (the kit's): each color
+                        // chosen there is the wallpaper at once.
+                        onClicked: Colors.show(root.isColor ? root.current : "#000000", (color) => Preferences.wallpaper = color.toString(), root.Window.window)
                     }
                 }
                 Repeater {
