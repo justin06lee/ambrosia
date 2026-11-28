@@ -131,6 +131,8 @@ QtObject {
     readonly property real quickActionBase: 51.5
 
     readonly property int pathBar: 28
+    // The status bar under it (View ▸ Show Status Bar). By eye.
+    readonly property int statusBar: 24
     // Another app's Open or Save panel: the bar of buttons under the
     // folder, and the row a save's name has over it. By eye.
     readonly property int panelBar: 52

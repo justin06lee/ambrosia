@@ -1,6 +1,9 @@
 # ⌃⌘, in every app.
 # ⌃⌘F full screen (the session's shortcut, org.ambrosia.fullscreen.desktop).
 f = C-M-f
+# ⌃⌘S shows and hides a window's sidebar (Files' View menu takes it as
+# Meta+Ctrl+S; unnamed here, the two keys together would be ⌘S alone).
+s = C-M-s
 # ⌃⌘Q locks the screen.
 q = M-l
 # ⌃⌘Space the emoji picker (session/org.ambrosia.emoji.desktop).

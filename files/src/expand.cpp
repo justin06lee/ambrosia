@@ -10,8 +10,14 @@
 #include <QTemporaryDir>
 #include <QtConcurrentRun>
 
+#include <KZip>
+
+#include <QDirIterator>
+
 #include <archive.h>
 #include <archive_entry.h>
+
+#include <sys/stat.h>
 
 namespace {
 
@@ -302,6 +308,140 @@ void ExpandJob::start()
 }
 
 bool ExpandJob::doKill()
+{
+    m_state->stop.store(true);
+    m_tick.stop();
+    return true;
+}
+
+namespace {
+
+// One item into the zip under `name`, a folder with all that is in it.
+bool zipOne(KZip &zip, const QString &path, const QString &name, CompressJob::State &state)
+{
+    if (state.stop.load())
+        return false;
+    const QFileInfo info(path);
+    struct stat st;
+    if (::lstat(QFile::encodeName(path).constData(), &st) != 0)
+        return false;
+    if (info.isSymLink())
+        return zip.addLocalFile(path, name);
+    if (info.isDir()) {
+        // The folder itself, so that an empty one is kept.
+        if (!zip.writeDir(name, info.owner(), info.group(), st.st_mode, info.lastRead(), info.lastModified(), info.birthTime()))
+            return false;
+        const QStringList inside = QDir(path).entryList(QDir::AllEntries | QDir::Hidden | QDir::System | QDir::NoDotAndDotDot, QDir::Name);
+        for (const QString &one : inside) {
+            if (!zipOne(zip, path + QLatin1Char('/') + one, name + QLatin1Char('/') + one, state))
+                return false;
+        }
+        return true;
+    }
+    if (!info.isFile())
+        return true; // (a socket, a pipe: left out, as Finder leaves them)
+    // A megabyte at a time, so a large file can be seen going in and
+    // stopped partway.
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+    if (!zip.prepareWriting(name, info.owner(), info.group(), file.size(), st.st_mode, info.lastRead(), info.lastModified(), info.birthTime()))
+        return false;
+    QByteArray block(1024 * 1024, Qt::Uninitialized);
+    qint64 put = 0;
+    while (true) {
+        if (state.stop.load())
+            return false;
+        const qint64 n = file.read(block.data(), block.size());
+        if (n < 0)
+            return false;
+        if (n == 0)
+            break;
+        if (!zip.writeData(block.constData(), n))
+            return false;
+        put += n;
+        state.done.fetch_add(n);
+    }
+    return zip.finishWriting(put);
+}
+
+} // namespace
+
+qint64 CompressJob::sizeOf(const QStringList &paths)
+{
+    qint64 size = 0;
+    for (const QString &path : paths) {
+        const QFileInfo info(path);
+        if (info.isSymLink())
+            continue;
+        if (info.isFile()) {
+            size += info.size();
+            continue;
+        }
+        QDirIterator it(path, QDir::Files | QDir::Hidden | QDir::System | QDir::NoSymLinks, QDirIterator::Subdirectories);
+        while (it.hasNext()) {
+            it.next();
+            size += it.fileInfo().size();
+        }
+    }
+    return size;
+}
+
+bool CompressJob::compress(const QStringList &paths, const QString &to, const std::shared_ptr<State> &state)
+{
+    const QFileInfo target(to);
+    const QString part = target.dir().filePath(QStringLiteral(".%1.part").arg(target.fileName()));
+    bool ok = false;
+    {
+        KZip zip(part);
+        if (zip.open(QIODevice::WriteOnly)) {
+            ok = true;
+            for (const QString &path : paths)
+                ok = ok && zipOne(zip, path, QFileInfo(path).fileName(), *state);
+            ok = zip.close() && ok;
+        }
+    }
+    ok = ok && !state->stop.load() && QFile::rename(part, to);
+    if (!ok)
+        QFile::remove(part);
+    return ok;
+}
+
+CompressJob::CompressJob(const QStringList &paths, const QString &to, QObject *parent)
+    : KJob(parent)
+    , m_paths(paths)
+    , m_to(to)
+    , m_state(std::make_shared<State>())
+{
+    setCapabilities(Killable);
+    m_tick.setInterval(200);
+    connect(&m_tick, &QTimer::timeout, this, [this] { setProcessedAmount(Bytes, qulonglong(m_state->done.load())); });
+}
+
+void CompressJob::start()
+{
+    m_tick.start();
+    // (The watcher goes with the job, as ExpandJob's.) How much there is
+    // is counted on the thread too: a folder of many files takes a while
+    // to add up.
+    auto *sized = new QFutureWatcher<qint64>(this);
+    connect(sized, &QFutureWatcher<qint64>::finished, this, [this, sized] { setTotalAmount(Bytes, qulonglong(sized->result())); });
+    sized->setFuture(QtConcurrent::run([paths = m_paths] { return sizeOf(paths); }));
+    auto *watcher = new QFutureWatcher<bool>(this);
+    connect(watcher, &QFutureWatcher<bool>::finished, this, [this, watcher] {
+        m_tick.stop();
+        if (watcher->result()) {
+            setProcessedAmount(Bytes, totalAmount(Bytes));
+        } else {
+            setError(UserDefinedError);
+            setErrorText(QStringLiteral("The folder may not be one you can write to, or the disk may be full."));
+        }
+        emitResult();
+    });
+    watcher->setFuture(QtConcurrent::run([paths = m_paths, to = m_to, state = m_state] { return compress(paths, to, state); }));
+}
+
+bool CompressJob::doKill()
 {
     m_state->stop.store(true);
     m_tick.stop();

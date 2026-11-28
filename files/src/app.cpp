@@ -1,4 +1,5 @@
 #include "app.h"
+#include "format.h"
 #include "../../kit/alert.h"
 #include "fileops.h"
 #include "index.h"
@@ -27,6 +28,8 @@
 #include <QQmlEngine>
 #include <QQuickWindow>
 #include <QRegularExpression>
+#include <QLocale>
+#include <QStorageInfo>
 #include <QStyleHints>
 #include <QTimer>
 
@@ -161,6 +164,20 @@ bool App::accepts(const QString &name, const QStringList &globs, const QStringLi
 bool App::exists(const QUrl &url) const
 {
     return url.isLocalFile() && QFileInfo::exists(url.toLocalFile());
+}
+
+QString App::roomOn(const QUrl &url) const
+{
+    if (!url.isLocalFile())
+        return {};
+    const QStorageInfo disk(url.toLocalFile());
+    if (!disk.isValid() || !disk.isReady())
+        return {};
+    const qint64 room = disk.bytesAvailable();
+    // Two places past a gigabyte, as Finder's status bar counts.
+    if (room >= 1000000000)
+        return QLocale().toString(double(room) / 1e9, 'f', 2) + QStringLiteral(" GB");
+    return Format::size(room);
 }
 
 void App::openInfo(const QUrl &url)

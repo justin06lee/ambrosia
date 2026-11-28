@@ -92,6 +92,7 @@ qt_add_qml_module(ambrosia-files
         qml/TagField.qml
         qml/Thumbnail.qml
         qml/PathBar.qml
+        qml/StatusBar.qml
         qml/PanelBar.qml
         qml/PanelName.qml
         qml/PanelAlert.qml

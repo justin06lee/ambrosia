@@ -149,6 +149,9 @@ Platform.MenuBar {
             enabled: bar.finder.view === "column" || bar.finder.view === "gallery"
             onTriggered: bar.finder.act("preview", () => bar.finder.showPreview = !bar.finder.showPreview)
         }
+        Platform.MenuItem { text: Prefs.sidebar ? "Hide Sidebar" : "Show Sidebar"; shortcut: "Meta+Ctrl+S"; onTriggered: bar.finder.act("sidebar", () => Prefs.sidebar = !Prefs.sidebar) }
+        Platform.MenuItem { text: Prefs.pathBar ? "Hide Path Bar" : "Show Path Bar"; shortcut: "Ctrl+Alt+P"; onTriggered: bar.finder.act("pathBar", () => Prefs.pathBar = !Prefs.pathBar) }
+        Platform.MenuItem { text: Prefs.statusBar ? "Hide Status Bar" : "Show Status Bar"; shortcut: "Ctrl+/"; onTriggered: bar.finder.act("statusBar", () => Prefs.statusBar = !Prefs.statusBar) }
         Platform.MenuItem { text: bar.finder.tabBarShown ? "Hide Tab Bar" : "Show Tab Bar"; shortcut: "Ctrl+Shift+T"; enabled: bar.finder.tabs.length < 2; onTriggered: bar.finder.act("tabBar", () => bar.finder.tabBarAlways = !bar.finder.tabBarAlways) }
         Platform.MenuItem { text: bar.finder.model.showHidden ? "Hide Hidden Files" : "Show Hidden Files"; shortcut: "Ctrl+Shift+."; onTriggered: bar.finder.act("hidden", () => bar.finder.model.showHidden = !bar.finder.model.showHidden) }
     }

@@ -27,6 +27,12 @@ class Prefs : public QObject
     // The sidebar's items that show, by id (Places::sections names them).
     Q_PROPERTY(QStringList sidebarItems READ sidebarItems NOTIFY sidebarChanged)
     Q_PROPERTY(bool warnExtension READ warnExtension WRITE setWarnExtension NOTIFY changed)
+    // View ▸ Show Path Bar and Show Status Bar: every window's, and kept,
+    // as Finder's. Neither shows until asked for, as on a Mac.
+    // View ▸ Hide Sidebar, the same way.
+    Q_PROPERTY(bool sidebar READ sidebar WRITE setSidebar NOTIFY changed)
+    Q_PROPERTY(bool pathBar READ pathBar WRITE setPathBar NOTIFY changed)
+    Q_PROPERTY(bool statusBar READ statusBar WRITE setStatusBar NOTIFY changed)
     Q_PROPERTY(bool warnEmptyTrash READ warnEmptyTrash WRITE setWarnEmptyTrash NOTIFY changed)
     Q_PROPERTY(bool trashExpires READ trashExpires WRITE setTrashExpires NOTIFY changed)
     Q_PROPERTY(bool foldersFirst READ foldersFirst WRITE setFoldersFirst NOTIFY foldersFirstChanged)
@@ -49,6 +55,12 @@ public:
 
     bool warnExtension() const;
     void setWarnExtension(bool on);
+    bool sidebar() const;
+    void setSidebar(bool on);
+    bool pathBar() const;
+    void setPathBar(bool on);
+    bool statusBar() const;
+    void setStatusBar(bool on);
     bool warnEmptyTrash() const;
     void setWarnEmptyTrash(bool on);
     bool trashExpires() const;
