@@ -188,25 +188,37 @@ Window {
         takeKeys();
     }
 
-    property var afterSave: null
-    // Saves, asking where first when it has no file; `then` once saved.
+    // Saves, asking where first when it has no file (the Save panel over
+    // this window, kit/Saving.qml: a rich document's format, a plain one's
+    // encoding, as a Mac's TextEdit adds to its panel); `then` once saved.
     function save(then) {
         if (file === "") {
-            afterSave = then ?? null;
-            App.chooseSave(win, name + (rich ? ".rtf" : Prefs.addTxt ? ".txt" : ""), rich ? "rtf" : "txt");
+            Saving.show({
+                name: name,
+                extension: rich ? ".rtf" : Prefs.addTxt ? ".txt" : "",
+                filter: rich ? "Rich Text Document (*.rtf)" : "Plain Text (*.txt)",
+                rows: rich ? [{ key: "format", label: "File Format:", items: [{ text: "Rich Text Document", value: "rtf" }], current: "rtf" }]
+                           : [{ key: "encoding", label: "Plain Text Encoding:", current: Prefs.saveEncoding, items: [
+                                 { text: "Automatic", value: "auto" }, {},
+                                 { text: "Unicode (UTF-8)", value: "utf-8" }, { text: "Unicode (UTF-16)", value: "utf-16" }, { text: "Western (ISO Latin 1)", value: "latin1" }] }],
+                save: (path, values) => {
+                    if (win.write(String(Places.url(path)), values.encoding) && then)
+                        then();
+                },
+            }, win);
             return;
         }
         if (write(file) && then)
             then();
     }
-    function write(target) {
+    function write(target, encoding) {
         let failure;
         if (rich) {
             const model = hands.model();
             model.view = { width: win.width - Look.viewAside, height: win.height - Look.viewAbove };
             failure = App.write(target, Rtf.write(model), true);
         } else {
-            failure = App.write(target, hands.text(), false, Prefs.saveEncoding);
+            failure = App.write(target, hands.text(), false, encoding ?? Prefs.saveEncoding);
         }
         if (failure !== "") {
             alert.ask("The document “" + name + "” could not be saved.", failure, [{ text: "OK", role: "ok", primary: true, cancel: true }], null);
@@ -217,7 +229,12 @@ Window {
         return true;
     }
     function exportPdf() {
-        App.chooseSave(win, name.replace(/\.[^.]+$/, "") + ".pdf", "pdf");
+        Saving.show({
+            name: name.replace(/\.[^.]+$/, ""),
+            extension: ".pdf",
+            filter: "PDF (*.pdf)",
+            save: (path) => hands.exportPdf(Places.url(path), win.name),
+        }, win);
     }
     // The Print panel, over this window (kit/Printing.qml): the document
     // as a PDF made for the paper chosen there.
@@ -227,25 +244,6 @@ Window {
             make: (file, size) => hands.exportPdf(file, win.name, size),
             save: () => win.exportPdf(),
         }, win);
-    }
-    Connections {
-        target: App
-        function onSaveChosen(window, target, kind) {
-            if (window !== win)
-                return;
-            if (kind === "pdf") {
-                hands.exportPdf(target, win.name);
-                return;
-            }
-            const then = win.afterSave;
-            win.afterSave = null;
-            if (win.write(String(target)) && then)
-                then();
-        }
-        function onSaveCancelled(window) {
-            if (window === win)
-                win.afterSave = null;
-        }
     }
 
     // Closing a document with changes asks first; `then` once it is gone.

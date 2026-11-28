@@ -549,8 +549,15 @@ Window {
         pane.reveal(true);
     }
     function exportPdf() {
-        if (open !== null)
-            App.choosePdf(Logic.titleOf(open));
+        if (open === null)
+            return;
+        const title = Logic.titleOf(open);
+        Saving.show({
+            name: title.replace(/\//g, "-").slice(0, 80),
+            extension: ".pdf",
+            filter: "PDF (*.pdf)",
+            save: (path) => hands.exportPdf(Places.url(path), title),
+        }, win);
     }
     // The Print panel, over this window (kit/Printing.qml): the note as a
     // PDF made for the paper chosen there.
@@ -700,14 +707,6 @@ Window {
             win.sync();
         }
     }
-    Connections {
-        target: App
-        function onPdfChosen(file) {
-            if (win.open !== null)
-                hands.exportPdf(file, Logic.titleOf(win.open));
-        }
-    }
-
     // What is kept from one launch to the next.
     Settings {
         id: kept

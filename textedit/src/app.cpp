@@ -254,35 +254,6 @@ void App::chooseFiles()
     dialog->open();
 }
 
-void App::chooseSave(QQuickWindow *window, const QString &name, const QString &kind)
-{
-    if (m_choosing)
-        return;
-    m_choosing = true;
-    auto *dialog = new QFileDialog(nullptr, kind == QLatin1String("pdf") ? QStringLiteral("Export as PDF") : QStringLiteral("Save"));
-    dialog->setAttribute(Qt::WA_DeleteOnClose);
-    dialog->setFileMode(QFileDialog::AnyFile);
-    dialog->setAcceptMode(QFileDialog::AcceptSave);
-    dialog->setDefaultSuffix(kind);
-    dialog->setNameFilter(kind == QLatin1String("pdf") ? QStringLiteral("PDF (*.pdf)")
-                          : kind == QLatin1String("rtf") ? QStringLiteral("Rich Text Document (*.rtf)") : QStringLiteral("Plain Text (*.txt)"));
-    const QStringList documents = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-    if (!documents.isEmpty())
-        dialog->setDirectory(documents.first());
-    dialog->selectFile(name);
-    connect(dialog, &QFileDialog::finished, this, [this, dialog, window = QPointer<QQuickWindow>(window), kind](int result) {
-        m_choosing = false;
-        const QList<QUrl> urls = result == QDialog::Accepted ? dialog->selectedUrls() : QList<QUrl>();
-        if (!window)
-            return;
-        if (urls.isEmpty())
-            Q_EMIT saveCancelled(window);
-        else
-            Q_EMIT saveChosen(window, urls.first(), kind);
-    });
-    dialog->open();
-}
-
 QStringList App::urls(const QStringList &arguments)
 {
     QStringList urls;

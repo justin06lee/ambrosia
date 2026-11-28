@@ -4,7 +4,6 @@
 #include <KWindowShadow>
 #include <KWindowSystem>
 
-#include <QFileDialog>
 #include <QGuiApplication>
 #include <QLocale>
 #include <QPalette>
@@ -91,29 +90,4 @@ void App::Show(const QString &token)
     if (!token.isEmpty())
         KWindowSystem::setCurrentXdgActivationToken(token);
     Q_EMIT showRequested();
-}
-
-void App::choosePdf(const QString &name)
-{
-    if (m_choosing)
-        return;
-    m_choosing = true;
-    auto *dialog = new QFileDialog(nullptr, QStringLiteral("Export as PDF"));
-    dialog->setAttribute(Qt::WA_DeleteOnClose);
-    dialog->setFileMode(QFileDialog::AnyFile);
-    dialog->setAcceptMode(QFileDialog::AcceptSave);
-    dialog->setDefaultSuffix(QStringLiteral("pdf"));
-    dialog->setNameFilters({QStringLiteral("PDF (*.pdf)")});
-    const QStringList documents = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-    if (!documents.isEmpty())
-        dialog->setDirectory(documents.first());
-    QString safe = name;
-    safe.replace(QLatin1Char('/'), QLatin1Char('-'));
-    dialog->selectFile(safe.left(80) + QStringLiteral(".pdf"));
-    connect(dialog, &QFileDialog::finished, this, [this, dialog](int result) {
-        m_choosing = false;
-        if (result == QDialog::Accepted && !dialog->selectedUrls().isEmpty())
-            Q_EMIT pdfChosen(dialog->selectedUrls().constFirst());
-    });
-    dialog->open();
 }

@@ -37,6 +37,8 @@ set_source_files_properties(../kit/Fonts.qml PROPERTIES QT_RESOURCE_ALIAS Fonts.
 set_source_files_properties(../kit/PrefRadio.qml PROPERTIES QT_RESOURCE_ALIAS PrefRadio.qml)
 set_source_files_properties(../kit/PrintPanel.qml PROPERTIES QT_RESOURCE_ALIAS PrintPanel.qml)
 set_source_files_properties(../kit/Printing.qml PROPERTIES QT_RESOURCE_ALIAS Printing.qml QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(../kit/SavePanel.qml PROPERTIES QT_RESOURCE_ALIAS SavePanel.qml)
+set_source_files_properties(../kit/Saving.qml PROPERTIES QT_RESOURCE_ALIAS Saving.qml QT_QML_SINGLETON_TYPE TRUE)
 set_source_files_properties(qml/Prefs.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-textedit
     URI TextEditor
@@ -46,6 +48,7 @@ qt_add_qml_module(ambrosia-textedit
         src/editor.h src/editor.cpp
         ../kit/screencolor.h
         ../kit/printing.h ../kit/printing.cpp
+        ../kit/saving.h ../kit/saving.cpp
     QML_FILES
         ../kit/AboutWindow.qml
         ../kit/About.qml
@@ -59,6 +62,8 @@ qt_add_qml_module(ambrosia-textedit
         ../kit/PrefRadio.qml
         ../kit/PrintPanel.qml
         ../kit/Printing.qml
+        ../kit/SavePanel.qml
+        ../kit/Saving.qml
         qml/Prefs.qml
         qml/SettingsWindow.qml
         qml/Main.qml
