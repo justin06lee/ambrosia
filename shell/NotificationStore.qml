@@ -99,8 +99,37 @@ Singleton {
         return !name.startsWith("/") && !Theme.tileIcons.includes(name);
     }
 
+    // KWin's word that apps are still open ten seconds into a log out
+    // (one asking about unsaved changes): its notification, with Cancel
+    // Logout and Log Out Anyway, says it logs out anyway in two minutes,
+    // and it does, whatever wasn't saved. A Mac's log out times out
+    // instead and everything stays as it is. So the notification is let
+    // go (which KWin takes as Cancel Logout) a hundred seconds after it
+    // came, ten before KWin would go ahead, and its last line says so.
+    function stillOpen(notification) {
+        return (notification.hints ?? {})["x-kde-eventId"] === "cancellogout"
+            || notification.actions.some(action => action.text === "Cancel Logout");
+    }
+    function summaryOf(notification) {
+        return stillOpen(notification) ? "Log out is waiting" : notification.summary;
+    }
+    function bodyOf(notification) {
+        return stillOpen(notification)
+            ? notification.body.replace(/Logging out anyway in 2 minutes\.?/, "Log out is called off in 2 minutes if they stay open.")
+            : notification.body;
+    }
+    property int waitingNid: -1
+    readonly property Timer callOff: Timer {
+        interval: 100 * 1000
+        onTriggered: store.live(store.waitingNid)?.dismiss()
+    }
+
     function heard(notification) {
         const entry = entryOf(notification);
+        if (stillOpen(notification)) {
+            waitingNid = notification.id;
+            callOff.restart();
+        }
         const app = notification.appName || entry?.name || "";
         if (app !== "") {
             const known = Settings.notificationApps.some(each => each.split("\t")[0] === app);
@@ -120,7 +149,7 @@ Singleton {
         if (!notification.transient) {
             const record = {
                 key: nextKey++, nid: nid, app: app, entry: entry?.id ?? notification.desktopEntry ?? "",
-                icon: iconOf(notification, entry), plain: plainOf(notification, entry), summary: notification.summary, body: notification.body,
+                icon: iconOf(notification, entry), plain: plainOf(notification, entry), summary: summaryOf(notification), body: bodyOf(notification),
                 time: Date.now(), urgent: urgent,
             };
             history = [record].concat(history).slice(0, keepRecords);
@@ -136,6 +165,10 @@ Singleton {
     // Its app closed it, or it was clicked or cleared: out of the center
     // too. Let go (expired) by us, it stays listed.
     function gone(nid, reason) {
+        if (nid === waitingNid) {
+            waitingNid = -1;
+            callOff.stop();
+        }
         dropBanner(nid);
         if (reason === NotificationCloseReason.Expired) {
             history = history.map(r => r.nid === nid ? Object.assign({}, r, { nid: -1 }) : r);

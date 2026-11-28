@@ -1,5 +1,6 @@
 import Quickshell
 import QtQuick
+import QtQuick.Shapes
 import Ambrosia
 
 // "Are you sure…?" before something that can't be undone, like restarting,
@@ -13,8 +14,31 @@ Item {
     // an icon of ours in place of the bowl; `shown`, the answer isn't a
     // secret; `hold`, it stays up after its button is pressed until
     // Popups.finish() or Popups.refused() (which shakes it and asks again);
-    // `cancel`, what to do when it is put away unanswered (Popups.qml).
+    // `cancel`, what to do when it is put away unanswered (Popups.qml);
+    // `check`, a checkbox under the words: { text, of, property }, where
+    // of[property] is the boolean it shows and sets, live (a Mac's
+    // "Reopen windows when logging back in"); `countdown`,
+    // { seconds, text(left) }: the words count the seconds down and the
+    // button presses itself when they run out, as a Mac's Log Out does.
     property var confirmation: null
+    readonly property bool checkOn: confirmation?.check ? !!confirmation.check.of[confirmation.check.property] : false
+    property int secondsLeft: 0
+    function begin() {
+        password.text = "";
+        waiting = false;
+        secondsLeft = visible ? (confirmation?.countdown?.seconds ?? 0) : 0;
+    }
+    onConfirmationChanged: begin()
+    Timer {
+        interval: 1000
+        repeat: true
+        running: dialog.visible && dialog.secondsLeft > 0 && !dialog.waiting
+        onTriggered: {
+            dialog.secondsLeft -= 1;
+            if (dialog.secondsLeft === 0)
+                dialog.accept();
+        }
+    }
     readonly property Region blurArea: Region { item: dialog; radius: Theme.radius.panel }
     // Held, with its answer on the way.
     property bool waiting: false
@@ -33,8 +57,7 @@ Item {
     }
 
     onVisibleChanged: {
-        password.text = "";
-        waiting = false;
+        begin();
         if (visible && confirmation?.password) Qt.callLater(() => password.forceActiveFocus());
     }
 
@@ -99,9 +122,57 @@ Item {
             visible: text !== ""
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.Wrap
-            text: dialog.confirmation?.text ?? ""
+            text: dialog.confirmation?.countdown ? dialog.confirmation.countdown.text(dialog.secondsLeft) : (dialog.confirmation?.text ?? "")
             style: Theme.text.callout
             color: Theme.color.label.secondary
+        }
+
+        Item {
+            visible: !!dialog.confirmation?.check
+            width: parent.width
+            height: 18
+
+            Row {
+                id: checkRow
+                anchors.centerIn: parent
+                spacing: 6
+
+                Rectangle {
+                    anchors.verticalCenter: parent.verticalCenter
+                    width: 14
+                    height: 14
+                    radius: 4.2
+                    color: dialog.checkOn ? Theme.accent.bg : Theme.color.bg.control
+                    border.width: dialog.checkOn ? 0 : 1
+                    border.color: Theme.color.border
+
+                    Shape {
+                        anchors.centerIn: parent
+                        width: 16
+                        height: 16
+                        scale: 14 / 16
+                        visible: dialog.checkOn
+                        preferredRendererType: Shape.CurveRenderer
+                        ShapePath {
+                            strokeColor: Theme.accent.fg
+                            strokeWidth: 1.9
+                            fillColor: "transparent"
+                            capStyle: ShapePath.RoundCap
+                            joinStyle: ShapePath.RoundJoin
+                            PathSvg { path: "M4.2 8.4l2.6 2.7 5-6.2" }
+                        }
+                    }
+                }
+                Label {
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: dialog.confirmation?.check?.text ?? ""
+                    style: Theme.text.callout
+                }
+            }
+            MouseArea {
+                anchors.fill: checkRow
+                onClicked: dialog.confirmation.check.of[dialog.confirmation.check.property] = !dialog.checkOn
+            }
         }
 
         Rectangle {

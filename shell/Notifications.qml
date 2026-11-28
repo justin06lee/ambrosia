@@ -98,8 +98,8 @@ Scope {
                     appName: notification?.appName || entry?.name || ""
                     iconSource: notification ? NotificationStore.iconOf(notification, entry) : ""
                     iconPlain: notification ? NotificationStore.plainOf(notification, entry) : false
-                    summary: notification?.summary ?? ""
-                    body: notification?.body ?? ""
+                    summary: notification ? NotificationStore.summaryOf(notification) : ""
+                    body: notification ? NotificationStore.bodyOf(notification) : ""
                     // Its actions other than the default one (a click on the banner).
                     buttons: notification ? notification.actions.filter(a => a.identifier !== "default") : []
 

@@ -275,7 +275,7 @@ QString App::frameFor(const QString &file) const
 
 bool App::leaving() const
 {
-    return m_options.grab.isEmpty() && kitLeaving();
+    return m_options.grab.isEmpty() && kitKeeping();
 }
 
 void App::keep(const QStringList &files) const

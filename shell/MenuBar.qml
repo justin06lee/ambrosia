@@ -109,12 +109,8 @@ PanelWindow {
             { text: "Force Quit…", shortcut: "⌥⌘⎋", action: () => Popups.toggleForceQuit(bar.screen) },
             { separator: true },
             { text: "Sleep", action: () => Session.sleep() },
-            { text: "Restart…", action: () => Popups.confirm(bar.screen, {
-                title: "Are you sure you want to restart your computer now?",
-                text: "Open apps are asked to close first.", accept: "Restart", action: () => Session.restart() }) },
-            { text: "Shut Down…", action: () => Popups.confirm(bar.screen, {
-                title: "Are you sure you want to shut down your computer now?",
-                text: "Open apps are asked to close first.", accept: "Shut Down", action: () => Session.shutDown() }) },
+            { text: "Restart…", action: () => Session.askRestart(bar.screen) },
+            { text: "Shut Down…", action: () => Session.askShutDown(bar.screen) },
             { separator: true },
             { text: "Lock Screen", shortcut: "⌃⌘Q", action: () => Session.lock() },
             { text: `Log Out ${Session.userName}…`, shortcut: "⇧⌘Q", action: () => Session.askLogOut(bar.screen) },

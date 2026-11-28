@@ -76,7 +76,8 @@ public:
     Q_INVOKABLE void chooseFiles();
     // The documents open when the session ended are open again at the
     // next login (../kit/resume.h): a window closing asks `leaving`, and
-    // if the session is, has its documents kept; `takeKept` at the start
+    // if the session is (and its windows are wanted back), has its
+    // documents kept; `takeKept` at the start
     // is the windows kept, each a list of URLs, and forgets them.
     // The name KWin keeps a document's window's place and size under
     // (../kit/placing.h): the window opens where the document's last did.

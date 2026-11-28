@@ -471,8 +471,8 @@ Item {
                 appName: modelData.app
                 iconSource: modelData.icon
                 iconPlain: modelData.plain ?? NotificationStore.plainSource(modelData.icon)
-                summary: notification?.summary ?? modelData.summary
-                body: notification?.body ?? modelData.body
+                summary: notification ? NotificationStore.summaryOf(notification) : modelData.summary
+                body: notification ? NotificationStore.bodyOf(notification) : modelData.body
                 time: modelData.time
                 now: clock.date
                 buttons: notification ? notification.actions.filter(a => a.identifier !== "default") : []

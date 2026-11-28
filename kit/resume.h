@@ -7,11 +7,12 @@
 // (~/.local/state/ambrosia/<app>-windows.json: { "windows": [[url, ...],
 // ...] }, each window the documents it showed).
 //
-//     closing a window:   if (kitLeaving()) kitKeepWindow("textedit", { url });
+//     closing a window:   if (kitKeeping()) kitKeepWindow("textedit", { url });
 //     starting:           for (const QStringList &window : kitTakeKept("textedit")) ...
 //
 // A window the user closes is asked about the same way and gets a no, so
-// it is not kept. The file is taken (read and removed) by the app's next
+// it is not kept; nor is any when the user logs out with "Reopen windows
+// when logging back in" off (kitReopens). The file is taken (read and removed) by the app's next
 // start, whenever that is.
 #pragma once
 
@@ -24,6 +25,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSaveFile>
+#include <QSettings>
 #include <QStandardPaths>
 #include <QStringList>
 #include <QUrl>
@@ -41,6 +43,25 @@ inline bool kitLeaving()
     ask.setAutoStartService(false);
     const QDBusMessage answer = bus.call(ask, QDBus::Block, 300);
     return answer.type() == QDBusMessage::ReplyMessage && answer.arguments().value(0).toBool();
+}
+
+// Whether what is open now is to be open again after the next login: the
+// shell's "Reopen windows when logging back in", which is Plasma's
+// setting (ksmserverrc's loginMode: emptySession says no, and Plasma
+// then starts none of the apps that were open either).
+inline bool kitReopens()
+{
+    // KConfig's file as an INI: QSettings reads [General]'s keys bare.
+    const QSettings plasma(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QStringLiteral("/ksmserverrc"),
+                           QSettings::IniFormat);
+    return plasma.value(QStringLiteral("loginMode")).toString() != QLatin1String("emptySession");
+}
+
+// A window closing now is one to bring back: the session is on its way
+// out and the user wants its windows again.
+inline bool kitKeeping()
+{
+    return kitLeaving() && kitReopens();
 }
 
 inline QString kitKeptPath(const QString &app)

@@ -1450,7 +1450,17 @@ package repo below), and they carry `shell/` and `session/` as they are.
     way, asked as a window closes; `kitKeepWindow`/`kitTakeKept` hold the
     windows so closed until the app's next start, which Plasma's own
     restore of open apps brings about at login (`session/xdg/ksmserverrc`
-    leaves Files out of it: Files is running already).
+    leaves Files out of it: Files is running already). The shell's
+    "Reopen windows when logging back in" (round 76, on the Log Out,
+    Restart and Shut Down questions) is ksmserverrc's `loginMode`
+    (`emptySession` for off), written by `Session.shutdownCall`; apps
+    read it by `kitReopens()` and ask `kitKeeping()` (leaving and
+    reopening) before keeping a window. KWin forces a log out two
+    minutes after apps fail to close (`sm.cpp`, no setting); the shell
+    dismisses KWin's notification about it at 100 s
+    (`NotificationStore.callOff`), which cancels the log out instead.
+    To click a notification's button by `ui.py` in the VM, move onto it
+    and wait half a second first: a press straight after a jump is lost.
     To move a window in the VM for a test: a KWin script setting
     `frameGeometry`. An
     app's menu of its own
