@@ -9,6 +9,8 @@
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
 
+#include <functional>
+
 class QQmlEngine;
 class QJSEngine;
 
@@ -47,6 +49,12 @@ public:
     App(QQmlEngine *engine, const Options &options);
     static App *create(QQmlEngine *, QJSEngine *);
     static App *instance() { return s_instance; }
+    // Tells or asks by an alert of ours (kit/AlertWindow.qml), from
+    // anywhere in the app: `what` is { heading, detail, buttons, secret,
+    // icon } (Files' own icon unless one is named), `then` hears the
+    // button's role and what was typed. With no QML to draw it, Qt's own
+    // box says the words and `then` hears "".
+    static void tell(QVariantMap what, std::function<void(const QString &role, const QString &typed)> then = {});
 
     bool dark() const;
     QColor accent() const;

@@ -37,6 +37,10 @@ set_source_files_properties(../kit/Colors.qml PROPERTIES QT_RESOURCE_ALIAS Color
 # The Print panel (../kit; printing.h is what it asks of CUPS).
 set_source_files_properties(../kit/PrintPanel.qml PROPERTIES QT_RESOURCE_ALIAS PrintPanel.qml)
 set_source_files_properties(../kit/Printing.qml PROPERTIES QT_RESOURCE_ALIAS Printing.qml QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(../kit/SavePanel.qml PROPERTIES QT_RESOURCE_ALIAS SavePanel.qml)
+set_source_files_properties(../kit/AlertWindow.qml PROPERTIES QT_RESOURCE_ALIAS AlertWindow.qml)
+set_source_files_properties(../kit/Saving.qml PROPERTIES QT_RESOURCE_ALIAS Saving.qml QT_QML_SINGLETON_TYPE TRUE)
+set_source_files_properties(../kit/PrefPopup.qml PROPERTIES QT_RESOURCE_ALIAS PrefPopup.qml)
 set_source_files_properties(qml/Prefs.qml PROPERTIES QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-preview
     URI Preview
@@ -46,6 +50,8 @@ qt_add_qml_module(ambrosia-preview
         src/document.h src/document.cpp
         ../kit/screencolor.h
         ../kit/printing.h ../kit/printing.cpp
+        ../kit/saving.h ../kit/saving.cpp
+        ../kit/alert.h
     QML_FILES
         ../kit/AboutWindow.qml
         ../kit/About.qml
@@ -57,6 +63,10 @@ qt_add_qml_module(ambrosia-preview
         ../kit/Colors.qml
         ../kit/PrintPanel.qml
         ../kit/Printing.qml
+        ../kit/SavePanel.qml
+        ../kit/AlertWindow.qml
+        ../kit/Saving.qml
+        ../kit/PrefPopup.qml
         qml/Prefs.qml
         qml/SettingsWindow.qml
         qml/Main.qml

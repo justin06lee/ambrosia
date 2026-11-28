@@ -201,6 +201,29 @@ Window {
         else
             Printing.show({ title: title, pdf: false, make: (file, size) => App.picturesPdf(files, file, size) }, win);
     }
+    // File > Export…: the Save sheet with the kinds it can be written as
+    // (a Mac's has a quality slider under JPEG; ours writes at 90), and
+    // Export as PDF…, the same with no choice.
+    function exportAs(onlyPdf) {
+        if (!showsDocument)
+            return;
+        const source = files[pdf ? 0 : index];
+        const page = pdf ? (view?.currentPage ?? 0) : 0;
+        const turns = pdf ? 0 : (view?.quarter ?? 0);
+        const can = App.exportFormats();
+        const kinds = [{ text: "JPEG", value: "jpeg" }, { text: "PDF", value: "pdf" }, { text: "PNG", value: "png" }, { text: "TIFF", value: "tiff" }]
+            .filter(kind => kind.value === "pdf" || can.includes(kind.value));
+        const suffix = (name.match(/\.([^.]+)$/)?.[1] ?? "").toLowerCase();
+        const now = pdf ? "pdf" : ({ jpg: "jpeg", jpeg: "jpeg", png: "png", tif: "tiff", tiff: "tiff" }[suffix] ?? "png");
+        const endings = { jpeg: ".jpg", png: ".png", tiff: ".tiff", pdf: ".pdf" };
+        Saving.show({
+            name: name.replace(/\.[^.]+$/, ""),
+            prompt: "Export As:",
+            extension: (values) => onlyPdf ? ".pdf" : (endings[values.format] ?? ""),
+            rows: onlyPdf ? [] : [{ key: "format", label: "Format:", items: kinds, current: kinds.some(kind => kind.value === now) ? now : "pdf" }],
+            save: (path, values) => App.exportAs(source, page, turns, Places.url(path), onlyPdf ? "pdf" : values.format),
+        }, win);
+    }
     Shortcut { sequences: ["Ctrl+M", "Meta+M"]; onActivated: win.act("minimize", win.showMinimized); onActivatedAmbiguously: win.act("minimize", win.showMinimized) }
     Shortcut { sequences: ["Ctrl+Q", "Meta+Q"]; onActivated: win.act("quit", Qt.quit); onActivatedAmbiguously: win.act("quit", Qt.quit) }
     Shortcut { sequences: ["Ctrl+,", "Meta+,"]; onActivated: win.act("settings", () => Preferences.show("Preview", "SettingsWindow")); onActivatedAmbiguously: win.act("settings", () => Preferences.show("Preview", "SettingsWindow")) }

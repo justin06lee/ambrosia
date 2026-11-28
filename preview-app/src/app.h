@@ -74,6 +74,15 @@ public:
     // The Open panel (the desktop's, through the portal): openRequested with
     // what was chosen, or chooseCancelled.
     Q_INVOKABLE void chooseFiles();
+    // The kinds of picture Export can write here, of jpeg, png and tiff
+    // (Qt's plugins for them are installed).
+    Q_INVOKABLE QStringList exportFormats() const;
+    // File > Export: what a window shows written as another kind of file.
+    // A picture (turned `quarterTurns`) as a picture or a PDF of one page
+    // its size; a PDF copied as it is, or its page `page` (from 0) as a
+    // picture at 150 to the inch, as a Mac's Preview makes one. Says so
+    // itself when it can't, and returns whether it could.
+    Q_INVOKABLE bool exportAs(const QUrl &source, int page, int quarterTurns, const QUrl &target, const QString &format);
 
     // A URL for each argument: a path (taken from the folder the app was
     // started in) or a URL already.
@@ -89,6 +98,7 @@ Q_SIGNALS:
     void chooseCancelled();
 
 private:
+    QQmlEngine *m_engine = nullptr;
     static App *s_instance;
     Options m_options;
     bool m_grabbed = false;

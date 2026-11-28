@@ -240,7 +240,7 @@ Window {
             Keys.onShortcutOverride: (event) => event.accepted = panel.claims(event)
             Keys.onPressed: (event) => panel.typed(event)
 
-            Words { x: 93 - implicitWidth; y: 19 + (26 - height) / 2; text: "Save As:"; color: panel.quiet }
+            Words { x: 93 - implicitWidth; y: 19 + (26 - height) / 2; text: panel.job?.prompt ?? "Save As:"; color: panel.quiet }
             Rectangle {
                 x: 99
                 y: 19
