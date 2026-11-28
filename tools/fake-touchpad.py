@@ -7,6 +7,7 @@
 #   pull DY MS   two fingers moved DY units and held there MS milliseconds before they lift
 #   flick DY     two fingers moved DY units fast and lifted while still moving
 #   across DX    two fingers moved DX units sideways (right > 0)
+#   rest N MS    N fingers put down and kept still MS milliseconds (a hold: what stops a glide)
 #   swipe N DIR  N fingers (3 or 4) moved a third of the pad left, right, up or down
 #   pinch N DIR  N fingers drawn together (in) or spread apart (out)
 # Run it as a unit: systemd-run --unit=fake-touchpad python3 /root/fake-touchpad.py
@@ -107,6 +108,8 @@ while True:
                 for i in range(1, 11):
                     move([(x, y + n * i // 10) for x, y in pts]); time.sleep(0.01)
                 up(2)
+            elif cmd[0] == "rest":
+                down(fingers(n)); time.sleep(int(cmd[2]) / 1000 if len(cmd) > 2 else 0.6); up(n)
             elif cmd[0] == "across":
                 pts = [(600 - n // 2 + 180 * i, 400) for i in range(2)]; down(pts); time.sleep(0.1)
                 for i in range(1, 21):

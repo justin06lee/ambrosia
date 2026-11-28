@@ -229,7 +229,8 @@ kit/           what our apps share, compiled into each: the About panel, the Set
                controls (Files' Settings is files/qml/SettingsWindow.qml over src/prefs.cpp), the
                Colors and Fonts panels, the Print panel (printing.cpp asks CUPS), firstshortcut.h,
                which every app's main() calls first, scrolling.h, which it calls next (a
-               trackpad's momentum and rubber band in every list), placing.h, by which a
+               trackpad's momentum and rubber band in every list; hold.h hears fingers come
+               to rest, which stops a glide), placing.h, by which a
                window opens where it was last left, and resume.h, by which the documents open
                at log out are open again at login
 activity-monitor/ Activity Monitor (ambrosia-activity-monitor): the window in QML, the kernel read by

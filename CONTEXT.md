@@ -1428,7 +1428,11 @@ package repo below), and they carry `shell/` and `session/` as they are.
     bars glide by `KitWidgetScrolling`), and the shell gets it by
     `shell/Scrolling.qml` importing `org.ambrosia.scrolling`
     (`style/scrolling/`, a QML plugin built with the style); whoever asks
-    first installs it, once an app.
+    first installs it, once an app. Fingers put down on the pad stop
+    a glide (round 77): `kit/hold.h` hears libinput's hold gesture by
+    binding `zwp_pointer_gestures_v1` on Qt's Wayland connection itself
+    (interfaces by hand, libwayland's functions by name: nothing to
+    link); in the VM, `rest 2 600` to the fake pad.
     A window's place is the kit's too (round 74, `kit/placing.h`):
     `KitPlacing placing(argc, argv, "<app id>")` before the application
     object and `kitPlacing(&app)` after it, and a window that says
