@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/placing.h"
 #include "../../kit/scrolling.h"
 #include "app.h"
 
@@ -17,9 +18,11 @@ int main(int argc, char *argv[])
     // high here too, not 16 (the interface gives its sizes in pixels and
     // doesn't change).
     qputenv("QT_FONT_DPI", "72");
+    KitPlacing placing(argc, argv, "org.ambrosia.textedit");
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
     kitScrolling(&app);
+    kitPlacing(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-textedit"));
     QApplication::setApplicationDisplayName(QStringLiteral("TextEdit"));
     QApplication::setApplicationVersion(QStringLiteral(TEXTEDIT_VERSION));

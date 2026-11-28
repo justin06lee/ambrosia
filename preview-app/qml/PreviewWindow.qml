@@ -15,6 +15,10 @@ Window {
 
     // What it shows: one PDF, or pictures (`index` says which is up).
     required property var files
+    // The name its place and size are kept under (Main.qml gives a PDF's
+    // window one, from the PDF): the window opens where that one's last
+    // did, as large.
+    property string frameName: ""
     property int index: 0
     readonly property bool pdf: files.length === 1 && App.isPdf(files[0])
     readonly property Document doc: document

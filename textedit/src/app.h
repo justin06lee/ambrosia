@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QVariantList>
 #include <QColor>
 #include <QObject>
 #include <QQuickImageProvider>
@@ -82,6 +83,16 @@ public:
     // The Open panel (the desktop's, through the portal): openRequested
     // with what was chosen.
     Q_INVOKABLE void chooseFiles();
+    // The documents open when the session ended are open again at the
+    // next login (../kit/resume.h): a window closing asks `leaving`, and
+    // if the session is, has its documents kept; `takeKept` at the start
+    // is the windows kept, each a list of URLs, and forgets them.
+    // The name KWin keeps a document's window's place and size under
+    // (../kit/placing.h): the window opens where the document's last did.
+    Q_INVOKABLE QString frameFor(const QString &file) const;
+    Q_INVOKABLE bool leaving() const;
+    Q_INVOKABLE void keep(const QStringList &files) const;
+    Q_INVOKABLE QVariantList takeKept() const;
 
     // A URL for each argument: a path (taken from the folder the app was
     // started in) or a URL already.

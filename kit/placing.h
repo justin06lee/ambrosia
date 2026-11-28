@@ -14,6 +14,9 @@
 //
 //     Window { property string frameName: "main" }
 //
+// A document's window is named for the document (kitFrameName below), so
+// each opens where it was.
+//
 // Two windows open at once can't share a name (the protocol ends an app
 // that tries), so a second "main" is asked for as "main-2", the third as
 // "main-3", each the lowest free: the window says what it got in
@@ -150,6 +153,21 @@ private:
 
     QHash<QWindow *, QString> m_names;
 };
+
+// A frame name for a document's window, from what it shows (its URL): one
+// of `names` names, so a document opens where it, or one that shares its
+// name, was last left, and KWin is never given more names to keep than
+// that (each is under a kilobyte in its cache). FNV-1a, so the name is
+// the same at every start. Not for a window whose size comes from what
+// it shows (a picture's): it would open as large as the last of its name.
+inline QString kitFrameName(const QString &key, int names = 256)
+{
+    quint32 hash = 2166136261u;
+    const QByteArray bytes = key.toUtf8();
+    for (const char byte : bytes)
+        hash = (hash ^ quint8(byte)) * 16777619u;
+    return QStringLiteral("document-") + QString::number(hash % quint32(qMax(1, names)));
+}
 
 // Once per app, after the application object. Returns the placer (null
 // where windows can't be named).

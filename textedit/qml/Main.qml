@@ -5,6 +5,8 @@ import TextEditor
 // with nothing to open it makes a new one, Untitled; a document already
 // open comes to the front instead of opening twice; a new window nothing
 // was typed into gives way to the first document opened.
+// The documents open when the session ended are open again when it is
+// next started, as a Mac's are after logging back in.
 QtObject {
     id: main
 
@@ -33,11 +35,15 @@ QtObject {
                 continue;
             }
             const spare = windows.filter(w => w.pristine);
-            if (make({ opening: file }))
+            if (make({ opening: file, frameName: App.frameFor(file) }))
                 spare.forEach(w => w.close());
         }
     }
     function closed(which) {
+        // Closed by the session on its way out: open again at the next
+        // login (a document never saved has no file to open then).
+        if (which.file !== "" && App.leaving())
+            App.keep([which.file]);
         windows = windows.filter(w => w !== which);
         which.destroy(200);
     }
@@ -66,5 +72,17 @@ QtObject {
         }
     }
 
-    Component.onCompleted: App.files.length > 0 ? open(App.files) : newDocument()
+    // What it was started for, then the documents the last session ended
+    // with; a new one if there is neither.
+    Component.onCompleted: {
+        const files = App.files.slice();
+        for (const kept of App.takeKept()) {
+            if (!files.includes(kept[0]))
+                files.push(kept[0]);
+        }
+        if (files.length > 0)
+            open(files);
+        else
+            newDocument();
+    }
 }

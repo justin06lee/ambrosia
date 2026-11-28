@@ -42,8 +42,8 @@ column and gallery views, tabs, Quick Look, Get Info, tags, thumbnails, search b
 name and contents, undoable file operations with a progress window, the
 Trash, and archives that expand beside themselves when opened, as a Mac's
 Archive Utility does it; the windows open at log out, with their tabs, are
-there again at the next login, and a window of our apps opens where it was
-last left.
+there again at the next login, as are TextEdit's documents and Preview's,
+and a window of our apps opens where it was last left.
 Settings (a System Settings look-alike) has every pane of its plan built on
 the system's own services, from Wi-Fi and Bluetooth to Printers &
 Scanners, Accessibility and Spotlight (`docs/settings/PLAN.md` says what each
@@ -229,8 +229,9 @@ kit/           what our apps share, compiled into each: the About panel, the Set
                controls (Files' Settings is files/qml/SettingsWindow.qml over src/prefs.cpp), the
                Colors and Fonts panels, the Print panel (printing.cpp asks CUPS), firstshortcut.h,
                which every app's main() calls first, scrolling.h, which it calls next (a
-               trackpad's momentum and rubber band in every list), and placing.h, by which a
-               window opens where it was last left
+               trackpad's momentum and rubber band in every list), placing.h, by which a
+               window opens where it was last left, and resume.h, by which the documents open
+               at log out are open again at login
 activity-monitor/ Activity Monitor (ambrosia-activity-monitor): the window in QML, the kernel read by
                src/sampler.cpp, what the numbers mean and how they are written in qml/monitor.mjs, which
                monitor.test.ts runs under bun

@@ -7,7 +7,8 @@ import "view.mjs" as View
 // Preview's Settings), each PDF in its own;
 // a file already open comes to the front instead. Started with nothing to
 // open, it asks with the Open panel, as a Mac's does, and leaves if that
-// is cancelled.
+// is cancelled. The windows open when the session ended are open again
+// when it is next started, as a Mac's are after logging back in.
 QtObject {
     id: main
 
@@ -21,7 +22,9 @@ QtObject {
                 App.activate(have);
                 continue;
             }
-            const made = maker.createObject(null, { files: group });
+            // A PDF's window opens where that PDF's last did, as large; a
+            // picture's is fitted to the picture each time, where KWin puts it.
+            const made = maker.createObject(null, { files: group, frameName: App.isPdf(group[0]) ? App.frameFor(group[0]) : "" });
             if (!made) {
                 console.warn("Preview: no window for", group, maker.errorString());
                 continue;
@@ -31,6 +34,10 @@ QtObject {
         }
     }
     function closed(which) {
+        // Closed by the session on its way out: open again at the next
+        // login.
+        if (App.leaving())
+            App.keep(which.files);
         windows = windows.filter(w => w !== which);
         which.destroy(200);
     }
@@ -46,5 +53,14 @@ QtObject {
         }
     }
 
-    Component.onCompleted: App.files.length > 0 ? open(App.files) : App.chooseFiles()
+    // What it was started for, then the windows the last session ended
+    // with, each as it was; the Open panel if there is neither.
+    Component.onCompleted: {
+        if (App.files.length > 0)
+            open(App.files);
+        for (const kept of App.takeKept())
+            open(kept);
+        if (windows.length === 0)
+            App.chooseFiles();
+    }
 }

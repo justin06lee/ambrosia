@@ -1,4 +1,6 @@
 #include "app.h"
+#include "../../kit/placing.h"
+#include "../../kit/resume.h"
 
 #include <optional>
 #include "shadow.h"
@@ -225,6 +227,32 @@ QVariantMap App::style(const QString &family, const QString &style) const
         italic = style.contains(QLatin1String("Italic")) || style.contains(QLatin1String("Oblique"));
     }
     return {{QStringLiteral("weight"), weight}, {QStringLiteral("italic"), italic}};
+}
+
+QString App::frameFor(const QString &file) const
+{
+    return file.isEmpty() || !m_options.grab.isEmpty() ? QString() : kitFrameName(file);
+}
+
+bool App::leaving() const
+{
+    return m_options.grab.isEmpty() && kitLeaving();
+}
+
+void App::keep(const QStringList &files) const
+{
+    kitKeepWindow(QStringLiteral("textedit"), files);
+}
+
+QVariantList App::takeKept() const
+{
+    QVariantList windows;
+    if (!m_options.grab.isEmpty())
+        return windows;
+    const QList<QStringList> kept = kitTakeKept(QStringLiteral("textedit"));
+    for (const QStringList &files : kept)
+        windows.append(QVariant(files));
+    return windows;
 }
 
 void App::chooseFiles()
