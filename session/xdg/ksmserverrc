@@ -1,0 +1,11 @@
+# Ambrosia session defaults for what comes back at login. A user's own
+# ksmserverrc wins.
+
+# The apps open at log out are started again at the next login (Plasma's
+# own doing, as a Mac's "Reopen windows when logging back in"). Files is
+# left out of that list: it runs from login anyway and brings its own
+# windows back, with their tabs (files/src/app.cpp's restore), and being
+# started once more would add a window nobody left there.
+# (The list is of desktop entries, by their file names.)
+[General]
+excludeApps=org.ambrosia.files.desktop

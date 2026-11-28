@@ -310,6 +310,8 @@ Window {
     visible: false
     color: "transparent"
     flags: Qt.Window | Qt.FramelessWindowHint
+    // It opens where it was last, as large (../kit/placing.h).
+    property string frameName: "main"
     title: "Font Book"
 
     readonly property Appearance appearance: Appearance {}

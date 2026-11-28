@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/placing.h"
 #include "../../kit/scrolling.h"
 #include "app.h"
 
@@ -16,9 +17,11 @@ int main(int argc, char *argv[])
     qputenv("QT_NO_SYNTHESIZED_BOLD", "1");
     // A QApplication: the Open panel and the pop-up menus are the
     // platform's.
+    KitPlacing placing(argc, argv, "org.ambrosia.fontbook");
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
     kitScrolling(&app);
+    kitPlacing(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-fontbook"));
     QApplication::setApplicationDisplayName(QStringLiteral("Font Book"));
     QApplication::setApplicationVersion(QStringLiteral(FONTBOOK_VERSION));

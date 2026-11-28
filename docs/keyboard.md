@@ -115,7 +115,8 @@ folder, ⌘↓ open, ⌘[ back, ⌘] forward): they go on as plain Ctrl.
   which apps those are, and an app's own Quit is the better one where it
   has it (it keeps its windows for next time; closing them one by one
   doesn't, and leaves an app that lives in the menu bar running). Files,
-  like Finder, has no Quit.
+  like Finder, has no Quit; the windows it has open when you log out are
+  there again, tabs and all, when you log in.
 - **⌘Tab walks apps, one window each** (KWin's switcher set to one window
   an app, drawn by the look-and-feel's `windowswitcher`): switching brings
   that window forward, not all of the app's as a Mac does, and Q while it is

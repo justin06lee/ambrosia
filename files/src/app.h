@@ -1,10 +1,12 @@
 #pragma once
 
 #include <QColor>
+#include <QJsonObject>
 #include <QObject>
 #include <QPointer>
 #include <QQuickWindow>
 #include <QSize>
+#include <QTimer>
 #include <QUrl>
 #include <QVariantMap>
 #include <QtQml/qqmlregistration.h>
@@ -66,6 +68,17 @@ public:
 
     // select: the name of an item to select once the folder is read.
     Q_INVOKABLE void openWindow(const QUrl &url, const QString &select = QString());
+    // The windows open, with their tabs, are kept for next time, as
+    // Finder's are: whatever changes one calls this, and a moment later
+    // they are written to files-windows.json in the state folder. A
+    // window the user closes is forgotten; one the session closes on its
+    // way out stays in the file, and is in it still if Files is ended
+    // with windows open.
+    Q_INVOKABLE void remember();
+    // Opens the windows kept, at the start of the process (and from then
+    // on they are kept: a run that only grabs or measures never calls
+    // this). How many came back.
+    int restore();
     // Each item's folder in a window, the item selected (one window a
     // folder): what "Show in Folder" asks through FileManager1 below.
     void showItems(const QStringList &uris);
@@ -125,6 +138,15 @@ private:
     QQmlEngine *m_engine;
     Options m_options;
     bool m_first = true;
+    QQuickWindow *makeWindow(const QUrl &url, const QString &select, const QVariantMap &more);
+    QJsonObject keptOf(QQuickWindow *window) const;
+    void left(QQuickWindow *window);
+    void keep();
+    bool m_keeping = false;
+    QList<QPointer<QQuickWindow>> m_windows;
+    QList<QJsonObject> m_leaving; // closed by the session, not the user
+    QTimer m_keep;
+    QTimer m_forget;
     QList<QPointer<QQuickWindow>> m_infos;
     QPointer<QQuickWindow> m_progress;
     static App *s_instance;

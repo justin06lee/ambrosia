@@ -16,7 +16,7 @@ Row {
 
     Repeater {
         model: [
-            { color: Theme.windowControls.close, rim: Theme.windowControls.closeRim, glyph: Theme.windowGlyphs.close, act: () => lights.window.close() },
+            { color: Theme.windowControls.close, rim: Theme.windowControls.closeRim, glyph: Theme.windowGlyphs.close, act: () => lights.window.shut ? lights.window.shut() : lights.window.close() },
             { color: Theme.windowControls.minimize, rim: Theme.windowControls.minimizeRim, glyph: Theme.windowGlyphs.minimize, act: () => lights.window.showMinimized() },
             { color: Theme.windowControls.zoom, rim: Theme.windowControls.zoomRim, glyph: Theme.windowGlyphs.zoom,
               // Full screen, as a Mac's green light; with Option, the zoom.

@@ -124,7 +124,7 @@ Window {
         if (at < 0 || at >= tabs.length)
             return;
         if (tabs.length <= 1) {
-            close();
+            shut();
             return;
         }
         const all = tabsNow();
@@ -170,6 +170,70 @@ Window {
             { text: "Move Tab to New Window", enabled: tabs.length > 1, run: () => tabToWindow(at) },
         ];
         shortcuts.openAt(x, y);
+    }
+    // What is kept of the window for next time (App.remember, App.restore):
+    // its tabs, each a folder and how it is shown, and which is in front.
+    // A search is kept as the folder it was begun from; a tag's items are
+    // kept as they are. Where the window stands and how large is KWin's
+    // to keep, under `frameName` (../kit/placing.h; App names it, and
+    // `framedAs` is the name it got).
+    property string frameName: ""
+    // Closed here (its light, ⌘W, the menu) and not by the session's end:
+    // such a window is forgotten, the others come back at the next login.
+    property bool closedHere: false
+    function shut() {
+        closedHere = true;
+        close();
+    }
+    readonly property var keepWatch: [url, view, columnRoot, tabAt, tabs]
+    onKeepWatchChanged: if (!isPanel) App.remember()
+    function keptUrl(tab) {
+        const found = each => !each.toString().startsWith("search:") || each.toString().startsWith("search:?tag=");
+        if (found(tab.url))
+            return tab.url;
+        for (let i = Math.min(tab.historyIndex, tab.history.length - 1); i >= 0; --i) {
+            if (found(tab.history[i]))
+                return tab.history[i];
+        }
+        return Prefs.newWindowUrl;
+    }
+    function kept() {
+        return JSON.stringify({ tabAt: tabAt, tabs: tabsNow().map(tab => {
+            const to = keptUrl(tab);
+            return { url: to.toString(), view: tab.view, columnRoot: (to.toString() === tab.url.toString() ? tab.columnRoot : to).toString() };
+        }) });
+    }
+    // A tab's name before its folder has been read.
+    function nameFor(to) {
+        const s = to.toString();
+        if (s.startsWith("search:?tag="))
+            return decodeURIComponent(s.slice(12));
+        if (s.startsWith("trash:"))
+            return "Trash";
+        if (s.startsWith("recentlyused:"))
+            return "Recents";
+        if (s.startsWith("applications:"))
+            return "Applications";
+        const volume = Places.volumeOf(to);
+        if (volume.url !== undefined && volume.url.toString().replace(/\/+$/, "") === s.replace(/\/+$/, ""))
+            return volume.name;
+        const path = decodeURIComponent(s.replace(/^file:\/\//, "")).replace(/\/+$/, "");
+        return path === "" ? Places.computer : path.slice(path.lastIndexOf("/") + 1);
+    }
+    // The window opened on the tab in front; the others are put behind it.
+    function takeKept(json) {
+        const state = JSON.parse(json);
+        const all = state.tabs.map(tab => {
+            const to = Qt.url(tab.url);
+            return { key: ++tabKeys, url: to, view: tab.view, history: [to], historyIndex: 0,
+                     columnRoot: Qt.url(tab.columnRoot || tab.url), name: nameFor(to), picked: [] };
+        });
+        if (all.length === 0)
+            return;
+        tabAt = Math.max(0, Math.min(state.tabAt, all.length - 1));
+        tabs = all;
+        if (view === "column")
+            columnRoot = all[tabAt].columnRoot;
     }
     // The selection: rows → true, the row keys act on, and where a Shift
     // range starts.

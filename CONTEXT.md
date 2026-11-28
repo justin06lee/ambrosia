@@ -1428,7 +1428,22 @@ package repo below), and they carry `shell/` and `session/` as they are.
     bars glide by `KitWidgetScrolling`), and the shell gets it by
     `shell/Scrolling.qml` importing `org.ambrosia.scrolling`
     (`style/scrolling/`, a QML plugin built with the style); whoever asks
-    first installs it, once an app. An
+    first installs it, once an app.
+    A window's place is the kit's too (round 74, `kit/placing.h`):
+    `KitPlacing placing(argc, argv, "<app id>")` before the application
+    object and `kitPlacing(&app)` after it, and a window that says
+    `property string frameName: "main"` opens where the last window of
+    that name was left, as large (KWin keeps it, by the
+    session-management protocol; the name reaches KWin through a private
+    part of Qt, so the app links `Qt6::GuiPrivate` when it is there and
+    the header does nothing under another Qt than it was built with).
+    Give the name only to a window whose size is the user's to set: KWin
+    puts the size back too, over whatever the QML says. Two windows of a
+    name get `name`, `name-2`…; only an app's first process has the
+    session. Files keeps what its windows show itself
+    (`App::remember`/`restore`, `~/.local/state/ambrosia/files-windows.json`).
+    To move a window in the VM for a test: a KWin script setting
+    `frameGeometry`. An
     app's menu of its own
     name (`MenuBar.qml`'s first) is its app menu in Ambrosia's bar
     (`lifted.own` in `shell/AppMenu.qml`); the title must be the desktop

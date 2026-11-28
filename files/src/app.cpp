@@ -20,6 +20,8 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include <QMimeDatabase>
 #include <QPainter>
 #include <QPainterPath>
@@ -28,6 +30,8 @@
 #include <QQmlEngine>
 #include <QQuickWindow>
 #include <QRegularExpression>
+#include <QSaveFile>
+#include <QStandardPaths>
 #include <QLocale>
 #include <QStorageInfo>
 #include <QStyleHints>
@@ -77,6 +81,18 @@ App::App(QQmlEngine *engine, const Options &options)
     sweep->start();
     QTimer::singleShot(60 * 1000, this, &FileOps::sweepTrash);
     connect(Prefs::instance(), &Prefs::trashExpiresChanged, this, &FileOps::sweepTrash);
+    // The windows kept: written a moment after the last change. One the
+    // session closed is forgotten if Files is still here two minutes on
+    // (a log out called off, the Dock's Quit), or at the next new window.
+    m_keep.setSingleShot(true);
+    m_keep.setInterval(400);
+    connect(&m_keep, &QTimer::timeout, this, &App::keep);
+    m_forget.setSingleShot(true);
+    m_forget.setInterval(2 * 60 * 1000);
+    connect(&m_forget, &QTimer::timeout, this, [this] {
+        m_leaving.clear();
+        keep();
+    });
 }
 
 App *App::create(QQmlEngine *, QJSEngine *)
@@ -100,6 +116,16 @@ QColor App::accent() const
 
 void App::openWindow(const QUrl &url, const QString &select)
 {
+    makeWindow(url, select, {});
+}
+
+QQuickWindow *App::makeWindow(const QUrl &url, const QString &select, const QVariantMap &more)
+{
+    // The session lives on: what it closed a while ago is gone for good.
+    if (!m_leaving.isEmpty()) {
+        m_leaving.clear();
+        m_forget.stop();
+    }
     QQmlComponent component(m_engine, QStringLiteral("Files"), QStringLiteral("FinderWindow"));
     QVariantMap initial{{QStringLiteral("startUrl"), url}};
     if (!select.isEmpty())
@@ -112,15 +138,130 @@ void App::openWindow(const QUrl &url, const QString &select)
             initial.insert(QStringLiteral("height"), m_options.size.height());
         }
     }
+    // KWin keeps where each window stands by this name (kit/placing.h):
+    // the first free of "window", "window-2" ... for a new one, so it
+    // opens where the last one in that place was.
+    if (m_keeping)
+        initial.insert(QStringLiteral("frameName"), QStringLiteral("window"));
+    initial.insert(more);
     QObject *object = component.createWithInitialProperties(initial);
     if (!object) {
         qWarning().noquote() << component.errorString();
-        return;
+        return nullptr;
     }
     auto *window = qobject_cast<QQuickWindow *>(object);
+    m_windows.append(window);
+    connect(window, &QQuickWindow::closing, this, [this, window] { left(window); });
     connect(window, &QQuickWindow::closing, window, &QObject::deleteLater);
     window->setProperty("first", m_first);
     m_first = false;
+    remember();
+    return window;
+}
+
+namespace {
+
+QString keptPath()
+{
+    return QStandardPaths::writableLocation(QStandardPaths::GenericStateLocation) + QStringLiteral("/ambrosia/files-windows.json");
+}
+
+// Whether a tab kept can be shown again: a folder that is still there, or
+// one of the places that aren't folders. A disk since taken out, a server
+// or a search is not.
+bool stillThere(const QUrl &url)
+{
+    if (url.isLocalFile())
+        return QFileInfo(url.toLocalFile()).isDir();
+    const QString scheme = url.scheme();
+    if (scheme == QLatin1String("search"))
+        return url.toString().startsWith(QLatin1String("search:?tag="));
+    return scheme == QLatin1String("trash") || scheme == QLatin1String("applications") || scheme == QLatin1String("recentlyused");
+}
+
+}
+
+void App::remember()
+{
+    if (m_keeping)
+        m_keep.start();
+}
+
+QJsonObject App::keptOf(QQuickWindow *window) const
+{
+    QVariant json;
+    QMetaObject::invokeMethod(window, "kept", Q_RETURN_ARG(QVariant, json));
+    QJsonObject kept = QJsonDocument::fromJson(json.toString().toUtf8()).object();
+    kept.insert(QStringLiteral("frame"), window->property("framedAs").toString());
+    return kept;
+}
+
+void App::left(QQuickWindow *window)
+{
+    if (!m_windows.removeOne(window) || !m_keeping)
+        return;
+    if (!window->property("closedHere").toBool()) {
+        m_leaving.append(keptOf(window));
+        m_forget.start();
+    }
+    remember();
+}
+
+void App::keep()
+{
+    QJsonArray windows;
+    for (const QPointer<QQuickWindow> &window : std::as_const(m_windows)) {
+        if (window)
+            windows.append(keptOf(window));
+    }
+    for (const QJsonObject &gone : std::as_const(m_leaving))
+        windows.append(gone);
+    const QString path = keptPath();
+    QDir().mkpath(QFileInfo(path).path());
+    QSaveFile file(path);
+    if (!file.open(QIODevice::WriteOnly))
+        return;
+    file.write(QJsonDocument(QJsonObject{{QStringLiteral("windows"), windows}}).toJson());
+    file.commit();
+}
+
+int App::restore()
+{
+    m_keeping = true;
+    QFile file(keptPath());
+    if (!file.open(QIODevice::ReadOnly))
+        return 0;
+    const QJsonArray windows = QJsonDocument::fromJson(file.readAll()).object().value(QLatin1String("windows")).toArray();
+    int came = 0;
+    for (const QJsonValue &each : windows) {
+        QJsonObject kept = each.toObject();
+        const QJsonArray all = kept.value(QLatin1String("tabs")).toArray();
+        QJsonArray tabs;
+        int at = kept.value(QLatin1String("tabAt")).toInt();
+        for (int i = 0; i < all.size(); ++i) {
+            if (stillThere(QUrl(all.at(i).toObject().value(QLatin1String("url")).toString())))
+                tabs.append(all.at(i));
+            else if (i < kept.value(QLatin1String("tabAt")).toInt())
+                --at;
+        }
+        if (tabs.isEmpty())
+            continue;
+        at = qBound(0, at, int(tabs.size()) - 1);
+        const QJsonObject front = tabs.at(at).toObject();
+        QVariantMap more;
+        if (const QString view = front.value(QLatin1String("view")).toString(); !view.isEmpty())
+            more.insert(QStringLiteral("view"), view);
+        if (const QString frame = kept.value(QLatin1String("frame")).toString(); !frame.isEmpty())
+            more.insert(QStringLiteral("frameName"), frame);
+        QQuickWindow *window = makeWindow(QUrl(front.value(QLatin1String("url")).toString()), {}, more);
+        if (!window)
+            continue;
+        kept.insert(QStringLiteral("tabs"), tabs);
+        kept.insert(QStringLiteral("tabAt"), at);
+        QMetaObject::invokeMethod(window, "takeKept", Q_ARG(QVariant, QString::fromUtf8(QJsonDocument(kept).toJson(QJsonDocument::Compact))));
+        ++came;
+    }
+    return came;
 }
 
 QQuickWindow *App::openPanel(const QUrl &folder, const QVariantMap &panel)

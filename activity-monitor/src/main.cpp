@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/placing.h"
 #include "../../kit/scrolling.h"
 #include "app.h"
 
@@ -34,9 +35,11 @@ int main(int argc, char *argv[])
 {
     // Inter Variable has a real Bold: never let Qt fake one over it.
     qputenv("QT_NO_SYNTHESIZED_BOLD", "1");
+    KitPlacing placing(argc, argv, "org.ambrosia.activitymonitor");
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
     kitScrolling(&app);
+    kitPlacing(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-activity-monitor"));
     QApplication::setApplicationDisplayName(QStringLiteral("Activity Monitor"));
     QApplication::setApplicationVersion(QStringLiteral(MONITOR_VERSION));

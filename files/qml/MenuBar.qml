@@ -41,7 +41,7 @@ Platform.MenuBar {
         Platform.MenuItem { text: "Open"; shortcut: "Ctrl+O"; enabled: bar.finder.hasSelection; onTriggered: bar.finder.act("open", bar.finder.openSelection) }
         // With tabs ⌘W closes the one in front, and the window has ⇧⌘W.
         Platform.MenuItem { text: bar.finder.tabs.length > 1 ? "Close Tab" : "Close Window"; shortcut: "Ctrl+W"; onTriggered: bar.finder.act("close", () => bar.finder.closeTab(bar.finder.tabAt)) }
-        Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+Shift+W"; visible: bar.finder.tabs.length > 1; onTriggered: bar.finder.act("closeWindow", bar.finder.close) }
+        Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+Shift+W"; visible: bar.finder.tabs.length > 1; onTriggered: bar.finder.act("closeWindow", bar.finder.shut) }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: "Get Info"; shortcut: "Ctrl+I"; onTriggered: bar.finder.act("info", bar.finder.getInfo) }
         Platform.MenuItem { text: "Rename"; enabled: bar.finder.selectedCount === 1 && bar.finder.localItems; onTriggered: bar.finder.act("rename", bar.finder.renameSelection) }
