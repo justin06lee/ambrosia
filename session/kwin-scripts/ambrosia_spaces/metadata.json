@@ -1,0 +1,11 @@
+{
+    "KPackageStructure": "KWin/Script",
+    "KPlugin": {
+        "Description": "A window made full screen gets a Space of its own, as on a Mac, and gives it up when it leaves full screen or closes",
+        "EnabledByDefault": false,
+        "Id": "ambrosia_spaces",
+        "License": "MIT",
+        "Name": "Ambrosia Full Screen Spaces"
+    },
+    "X-Plasma-API": "javascript"
+}

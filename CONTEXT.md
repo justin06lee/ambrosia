@@ -1574,6 +1574,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
     alone (TextEdit's `App.activate`) only works with a launcher's
     token. A window already marked gives no second signal: it stays
     behind until clicked.
+  - **A full-screen window's Space** (round 78):
+    `session/kwin-scripts/ambrosia_spaces` makes a desktop for a window
+    going full screen and removes it after; ours are told from the
+    user's by a zero-width space at the end of the name. Try a change
+    in the VM without logging out: `/tmp/amb-measure/kwfile.sh main.js
+    spaces` (Scripting.unloadScript, loadScript, start), then set
+    `fullScreen` from another script and print `workspace.desktops`.
+    A script that moves a window between desktops from inside that
+    window's own state change is too early: do it from a 0 ms `QTimer`.
   - **A window of ours stays lit under the shell's own menus** (round
     56): `shell/MenuBar.qml` holds a `QsMenuOpener` on the app's
     own-name menu while `Popups.kind` is set for its screen, and that
