@@ -31,7 +31,10 @@ PanelWindow {
     readonly property var appTitles: !hasAppMenu ? [] : appEntries.filter(entry => entry !== appHelp && entry !== lifted.own)
     readonly property bool appHasWindowMenu: appTitles.some(entry => entry.text === "Window")
 
-    readonly property bool hides: Settings.menuBarAutohide === "always"
+    // Over a full-screen window the bar is away and comes down when the
+    // pointer reaches the top of the screen, as a Mac's.
+    readonly property bool overFull: Settings.menuBarAutohide !== "never" && Apps.fullScreenOn(bar.screen)
+    readonly property bool hides: Settings.menuBarAutohide === "always" || overFull
     readonly property bool awake: !hides || hover.hovered || Popups.kind !== "" || Popups.searchOpen
     property bool asleep: false
     onAwakeChanged: {
@@ -58,9 +61,11 @@ PanelWindow {
 
     anchors { top: true; left: true; right: true }
     implicitHeight: Theme.size.menubar.height
+    // (Over a full-screen window it keeps no room of its own: on the layer
+    // above, room kept would push that window down by as much.)
     exclusiveZone: hides ? 0 : Theme.size.menubar.height
     color: "transparent"
-    WlrLayershell.layer: Settings.menuBarAutohide === "never" ? WlrLayer.Overlay : WlrLayer.Top
+    WlrLayershell.layer: Settings.menuBarAutohide === "never" || overFull ? WlrLayer.Overlay : WlrLayer.Top
     WlrLayershell.namespace: "ambrosia-menubar"
     mask: Region { item: bar.asleep ? topEdge : sliding }
     BackgroundEffect.blurRegion: Region { item: Settings.menuBarBackground ? glass : null }
@@ -163,7 +168,7 @@ PanelWindow {
             { text: "Center", enabled: any, action: () => Apps.placeWindow(window, "Window Move Center") },
             { separator: true },
             { text: "Move & Resize", enabled: any, submenu: () => Apps.placeEntries(window) },
-            { text: "Enter Full Screen", shortcut: "⌃⌘F", enabled: any, action: () => Apps.fullScreenWindow(window) },
+            { text: Apps.activeFullScreen ? "Exit Full Screen" : "Enter Full Screen", shortcut: "⌃⌘F", enabled: any, action: () => Apps.fullScreenWindow(window) },
             { separator: true },
             { text: "Close Window", enabled: any, action: () => Apps.closeWindow(window) },
         ];

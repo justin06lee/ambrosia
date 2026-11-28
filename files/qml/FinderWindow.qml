@@ -1123,6 +1123,9 @@ Window {
         }
     }
 
+    // Full screen (the green light, ⌃⌘F): the whole screen, square at its
+    // corners.
+    readonly property bool full: visibility === Window.FullScreen
     onVisibleChanged: if (visible) App.decorate(win, Finder.windowRadius)
     Component.onCompleted: {
         tabs = [tabState()];
@@ -1133,7 +1136,7 @@ Window {
     Rectangle {
         id: frame
         anchors.fill: parent
-        radius: Finder.windowRadius
+        radius: win.full ? 0 : Finder.windowRadius
         // Under the sidebar's glass the window is open to the desktop,
         // unless columns have scrolled in under it.
         readonly property bool glassy: sidebar.item?.glassy ?? false
@@ -1145,7 +1148,7 @@ Window {
             visible: frame.glassy
             anchors.fill: parent
             color: Finder.content
-            radius: Finder.windowRadius
+            radius: win.full ? 0 : Finder.windowRadius
             hole: Qt.rect(sidebar.x, sidebar.y, sidebar.width, sidebar.height)
             holeRadius: Finder.sidebarRadius
             open: !(pane.item?.underSidebar ?? false)

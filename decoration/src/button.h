@@ -10,7 +10,9 @@ namespace Ambrosia {
 
 class Decoration;
 
-// One traffic light: close, minimize or zoom (KWin's maximize). Gray while
+// One traffic light: close, minimize or zoom. A click on the green one makes
+// the window full screen, as a Mac's does, and with Option held zooms it
+// (KWin's maximize), which a double click on the title bar does too. Gray while
 // its window is inactive or the action isn't allowed; colored, with its glyph,
 // while the pointer is over the three. The pointer resting on the zoom light
 // brings up where the window can go, as a Mac's green light does: the shell
@@ -28,8 +30,15 @@ public:
 
     void paint(QPainter *painter, const QRectF &repaintArea) override;
 
+protected:
+    void mouseReleaseEvent(QMouseEvent *event) override;
+
 private:
     void offerPlaces();
+    void zoomOrFill();
+
+    // Option was down when the button was let go.
+    bool m_option = false;
 
     QTimer *m_linger = nullptr;
     // Where the pointer was on the screen when the menu was last offered:

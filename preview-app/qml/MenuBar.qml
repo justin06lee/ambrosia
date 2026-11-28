@@ -76,5 +76,7 @@ Platform.MenuBar {
         title: "Window"
         Platform.MenuItem { text: "Minimize"; shortcut: "Ctrl+M"; onTriggered: bar.preview.act("minimize", bar.preview.showMinimized) }
         Platform.MenuItem { text: "Zoom"; onTriggered: bar.preview.toggleZoom() }
+        // Full screen and back, as the green light and ⌃⌘F (the session's key).
+        Platform.MenuItem { text: bar.preview.visibility === Window.FullScreen ? "Exit Full Screen" : "Enter Full Screen"; onTriggered: bar.preview.visibility === Window.FullScreen ? bar.preview.showNormal() : bar.preview.showFullScreen() }
     }
 }

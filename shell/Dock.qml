@@ -41,7 +41,11 @@ PanelWindow {
     implicitWidth: vertical ? thickness + margin + swellRoom + tipRoom : 0
     exclusiveZone: Settings.dockAutohide ? 0 : thickness + margin
     color: "transparent"
-    WlrLayershell.layer: WlrLayer.Top
+    // Over a full-screen window the Dock is away and comes back at the
+    // screen's edge, as a Mac's: on the layer above such a window then.
+    readonly property bool overFull: Apps.fullScreenOn(dock.screen)
+    readonly property bool hides: Settings.dockAutohide || overFull
+    WlrLayershell.layer: overFull ? WlrLayer.Overlay : WlrLayer.Top
     // KWin reads a layer surface's kind from its namespace: "dock" makes
     // this a panel, which is how the Genie knows which way to pour a window
     // (without it, a Dock at a side got a window poured downwards).
@@ -50,7 +54,7 @@ PanelWindow {
     BackgroundEffect.blurRegion: Region { item: body; radius: dock.corner }
 
     // Hidden, the Dock is off the edge, and reaching the edge brings it back.
-    readonly property bool awake: !Settings.dockAutohide || hover.hovered || Popups.menuOpen
+    readonly property bool awake: !hides || hover.hovered || Popups.menuOpen
         || dropArea.containsDrag || dragWake.running
     property bool asleep: false
     property real slide: asleep ? thickness + margin : 0
@@ -328,7 +332,7 @@ PanelWindow {
     // that the pointer can leave it that way without it going.
     Item {
         readonly property real beyond: hover.hovered ? dock.swellRoom : 0
-        readonly property real below: Settings.dockAutohide ? dock.margin : 0
+        readonly property real below: dock.hides ? dock.margin : 0
         id: hit
         x: dock.side === "left" ? body.x - below : dock.side === "right" ? body.x - beyond : body.x
         y: dock.vertical ? body.y : body.y - beyond

@@ -134,7 +134,7 @@ ShellRoot {
             Popups.openMenu(screen, "places", Apps.placeEntries(window).concat([
                 { separator: true },
                 { text: "Center", action: () => Apps.placeWindow(window, "Window Move Center") },
-                { text: "Enter Full Screen", action: () => Apps.fullScreenWindow(window) },
+                { text: Apps.activeFullScreen ? "Exit Full Screen" : "Enter Full Screen", action: () => Apps.fullScreenWindow(window) },
             ]), x - screen.x, y - screen.y - Theme.size.menubar.height);
         }
     }

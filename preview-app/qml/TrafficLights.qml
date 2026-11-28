@@ -23,7 +23,9 @@ Row {
               act: () => lights.window.close() },
             { color: Theme.windowControls.minimize, rim: Theme.windowControls.minimizeRim, glyph: Theme.windowGlyphs.minimize, act: () => lights.window.showMinimized() },
             { color: Theme.windowControls.zoom, rim: Theme.windowControls.zoomRim, glyph: Theme.windowGlyphs.zoom,
-              act: () => lights.window.toggleZoom() },
+              // Full screen, as a Mac's green light; with Option, the zoom.
+              act: (keys) => (keys & Qt.AltModifier) ? lights.window.toggleZoom()
+                  : lights.window.visibility === Window.FullScreen ? lights.window.showNormal() : lights.window.showFullScreen() },
         ]
 
         Rectangle {
@@ -51,7 +53,7 @@ Row {
                     PathSvg { path: light.modelData.glyph }
                 }
             }
-            TapHandler { enabled: !light.modelData.off; onTapped: light.modelData.act() }
+            TapHandler { id: tap; enabled: !light.modelData.off; onTapped: light.modelData.act(tap.point.modifiers) }
         }
     }
 }
