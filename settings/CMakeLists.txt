@@ -28,10 +28,14 @@ set_source_files_properties(qml/Look.qml qml/Panes.qml PROPERTIES QT_QML_SINGLET
 # The About panel every app of ours shows, from one source (../kit).
 set_source_files_properties(../kit/AboutWindow.qml PROPERTIES QT_RESOURCE_ALIAS AboutWindow.qml)
 set_source_files_properties(../kit/About.qml PROPERTIES QT_RESOURCE_ALIAS About.qml QT_QML_SINGLETON_TYPE TRUE)
+# The Colors panel (../kit; screencolor.h is the eyedropper).
+set_source_files_properties(../kit/ColorPanel.qml PROPERTIES QT_RESOURCE_ALIAS ColorPanel.qml)
+set_source_files_properties(../kit/Colors.qml PROPERTIES QT_RESOURCE_ALIAS Colors.qml QT_QML_SINGLETON_TYPE TRUE)
 qt_add_qml_module(ambrosia-settings
     URI Settings
     VERSION 1.0
     SOURCES
+        ../kit/screencolor.h
         src/app.h src/app.cpp
         src/about.h src/about.cpp
         src/sound.h src/sound.cpp
@@ -62,6 +66,8 @@ qt_add_qml_module(ambrosia-settings
     QML_FILES
         ../kit/AboutWindow.qml
         ../kit/About.qml
+        ../kit/ColorPanel.qml
+        ../kit/Colors.qml
         qml/SettingsWindow.qml
         qml/MenuBar.qml
         qml/Appearance.qml
@@ -165,7 +171,7 @@ qt_add_qml_module(ambrosia-settings
         art/drive.svg
 )
 
-target_include_directories(ambrosia-settings PRIVATE src)
+target_include_directories(ambrosia-settings PRIVATE src ../kit)
 
 target_link_libraries(ambrosia-settings PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem

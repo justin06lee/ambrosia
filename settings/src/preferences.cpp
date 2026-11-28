@@ -2,7 +2,6 @@
 
 #include <KConfigGroup>
 #include <KSharedConfig>
-#include <QColorDialog>
 #include <QDir>
 #include <QFile>
 #include <QFileDialog>
@@ -174,17 +173,6 @@ void Preferences::addWallpaperPicture()
         m_settings.insert(QStringLiteral("wallpaperRecent"), recent);
         m_settings.insert(QStringLiteral("wallpaper"), path);
         write();
-    });
-    present(dialog);
-}
-
-void Preferences::chooseWallpaperColor()
-{
-    const QString now = wallpaper();
-    auto *dialog = new QColorDialog(now.startsWith(QLatin1Char('#')) ? QColor(now) : QColor(Qt::black));
-    dialog->setWindowTitle(tr("Custom Color"));
-    connect(dialog, &QColorDialog::colorSelected, this, [this](const QColor &color) {
-        setWallpaper(color.name());
     });
     present(dialog);
 }

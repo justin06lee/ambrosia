@@ -43,6 +43,10 @@ void App::tell(QVariantMap what, std::function<void(const QString &role, const Q
 {
     if (!what.contains(QStringLiteral("icon")))
         what[QStringLiteral("icon")] = QStringLiteral("org.ambrosia.files");
+    // Over the window in front, when one of ours is: the alert stands on
+    // its middle and holds it still, as a Mac's sheet does.
+    if (QWindow *front = QGuiApplication::focusWindow(); front && front->isVisible() && !what.contains(QStringLiteral("transientParent")))
+        what[QStringLiteral("transientParent")] = QVariant::fromValue(front);
     if (s_instance && kitAlert(s_instance->m_engine, QStringLiteral("Files"), what, then))
         return;
     auto *box = new QMessageBox(QMessageBox::Warning, QStringLiteral("Files"), what.value(QStringLiteral("heading")).toString(), QMessageBox::Ok);

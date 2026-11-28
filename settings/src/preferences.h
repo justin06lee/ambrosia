@@ -77,9 +77,8 @@ public:
     Q_INVOKABLE QString wallpaperFolder() const;
     // A local path as an Image takes it, whatever is in its name.
     Q_INVOKABLE QUrl pictureUrl(const QString &path) const;
-    // The system's dialogs; what's chosen becomes the wallpaper.
+    // The system's Open panel; what's chosen becomes the wallpaper.
     Q_INVOKABLE void addWallpaperPicture();
-    Q_INVOKABLE void chooseWallpaperColor();
 
 Q_SIGNALS:
     void changed();
