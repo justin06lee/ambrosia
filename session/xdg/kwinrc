@@ -62,6 +62,10 @@ ambrosia_anchorEnabled=true
 # from our menu bar (KWin refuses without a key press in the app):
 # session/kwin-scripts/ambrosia_forward.
 ambrosia_forwardEnabled=true
+# A window made full screen gets a Space of its own, as on a Mac, and
+# gives it up when it leaves full screen or closes:
+# session/kwin-scripts/ambrosia_spaces.
+ambrosia_spacesEnabled=true
 windowapertureEnabled=false
 eyeonscreenEnabled=false
 
