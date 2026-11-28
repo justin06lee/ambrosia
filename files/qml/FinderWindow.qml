@@ -47,6 +47,16 @@ Window {
     property int tabKeys: 0
     property bool tabBarAlways: false
     readonly property bool tabBarShown: !isPanel && (tabs.length > 1 || tabBarAlways)
+    // View ▸ Hide Sidebar, every window's (a panel keeps its): the lights
+    // then stand in the toolbar's place and the toolbar starts after them.
+    readonly property bool sidebarShown: Prefs.sidebar || isPanel
+    // The bars along the bottom, which View shows and hides for every
+    // window: the path bar, and under it the status bar (a window only: a
+    // panel has its buttons there). A search shows the path bar whatever
+    // View says, for where the item found is, as Finder's does.
+    readonly property bool pathBarShown: (Prefs.pathBar && !isPanel) || searching
+    readonly property bool statusBarShown: Prefs.statusBar && !isPanel
+    readonly property int footer: (pathBarShown ? Finder.pathBar : 0) + (statusBarShown ? Finder.statusBar : 0)
     readonly property int tabStrip: tabBarShown ? Finder.tabStrip : 0
     readonly property var tabNames: tabs.map((each, at) => at === tabAt ? placeName : each.name)
     function tabState() {
@@ -1181,6 +1191,8 @@ Window {
         Loader {
             id: sidebar
             readonly property bool flush: App.sidebar === "flush"
+            active: win.sidebarShown
+            visible: win.sidebarShown
             z: 1
             x: flush ? 0 : Finder.sidebarInset
             y: x
@@ -1197,9 +1209,18 @@ Window {
             SidebarFlush { finder: win }
         }
 
+        TrafficLights {
+            id: bareLights
+            visible: !win.sidebarShown
+            z: 1
+            x: Finder.lightsX
+            y: Finder.lightsY
+            window: win.window
+        }
+
         Item {
             id: main
-            x: sidebar.x + sidebar.width
+            x: win.sidebarShown ? sidebar.x + sidebar.width : 0
             // A panel keeps a row over the folder for a save's name, and a
             // bar of buttons under it.
             y: win.panelKind === "save" ? Finder.panelName : 0
@@ -1209,7 +1230,7 @@ Window {
             Loader {
                 id: pane
                 anchors.fill: parent
-                anchors.bottomMargin: Finder.pathBar
+                anchors.bottomMargin: win.footer
                 anchors.rightMargin: win.previewShown ? Finder.previewPane : 0
                 // The scope bar's rows push the view down (its top stays
                 // under the toolbar's glass otherwise).
@@ -1261,7 +1282,7 @@ Window {
 
             Toolbar {
                 id: toolbar
-                x: Finder.toolbarGap
+                x: win.sidebarShown ? Finder.toolbarGap : bareLights.x + bareLights.width + 14
                 width: parent.width - x
                 finder: win
             }
@@ -1274,6 +1295,14 @@ Window {
             }
 
             PathBar {
+                visible: win.pathBarShown
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: win.statusBarShown ? Finder.statusBar : 0
+                width: parent.width - (win.previewShown ? Finder.previewPane : 0)
+                finder: win
+            }
+            StatusBar {
+                visible: win.statusBarShown
                 anchors.bottom: parent.bottom
                 width: parent.width - (win.previewShown ? Finder.previewPane : 0)
                 finder: win
@@ -1400,6 +1429,15 @@ Window {
             break;
         case Qt.Key_P:
             if (ctrl && shift) win.act("preview", () => win.showPreview = !win.showPreview);
+            else if (ctrl && alt) win.act("pathBar", () => Prefs.pathBar = !Prefs.pathBar);
+            break;
+        case Qt.Key_S:
+            // ⌃⌘S on a Mac's keys: Control and Command are both held.
+            if ((event.modifiers & Qt.ControlModifier) && (event.modifiers & Qt.MetaModifier) && !win.isPanel)
+                win.act("sidebar", () => Prefs.sidebar = !Prefs.sidebar);
+            break;
+        case Qt.Key_Slash:
+            if (ctrl && !shift && !alt && !win.isPanel) win.act("statusBar", () => Prefs.statusBar = !Prefs.statusBar);
             break;
         case Qt.Key_O:
             if (ctrl && shift) win.act("documents", () => win.goPlace("documents"));

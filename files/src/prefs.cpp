@@ -100,6 +100,36 @@ void Prefs::setWarnExtension(bool on)
     set(u"warnExtension"_s, on);
 }
 
+bool Prefs::sidebar() const
+{
+    return m_settings.value(u"sidebar"_s, true).toBool();
+}
+
+void Prefs::setSidebar(bool on)
+{
+    set(u"sidebar"_s, on);
+}
+
+bool Prefs::pathBar() const
+{
+    return m_settings.value(u"pathBar"_s, false).toBool();
+}
+
+void Prefs::setPathBar(bool on)
+{
+    set(u"pathBar"_s, on);
+}
+
+bool Prefs::statusBar() const
+{
+    return m_settings.value(u"statusBar"_s, false).toBool();
+}
+
+void Prefs::setStatusBar(bool on)
+{
+    set(u"statusBar"_s, on);
+}
+
 bool Prefs::warnEmptyTrash() const
 {
     return m_settings.value(u"warnEmptyTrash"_s, true).toBool();

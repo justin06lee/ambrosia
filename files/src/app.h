@@ -89,6 +89,9 @@ public:
     Q_INVOKABLE bool accepts(const QString &name, const QStringList &globs, const QStringList &mimes) const;
     // Whether a Save would write over something.
     Q_INVOKABLE bool exists(const QUrl &url) const;
+    // The room left on the disk a folder is on, as the status bar says it:
+    // "31.34 GB". Empty for a place that isn't on a disk.
+    Q_INVOKABLE QString roomOn(const QUrl &url) const;
     // The progress window, for the copies and moves in FileOps.jobs: made
     // when one has run for a second; it closes itself after the last.
     void openProgress();

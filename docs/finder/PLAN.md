@@ -808,8 +808,9 @@ shortcut menu; v1 scope unless marked):
 - **Compress** (`FileOps.compress`) writes a zip beside the items with
   KZip on a thread, under a hidden name until it is whole: `notes.md.zip`
   for one item, `Archive.zip` for several, then `Archive 2.zip`; hidden
-  files inside a folder go in. Not one of Undo's, and no progress is
-  shown: a large folder's zip simply appears when it is done.
+  files inside a folder go in. Not one of Undo's. Since 2026-11-28 it is a job in the
+  progress window (`CompressJob`, expand.cpp), which can be stopped; before, a large
+  folder's zip simply appeared when it was done.
 - **Make Alias** (`FileOps.makeAlias`) makes a link beside the item,
   `notes.md alias`; Undo takes it away. A link's Kind is Alias in the
   list, whatever it points to.
