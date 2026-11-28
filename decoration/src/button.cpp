@@ -4,6 +4,7 @@
 #include <KDecoration3/DecoratedWindow>
 
 #include <QCursor>
+#include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
 #include <QPolygonF>
@@ -42,6 +43,9 @@ Button::Button(DecorationButtonType type, Decoration *decoration, QObject *paren
     connect(decoration->window(), &DecoratedWindow::activeChanged, this, [this] { update(); });
 
     if (type == DecorationButtonType::Maximize) {
+        // KDecoration ties the click to maximizing: ours decides first.
+        disconnect(this, &DecorationButton::clicked, decoration, nullptr);
+        connect(this, &DecorationButton::clicked, this, &Button::zoomOrFill, Qt::QueuedConnection);
         m_linger = new QTimer(this);
         m_linger->setSingleShot(true);
         m_linger->setInterval(lingerMs);
@@ -68,6 +72,26 @@ void Button::offerPlaces()
     const QPointF corner = QPointF(m_offeredAt) - deco->pointer();
     const QPoint at = (corner + QPointF(geometry().left(), geometry().bottom() + menuGap)).toPoint();
     QProcess::startDetached(QStringLiteral("/usr/bin/ambrosia"), {QStringLiteral("window-menu"), QString::number(at.x()), QString::number(at.y())});
+}
+
+void Button::mouseReleaseEvent(QMouseEvent *event)
+{
+    m_option = event->modifiers().testFlag(Qt::AltModifier);
+    DecorationButton::mouseReleaseEvent(event);
+}
+
+// The green light: full screen, or with Option the zoom. KWin makes a
+// frame as a child of its window, and that window has `fullScreen` to set
+// (the property its scripts use); a frame made any other way zooms.
+void Button::zoomOrFill()
+{
+    auto *deco = static_cast<Decoration *>(decoration());
+    QObject *window = deco->parent();
+    if (m_option || !window || !window->property("fullScreen").isValid() || !window->property("fullScreenable").toBool()) {
+        deco->requestToggleMaximization(Qt::LeftButton);
+        return;
+    }
+    window->setProperty("fullScreen", !window->property("fullScreen").toBool());
 }
 
 DecorationButton *Button::create(DecorationButtonType type, KDecoration3::Decoration *decoration, QObject *parent)

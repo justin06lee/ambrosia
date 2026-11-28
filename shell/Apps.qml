@@ -25,6 +25,11 @@ Singleton {
     property string menuPath: ""
     property int activeRow: -1
     property int activeChild: -1
+    // The window in front fills its screen (full screen): the menu bar and
+    // the Dock then hide over it and come back at the screen's edge.
+    // `activeFullScreenOn` is that screen's place, "x,y".
+    property bool activeFullScreen: false
+    property string activeFullScreenOn: ""
     // Which keyboard layer the focused app has (from KeyLayer.qml): menus
     // write a terminal's shortcuts by it.
     property string keyLayer: "default"
@@ -39,8 +44,12 @@ Singleton {
         if (!index.valid) {
             activeName = activeId = menuService = menuPath = "";
             activeRow = activeChild = -1;
+            activeFullScreen = false;
             return;
         }
+        activeFullScreen = get(index, TaskManager.AbstractTasksModel.IsFullScreen) === true;
+        const on = get(index, TaskManager.AbstractTasksModel.ScreenGeometry);
+        activeFullScreenOn = activeFullScreen && on ? on.x + "," + on.y : "";
         const top = index.parent.valid ? index.parent : index;
         activeRow = top.row;
         activeChild = index.parent.valid ? index.row : -1;
@@ -180,6 +189,10 @@ Singleton {
     function zoomWindow(window) {
         const index = indexOf(window);
         if (index) tasksModel.requestToggleMaximized(index);
+    }
+    // Whether the window in front is full screen on this screen.
+    function fullScreenOn(screen) {
+        return activeFullScreen && (activeFullScreenOn === "" || activeFullScreenOn === screen.x + "," + screen.y);
     }
     function fullScreenWindow(window) {
         const index = indexOf(window);

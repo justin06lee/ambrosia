@@ -178,6 +178,8 @@ Platform.MenuBar {
         title: "Window"
         Platform.MenuItem { text: "Minimize"; onTriggered: bar.finder.showMinimized() }
         Platform.MenuItem { text: "Zoom"; onTriggered: bar.finder.visibility === Window.Maximized ? bar.finder.showNormal() : bar.finder.showMaximized() }
+        // Full screen and back, as the green light and ⌃⌘F (the session's key).
+        Platform.MenuItem { text: bar.finder.visibility === Window.FullScreen ? "Exit Full Screen" : "Enter Full Screen"; onTriggered: bar.finder.visibility === Window.FullScreen ? bar.finder.showNormal() : bar.finder.showFullScreen() }
         Platform.MenuSeparator {}
         Platform.MenuItem { text: "Show Previous Tab"; shortcut: "Ctrl+PgUp"; enabled: bar.finder.tabs.length > 1; onTriggered: bar.finder.act("previousTab", () => bar.finder.stepTab(-1)) }
         Platform.MenuItem { text: "Show Next Tab"; shortcut: "Ctrl+PgDown"; enabled: bar.finder.tabs.length > 1; onTriggered: bar.finder.act("nextTab", () => bar.finder.stepTab(1)) }

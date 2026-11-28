@@ -56,7 +56,7 @@ Everywhere:
 | ⇧⌘5 | the screenshot tool | Print (Spectacle) |
 | ⇧⌘[ , ⇧⌘] | the tab before, the tab after (Files' tabs too, which also take ⌃Tab and ⇧⌃Tab; ⌘T makes one there, ⌘W closes it and ⇧⌘W the window, ⇧⌘T shows the tab bar) | Ctrl+PgUp, Ctrl+PgDn |
 | ⌃⌘S | in Files, the sidebar away and back (View ▸ Hide Sidebar); ⌥⌘P its path bar, ⌘/ its status bar | Super+Ctrl+S, which the ⌃⌘ layer names (Files takes it as Meta+Ctrl+S); Ctrl+Alt+P; Ctrl+/ |
-| ⌃⌘F | full screen | Super+Ctrl+F (`session/org.ambrosia.fullscreen.desktop`) |
+| ⌃⌘F | full screen and back (the green light does the same; the menu bar and Dock come back at the screen's edges) | Super+Ctrl+F (`session/org.ambrosia.fullscreen.desktop`) |
 | ⌃⌘Q | lock the screen | Super+L |
 | ⌃⌘Space | the emoji picker: type to search, the arrows and Return to choose; the choice is typed into the app in front | Super+Ctrl+Alt+Space (`session/org.ambrosia.emoji.desktop`; Super+. is still KDE's own picker) |
 | ⌥⌘Esc | Force Quit Applications: the apps to choose one from, as the Ambrosia menu's Force Quit… | Super+Ctrl+Alt+Esc (`session/org.ambrosia.force-quit.desktop`) |
