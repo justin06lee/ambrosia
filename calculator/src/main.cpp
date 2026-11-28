@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/placing.h"
 #include "app.h"
 
 #include <QApplication>
@@ -10,8 +11,10 @@ int main(int argc, char *argv[])
 {
     // Inter Variable has a real Bold: never let Qt fake one over it.
     qputenv("QT_NO_SYNTHESIZED_BOLD", "1");
+    KitPlacing placing(argc, argv, "org.ambrosia.calculator");
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
+    kitPlacing(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-calculator"));
     QApplication::setApplicationDisplayName(QStringLiteral("Calculator"));
     QApplication::setApplicationVersion(QStringLiteral(CALCULATOR_VERSION));

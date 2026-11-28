@@ -52,6 +52,8 @@ Window {
     visible: false
     color: "transparent"
     flags: Qt.Window | Qt.FramelessWindowHint
+    // It opens where it was last, as large (../kit/placing.h).
+    property string frameName: "main"
     title: page ? (page.page === "service" ? Network.connected.concat(Network.others).find(s => s.id === anchor)?.name ?? page.name
         : page.page === "privacyapps" ? ({ camera: qsTr("Camera"), microphone: qsTr("Microphone"), screen: qsTr("Screen & System Audio Recording") })[anchor] ?? page.name
         : page.page === "accessibilityoptions" ? ({ zoom: qsTr("Zoom"), display: qsTr("Display"), motion: qsTr("Motion"), audio: qsTr("Audio"), keyboard: qsTr("Keyboard"), pointer: qsTr("Pointer Control") })[anchor] ?? page.name

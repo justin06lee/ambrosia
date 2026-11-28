@@ -86,6 +86,12 @@ target_include_directories(ambrosia-notes PRIVATE src ../kit)
 target_link_libraries(ambrosia-notes PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus Qt6::Pdf KF6::WindowSystem PkgConfig::CUPS
 )
+# A window's place is kept by a private part of Qt (../kit/placing.h):
+# without its headers the app builds the same and windows open anywhere.
+find_package(Qt6 QUIET COMPONENTS GuiPrivate)
+if(TARGET Qt6::GuiPrivate)
+    target_link_libraries(ambrosia-notes PRIVATE Qt6::GuiPrivate)
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS ambrosia-notes RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

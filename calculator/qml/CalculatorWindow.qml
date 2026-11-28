@@ -103,6 +103,8 @@ Window {
     color: "transparent"
     flags: Qt.Window | Qt.FramelessWindowHint
     title: "Calculator"
+    // It opens where it was last (../kit/placing.h).
+    property string frameName: "main"
 
     onVisibleChanged: if (visible) App.decorate(win, win.radius)
     Component.onCompleted: {

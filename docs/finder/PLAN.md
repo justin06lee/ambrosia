@@ -784,8 +784,12 @@ shortcut menu; v1 scope unless marked):
   since 2026-11-25: a sidebar tag's menu);
 - This Computer reaching other drives and the installed apps;
 - tabs: in since 2026-11-28 (File ▸ New Tab, ⌘T; `qml/TabBar.qml`; each
-  tab a snapshot in `FinderWindow.tabs`), short of Merge All Windows, a
-  tab dragged between windows, and tabs kept for next time.
+  tab a snapshot in `FinderWindow.tabs`), short of Merge All Windows and
+  a tab dragged between windows. Kept for next time since 2026-11-28
+  (round 74): the windows open when the session ends, their tabs, views
+  and places come back at login (`App::remember`, `App::restore`,
+  `~/.local/state/ambrosia/files-windows.json`; the places are KWin's,
+  by `kit/placing.h`).
 - Quick Look's full screen has no strip of controls at the bottom as
   Finder's has (it is black since 2026-11-25, a picture as large as the
   screen, and its bar and the pointer go away two seconds after the pointer

@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/placing.h"
 #include "../../kit/scrolling.h"
 #include "app.h"
 #include "index.h"
@@ -110,9 +111,11 @@ int main(int argc, char *argv[])
     // Two malloc arenas, not one per busy thread (listing, index, thumbnail
     // and render threads): fewer half-empty heaps held for the session.
     mallopt(M_ARENA_MAX, 2);
+    KitPlacing placing(argc, argv, "org.ambrosia.files");
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
     kitScrolling(&app);
+    kitPlacing(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-files"));
     QApplication::setApplicationDisplayName(QStringLiteral("Files"));
     QApplication::setApplicationVersion(QStringLiteral(FILES_VERSION));
@@ -219,9 +222,13 @@ int main(int argc, char *argv[])
         bus.registerObject(QStringLiteral("/org/freedesktop/portal/desktop"), new Portal(&files), QDBusConnection::ExportScriptableSlots);
         bus.registerService(QStringLiteral("org.freedesktop.impl.portal.desktop.ambrosia"));
     }
+    // The windows open when Files last ended come back, with their tabs
+    // (at login, as Finder's do); a launch that names no folder then opens
+    // a new window only if none did.
+    const int came = oneShot ? 0 : files.restore();
     if (expanding)
         files.Expand(urls);
-    else if (!quiet)
+    else if (!quiet && (came == 0 || !urls.isEmpty() || parser.isSet(newWindow)))
         files.Open(urls);
     // The index behind search, warm from the start (a one-shot run starts
     // it only if it searches).

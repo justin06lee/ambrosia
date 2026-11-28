@@ -59,6 +59,12 @@ target_include_directories(ambrosia-disk-utility PRIVATE src)
 target_link_libraries(ambrosia-disk-utility PRIVATE
     Qt6::Widgets Qt6::Quick Qt6::QuickControls2 Qt6::DBus KF6::WindowSystem
 )
+# A window's place is kept by a private part of Qt (../kit/placing.h):
+# without its headers the app builds the same and windows open anywhere.
+find_package(Qt6 QUIET COMPONENTS GuiPrivate)
+if(TARGET Qt6::GuiPrivate)
+    target_link_libraries(ambrosia-disk-utility PRIVATE Qt6::GuiPrivate)
+endif()
 
 include(GNUInstallDirs)
 install(TARGETS ambrosia-disk-utility RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})

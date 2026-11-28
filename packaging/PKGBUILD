@@ -236,7 +236,7 @@ package_ambrosia-shell() {
   install -Dm644 session/kwin-outline/outline.qml -t "$pkgdir/usr/share/kwin/outline/ambrosia/"
   install -Dm644 dist/kde/kdeglobals session/xdg/kwinrc session/xdg/kwinrulesrc session/xdg/breezerc session/xdg/mimeapps.list \
     session/xdg/kcminputrc session/xdg/konsolerc session/xdg/klaunchrc session/xdg/plasmashellrc \
-    session/xdg/plasmaparc -t "$pkgdir/etc/xdg/ambrosia/"
+    session/xdg/plasmaparc session/xdg/ksmserverrc -t "$pkgdir/etc/xdg/ambrosia/"
   # Open and Save in every app are Files' panels (the desktop portal).
   install -Dm644 session/xdg/xdg-desktop-portal/portals.conf -t "$pkgdir/etc/xdg/ambrosia/xdg-desktop-portal/"
   # Konsole as the session's Terminal: two profiles and their colors after a
