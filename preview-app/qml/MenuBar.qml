@@ -37,6 +37,9 @@ Platform.MenuBar {
         Platform.MenuSeparator {}
         Platform.MenuItem { text: "Close Window"; shortcut: "Ctrl+W"; onTriggered: bar.preview.act("close", bar.preview.close) }
         Platform.MenuSeparator {}
+        Platform.MenuItem { text: "Export…"; enabled: bar.preview.showsDocument; onTriggered: bar.preview.exportAs(false) }
+        Platform.MenuItem { text: "Export as PDF…"; enabled: bar.preview.showsDocument; onTriggered: bar.preview.exportAs(true) }
+        Platform.MenuSeparator {}
         Platform.MenuItem { text: "Print…"; shortcut: "Ctrl+P"; enabled: bar.preview.showsDocument; onTriggered: bar.preview.act("print", bar.preview.printOut) }
     }
     Menu {

@@ -1406,7 +1406,13 @@ package repo below), and they carry `shell/` and `session/` as they are.
     panel through `QFileDialog`): each a frameless `Qt.Dialog` with the
     window as `transientParent`, `WindowModal`, which KWin centers over
     it; an app that uses one lists its `.qml`, `.h` and `.cpp` in its
-    `CMakeLists.txt` and has a `shadow.h` of its own. An app's menu of its own
+    `CMakeLists.txt` and has a `shadow.h` of its own. An alert with no
+    window to stand on is `kit/AlertWindow.qml` (round 68), raised from
+    C++ by `kitAlert(engine, "Module", { icon, heading, detail, buttons,
+    secret }, then)` (`kit/alert.h`, listed in the app's sources for moc);
+    it draws its own shadow inside a see-through window larger than its
+    card, so it needs no `shadow.h`, and is deleted from its answer. An
+    app's menu of its own
     name (`MenuBar.qml`'s first) is its app menu in Ambrosia's bar
     (`lifted.own` in `shell/AppMenu.qml`); the title must be the desktop
     entry's `Name` exactly ("System Settings"). Traps met: `baseline` is

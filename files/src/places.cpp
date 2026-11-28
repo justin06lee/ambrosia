@@ -1,4 +1,5 @@
 #include "places.h"
+#include "app.h"
 #include "prefs.h"
 #include "tags.h"
 
@@ -9,7 +10,6 @@
 #include <Solid/StorageVolume>
 
 #include <QDir>
-#include <QMessageBox>
 #include <QStandardPaths>
 #include <QSysInfo>
 #include <QTimer>
@@ -68,10 +68,7 @@ QString mountOf(const Solid::Device &device)
 
 void alert(const QString &text, const QString &detail)
 {
-    auto *box = new QMessageBox(QMessageBox::Warning, QStringLiteral("Files"), text, QMessageBox::Ok);
-    box->setInformativeText(detail);
-    box->setAttribute(Qt::WA_DeleteOnClose);
-    box->open();
+    App::tell({{QStringLiteral("heading"), text}, {QStringLiteral("detail"), detail}});
 }
 
 }

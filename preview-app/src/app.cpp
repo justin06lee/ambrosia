@@ -1,4 +1,5 @@
 #include "app.h"
+#include "../../kit/alert.h"
 #include "shadow.h"
 
 #include <KWindowShadow>
@@ -10,6 +11,9 @@
 #include <QFileInfo>
 #include <QGuiApplication>
 #include <QImageReader>
+#include <QImageWriter>
+#include <QPdfDocument>
+#include <QSaveFile>
 #include <QMimeDatabase>
 #include <QPageLayout>
 #include <QPageSize>
@@ -33,8 +37,10 @@ App::App(const Options &options)
     connect(qGuiApp, &QGuiApplication::paletteChanged, this, &App::appearanceChanged);
 }
 
-App *App::create(QQmlEngine *, QJSEngine *)
+App *App::create(QQmlEngine *engine, QJSEngine *)
 {
+    // Kept for what is raised from here (the alert of a failed export).
+    s_instance->m_engine = engine;
     return s_instance;
 }
 
@@ -138,6 +144,106 @@ bool App::picturesPdf(const QVariantList &files, const QUrl &target, const QSize
         return false;
     painter.end();
     return true;
+}
+
+QStringList App::exportFormats() const
+{
+    QStringList formats;
+    const QList<QByteArray> known = QImageWriter::supportedImageFormats();
+    for (const char *format : {"jpeg", "png", "tiff"}) {
+        if (known.contains(format))
+            formats << QString::fromLatin1(format);
+    }
+    return formats;
+}
+
+bool App::exportAs(const QUrl &source, int page, int quarterTurns, const QUrl &target, const QString &format)
+{
+    const QString from = source.toLocalFile(), to = target.toLocalFile();
+    auto fail = [&](const QString &why) {
+        const QString heading = QStringLiteral("The document “%1” could not be exported.").arg(QFileInfo(from).fileName());
+        if (!kitAlert(m_engine, QStringLiteral("Preview"), {{QStringLiteral("icon"), QStringLiteral("org.ambrosia.preview")}, {QStringLiteral("heading"), heading}, {QStringLiteral("detail"), why}}))
+            qWarning("Preview: %s %s", qPrintable(heading), qPrintable(why));
+        return false;
+    };
+    const bool fromPdf = isPdf(source);
+    if (fromPdf && format == QLatin1String("pdf")) {
+        if (QFileInfo(from) == QFileInfo(to))
+            return true;
+        QFile::remove(to);
+        return QFile::copy(from, to) ? true : fail(QStringLiteral("The file couldn’t be written there."));
+    }
+    // What is written: the picture as it is shown, or the PDF's page.
+    QImage picture;
+    if (fromPdf) {
+        QPdfDocument document;
+        if (document.load(from) != QPdfDocument::Error::None || page < 0 || page >= document.pageCount())
+            return fail(QStringLiteral("The PDF couldn’t be read."));
+        const QSizeF points = document.pagePointSize(page);
+        const QSize pixels = (points * 150.0 / 72.0).toSize();
+        const QImage drawn = document.render(page, pixels);
+        if (drawn.isNull())
+            return fail(QStringLiteral("The page couldn’t be drawn."));
+        // A page is paper: white under what it leaves bare.
+        picture = QImage(pixels, QImage::Format_RGB32);
+        picture.fill(Qt::white);
+        QPainter painter(&picture);
+        painter.drawImage(0, 0, drawn);
+        painter.end();
+        picture.setDotsPerMeterX(qRound(150 / 0.0254));
+        picture.setDotsPerMeterY(qRound(150 / 0.0254));
+    } else {
+        QImageReader reader(from);
+        reader.setAutoTransform(true);
+        picture = reader.read();
+        if (picture.isNull())
+            return fail(reader.errorString());
+    }
+    if (quarterTurns % 4 != 0)
+        picture = picture.transformed(QTransform().rotate(90 * (quarterTurns % 4)));
+
+    if (format == QLatin1String("pdf")) {
+        // One page the picture's own size: a point a pixel unless the
+        // picture says how many it has to the inch.
+        const qreal dpi = picture.dotsPerMeterX() > 0 ? picture.dotsPerMeterX() * 0.0254 : 72.0;
+        const qreal scale = dpi > 20 && dpi < 2400 ? 72.0 / dpi : 1.0;
+        const QSizeF points = QSizeF(picture.size()) * scale;
+        QPdfWriter writer(to);
+        writer.setCreator(QStringLiteral("Preview"));
+        writer.setResolution(300);
+        writer.setPageSize(QPageSize(points, QPageSize::Point, QString(), QPageSize::ExactMatch));
+        writer.setPageMargins(QMarginsF(0, 0, 0, 0), QPageLayout::Point);
+        QPainter painter;
+        if (!painter.begin(&writer))
+            return fail(QStringLiteral("The file couldn’t be written there."));
+        painter.setRenderHint(QPainter::SmoothPixmapTransform);
+        painter.drawImage(QRectF(0, 0, writer.width(), writer.height()), picture);
+        painter.end();
+        return true;
+    }
+    if (format == QLatin1String("jpeg") && picture.hasAlphaChannel()) {
+        // JPEG has no see-through: white under it, as a Mac's.
+        QImage flat(picture.size(), QImage::Format_RGB32);
+        flat.fill(Qt::white);
+        QPainter painter(&flat);
+        painter.drawImage(0, 0, picture);
+        painter.end();
+        flat.setDotsPerMeterX(picture.dotsPerMeterX());
+        flat.setDotsPerMeterY(picture.dotsPerMeterY());
+        picture = flat;
+    }
+    QSaveFile file(to);
+    if (!file.open(QIODevice::WriteOnly))
+        return fail(file.errorString());
+    QImageWriter writer(&file, format.toLatin1());
+    if (format == QLatin1String("jpeg"))
+        writer.setQuality(90);
+    if (!writer.write(picture)) {
+        const QString why = writer.errorString();
+        file.cancelWriting();
+        return fail(why);
+    }
+    return file.commit() ? true : fail(file.errorString());
 }
 
 QSize App::imageSize(const QUrl &file) const

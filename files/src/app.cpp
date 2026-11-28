@@ -1,4 +1,5 @@
 #include "app.h"
+#include "../../kit/alert.h"
 #include "fileops.h"
 #include "index.h"
 #include "portal.h"
@@ -14,6 +15,7 @@
 #include <KService>
 #include <KWindowShadow>
 
+#include <QMessageBox>
 #include <QDir>
 #include <QFileInfo>
 #include <QGuiApplication>
@@ -36,6 +38,20 @@
 #include <vector>
 
 App *App::s_instance = nullptr;
+
+void App::tell(QVariantMap what, std::function<void(const QString &role, const QString &typed)> then)
+{
+    if (!what.contains(QStringLiteral("icon")))
+        what[QStringLiteral("icon")] = QStringLiteral("org.ambrosia.files");
+    if (s_instance && kitAlert(s_instance->m_engine, QStringLiteral("Files"), what, then))
+        return;
+    auto *box = new QMessageBox(QMessageBox::Warning, QStringLiteral("Files"), what.value(QStringLiteral("heading")).toString(), QMessageBox::Ok);
+    box->setInformativeText(what.value(QStringLiteral("detail")).toString());
+    box->setAttribute(Qt::WA_DeleteOnClose);
+    if (then)
+        connect(box, &QMessageBox::finished, box, [then] { then({}, {}); });
+    box->open();
+}
 
 App::App(QQmlEngine *engine, const Options &options)
     : m_engine(engine)

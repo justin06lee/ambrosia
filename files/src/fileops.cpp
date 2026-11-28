@@ -27,9 +27,6 @@
 #include <QFileInfo>
 #include <QFutureWatcher>
 #include <QGuiApplication>
-#include <QInputDialog>
-#include <QLineEdit>
-#include <QMessageBox>
 #include <QMimeData>
 #include <QProcess>
 #include <QPushButton>
@@ -409,10 +406,7 @@ int FileOps::start(KJob *job, const QList<QUrl> &results, const QString &label)
 
 void FileOps::alert(const QString &text, const QString &detail)
 {
-    auto *box = new QMessageBox(QMessageBox::Warning, QStringLiteral("Files"), text, QMessageBox::Ok);
-    box->setInformativeText(detail);
-    box->setAttribute(Qt::WA_DeleteOnClose);
-    box->open();
+    App::tell({{QStringLiteral("heading"), text}, {QStringLiteral("detail"), detail}});
 }
 
 int FileOps::newFolder(const QUrl &dir)
@@ -567,23 +561,19 @@ void FileOps::expandOne(int id, const QUrl &url, const QString &password)
         const bool ok = !done->error();
         auto *expanded = static_cast<ExpandJob *>(done);
         if (!ok && expanded->locked()) {
-            auto *ask = new QInputDialog;
-            ask->setAttribute(Qt::WA_DeleteOnClose);
-            ask->setWindowTitle(QStringLiteral("Archive Utility"));
-            ask->setInputMode(QInputDialog::TextInput);
-            ask->setTextEchoMode(QLineEdit::Password);
-            ask->setLabelText(password.isEmpty() ? QStringLiteral("Enter the password for “%1”.").arg(url.fileName())
-                                                 : QStringLiteral("That password didn’t open “%1”. Try again.").arg(url.fileName()));
-            ask->setOkButtonText(QStringLiteral("OK"));
-            ask->setMinimumWidth(340);
-            connect(ask, &QInputDialog::finished, this, [this, ask, id, url](int result) {
-                const QString typed = ask->textValue();
-                if (result == QDialog::Accepted && !typed.isEmpty())
-                    expandOne(id, url, typed);
-                else
-                    Q_EMIT finished(id, {}, false);
-            });
-            ask->open();
+            const QVariantList buttons = {QVariantMap{{QStringLiteral("text"), QStringLiteral("Cancel")}, {QStringLiteral("role"), QStringLiteral("cancel")}, {QStringLiteral("cancel"), true}},
+                                          QVariantMap{{QStringLiteral("text"), QStringLiteral("OK")}, {QStringLiteral("role"), QStringLiteral("ok")}, {QStringLiteral("primary"), true}}};
+            App::tell({{QStringLiteral("icon"), QStringLiteral("org.ambrosia.archive")},
+                       {QStringLiteral("heading"), password.isEmpty() ? QStringLiteral("Enter the password for “%1”.").arg(url.fileName())
+                                                                      : QStringLiteral("That password didn’t open “%1”. Try again.").arg(url.fileName())},
+                       {QStringLiteral("secret"), true},
+                       {QStringLiteral("buttons"), buttons}},
+                      [this, id, url](const QString &role, const QString &typed) {
+                          if (role == QLatin1String("ok") && !typed.isEmpty())
+                              expandOne(id, url, typed);
+                          else
+                              Q_EMIT finished(id, {}, false);
+                      });
             return;
         }
         if (!ok && done->error() != KJob::KilledJobError)
@@ -655,18 +645,15 @@ void FileOps::emptyTrash()
         emptyTrashNow();
         return;
     }
-    auto *box = new QMessageBox(QMessageBox::Warning, QStringLiteral("Files"),
-                                QStringLiteral("Are you sure you want to permanently erase the items in the Trash?"), QMessageBox::NoButton);
-    box->setInformativeText(QStringLiteral("You can’t undo this action."));
-    box->addButton(QStringLiteral("Cancel"), QMessageBox::RejectRole);
-    QPushButton *empty = box->addButton(QStringLiteral("Empty Trash"), QMessageBox::AcceptRole);
-    box->setDefaultButton(empty);
-    box->setAttribute(Qt::WA_DeleteOnClose);
-    connect(box, &QMessageBox::finished, this, [box, empty] {
-        if (box->clickedButton() == empty)
-            emptyTrashNow();
-    });
-    box->open();
+    const QVariantList buttons = {QVariantMap{{QStringLiteral("text"), QStringLiteral("Cancel")}, {QStringLiteral("role"), QStringLiteral("cancel")}, {QStringLiteral("cancel"), true}},
+                                  QVariantMap{{QStringLiteral("text"), QStringLiteral("Empty Trash")}, {QStringLiteral("role"), QStringLiteral("empty")}, {QStringLiteral("primary"), true}}};
+    App::tell({{QStringLiteral("heading"), QStringLiteral("Are you sure you want to permanently erase the items in the Trash?")},
+               {QStringLiteral("detail"), QStringLiteral("You can’t undo this action.")},
+               {QStringLiteral("buttons"), buttons}},
+              [](const QString &role, const QString &) {
+                  if (role == QLatin1String("empty"))
+                      emptyTrashNow();
+              });
 }
 
 // Files' Settings: Remove items from the Trash after 30 days. KDE's trash

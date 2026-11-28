@@ -5,6 +5,7 @@ import QtQuick
 // Save sheet: Saving.show({ name, extension, rows, filter, save, cancel },
 // window).
 //   name       what the file is called to begin with, without extension
+//   prompt     the name's own label when it isn't "Save As:"
 //   extension  ".rtf": added to what is typed unless it ends so already;
 //              or a function of the rows' values, for a format pop-up
 //   folder     where it opens ("": where this app last saved, or Documents)
