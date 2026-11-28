@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/scrolling.h"
 #include "app.h"
 
 #include <QApplication>
@@ -35,6 +36,7 @@ int main(int argc, char *argv[])
     qputenv("QT_NO_SYNTHESIZED_BOLD", "1");
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
+    kitScrolling(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-settings"));
     QApplication::setApplicationDisplayName(QStringLiteral("System Settings"));
     QApplication::setApplicationVersion(QStringLiteral(SETTINGS_VERSION));

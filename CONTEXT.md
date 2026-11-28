@@ -1411,7 +1411,17 @@ package repo below), and they carry `shell/` and `session/` as they are.
     C++ by `kitAlert(engine, "Module", { icon, heading, detail, buttons,
     secret }, then)` (`kit/alert.h`, listed in the app's sources for moc);
     it draws its own shadow inside a see-through window larger than its
-    card, so it needs no `shadow.h`, and is deleted from its answer. An
+    card, so it needs no `shadow.h`, and is deleted from its answer.
+    A trackpad's scrolling is the kit's too (round 70): `kitScrolling(&app)`
+    in each `main()` (`kit/scrolling.h`, a header alone) takes a
+    trackpad's wheel events before any Flickable and moves the list
+    itself: momentum, the rubber band at an end, the spring home. A
+    Flickable's `moving` is therefore false under a trackpad: a thumb of
+    our own drawing reads a `scrolling` property the filter sets if the
+    Flickable has one (Settings' `Page.qml`); Qt's scroll bars are set
+    active for it. Try it without a pad in the VM with
+    `tools/fake-touchpad.py` (`flick`, `pull`, `across`) and
+    `AMBROSIA_SCROLLING=trace` in the app's environment. An
     app's menu of its own
     name (`MenuBar.qml`'s first) is its app menu in Ambrosia's bar
     (`lifted.own` in `shell/AppMenu.qml`); the title must be the desktop

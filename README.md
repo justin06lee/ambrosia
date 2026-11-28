@@ -223,8 +223,9 @@ textedit/      TextEdit (ambrosia-textedit), plain and rich text: the window in 
                Cocoa's own samples (samples/)
 kit/           what our apps share, compiled into each: the About panel, the Settings window and its
                controls (Files' Settings is files/qml/SettingsWindow.qml over src/prefs.cpp), the
-               Colors and Fonts panels, the Print panel (printing.cpp asks CUPS), and firstshortcut.h,
-               which every app's main() calls first
+               Colors and Fonts panels, the Print panel (printing.cpp asks CUPS), firstshortcut.h,
+               which every app's main() calls first, and scrolling.h, which it calls next: a
+               trackpad's momentum and rubber band in every list
 activity-monitor/ Activity Monitor (ambrosia-activity-monitor): the window in QML, the kernel read by
                src/sampler.cpp, what the numbers mean and how they are written in qml/monitor.mjs, which
                monitor.test.ts runs under bun

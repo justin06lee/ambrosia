@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/scrolling.h"
 #include "app.h"
 
 #include <QApplication>
@@ -17,6 +18,7 @@ int main(int argc, char *argv[])
     // platform's.
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
+    kitScrolling(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-disk-utility"));
     QApplication::setApplicationDisplayName(QStringLiteral("Disk Utility"));
     QApplication::setApplicationVersion(QStringLiteral(DISKUTILITY_VERSION));

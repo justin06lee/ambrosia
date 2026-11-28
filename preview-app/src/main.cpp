@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/scrolling.h"
 #include "app.h"
 #include "pages.h"
 
@@ -15,6 +16,7 @@ int main(int argc, char *argv[])
     qputenv("QT_NO_SYNTHESIZED_BOLD", "1");
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
+    kitScrolling(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-preview"));
     QApplication::setApplicationDisplayName(QStringLiteral("Preview"));
     QApplication::setApplicationVersion(QStringLiteral(PREVIEW_VERSION));

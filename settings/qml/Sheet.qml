@@ -149,6 +149,8 @@ Item {
             clip: contentHeight > height
             interactive: contentHeight > height
             boundsBehavior: Flickable.StopAtBounds
+            // Set while a trackpad moves the page (kit/scrolling.h).
+            property bool scrolling: false
             Column {
                 id: column
                 x: Look.margin
@@ -166,7 +168,7 @@ Item {
             height: body.visibleArea.heightRatio * (body.height - 6)
             radius: 3
             color: Theme.dark ? "#73ffffff" : "#59000000"
-            opacity: body.moving ? 1 : 0
+            opacity: body.moving || body.scrolling ? 1 : 0
             Behavior on opacity { NumberAnimation { duration: Theme.fade.base } }
         }
         Rectangle {
