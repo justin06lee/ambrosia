@@ -72,8 +72,8 @@ public:
     // Finder's are: whatever changes one calls this, and a moment later
     // they are written to files-windows.json in the state folder. A
     // window the user closes is forgotten; one the session closes on its
-    // way out stays in the file, and is in it still if Files is ended
-    // with windows open.
+    // way out (kit/resume.h's kitLeaving) stays in the file, and is in it
+    // still if Files is ended with windows open.
     Q_INVOKABLE void remember();
     // Opens the windows kept, at the start of the process (and from then
     // on they are kept: a run that only grabs or measures never calls

@@ -1,4 +1,6 @@
 #include "app.h"
+#include "../../kit/placing.h"
+#include "../../kit/resume.h"
 #include "../../kit/alert.h"
 #include "shadow.h"
 
@@ -264,6 +266,32 @@ QSize App::imageSize(const QUrl &file) const
 QString App::name(const QUrl &file) const
 {
     return file.fileName();
+}
+
+QString App::frameFor(const QString &file) const
+{
+    return file.isEmpty() || !m_options.grab.isEmpty() ? QString() : kitFrameName(file);
+}
+
+bool App::leaving() const
+{
+    return m_options.grab.isEmpty() && kitLeaving();
+}
+
+void App::keep(const QStringList &files) const
+{
+    kitKeepWindow(QStringLiteral("preview"), files);
+}
+
+QVariantList App::takeKept() const
+{
+    QVariantList windows;
+    if (!m_options.grab.isEmpty())
+        return windows;
+    const QList<QStringList> kept = kitTakeKept(QStringLiteral("preview"));
+    for (const QStringList &files : kept)
+        windows.append(QVariant(files));
+    return windows;
 }
 
 void App::chooseFiles()

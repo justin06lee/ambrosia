@@ -1,4 +1,5 @@
 #include "../../kit/firstshortcut.h"
+#include "../../kit/placing.h"
 #include "../../kit/scrolling.h"
 #include "app.h"
 #include "pages.h"
@@ -14,9 +15,11 @@ int main(int argc, char *argv[])
 {
     // Inter Variable has a real Bold: never let Qt fake one over it.
     qputenv("QT_NO_SYNTHESIZED_BOLD", "1");
+    KitPlacing placing(argc, argv, "org.ambrosia.preview");
     QApplication app(argc, argv);
     takeFirstShortcutId(&app);
     kitScrolling(&app);
+    kitPlacing(&app);
     QApplication::setApplicationName(QStringLiteral("ambrosia-preview"));
     QApplication::setApplicationDisplayName(QStringLiteral("Preview"));
     QApplication::setApplicationVersion(QStringLiteral(PREVIEW_VERSION));

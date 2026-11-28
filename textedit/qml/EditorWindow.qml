@@ -22,6 +22,10 @@ Window {
     property string file: ""
     // A file to open as the window is made.
     property string opening: ""
+    // The name its place and size are kept under (Main.qml gives it, from
+    // the document opened; a new document has none and opens where KWin
+    // puts it).
+    property string frameName: ""
     property bool rich: true
     property string untitledName: "Untitled"
     readonly property string name: file !== "" ? App.name(file) : untitledName

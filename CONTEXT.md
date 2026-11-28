@@ -1442,6 +1442,15 @@ package repo below), and they carry `shell/` and `session/` as they are.
     name get `name`, `name-2`…; only an app's first process has the
     session. Files keeps what its windows show itself
     (`App::remember`/`restore`, `~/.local/state/ambrosia/files-windows.json`).
+    A document's window is named for the document (`kitFrameName(url)`,
+    one of 256 names: TextEdit's documents, Preview's PDFs), never a
+    window whose size comes from what it shows (a picture's). What was
+    open at the session's end comes back by `kit/resume.h` (round 75):
+    `kitLeaving()` is Plasma's session manager saying a log out is under
+    way, asked as a window closes; `kitKeepWindow`/`kitTakeKept` hold the
+    windows so closed until the app's next start, which Plasma's own
+    restore of open apps brings about at login (`session/xdg/ksmserverrc`
+    leaves Files out of it: Files is running already).
     To move a window in the VM for a test: a KWin script setting
     `frameGeometry`. An
     app's menu of its own

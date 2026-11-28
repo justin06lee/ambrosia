@@ -1,6 +1,7 @@
 #include "app.h"
 #include "format.h"
 #include "../../kit/alert.h"
+#include "../../kit/resume.h"
 #include "fileops.h"
 #include "index.h"
 #include "portal.h"
@@ -82,8 +83,8 @@ App::App(QQmlEngine *engine, const Options &options)
     QTimer::singleShot(60 * 1000, this, &FileOps::sweepTrash);
     connect(Prefs::instance(), &Prefs::trashExpiresChanged, this, &FileOps::sweepTrash);
     // The windows kept: written a moment after the last change. One the
-    // session closed is forgotten if Files is still here two minutes on
-    // (a log out called off, the Dock's Quit), or at the next new window.
+    // session closed on its way out is forgotten if Files is still here
+    // two minutes on (a log out called off), or at the next new window.
     m_keep.setSingleShot(true);
     m_keep.setInterval(400);
     connect(&m_keep, &QTimer::timeout, this, &App::keep);
@@ -200,7 +201,9 @@ void App::left(QQuickWindow *window)
 {
     if (!m_windows.removeOne(window) || !m_keeping)
         return;
-    if (!window->property("closedHere").toBool()) {
+    // Not closed by the user: by the session on its way out (kept, for
+    // the next login) or by something else (the Dock's Quit: forgotten).
+    if (!window->property("closedHere").toBool() && kitLeaving()) {
         m_leaving.append(keptOf(window));
         m_forget.start();
     }
