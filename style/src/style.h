@@ -27,6 +27,7 @@ public:
     int pixelMetric(PixelMetric metric, const QStyleOption *option = nullptr, const QWidget *widget = nullptr) const override;
     int styleHint(StyleHint hint, const QStyleOption *option = nullptr, const QWidget *widget = nullptr, QStyleHintReturn *returnData = nullptr) const override;
     void polish(QWidget *widget) override;
+    void polish(QApplication *app) override;
     using QProxyStyle::polish;
 
 private:

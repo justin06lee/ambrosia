@@ -13,6 +13,8 @@
 
 #include "tokens.h"
 
+#include "../../kit/scrolling.h"
+
 #include <QAbstractItemView>
 #include <QAction>
 #include <QApplication>
@@ -754,6 +756,15 @@ Style::Style(const QString &base)
     , m_glass(new Glass(this))
 {
     setObjectName(QStringLiteral("ambrosia"));
+}
+
+// An app that draws with this style also scrolls as ours do under a
+// trackpad: its Qt Quick lists glide and give at their ends, its widgets'
+// scroll bars glide (kit/scrolling.h).
+void Style::polish(QApplication *app)
+{
+    QProxyStyle::polish(app);
+    kitScrolling(app);
 }
 
 void Style::polish(QWidget *widget)

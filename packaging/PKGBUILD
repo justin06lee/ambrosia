@@ -141,11 +141,12 @@ package_ambrosia-decoration() {
 }
 
 package_ambrosia-style() {
-  pkgdesc="Ambrosia's Qt widget style: every Qt app's buttons, boxes, sliders and menus as the desktop draws its own"
+  pkgdesc="Ambrosia's Qt widget style: every Qt app's buttons, boxes, sliders and menus as the desktop draws its own, and a trackpad's scrolling as a Mac's"
   # It stands on Breeze for everything it doesn't draw itself. The session's
   # look-and-feel names it (widgetStyle=ambrosia); anywhere else an app uses it
-  # when told to (QT_STYLE_OVERRIDE=ambrosia).
-  depends=(qt6-base breeze kwindowsystem)
+  # when told to (QT_STYLE_OVERRIDE=ambrosia). qt6-declarative: the QML
+  # module beside it (org.ambrosia.scrolling), which the shell imports.
+  depends=(qt6-base qt6-declarative breeze kwindowsystem)
   DESTDIR="$pkgdir" cmake --install "$srcdir/build-style"
 }
 

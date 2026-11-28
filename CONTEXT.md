@@ -1421,7 +1421,14 @@ package repo below), and they carry `shell/` and `session/` as they are.
     Flickable has one (Settings' `Page.qml`); Qt's scroll bars are set
     active for it. Try it without a pad in the VM with
     `tools/fake-touchpad.py` (`flick`, `pull`, `across`) and
-    `AMBROSIA_SCROLLING=trace` in the app's environment. An
+    `AMBROSIA_SCROLLING=trace` in the app's environment (for the whole
+    session: `systemctl --user set-environment`, then restart the shell).
+    Since round 71 the widget style calls it too (`Style::polish(QApplication
+    *)`: every Qt app that draws with the style; a Widgets view's scroll
+    bars glide by `KitWidgetScrolling`), and the shell gets it by
+    `shell/Scrolling.qml` importing `org.ambrosia.scrolling`
+    (`style/scrolling/`, a QML plugin built with the style); whoever asks
+    first installs it, once an app. An
     app's menu of its own
     name (`MenuBar.qml`'s first) is its app menu in Ambrosia's bar
     (`lifted.own` in `shell/AppMenu.qml`); the title must be the desktop

@@ -45,5 +45,16 @@ target_link_libraries(ambrosia PRIVATE ambrosia-style-objects)
 add_executable(ambrosia-style-gallery gallery/main.cpp)
 target_link_libraries(ambrosia-style-gallery PRIVATE ambrosia-style-objects)
 
+# org.ambrosia.scrolling: the same scrolling the style brings an app
+# (kit/scrolling.h), for QML that no widget style reaches: the shell imports
+# it. Left out where Qt's QML isn't to be found.
+find_package(Qt6 QUIET COMPONENTS Qml)
+if(Qt6Qml_FOUND)
+    add_library(ambrosiascrolling MODULE scrolling/plugin.cpp)
+    target_link_libraries(ambrosiascrolling PRIVATE Qt6::Core Qt6::Gui Qt6::Qml)
+    install(TARGETS ambrosiascrolling DESTINATION lib/qt6/qml/org/ambrosia/scrolling)
+    install(FILES scrolling/qmldir DESTINATION lib/qt6/qml/org/ambrosia/scrolling)
+endif()
+
 install(TARGETS ambrosia DESTINATION lib/qt6/plugins/styles)
 install(TARGETS ambrosia-style-gallery DESTINATION lib/ambrosia)
