@@ -9,6 +9,7 @@
 #include <QWheelEvent>
 
 #include <cmath>
+#include <utility>
 
 // A trackpad's scrolling, as a Mac's (DESIGN, Motion): the list follows the
 // fingers, glides on when they lift (its speed falling to 0.998 of itself
@@ -32,6 +33,13 @@
 // with a `scrolling` property of its own has it set for the same time (its
 // `moving` stays false: Qt isn't the one moving it).
 //
+// Apps that aren't ours get it too: our widget style calls kitScrolling for
+// every Qt app that draws with it (style/src/style.cpp), and the shell by
+// importing org.ambrosia.scrolling (style/scrolling). Whoever asks first
+// installs it, once an app. A Qt Widgets view (a terminal, a tree, a page
+// of text) can't be pulled past its end, but it glides: see
+// KitWidgetScrolling below.
+//
 // AMBROSIA_SCROLLING=trace in the environment writes what it does to the
 // log (which list took the fingers, the speed they left at, where the
 // list was every tenth of a second after), for a look without a hand on a
@@ -47,8 +55,7 @@ public:
         : QAbstractAnimation(app)
         , m_trace(qgetenv("AMBROSIA_SCROLLING") == "trace")
     {
-        if (qgetenv("AMBROSIA_SCROLLING") != "off")
-            app->installEventFilter(this);
+        app->installEventFilter(this);
     }
 
     int duration() const override { return -1; }
@@ -439,7 +446,197 @@ private:
     QList<Sample> m_samples;
 };
 
+// The glide for a Qt Widgets app, whose views scroll by their scroll bars:
+// while two fingers move, the scroll bars of the window that move with them
+// are noted, and how far each goes for a pixel of the fingers' way (a
+// terminal's goes a line for many, a page of text's one for one); when the
+// fingers lift, each is carried on by the same fading speed as a list of
+// ours. Nothing is taken from Qt here: the fingers' own events scroll as
+// they always did, and a view stops at its end.
+class KitWidgetScrolling : public QAbstractAnimation
+{
+public:
+    explicit KitWidgetScrolling(QGuiApplication *app)
+        : QAbstractAnimation(app)
+        , m_trace(qgetenv("AMBROSIA_SCROLLING") == "trace")
+    {
+        app->installEventFilter(this);
+    }
+
+    int duration() const override { return -1; }
+
+protected:
+    bool eventFilter(QObject *to, QEvent *event) override
+    {
+        switch (event->type()) {
+        case QEvent::Wheel:
+            break;
+        case QEvent::MouseMove:
+            if (state() == Running && to->isWindowType()
+                && (static_cast<QMouseEvent *>(event)->globalPosition() - m_pointer).manhattanLength() > 6)
+                stop();
+            return false;
+        case QEvent::MouseButtonPress:
+        case QEvent::KeyPress:
+            if (state() == Running && to->isWindowType())
+                stop();
+            return false;
+        default:
+            return false;
+        }
+
+        auto *wheel = static_cast<QWheelEvent *>(event);
+        const Qt::ScrollPhase phase = wheel->phase();
+        if (to->isWindowType()) {
+            if (!to->inherits("QWidgetWindow"))
+                return false;
+            if (phase == Qt::ScrollBegin || phase == Qt::NoScrollPhase || (phase == Qt::ScrollUpdate && !m_fingers)) {
+                stop();
+                m_fingers = phase != Qt::NoScrollPhase;
+                m_looked = false;
+                m_moved = QPoint();
+                m_samples.clear();
+                m_bars.clear();
+            }
+            if (phase == Qt::ScrollUpdate) {
+                m_moved += wheel->pixelDelta();
+                m_samples.append({wheel->timestamp(), wheel->pixelDelta()});
+                while (m_samples.size() > 1 && m_samples.constLast().time - m_samples.constFirst().time > 90)
+                    m_samples.removeFirst();
+            } else if (phase == Qt::ScrollEnd && m_fingers) {
+                // (The end comes twice, as the beginning does.)
+                m_fingers = false;
+                letGo(wheel);
+            }
+            return false;
+        }
+
+        // The first widget the fingers' first move is handed to: where its
+        // window's scroll bars stand before any of it is done.
+        if (m_fingers && !m_looked && phase == Qt::ScrollUpdate && to->isWidgetType()) {
+            m_looked = true;
+            QObject *top = to;
+            while (top->parent() && top->parent()->isWidgetType())
+                top = top->parent();
+            const auto all = top->findChildren<QObject *>();
+            // (Hidden ones too: a terminal told to show none still has it.)
+            for (QObject *one : all) {
+                if (one->inherits("QScrollBar"))
+                    m_bars.append({one, one->property("value").toInt()});
+            }
+        }
+        return false;
+    }
+
+    void updateCurrentTime(int now) override
+    {
+        const double gone = (1.0 - std::exp(-Fade * now)) / Fade;
+        bool moving = false;
+        for (Bar &bar : m_bars) {
+            // (Moved by anything else since: no longer ours to carry.)
+            if (!bar.bar || bar.over || bar.bar->property("value").toInt() != bar.set) {
+                bar.over = true;
+                continue;
+            }
+            const double to = bar.from + bar.each * bar.speed * gone;
+            const int low = bar.bar->property("minimum").toInt();
+            const int high = bar.bar->property("maximum").toInt();
+            const int set = qBound(low, qRound(to), high);
+            if (set != bar.set) {
+                bar.bar->setProperty("value", set);
+                bar.set = bar.bar->property("value").toInt();
+            }
+            bar.over = to < low || to > high || std::abs(bar.speed) * std::exp(-Fade * now) < Rest;
+            moving = moving || !bar.over;
+        }
+        if (m_trace && (now >= m_said + 100 || !moving) && !m_bars.isEmpty()) {
+            m_said = now;
+            qInfo("scrolling: %4d ms a scroll bar at %d%s", now, m_bars.constFirst().set, moving ? "" : " (rest)");
+        }
+        if (!moving)
+            stop();
+    }
+
+private:
+    static constexpr double Fade = 0.002002;
+    static constexpr double Rest = 0.012;
+    static constexpr double Fastest = 12.0;
+
+    struct Bar {
+        QPointer<QObject> bar;
+        // Where it stood when the fingers came, then where they left it.
+        int from = 0;
+        // What it moves for a pixel of the fingers' way, and their speed
+        // along it when they lifted.
+        double each = 0;
+        double speed = 0;
+        int set = 0;
+        bool over = false;
+    };
+    struct Sample {
+        quint64 time;
+        QPoint moved;
+    };
+
+    void letGo(const QWheelEvent *wheel)
+    {
+        QPointF speed;
+        if (m_samples.size() > 1 && wheel->timestamp() - m_samples.constLast().time < 60) {
+            QPoint moved;
+            for (qsizetype i = 1; i < m_samples.size(); ++i)
+                moved += m_samples.at(i).moved;
+            const double took = m_samples.constLast().time - m_samples.constFirst().time;
+            if (took > 0)
+                speed = QPointF(moved.x() / took, moved.y() / took);
+        }
+        m_samples.clear();
+
+        QList<Bar> carried;
+        for (Bar bar : std::as_const(m_bars)) {
+            if (!bar.bar)
+                continue;
+            // Qt::Vertical is 2.
+            const bool vertical = bar.bar->property("orientation").toInt() == 2;
+            const double moved = vertical ? m_moved.y() : m_moved.x();
+            const double fast = qBound(-Fastest, vertical ? speed.y() : speed.x(), Fastest);
+            const int now = bar.bar->property("value").toInt();
+            if (now == bar.from || std::abs(moved) < 8 || std::abs(fast) < 0.05)
+                continue;
+            bar.each = (now - bar.from) / moved;
+            bar.speed = fast;
+            bar.from = bar.set = now;
+            carried.append(bar);
+            if (m_trace)
+                qInfo("scrolling: a %s let go at %d going %.2f px/ms, %.3f a pixel", bar.bar->metaObject()->className(), now, fast, bar.each);
+        }
+        m_bars = carried;
+        if (!m_bars.isEmpty()) {
+            m_pointer = wheel->globalPosition();
+            m_said = -100;
+            start();
+        }
+    }
+
+    bool m_fingers = false;
+    bool m_looked = false;
+    QPoint m_moved;
+    QPointF m_pointer;
+    QList<Sample> m_samples;
+    QList<Bar> m_bars;
+    const bool m_trace;
+    int m_said = 0;
+};
+
 inline void kitScrolling(QGuiApplication *app)
 {
+    // Once an app, whoever asks: its own main(), the widget style it draws
+    // with, or a QML import. Only where a trackpad's events come with their
+    // phases (Qt's Wayland), which also leaves the compositor itself alone.
+    if (!app || app->property("_ambrosia_scrolling").toBool())
+        return;
+    app->setProperty("_ambrosia_scrolling", true);
+    if (qgetenv("AMBROSIA_SCROLLING") == "off" || QGuiApplication::platformName() != QLatin1String("wayland"))
+        return;
     new KitScrolling(app);
+    new KitWidgetScrolling(app);
 }

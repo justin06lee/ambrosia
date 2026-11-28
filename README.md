@@ -208,7 +208,9 @@ glass/         glass (ambrosia-glass): protocol/ is how a surface names its pane
                qml/ is org.ambrosia.glass, the GlassPane our QML puts where a pane is
 style/         the Qt widget style the session names: other apps' buttons, boxes, sliders and menus, over Breeze;
                its gallery draws them all into a picture with no display (make gallery),
-               or opens them as a window to use (ambrosia-style-gallery --show)
+               or opens them as a window to use (ambrosia-style-gallery --show); it also brings a
+               trackpad's scrolling (kit/scrolling.h) to every app that draws with it, and
+               scrolling/ is the QML module that brings it to the shell
 files/         Files, Ambrosia's Finder: Qt Quick UI, C++ core, art, benchmarks (bench/);
                it is also every app's Open and Save panel (the desktop portal's file chooser, src/portal.cpp)
                and tools/tenet.sh to build and photograph it on tenet

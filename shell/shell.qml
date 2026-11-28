@@ -16,6 +16,10 @@ ShellRoot {
     // reloads as you edit.
     settings.watchFiles: !Quickshell.shellDir.startsWith("/usr/")
 
+    // A trackpad's momentum and rubber band in the shell's lists, where the
+    // module that brings it is installed (Scrolling.qml).
+    Loader { source: "Scrolling.qml" }
+
     // The shell's look follows its settings.
     Binding { target: Theme; property: "dark"; value: Settings.dark }
     Binding { target: Theme; property: "accentName"; value: Settings.accent }
